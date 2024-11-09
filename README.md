@@ -12,7 +12,7 @@ A Windows-based graphical interface for modding tools that simplifies the unpack
 
 ## Prerequisites
 
-- **Python 3**: Required for running the underlying modding scripts. The application will check for Python 3 installation on startup.
+- **Python 3**: Required for running the underlying modding scripts. The application will check for Python 3 installation on startup. Make sure Python is added to your system PATH.
 - **Windows OS**: This application is designed for Windows environments.
 
 ## Installation
@@ -21,11 +21,9 @@ A Windows-based graphical interface for modding tools that simplifies the unpack
 
 1. **Download the Latest EXE**: Download the latest executable from the [Releases](https://github.com/Gladius-Community-Devs/ModdingGUI/releases) page.
 
-2. **Download the Modding Tools**: Download the modding tools posted by Dr Swift in the `modding-tools` channel in Discord.
+2. **Ensure Proper Folder Setup**: The `tools` folder is included with the release. Make sure that the `tools` folder and the downloaded executable (`.exe`) are in the same directory.
 
-3. **Ensure Proper Folder Setup**: Make sure that the `tools` folder and the downloaded executable (`.exe`) are in the same directory.
-
-4. **Execute the EXE**: Run the executable to launch the ModdingGUI application.
+3. **Execute the EXE**: Run the executable to launch the ModdingGUI application.
 
 ### Option 2: For Developers
 
