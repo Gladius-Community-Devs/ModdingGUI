@@ -215,7 +215,7 @@
             // 
             saveBatMenuItem.CheckOnClick = true;
             saveBatMenuItem.Name = "saveBatMenuItem";
-            saveBatMenuItem.Size = new Size(180, 22);
+            saveBatMenuItem.Size = new Size(140, 22);
             saveBatMenuItem.Text = "Save BAT file";
             // 
             // frmMain
@@ -228,6 +228,7 @@
             MainMenuStrip = mnuMain;
             Name = "frmMain";
             Text = "Modding Tools GUI";
+            Load += frmMain_Load;
             tabContainer.ResumeLayout(false);
             tabUnpacking.ResumeLayout(false);
             tabUnpacking.PerformLayout();

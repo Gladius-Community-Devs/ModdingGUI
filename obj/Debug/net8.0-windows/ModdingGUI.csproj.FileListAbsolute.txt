@@ -14,3 +14,4 @@ E:\code_stuff\GladiusModdingToolsGUI\ModdingGUI\obj\Debug\net8.0-windows\refint\
 E:\code_stuff\GladiusModdingToolsGUI\ModdingGUI\obj\Debug\net8.0-windows\ModdingGUI.pdb
 E:\code_stuff\GladiusModdingToolsGUI\ModdingGUI\obj\Debug\net8.0-windows\ModdingGUI.genruntimeconfig.cache
 E:\code_stuff\GladiusModdingToolsGUI\ModdingGUI\obj\Debug\net8.0-windows\ref\ModdingGUI.dll
+E:\code_stuff\GladiusModdingToolsGUI\ModdingGUI\obj\Debug\net8.0-windows\ModdingGUI.sourcelink.json

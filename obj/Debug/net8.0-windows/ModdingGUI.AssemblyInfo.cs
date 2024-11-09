@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ModdingGUI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+11f17e4a3fd8f9e75b2d7426290e33b01d07e597")]
 [assembly: System.Reflection.AssemblyProductAttribute("ModdingGUI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ModdingGUI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -25,7 +25,7 @@ namespace ModdingGUI
             if (!IsPythonInstalled())
             {
                 // Display a message box if Python 3 is not installed
-                MessageBox.Show("Python 3 is not installed. Please install Python 3 to use this tool.");
+                MessageBox.Show("Python is either not installed or not in PATH. Please fix this to use the program!");
                 Environment.Exit(0); // Exit the application
             }
         }
@@ -389,6 +389,16 @@ namespace ModdingGUI
         private void btnOpenUnpackLocation_Click(object sender, EventArgs e)
         {
             OpenLocation(txtUnpackPath.Text); // Open the unpack path location
+        }
+
+        private void frmMain_Load(object sender, EventArgs e)
+        {
+            string path = @"tools/";
+            if (!Directory.Exists(path))
+            {
+                MessageBox.Show("Tools folder not found. Download modding tools v007 or higher from the Discord!");
+                Environment.Exit(0); // Exit the application
+            }
         }
     }
 }
