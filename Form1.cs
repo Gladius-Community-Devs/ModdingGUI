@@ -3,6 +3,7 @@ using System.Diagnostics;      // Provides classes for working with processes
 using System.Drawing;          // Provides access to GDI+ basic graphics functionality
 using System.IO;               // Provides types for reading and writing to files and data streams
 using System.Text;             // Contains classes representing ASCII and Unicode character encodings
+using System.Text.RegularExpressions; // Provides classes for regular expressions
 using System.Threading.Tasks;  // Provides types that simplify the work of writing concurrent and asynchronous code
 using System.Windows.Forms;    // Provides classes for creating Windows-based applications
 
@@ -103,18 +104,21 @@ namespace ModdingGUI
         // Method to ensure a path ends with a directory separator character
         private string EnsureTrailingSeparator(string path)
         {
-            // Add a trailing directory separator if it's not already present
-            if (!string.IsNullOrEmpty(path) && !path.EndsWith(Path.DirectorySeparatorChar.ToString()))
-            {
-                path += Path.DirectorySeparatorChar; // Append the directory separator character
-            }
-            return path; // Return the modified or original path
+            // Trim any existing trailing separators
+            path = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            // Add the directory separator
+            path += Path.DirectorySeparatorChar;
+            return path;
         }
 
         // Method to normalize a file path by replacing backslashes with forward slashes
         private string NormalizePath(string path)
         {
-            return path.Replace("\\", "/"); // Replace backslashes with forward slashes
+            // Replace backslashes with forward slashes
+            path = path.Replace("\\", "/");
+            // Replace multiple forward slashes with a single slash
+            path = Regex.Replace(path, "/{2,}", "/");
+            return path;
         }
 
         // Method to generate the content of the batch file for unpacking operations
@@ -128,15 +132,24 @@ namespace ModdingGUI
             AppendLog($"Top-level folder created: {topLevelFolder}"); // Log the creation of the folder
 
             // Define the tools path relative to the current directory and normalize it
-            string toolsPath = NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
+            string toolsPath = Path.Combine(Directory.GetCurrentDirectory(), "tools");
+            toolsPath = NormalizePath(toolsPath);
 
             // Define paths for the ISO and BEC folders within the top-level folder
-            string isoFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(topLevelFolder, $"{userInput}_ISO")));
-            string becFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(topLevelFolder, $"{userInput}_BEC")));
+            string isoFolder = Path.Combine(topLevelFolder, $"{userInput}_ISO");
+            isoFolder = EnsureTrailingSeparator(isoFolder);
+            isoFolder = NormalizePath(isoFolder);
+
+            string becFolder = Path.Combine(topLevelFolder, $"{userInput}_BEC");
+            becFolder = EnsureTrailingSeparator(becFolder);
+            becFolder = NormalizePath(becFolder);
+
             Directory.CreateDirectory(isoFolder); // Ensure the ISO folder exists for the file list
 
             // Prepare the command to unpack the ISO file
-            string ngcisoToolPath = NormalizePath(Path.Combine(toolsPath, "ngciso-tool.py")); // Path to ngciso-tool.py
+            string ngcisoToolPath = Path.Combine(toolsPath, "ngciso-tool.py"); // Path to ngciso-tool.py
+            ngcisoToolPath = NormalizePath(ngcisoToolPath);
+
             string isoPathQuoted = QuotePath(NormalizePath(isoPath));                         // Quoted and normalized ISO path
             string isoFolderQuoted = QuotePath(isoFolder);                                    // Quoted ISO folder path
 
@@ -144,21 +157,28 @@ namespace ModdingGUI
             sb.AppendLine($"python \"{ngcisoToolPath}\" -unpack {isoPathQuoted} {isoFolderQuoted} {userInput}_FileList.txt");
 
             // Prepare the command to unpack BEC files
-            string becToolPath = NormalizePath(Path.Combine(toolsPath, "bec-tool-all.py"));        // Path to bec-tool-all.py
-            string becInputPath = NormalizePath(Path.Combine(isoFolder, "gladius.bec"));           // Path to gladius.bec within ISO folder
-            string becInputPathQuoted = QuotePath(becInputPath);                                   // Quoted BEC input path
-            string becFolderQuoted = QuotePath(becFolder);                                         // Quoted BEC folder path
+            string becToolPath = Path.Combine(toolsPath, "bec-tool-all.py");        // Path to bec-tool-all.py
+            becToolPath = NormalizePath(becToolPath);
+
+            string becInputPath = Path.Combine(isoFolder, "gladius.bec");           // Path to gladius.bec within ISO folder
+            becInputPath = NormalizePath(becInputPath);
+            string becInputPathQuoted = QuotePath(becInputPath);                    // Quoted BEC input path
+            string becFolderQuoted = QuotePath(becFolder);                          // Quoted BEC folder path
 
             // Append the command to the StringBuilder
             sb.AppendLine($"python \"{becToolPath}\" --platform GC -unpack {becInputPathQuoted} {becFolderQuoted}");
 
             // Prepare the command to unpack units
-            string unitsUnpackToolPath = NormalizePath(Path.Combine(toolsPath, "Gladius_Units_IDX_Unpack.py")); // Path to unit unpack tool
-            string dataFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(becFolder, "Data")));        // Path to Data folder within BEC folder
-            string dataFolderQuoted = QuotePath(dataFolder);                                                    // Quoted Data folder path
+            string unitsUnpackToolPath = Path.Combine(toolsPath, "Gladius_Units_IDX_Unpack.py"); // Path to unit unpack tool
+            unitsUnpackToolPath = NormalizePath(unitsUnpackToolPath);
+
+            string dataFolder = Path.Combine(becFolder, "Data");        // Path to Data folder within BEC folder
+            dataFolder = EnsureTrailingSeparator(dataFolder);
+            dataFolder = NormalizePath(dataFolder);
+            string dataFolderQuoted = QuotePath(dataFolder);            // Quoted Data folder path
 
             // Append the command to the StringBuilder
-            sb.AppendLine($"python \"{unitsUnpackToolPath}\" {dataFolderQuoted}");
+            sb.AppendLine($"python \"{unitsUnpackToolPath}\" \"{dataFolderQuoted}\"");
 
             return sb.ToString(); // Return the generated batch file content as a string
         }
@@ -169,47 +189,90 @@ namespace ModdingGUI
             StringBuilder sb = new StringBuilder(); // StringBuilder to construct the batch file content
 
             // Retrieve the base folder name from the user's input
-            string baseName = Path.GetFileName(selectedFolder.TrimEnd(Path.DirectorySeparatorChar));
+            string baseName = Path.GetFileName(selectedFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
             // Define paths for tools, BEC folder, ISO folder, and output ISO file
-            string toolsPath = NormalizePath(EnsureTrailingSeparator(Path.Combine(Directory.GetCurrentDirectory(), "tools")));
-            string becFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(selectedFolder, $"{baseName}_BEC"))); // Path to BEC folder
-            string isoFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(selectedFolder, $"{baseName}_ISO"))); // Path to ISO folder
-            string isoFile = NormalizePath(Path.Combine(selectedFolder, $"{baseName}.iso"));                           // Path to output ISO file
+            string toolsPath = Path.Combine(Directory.GetCurrentDirectory(), "tools");
+            toolsPath = EnsureTrailingSeparator(toolsPath);
+            toolsPath = NormalizePath(toolsPath);
+
+            string becFolder = Path.Combine(selectedFolder, $"{baseName}_BEC"); // Path to BEC folder
+            becFolder = EnsureTrailingSeparator(becFolder);
+            becFolder = NormalizePath(becFolder);
+
+            string isoFolder = Path.Combine(selectedFolder, $"{baseName}_ISO"); // Path to ISO folder
+            isoFolder = EnsureTrailingSeparator(isoFolder);
+            isoFolder = NormalizePath(isoFolder);
+
+            string isoFile = Path.Combine(selectedFolder, $"{baseName}.iso");   // Path to output ISO file
+            isoFile = NormalizePath(isoFile);
 
             // Prepare the command to update token numbers
-            string tokNumUpdatePath = NormalizePath(Path.Combine(toolsPath, "Tok_Num_Update.py"));              // Path to Tok_Num_Update.py
-            string dataConfigFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(becFolder, "Data", "Config"))); // Path to Config folder
+            string tokNumUpdatePath = Path.Combine(toolsPath, "Tok_Num_Update.py");              // Path to Tok_Num_Update.py
+            tokNumUpdatePath = NormalizePath(tokNumUpdatePath);
+
+            string dataConfigFolder = Path.Combine(becFolder, "Data", "Config"); // Path to Config folder
+            dataConfigFolder = EnsureTrailingSeparator(dataConfigFolder);
+            dataConfigFolder = NormalizePath(dataConfigFolder);
+
             sb.AppendLine($"python \"{tokNumUpdatePath}\" \"{dataConfigFolder}\"");                             // Append the command
 
             // Prepare the command to compile skills.tok
-            string tokToolPath = NormalizePath(Path.Combine(toolsPath, "tok-tool.py"));               // Path to tok-tool.py
-            string skillsTokPath = NormalizePath(Path.Combine(dataConfigFolder, "skills.tok"));       // Path to skills.tok
-            string skillsStringsBinPath = NormalizePath(Path.Combine(dataConfigFolder, "skills_strings.bin")); // Path to skills_strings.bin
-            string skillsLinesBinPath = NormalizePath(Path.Combine(dataConfigFolder, "skills_lines.bin"));     // Path to skills_lines.bin
-            string skillsTokBrfPath = NormalizePath(Path.Combine(dataConfigFolder, "skills.tok.brf"));         // Path to skills.tok.brf
+            string tokToolPath = Path.Combine(toolsPath, "tok-tool.py");               // Path to tok-tool.py
+            tokToolPath = NormalizePath(tokToolPath);
+
+            string skillsTokPath = Path.Combine(dataConfigFolder, "skills.tok");       // Path to skills.tok
+            skillsTokPath = NormalizePath(skillsTokPath);
+
+            string skillsStringsBinPath = Path.Combine(dataConfigFolder, "skills_strings.bin"); // Path to skills_strings.bin
+            skillsStringsBinPath = NormalizePath(skillsStringsBinPath);
+
+            string skillsLinesBinPath = Path.Combine(dataConfigFolder, "skills_lines.bin");     // Path to skills_lines.bin
+            skillsLinesBinPath = NormalizePath(skillsLinesBinPath);
+
+            string skillsTokBrfPath = Path.Combine(dataConfigFolder, "skills.tok.brf");         // Path to skills.tok.brf
+            skillsTokBrfPath = NormalizePath(skillsTokBrfPath);
 
             sb.AppendLine($"python \"{tokToolPath}\" -c \"{skillsTokPath}\" \"{skillsStringsBinPath}\" \"{skillsLinesBinPath}\" \"{skillsTokBrfPath}\""); // Append the command
 
             // Prepare the command to update strings.bin
-            string updateStringsBinPath = NormalizePath(Path.Combine(toolsPath, "Update_Strings_Bin.py")); // Path to Update_Strings_Bin.py
+            string updateStringsBinPath = Path.Combine(toolsPath, "Update_Strings_Bin.py"); // Path to Update_Strings_Bin.py
+            updateStringsBinPath = NormalizePath(updateStringsBinPath);
+
             sb.AppendLine($"python \"{updateStringsBinPath}\" \"{dataConfigFolder}\"");                   // Append the command
 
             // Prepare the command to repack units
-            string unitsRepackToolPath = NormalizePath(Path.Combine(toolsPath, "Gladius_Units_IDX_Repack.py")); // Path to unit repack tool
-            string dataFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(becFolder, "Data")));        // Path to Data folder
+            string unitsRepackToolPath = Path.Combine(toolsPath, "Gladius_Units_IDX_Repack.py"); // Path to unit repack tool
+            unitsRepackToolPath = NormalizePath(unitsRepackToolPath);
+
+            string dataFolder = Path.Combine(becFolder, "Data");        // Path to Data folder
+            dataFolder = EnsureTrailingSeparator(dataFolder);
+            dataFolder = NormalizePath(dataFolder);
+
             sb.AppendLine($"python \"{unitsRepackToolPath}\" \"{dataFolder}\"");                                // Append the command
 
             // Prepare the command to pack BEC files
-            string becToolPath = NormalizePath(Path.Combine(toolsPath, "bec-tool-all.py"));        // Path to bec-tool-all.py
-            string becFilePath = NormalizePath(Path.Combine(becFolder, "gladius.bec"));           // Path to gladius.bec output
-            string fileListPath = NormalizePath(Path.Combine(becFolder, "filelist.txt"));         // Path to filelist.txt
+            string becToolPath = Path.Combine(toolsPath, "bec-tool-all.py");        // Path to bec-tool-all.py
+            becToolPath = NormalizePath(becToolPath);
+
+            string becFilePath = Path.Combine(isoFolder, "gladius.bec");           // Path to gladius.bec output, which lives in the ISO folder
+            becFilePath = NormalizePath(becFilePath);
+
+            string fileListPath = Path.Combine(becFolder, "filelist.txt");         // Path to filelist.txt
+            fileListPath = NormalizePath(fileListPath);
+
             sb.AppendLine($"python \"{becToolPath}\" -pack \"{becFolder}\" \"{becFilePath}\" \"{fileListPath}\" --platform GC"); // Append the command
 
             // Prepare the command to pack the ISO
-            string ngcisoToolPath = NormalizePath(Path.Combine(toolsPath, "ngciso-tool.py"));                // Path to ngciso-tool.py
-            string fstBinPath = NormalizePath(Path.Combine(isoFolder, "fst.bin"));                           // Path to fst.bin
-            string gladiusFileListPath = NormalizePath(Path.Combine(isoFolder, $"{baseName}_FileList.txt")); // Path to file list
+            string ngcisoToolPath = Path.Combine(toolsPath, "ngciso-tool.py");                // Path to ngciso-tool.py
+            ngcisoToolPath = NormalizePath(ngcisoToolPath);
+
+            string fstBinPath = Path.Combine(isoFolder, "fst.bin");                           // Path to fst.bin
+            fstBinPath = NormalizePath(fstBinPath);
+
+            string gladiusFileListPath = Path.Combine(isoFolder, $"{baseName}_FileList.txt"); // Path to file list
+            gladiusFileListPath = NormalizePath(gladiusFileListPath);
+
             sb.AppendLine($"python \"{ngcisoToolPath}\" -pack \"{isoFolder}\" \"{fstBinPath}\" \"{gladiusFileListPath}\" \"{isoFile}\""); // Append the command
 
             return sb.ToString(); // Return the generated batch file content as a string
@@ -227,10 +290,11 @@ namespace ModdingGUI
                 File.WriteAllText(batchFilePath, batchContent);
                 AppendLog($"Saved batch file: {batchFilePath}", InfoColor, isUnpack); // Log that the batch file was saved
 
-                // Set up the process start info to execute the batch file
+                // Set up the process start info to execute the batch file via cmd.exe
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = batchFilePath,          // Batch file to execute
+                    FileName = "cmd.exe",
+                    Arguments = $"/c \"{batchFilePath}\"",
                     WorkingDirectory = workingDirectory, // Set the working directory
                     UseShellExecute = false,           // Do not use the OS shell
                     RedirectStandardOutput = true,     // Redirect standard output
@@ -288,7 +352,9 @@ namespace ModdingGUI
             try
             {
                 // Create the top-level folder based on the sanitized user input
-                string topLevelFolder = Path.Combine(Directory.GetCurrentDirectory(), NormalizePath(EnsureTrailingSeparator(userInput)));
+                string topLevelFolder = Path.Combine(Directory.GetCurrentDirectory(), userInput);
+                topLevelFolder = NormalizePath(EnsureTrailingSeparator(topLevelFolder));
+
                 // Generate the batch file content for unpacking
                 string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
 
@@ -298,7 +364,7 @@ namespace ModdingGUI
                 AppendLog("Unpacking completed successfully.", SuccessColor, true); // Log successful completion
 
                 // Update the pack path text box to point to the created unpack folder
-                txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                txtPackPath.Text = topLevelFolder;
             }
             catch (Exception ex)
             {
@@ -311,7 +377,8 @@ namespace ModdingGUI
         private async void btnPack_Click(object sender, EventArgs e)
         {
             // Get the selected folder path from the text box and ensure it ends with a directory separator
-            string selectedFolder = EnsureTrailingSeparator(txtPackPath.Text);
+            string selectedFolder = txtPackPath.Text;
+            selectedFolder = NormalizePath(EnsureTrailingSeparator(selectedFolder));
 
             // Validate that the selected folder exists
             if (!Directory.Exists(selectedFolder))
@@ -369,6 +436,7 @@ namespace ModdingGUI
         // Method to open a folder location in Windows Explorer
         private void OpenLocation(string path)
         {
+            AppendLog($"Opening location: {path}", InfoColor, false); // Log the opening of the location
             if (Directory.Exists(path)) // Check if the directory exists
             {
                 Process.Start("explorer.exe", QuotePath(path)); // Open the folder in Explorer
@@ -382,7 +450,7 @@ namespace ModdingGUI
         // Event handler for the 'Open Pack Location' button click event
         private void btnOpenPackLocation_Click(object sender, EventArgs e)
         {
-            OpenLocation(txtPackPath.Text); // Open the pack path location
+            OpenLocation(txtUnpackPath.Text); // Open the pack path location
         }
 
         // Event handler for the 'Open Unpack Location' button click event
