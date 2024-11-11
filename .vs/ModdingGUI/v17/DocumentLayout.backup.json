@@ -46,8 +46,8 @@
               "Title": "Form1.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs",
               "RelativeDocumentMoniker": "Form1.cs",
-              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs*",
-              "RelativeToolTip": "Form1.cs*",
+              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs",
+              "RelativeToolTip": "Form1.cs",
               "ViewState": "AgIAAAEBAAAAAAAAAAAAAAwBAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-08T07:25:32.986Z",
@@ -59,11 +59,10 @@
               "Title": "Form1.cs [Design]",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs",
               "RelativeDocumentMoniker": "Form1.cs",
-              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs [Design]*",
-              "RelativeToolTip": "Form1.cs [Design]*",
+              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs [Design]",
+              "RelativeToolTip": "Form1.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-08T07:29:03.031Z",
-              "EditorCaption": " [Design]"
+              "WhenOpened": "2024-11-08T07:29:03.031Z"
             },
             {
               "$type": "Document",
@@ -75,8 +74,7 @@
               "RelativeToolTip": "devnotes.txt",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAABCAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2024-11-11T01:53:35.09Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-11T01:53:35.09Z"
             },
             {
               "$type": "Document",
@@ -88,8 +86,7 @@
               "RelativeToolTip": "frmMain_partials\\BATGeneration.cs",
               "ViewState": "AgIAAFEAAAAAAAAAAAAAAIQAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-11T03:08:31.14Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-11T03:08:31.14Z"
             },
             {
               "$type": "Document",
@@ -114,7 +111,8 @@
               "RelativeToolTip": "frmMain_partials\\Utilities.cs",
               "ViewState": "AgIAAD8AAAAAAAAAAADwv1wAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-11T03:06:00.667Z"
+              "WhenOpened": "2024-11-11T03:06:00.667Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -126,8 +124,7 @@
               "RelativeToolTip": "Form1.Designer.cs",
               "ViewState": "AgIAABYAAAAAAAAAAAAowBYAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-08T07:27:10.268Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-08T07:27:10.268Z"
             }
           ]
         }
