@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;      // Provides classes for working with processes
 using System.Text;             // Contains classes representing ASCII and Unicode character encodings
 using System.Text.RegularExpressions; // Provides classes for regular expressions
@@ -208,25 +209,119 @@ namespace ModdingGUI
             }
         }
 
-        private void btnRandomize_Click(object sender, EventArgs e)
+        private async void btnRandomize_Click(object sender, EventArgs e)
         {
-            if (chbRandomHeroes.Checked)
-            {
-                RandomizeHeroes(txtRandomizerPath.Text); // Randomize the heroes and pass the project path
-            }
+            // Disable the randomize button
+            btnRandomize.Enabled = false;
 
-            if (chbRandomTeam.Checked)
-            {
-                RandomizeTeam(txtRandomizerPath.Text); // Randomize the team and pass the project path
-            }
+            // Initialize the random number generator
+            InitializeRandom();
 
-            if (chbRandomNoRecruits.Checked)
-            {
-                RemoveAllRecruits(txtRandomizerPath.Text); // Remove all recruits and pass the project path
-            }
+            // Clear the log buffer
+            randomizerLogBuffer.Clear();
 
-            EditEncounterFiles(txtRandomizerPath.Text, chbRandomPermaDeath.Checked); // Randomize the perma death and pass the project path
+            try
+            {
+                if (chbRandomHeroes.Checked)
+                {
+                    lblRandomizeStatus.Text = "Randomizing heroes...";
+                    await Task.Run(() => RandomizeHeroes(txtRandomizerPath.Text));
+                }
+
+                if (chbRandomTeam.Checked)
+                {
+                    lblRandomizeStatus.Text = "Randomizing team...";
+                    await Task.Run(() => RandomizeTeam(txtRandomizerPath.Text));
+                }
+
+                if (chbRandomNoRecruits.Checked)
+                {
+                    lblRandomizeStatus.Text = "Removing all recruits...";
+
+                    // Initialize progress bar on UI thread
+                    pgbRandomizeStatus.Minimum = 0;
+                    pgbRandomizeStatus.Value = 0;
+
+                    // Prepare paths and files
+                    string leaguesPath = Path.Combine(txtRandomizerPath.Text, $"{Path.GetFileName(txtRandomizerPath.Text)}_BEC", "data", "towns", "leagues");
+                    var tokFiles = Directory.GetFiles(leaguesPath, "*.tok", SearchOption.AllDirectories);
+                    pgbRandomizeStatus.Maximum = tokFiles.Length;
+
+                    // Create progress reporter on UI thread
+                    var removeRecruitsProgress = new Progress<int>(value =>
+                    {
+                        pgbRandomizeStatus.Value = value;
+                    });
+
+                    // Create log message queue
+                    ConcurrentQueue<(string message, Color color)> removeRecruitsLogMessages = new ConcurrentQueue<(string, Color)>();
+
+                    // Run the method on a background thread
+                    await Task.Run(() => RemoveAllRecruits(txtRandomizerPath.Text, removeRecruitsProgress, removeRecruitsLogMessages));
+
+                    if(randomizerLogsMenuItem.Checked)
+                    {
+                        // Process log messages on UI thread
+                        while (removeRecruitsLogMessages.TryDequeue(out var logMessage))
+                        {
+                            AppendLog(logMessage.message, logMessage.color, false);
+                        }
+                    }
+                }
+
+                lblRandomizeStatus.Text = "Editing encounter files...";
+
+                // Initialize progress bar on UI thread
+                pgbRandomizeStatus.Minimum = 0;
+                pgbRandomizeStatus.Value = 0;
+
+                // Prepare paths and files
+                string encountersPath = Path.Combine(txtRandomizerPath.Text, $"{Path.GetFileName(txtRandomizerPath.Text)}_BEC", "data", "encounters");
+                var encFiles = Directory.GetFiles(encountersPath, "*.enc", SearchOption.AllDirectories);
+                pgbRandomizeStatus.Maximum = encFiles.Length;
+
+                // Create progress reporter on UI thread
+                var editEncountersProgress = new Progress<int>(value =>
+                {
+                    pgbRandomizeStatus.Value = value;
+                });
+
+                // Create log message queue
+                ConcurrentQueue<(string message, Color color)> editEncountersLogMessages = new ConcurrentQueue<(string, Color)>();
+
+                // Run the method on a background thread
+                await Task.Run(() => EditEncounterFiles(txtRandomizerPath.Text, chbRandomPermaDeath.Checked, editEncountersProgress, editEncountersLogMessages));
+
+               
+
+                // Reset lblRandomizeStatus and progress bar
+                lblRandomizeStatus.Text = "Ready";
+                pgbRandomizeStatus.Value = 0;
+
+                // Output the collected logs if logging is enabled
+                if (randomizerLogsMenuItem.Checked)
+                {
+                    foreach (var logEntry in randomizerLogBuffer)
+                    {
+                        AppendLog(logEntry.message, logEntry.color, false);
+                    }
+                    // Process log messages on UI thread
+                    while (editEncountersLogMessages.TryDequeue(out var logMessage))
+                    {
+                        AppendLog(logMessage.message, logMessage.color, false);
+                    }
+                }
+            }
+            finally
+            {
+                // Re-enable the randomize button
+                btnRandomize.Enabled = true;
+                AppendLog("Randomization completed. (That was snappy!)", SuccessColor, false);
+                tabContainer.SelectedTab = tabPacking;
+            }
         }
+
+
 
         private void txtUnpackPath_Click(object sender, EventArgs e)
         {

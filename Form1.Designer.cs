@@ -48,7 +48,7 @@
             rbnUrsula = new RadioButton();
             rbnValens = new RadioButton();
             txtSeed = new TextBox();
-            label1 = new Label();
+            lblRandomizeStatus = new Label();
             pgbRandomizeStatus = new ProgressBar();
             grpBaseOptions = new GroupBox();
             chbRandomPermaDeath = new CheckBox();
@@ -224,7 +224,7 @@
             // 
             tabRandomizer.Controls.Add(grpHeroSelection);
             tabRandomizer.Controls.Add(txtSeed);
-            tabRandomizer.Controls.Add(label1);
+            tabRandomizer.Controls.Add(lblRandomizeStatus);
             tabRandomizer.Controls.Add(pgbRandomizeStatus);
             tabRandomizer.Controls.Add(grpBaseOptions);
             tabRandomizer.Controls.Add(btnRandomizerPath);
@@ -278,18 +278,18 @@
             txtSeed.TabIndex = 9;
             txtSeed.Text = "Enter a seed here!";
             // 
-            // label1
+            // lblRandomizeStatus
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(190, 369);
-            label1.Name = "label1";
-            label1.Size = new Size(42, 15);
-            label1.TabIndex = 8;
-            label1.Text = "Status:";
+            lblRandomizeStatus.AutoSize = true;
+            lblRandomizeStatus.Location = new Point(190, 340);
+            lblRandomizeStatus.Name = "lblRandomizeStatus";
+            lblRandomizeStatus.Size = new Size(42, 15);
+            lblRandomizeStatus.TabIndex = 8;
+            lblRandomizeStatus.Text = "Status:";
             // 
             // pgbRandomizeStatus
             // 
-            pgbRandomizeStatus.Location = new Point(238, 367);
+            pgbRandomizeStatus.Location = new Point(190, 361);
             pgbRandomizeStatus.Name = "pgbRandomizeStatus";
             pgbRandomizeStatus.Size = new Size(171, 23);
             pgbRandomizeStatus.TabIndex = 7;
@@ -501,7 +501,7 @@
         private CheckBox chbRandomPermaDeath;
         private CheckBox chbRandomNoRecruits;
         private ProgressBar pgbRandomizeStatus;
-        private Label label1;
+        private Label lblRandomizeStatus;
         private TextBox txtSeed;
         private ToolStripMenuItem randomizerLogsMenuItem;
         private GroupBox grpHeroSelection;
