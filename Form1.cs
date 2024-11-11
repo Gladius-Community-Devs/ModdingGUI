@@ -42,7 +42,16 @@ namespace ModdingGUI
             {
                 // Create the top-level folder based on the sanitized user input
                 string topLevelFolder = Path.Combine(Directory.GetCurrentDirectory(), userInput);
-                topLevelFolder = NormalizePath(EnsureTrailingSeparator(topLevelFolder));
+
+                // Ensure the top-level folder exists
+                if (!Directory.Exists(topLevelFolder))
+                {
+                    Directory.CreateDirectory(topLevelFolder);
+                    AppendLog($"Top-level folder created: {topLevelFolder}", InfoColor, true); // Log the creation of the folder
+                }
+
+                // Normalize the path for batch file generation
+                string normalizedTopLevelFolder = NormalizePath(EnsureTrailingSeparator(topLevelFolder));
 
                 // Generate the batch file content for unpacking
                 string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
@@ -54,7 +63,7 @@ namespace ModdingGUI
 
                 // Update the pack path text box to point to the created unpack folder
                 txtPackPath.Text = topLevelFolder;
-                txtRandomizerPath.Text = topLevelFolder;
+                txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 btnRandomize.Enabled = true;
             }
             catch (Exception ex)
@@ -63,6 +72,7 @@ namespace ModdingGUI
                 AppendLog("Error during unpacking: " + ex.Message, ErrorColor, true);
             }
         }
+
 
         // Event handler for the Pack button click event
         private async void btnPack_Click(object sender, EventArgs e)
@@ -141,14 +151,26 @@ namespace ModdingGUI
 
         private void frmMain_Load(object sender, EventArgs e)
         {
+            // Check for parentheses in the executable path
+            string exePath = Application.ExecutablePath;
+            if (exePath.Contains("(") || exePath.Contains(")"))
+            {
+                MessageBox.Show("The program cannot run from a file path containing parentheses. Please move it to a different location.");
+                Environment.Exit(0); // Exit the application
+            }
+
+            // Check for the existence of the tools folder
             string path = @"tools/";
             if (!Directory.Exists(path))
             {
                 MessageBox.Show("Tools folder not found. Download modding tools v007 or higher from the Discord!");
                 Environment.Exit(0); // Exit the application
             }
+
+            // Remove the randomizer tab on load
             tabContainer.TabPages.Remove(tabRandomizer);
         }
+
 
         private void randomizerMenuItem_Click(object sender, EventArgs e)
         {
@@ -191,7 +213,6 @@ namespace ModdingGUI
             if (chbRandomHeroes.Checked)
             {
                 RandomizeHeroes(txtRandomizerPath.Text); // Randomize the heroes and pass the project path
-                EditEncounterFiles(txtRandomizerPath.Text, chbRandomPermaDeath.Checked); // Randomize the perma death and pass the project path
             }
 
             if (chbRandomTeam.Checked)
@@ -201,8 +222,10 @@ namespace ModdingGUI
 
             if (chbRandomNoRecruits.Checked)
             {
-
+                RemoveAllRecruits(txtRandomizerPath.Text); // Remove all recruits and pass the project path
             }
+
+            EditEncounterFiles(txtRandomizerPath.Text, chbRandomPermaDeath.Checked); // Randomize the perma death and pass the project path
         }
 
         private void txtUnpackPath_Click(object sender, EventArgs e)

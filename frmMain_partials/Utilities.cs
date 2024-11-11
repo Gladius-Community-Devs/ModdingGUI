@@ -70,13 +70,27 @@ namespace ModdingGUI
         // Method to enclose a file path in quotes if it's not already quoted
         private string QuotePath(string path)
         {
-            // Check if the path is not null or whitespace and not already quoted
-            if (!string.IsNullOrWhiteSpace(path) && !path.StartsWith("\"") && !path.EndsWith("\""))
+            if (string.IsNullOrWhiteSpace(path))
             {
-                return $"\"{path}\""; // Enclose the path in quotes
+                return "\"\"";
             }
-            return path; // Return the original path if already quoted
+
+            // Escape special characters used in batch files
+            string escapedPath = path
+                .Replace("^", "^^")   // Escape caret
+                .Replace("&", "^&")   // Escape ampersand
+                .Replace("<", "^<")   // Escape less than
+                .Replace(">", "^>")   // Escape greater than
+                .Replace("|", "^|")   // Escape pipe
+                .Replace("(", "^(")   // Escape opening parenthesis
+                .Replace(")", "^)")   // Escape closing parenthesis
+                .Replace("%", "%%")   // Escape percent sign
+                .Replace("\"", "\"\""); // Escape double quotes
+
+            // Enclose the path in double quotes
+            return $"\"{escapedPath}\"";
         }
+
 
         // Method to ensure a path ends with a directory separator character
         private string EnsureTrailingSeparator(string path)

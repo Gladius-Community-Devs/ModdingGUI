@@ -142,12 +142,12 @@ namespace ModdingGUI
                 // Array of main hero names
                 string[] heroNames = new string[]
                 {
-                    "Valens",
-                    "Ursula",
-                    "Ludo",
-                    "Urlan",
-                    "Eiji",
-                    "Gwazi"
+            "Valens",
+            "Ursula",
+            "Ludo",
+            "Urlan",
+            "Eiji",
+            "Gwazi"
                 };
 
                 // Load gladiators, stat sets, item sets, and skill sets
@@ -175,6 +175,8 @@ namespace ModdingGUI
 
                 // Assign classes to heroes ensuring each hero gets a class with gladiators
                 List<string> assignedClasses = new List<string>();
+                Dictionary<string, string> heroClassMap = new Dictionary<string, string>();
+
                 for (int i = 0; i < heroNames.Length; i++)
                 {
                     string heroName = heroNames[i];
@@ -189,6 +191,7 @@ namespace ModdingGUI
                         if (gladiatorEntries.Any(g => g.Class == candidateClass))
                         {
                             assignedClasses.Add(candidateClass);
+                            heroClassMap[heroName] = candidateClass;
                             classAssigned = true;
                             break;
                         }
@@ -206,6 +209,24 @@ namespace ModdingGUI
                 WriteUnitsToFile(projectFolder, heroNames.ToList(), assignedClasses, gladiatorEntries, statSets, itemSets, skillSets, "ursulanordagh.tok", "Ursula");
 
                 AppendRandomizerLog("Heroes randomized and saved.", SuccessColor);
+                // Add entries for Valens and Ursula to worldmap.tok based on their assigned classes
+                if (rbnValens.Checked)
+                {
+                    if (heroClassMap.TryGetValue("Valens", out string valensClass))
+                    {
+                        UpdateWorldmapWithCharacter(projectFolder, "Valens", valensClass);
+                        AppendRandomizerLog("Valens entry added to worldmap.tok.", SuccessColor);
+                    }
+                }
+                else
+                {
+                    if (heroClassMap.TryGetValue("Ursula", out string ursulaClass))
+                    {
+                        UpdateWorldmapWithCharacter(projectFolder, "Ursula", ursulaClass);
+                        AppendRandomizerLog("Ursula entry added to worldmap.tok.", SuccessColor);
+                    }
+                }
+                
             }
             finally
             {
@@ -222,7 +243,7 @@ namespace ModdingGUI
                 btnRandomize.Enabled = true;
                 Thread.Sleep(1000);
                 tabContainer.SelectedTab = tabPacking;
-                AppendLog("Randomization complete (Yes it is that fast). Proceed to the Pack your project!", InfoColor, false);
+                AppendLog("Randomization complete.(Yes it is that fast) Proceed to pack your project!", InfoColor, false);
             }
         }
 
@@ -321,6 +342,53 @@ namespace ModdingGUI
             }
         }
 
+        private void RemoveAllRecruits(string projectFolder)
+        {
+            string leaguesPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "towns", "leagues");
+            var tokFiles = Directory.GetFiles(leaguesPath, "*.tok", SearchOption.AllDirectories);
+
+            AppendRandomizerLog("Starting to remove all recruits...", InfoColor);
+
+            foreach (var tokFile in tokFiles)
+            {
+                try
+                {
+                    bool fileModified = false;
+
+                    // Read all lines from the file
+                    var lines = File.ReadAllLines(tokFile).ToList();
+
+                    // Filter out lines starting with "RECRUIT"
+                    var filteredLines = lines.Where(line => !line.TrimStart().StartsWith("RECRUIT")).ToList();
+
+                    // Check if any lines were removed
+                    if (filteredLines.Count != lines.Count)
+                    {
+                        fileModified = true;
+                    }
+
+                    // Rewrite file only if modifications were made
+                    if (fileModified)
+                    {
+                        File.WriteAllLines(tokFile, filteredLines);
+                        AppendRandomizerLog($"Recruits removed from file: {tokFile}", SuccessColor);
+                    }
+                    else
+                    {
+                        AppendRandomizerLog($"No recruits found in file: {tokFile}", InfoColor);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AppendRandomizerLog($"Error processing file {tokFile}: {ex.Message}", ErrorColor);
+                }
+            }
+
+            AppendRandomizerLog("All recruits have been processed.", SuccessColor);
+        }
+
+
+
         private List<string> GetEligibleClasses(string projectFolder)
         {
             string classDefsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "classdefs.tok");
@@ -338,6 +406,26 @@ namespace ModdingGUI
                 }
             }
             return eligibleClasses;
+        }
+
+        // Method to add CHARACTER entries to worldmap.tok for specified heroes
+        private void UpdateWorldmapWithCharacter(string projectFolder, string heroName, string assignedClass)
+        {
+            string worldmapPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "worldmap.tok");
+
+            // Check if worldmap.tok exists; if not, create it
+            List<string> worldmapLines = File.Exists(worldmapPath) ? File.ReadAllLines(worldmapPath).ToList() : new List<string>();
+
+            // Construct the CHARACTER line
+            string characterLine = $"CHARACTER \"{heroName}\" \"{assignedClass}\" \"idlePassive\" \"moveWalk\" \"moveRun\"";
+
+            // Append the CHARACTER line to the worldmap file
+            worldmapLines.Add(characterLine);
+
+            // Write the modified content back to worldmap.tok
+            File.WriteAllLines(worldmapPath, worldmapLines);
+
+            AppendRandomizerLog($"Added CHARACTER entry for {heroName} with class {assignedClass} to worldmap.tok.", InfoColor);
         }
 
         private void WriteUnitsToFile(string projectFolder, List<string> unitNames, List<string> unitClasses, List<GladiatorEntry> gladiatorEntries, Dictionary<int, List<int>> statSets, Dictionary<int, List<string>> itemSets, Dictionary<int, List<string>> skillSets, string fileName, string heroName)

@@ -44,6 +44,9 @@
             btnPackPath = new Button();
             txtPackPath = new TextBox();
             tabRandomizer = new TabPage();
+            grpHeroSelection = new GroupBox();
+            rbnUrsula = new RadioButton();
+            rbnValens = new RadioButton();
             txtSeed = new TextBox();
             label1 = new Label();
             pgbRandomizeStatus = new ProgressBar();
@@ -66,6 +69,7 @@
             tabUnpacking.SuspendLayout();
             tabPacking.SuspendLayout();
             tabRandomizer.SuspendLayout();
+            grpHeroSelection.SuspendLayout();
             grpBaseOptions.SuspendLayout();
             mnuMain.SuspendLayout();
             SuspendLayout();
@@ -218,6 +222,7 @@
             // 
             // tabRandomizer
             // 
+            tabRandomizer.Controls.Add(grpHeroSelection);
             tabRandomizer.Controls.Add(txtSeed);
             tabRandomizer.Controls.Add(label1);
             tabRandomizer.Controls.Add(pgbRandomizeStatus);
@@ -231,6 +236,39 @@
             tabRandomizer.TabIndex = 2;
             tabRandomizer.Text = "Randomizer";
             tabRandomizer.UseVisualStyleBackColor = true;
+            // 
+            // grpHeroSelection
+            // 
+            grpHeroSelection.Controls.Add(rbnUrsula);
+            grpHeroSelection.Controls.Add(rbnValens);
+            grpHeroSelection.Location = new Point(643, 36);
+            grpHeroSelection.Name = "grpHeroSelection";
+            grpHeroSelection.Size = new Size(141, 66);
+            grpHeroSelection.TabIndex = 10;
+            grpHeroSelection.TabStop = false;
+            grpHeroSelection.Text = "Choose Starting Hero";
+            // 
+            // rbnUrsula
+            // 
+            rbnUrsula.AutoSize = true;
+            rbnUrsula.Location = new Point(6, 43);
+            rbnUrsula.Name = "rbnUrsula";
+            rbnUrsula.Size = new Size(58, 19);
+            rbnUrsula.TabIndex = 1;
+            rbnUrsula.Text = "Ursula";
+            rbnUrsula.UseVisualStyleBackColor = true;
+            // 
+            // rbnValens
+            // 
+            rbnValens.AutoSize = true;
+            rbnValens.Checked = true;
+            rbnValens.Location = new Point(6, 18);
+            rbnValens.Name = "rbnValens";
+            rbnValens.Size = new Size(58, 19);
+            rbnValens.TabIndex = 0;
+            rbnValens.TabStop = true;
+            rbnValens.Text = "Valens";
+            rbnValens.UseVisualStyleBackColor = true;
             // 
             // txtSeed
             // 
@@ -290,7 +328,6 @@
             chbRandomNoRecruits.TabIndex = 6;
             chbRandomNoRecruits.Text = "No recruits";
             chbRandomNoRecruits.UseVisualStyleBackColor = true;
-            chbRandomNoRecruits.Visible = false;
             // 
             // chbRandomVanillaOrNah
             // 
@@ -422,6 +459,8 @@
             tabPacking.PerformLayout();
             tabRandomizer.ResumeLayout(false);
             tabRandomizer.PerformLayout();
+            grpHeroSelection.ResumeLayout(false);
+            grpHeroSelection.PerformLayout();
             grpBaseOptions.ResumeLayout(false);
             grpBaseOptions.PerformLayout();
             mnuMain.ResumeLayout(false);
@@ -465,5 +504,8 @@
         private Label label1;
         private TextBox txtSeed;
         private ToolStripMenuItem randomizerLogsMenuItem;
+        private GroupBox grpHeroSelection;
+        private RadioButton rbnUrsula;
+        private RadioButton rbnValens;
     }
 }

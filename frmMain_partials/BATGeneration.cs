@@ -8,159 +8,72 @@ namespace ModdingGUI
         // Method to generate the content of the batch file for unpacking operations
         private string GenerateUnpackBatchFileContent(string isoPath, string userInput)
         {
-            StringBuilder sb = new StringBuilder(); // StringBuilder to construct the batch file content
+            StringBuilder sb = new StringBuilder();
 
-            // Create the top-level folder based on user input in the current directory
-            string topLevelFolder = Path.Combine(Directory.GetCurrentDirectory(), userInput);
-            Directory.CreateDirectory(topLevelFolder); // Create the directory if it doesn't exist
-            AppendLog($"Top-level folder created: {topLevelFolder}"); // Log the creation of the folder
+            // Paths
+            string topLevelFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(Directory.GetCurrentDirectory(), userInput)));
+            string toolsPath = NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
+            string ngcisoToolPath = NormalizePath(Path.Combine(toolsPath, "ngciso-tool.py"));
+            string isoFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(topLevelFolder, $"{userInput}_ISO")));
+            string becToolPath = NormalizePath(Path.Combine(toolsPath, "bec-tool-all.py"));
+            string becInputPath = NormalizePath(Path.Combine(isoFolder, "gladius.bec"));
+            string becFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(topLevelFolder, $"{userInput}_BEC")));
+            string unitsUnpackToolPath = NormalizePath(Path.Combine(toolsPath, "Gladius_Units_IDX_Unpack.py"));
+            string dataFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(becFolder, "Data")));
 
-            // Define the tools path relative to the current directory and normalize it
-            string toolsPath = Path.Combine(Directory.GetCurrentDirectory(), "tools");
-            toolsPath = NormalizePath(toolsPath);
+            // Commands
+            sb.AppendLine($"python {QuotePath(ngcisoToolPath)} -unpack {QuotePath(isoPath)} {QuotePath(isoFolder)} {userInput}_FileList.txt");
+            sb.AppendLine($"python {QuotePath(becToolPath)} --platform GC -unpack {QuotePath(becInputPath)} {QuotePath(becFolder)}");
+            sb.AppendLine($"python {QuotePath(unitsUnpackToolPath)} {QuotePath(dataFolder)}");
 
-            // Define paths for the ISO and BEC folders within the top-level folder
-            string isoFolder = Path.Combine(topLevelFolder, $"{userInput}_ISO");
-            isoFolder = EnsureTrailingSeparator(isoFolder);
-            isoFolder = NormalizePath(isoFolder);
-
-            string becFolder = Path.Combine(topLevelFolder, $"{userInput}_BEC");
-            becFolder = EnsureTrailingSeparator(becFolder);
-            becFolder = NormalizePath(becFolder);
-
-            Directory.CreateDirectory(isoFolder); // Ensure the ISO folder exists for the file list
-
-            // Prepare the command to unpack the ISO file
-            string ngcisoToolPath = Path.Combine(toolsPath, "ngciso-tool.py"); // Path to ngciso-tool.py
-            ngcisoToolPath = NormalizePath(ngcisoToolPath);
-
-            string isoPathQuoted = QuotePath(NormalizePath(isoPath));                         // Quoted and normalized ISO path
-            string isoFolderQuoted = QuotePath(isoFolder);                                    // Quoted ISO folder path
-
-            // Append the command to the StringBuilder
-            sb.AppendLine($"python \"{ngcisoToolPath}\" -unpack {isoPathQuoted} {isoFolderQuoted} {userInput}_FileList.txt");
-
-            // Prepare the command to unpack BEC files
-            string becToolPath = Path.Combine(toolsPath, "bec-tool-all.py");        // Path to bec-tool-all.py
-            becToolPath = NormalizePath(becToolPath);
-
-            string becInputPath = Path.Combine(isoFolder, "gladius.bec");           // Path to gladius.bec within ISO folder
-            becInputPath = NormalizePath(becInputPath);
-            string becInputPathQuoted = QuotePath(becInputPath);                    // Quoted BEC input path
-            string becFolderQuoted = QuotePath(becFolder);                          // Quoted BEC folder path
-
-            // Append the command to the StringBuilder
-            sb.AppendLine($"python \"{becToolPath}\" --platform GC -unpack {becInputPathQuoted} {becFolderQuoted}");
-
-            // Prepare the command to unpack units
-            string unitsUnpackToolPath = Path.Combine(toolsPath, "Gladius_Units_IDX_Unpack.py"); // Path to unit unpack tool
-            unitsUnpackToolPath = NormalizePath(unitsUnpackToolPath);
-
-            string dataFolder = Path.Combine(becFolder, "Data");        // Path to Data folder within BEC folder
-            dataFolder = EnsureTrailingSeparator(dataFolder);
-            dataFolder = NormalizePath(dataFolder);
-            string dataFolderQuoted = QuotePath(dataFolder);            // Quoted Data folder path
-
-            // Append the command to the StringBuilder
-            sb.AppendLine($"python \"{unitsUnpackToolPath}\" \"{dataFolderQuoted}\"");
-
-            return sb.ToString(); // Return the generated batch file content as a string
+            return sb.ToString();
         }
+
 
         // Method to generate the content of the batch file for packing operations
         private string GeneratePackBatchFileContent(string selectedFolder)
         {
-            StringBuilder sb = new StringBuilder(); // StringBuilder to construct the batch file content
+            StringBuilder sb = new StringBuilder();
 
-            // Retrieve the base folder name from the user's input
+            // Paths
             string baseName = Path.GetFileName(selectedFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            string toolsPath = NormalizePath(EnsureTrailingSeparator(Path.Combine(Directory.GetCurrentDirectory(), "tools")));
+            string becFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(selectedFolder, $"{baseName}_BEC")));
+            string isoFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(selectedFolder, $"{baseName}_ISO")));
+            string isoFile = NormalizePath(Path.Combine(selectedFolder, $"{baseName}.iso"));
 
-            // Define paths for tools, BEC folder, ISO folder, and output ISO file
-            string toolsPath = Path.Combine(Directory.GetCurrentDirectory(), "tools");
-            toolsPath = EnsureTrailingSeparator(toolsPath);
-            toolsPath = NormalizePath(toolsPath);
+            string tokNumUpdatePath = NormalizePath(Path.Combine(toolsPath, "Tok_Num_Update.py"));
+            string dataConfigFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(becFolder, "Data", "Config")));
+            string tokToolPath = NormalizePath(Path.Combine(toolsPath, "tok-tool.py"));
+            string skillsTokPath = NormalizePath(Path.Combine(dataConfigFolder, "skills.tok"));
+            string skillsStringsBinPath = NormalizePath(Path.Combine(dataConfigFolder, "skills_strings.bin"));
+            string skillsLinesBinPath = NormalizePath(Path.Combine(dataConfigFolder, "skills_lines.bin"));
+            string skillsTokBrfPath = NormalizePath(Path.Combine(dataConfigFolder, "skills.tok.brf"));
+            string updateStringsBinPath = NormalizePath(Path.Combine(toolsPath, "Update_Strings_Bin.py"));
 
-            string becFolder = Path.Combine(selectedFolder, $"{baseName}_BEC"); // Path to BEC folder
-            becFolder = EnsureTrailingSeparator(becFolder);
-            becFolder = NormalizePath(becFolder);
+            string unitsRepackToolPath = NormalizePath(Path.Combine(toolsPath, "Gladius_Units_IDX_Repack.py"));
+            string dataFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(becFolder, "Data")));
 
-            string isoFolder = Path.Combine(selectedFolder, $"{baseName}_ISO"); // Path to ISO folder
-            isoFolder = EnsureTrailingSeparator(isoFolder);
-            isoFolder = NormalizePath(isoFolder);
+            string becToolPath = NormalizePath(Path.Combine(toolsPath, "bec-tool-all.py"));
+            string becFilePath = NormalizePath(Path.Combine(isoFolder, "gladius.bec"));
+            string fileListPath = NormalizePath(Path.Combine(becFolder, "filelist.txt"));
 
-            string isoFile = Path.Combine(selectedFolder, $"{baseName}.iso");   // Path to output ISO file
-            isoFile = NormalizePath(isoFile);
+            string ngcisoToolPath = NormalizePath(Path.Combine(toolsPath, "ngciso-tool.py"));
+            string fstBinPath = NormalizePath(Path.Combine(isoFolder, "fst.bin"));
+            string gladiusFileListPath = NormalizePath(Path.Combine(isoFolder, $"{baseName}_FileList.txt"));
 
-            // Prepare the command to update token numbers
-            string tokNumUpdatePath = Path.Combine(toolsPath, "Tok_Num_Update.py");              // Path to Tok_Num_Update.py
-            tokNumUpdatePath = NormalizePath(tokNumUpdatePath);
+            // Commands
+            sb.AppendLine($"python {QuotePath(tokNumUpdatePath)} {QuotePath(dataConfigFolder)}");
+            sb.AppendLine($"python {QuotePath(tokToolPath)} -c {QuotePath(skillsTokPath)} {QuotePath(skillsStringsBinPath)} {QuotePath(skillsLinesBinPath)} {QuotePath(skillsTokBrfPath)}");
+            sb.AppendLine($"python {QuotePath(updateStringsBinPath)} {QuotePath(dataConfigFolder)}");
+            sb.AppendLine($"python {QuotePath(unitsRepackToolPath)} {QuotePath(dataFolder)}");
+            sb.AppendLine($"python {QuotePath(becToolPath)} -pack {QuotePath(becFolder)} {QuotePath(becFilePath)} {QuotePath(fileListPath)} --platform GC");
+            sb.AppendLine($"python {QuotePath(ngcisoToolPath)} -pack {QuotePath(isoFolder)} {QuotePath(fstBinPath)} {QuotePath(gladiusFileListPath)} {QuotePath(isoFile)}");
 
-            string dataConfigFolder = Path.Combine(becFolder, "Data", "Config"); // Path to Config folder
-            dataConfigFolder = EnsureTrailingSeparator(dataConfigFolder);
-            dataConfigFolder = NormalizePath(dataConfigFolder);
-
-            sb.AppendLine($"python \"{tokNumUpdatePath}\" \"{dataConfigFolder}\"");                             // Append the command
-
-            // Prepare the command to compile skills.tok
-            string tokToolPath = Path.Combine(toolsPath, "tok-tool.py");               // Path to tok-tool.py
-            tokToolPath = NormalizePath(tokToolPath);
-
-            string skillsTokPath = Path.Combine(dataConfigFolder, "skills.tok");       // Path to skills.tok
-            skillsTokPath = NormalizePath(skillsTokPath);
-
-            string skillsStringsBinPath = Path.Combine(dataConfigFolder, "skills_strings.bin"); // Path to skills_strings.bin
-            skillsStringsBinPath = NormalizePath(skillsStringsBinPath);
-
-            string skillsLinesBinPath = Path.Combine(dataConfigFolder, "skills_lines.bin");     // Path to skills_lines.bin
-            skillsLinesBinPath = NormalizePath(skillsLinesBinPath);
-
-            string skillsTokBrfPath = Path.Combine(dataConfigFolder, "skills.tok.brf");         // Path to skills.tok.brf
-            skillsTokBrfPath = NormalizePath(skillsTokBrfPath);
-
-            sb.AppendLine($"python \"{tokToolPath}\" -c \"{skillsTokPath}\" \"{skillsStringsBinPath}\" \"{skillsLinesBinPath}\" \"{skillsTokBrfPath}\""); // Append the command
-
-            // Prepare the command to update strings.bin
-            string updateStringsBinPath = Path.Combine(toolsPath, "Update_Strings_Bin.py"); // Path to Update_Strings_Bin.py
-            updateStringsBinPath = NormalizePath(updateStringsBinPath);
-
-            sb.AppendLine($"python \"{updateStringsBinPath}\" \"{dataConfigFolder}\"");                   // Append the command
-
-            // Prepare the command to repack units
-            string unitsRepackToolPath = Path.Combine(toolsPath, "Gladius_Units_IDX_Repack.py"); // Path to unit repack tool
-            unitsRepackToolPath = NormalizePath(unitsRepackToolPath);
-
-            string dataFolder = Path.Combine(becFolder, "Data");        // Path to Data folder
-            dataFolder = EnsureTrailingSeparator(dataFolder);
-            dataFolder = NormalizePath(dataFolder);
-
-            sb.AppendLine($"python \"{unitsRepackToolPath}\" \"{dataFolder}\"");                                // Append the command
-
-            // Prepare the command to pack BEC files
-            string becToolPath = Path.Combine(toolsPath, "bec-tool-all.py");        // Path to bec-tool-all.py
-            becToolPath = NormalizePath(becToolPath);
-
-            string becFilePath = Path.Combine(isoFolder, "gladius.bec");           // Path to gladius.bec output, which lives in the ISO folder
-            becFilePath = NormalizePath(becFilePath);
-
-            string fileListPath = Path.Combine(becFolder, "filelist.txt");         // Path to filelist.txt
-            fileListPath = NormalizePath(fileListPath);
-
-            sb.AppendLine($"python \"{becToolPath}\" -pack \"{becFolder}\" \"{becFilePath}\" \"{fileListPath}\" --platform GC"); // Append the command
-
-            // Prepare the command to pack the ISO
-            string ngcisoToolPath = Path.Combine(toolsPath, "ngciso-tool.py");                // Path to ngciso-tool.py
-            ngcisoToolPath = NormalizePath(ngcisoToolPath);
-
-            string fstBinPath = Path.Combine(isoFolder, "fst.bin");                           // Path to fst.bin
-            fstBinPath = NormalizePath(fstBinPath);
-
-            string gladiusFileListPath = Path.Combine(isoFolder, $"{baseName}_FileList.txt"); // Path to file list
-            gladiusFileListPath = NormalizePath(gladiusFileListPath);
-
-            sb.AppendLine($"python \"{ngcisoToolPath}\" -pack \"{isoFolder}\" \"{fstBinPath}\" \"{gladiusFileListPath}\" \"{isoFile}\""); // Append the command
-
-            return sb.ToString(); // Return the generated batch file content as a string
+            return sb.ToString();
         }
+
+
 
         // Asynchronous method to run the generated batch file
         private async Task RunBatchFileAsync(string batchContent, string workingDirectory, bool isUnpack)
@@ -174,11 +87,14 @@ namespace ModdingGUI
                 File.WriteAllText(batchFilePath, batchContent);
                 AppendLog($"Saved batch file: {batchFilePath}", InfoColor, isUnpack); // Log that the batch file was saved
 
+                // Use QuotePath to properly quote and escape the batch file path
+                string quotedBatchFilePath = QuotePath(batchFilePath);
+
                 // Set up the process start info to execute the batch file via cmd.exe
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = $"/c \"{batchFilePath}\"",
+                    Arguments = $"/c {quotedBatchFilePath}",
                     WorkingDirectory = workingDirectory, // Set the working directory
                     UseShellExecute = false,           // Do not use the OS shell
                     RedirectStandardOutput = true,     // Redirect standard output
