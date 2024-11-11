@@ -25,6 +25,8 @@ A Windows-based graphical interface for modding tools that simplifies the unpack
 
 3. **Execute the EXE**: Run the executable to launch the ModdingGUI application.
 
+4. Windows might catch the program, you can select More Info > Run Anyways in order to execute the exe
+
 ### Option 2: For Developers
 
 1. **Clone the Repository**: Clone this repository to your local machine.
