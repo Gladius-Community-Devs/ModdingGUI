@@ -26,7 +26,7 @@ namespace ModdingGUI
         private readonly Color WarningColor = Color.Orange;
 
         // Blacklisted Vanilla classes
-        string[] blacklistedClasses = new string[]
+        string[] blacklistedVanillaClasses = new string[]
         {
             "BeastAir",
             "BeastDarkAir",
@@ -80,7 +80,6 @@ namespace ModdingGUI
             "TitanWater",
             "Usus",
             "WolfGreater",
-            "Jötunn",
             "UrsulaCostumeA",
             "UrsulaCostumeB",
             "ValensCostumeA",
@@ -221,7 +220,6 @@ namespace ModdingGUI
             "TitanEarth",
             "TitanFire",
             "TitanWater",
-            "Jötunn",
             "UrsulaCostumeA",
             "UrsulaCostumeB",
             "ValensCostumeA",
@@ -403,6 +401,7 @@ namespace ModdingGUI
                 var itemSets = ParseItemSets(projectFolder);
                 var skillSets = ParseSkillSets(projectFolder);
 
+                // Generate a list of gladiator names with a "_random" suffix
                 List<string> gladiatorNames = gladiatorEntries.Select(g => g.Name + "_random").ToList();
 
                 if (gladiatorNames.Count < 14)
@@ -411,8 +410,9 @@ namespace ModdingGUI
                     return;
                 }
 
-                // Shuffle gladiator names
+                // Shuffle gladiator names to randomize selection
                 gladiatorNames.Shuffle(random);
+                AppendRandomizerLog("Gladiator names shuffled.", InfoColor);
 
                 // Load eligible classes from classdefs.tok
                 var eligibleClasses = GetEligibleClasses(projectFolder);
@@ -420,41 +420,32 @@ namespace ModdingGUI
                 // Filter eligible classes to those that have corresponding gladiator entries
                 var classesWithGladiators = eligibleClasses.Where(c => gladiatorEntries.Any(g => g.Class == c)).ToList();
 
-                if (classesWithGladiators.Count < 14)
+                if (classesWithGladiators.Count < 1)
                 {
-                    AppendRandomizerLog("Not enough classes with gladiator entries available for team randomization.", ErrorColor);
+                    AppendRandomizerLog("No eligible classes with gladiator entries available for team randomization.", ErrorColor);
                     return;
                 }
 
-                // Assign classes to team members ensuring each gets a class with gladiators
+                // **Shuffle classesWithGladiators to ensure randomness**
+                classesWithGladiators.Shuffle(random);
+                AppendRandomizerLog("Eligible classes shuffled.", InfoColor);
+
+                // Assign classes to team members allowing repeats
                 List<string> teamNames = new List<string>();
                 List<string> assignedClasses = new List<string>();
 
                 for (int i = 0; i < 14; i++)
                 {
                     string gladiatorName = gladiatorNames[i];
-                    bool classAssigned = false;
 
-                    while (classesWithGladiators.Count > 0)
-                    {
-                        string candidateClass = classesWithGladiators[0];
-                        classesWithGladiators.RemoveAt(0);
+                    // **Randomly select a class with replacement**
+                    string candidateClass = classesWithGladiators[random.Next(classesWithGladiators.Count)];
 
-                        // Check if the class has gladiator entries
-                        if (gladiatorEntries.Any(g => g.Class == candidateClass))
-                        {
-                            teamNames.Add(gladiatorName);
-                            assignedClasses.Add(candidateClass);
-                            classAssigned = true;
-                            break;
-                        }
-                    }
+                    // Assign the selected class to the gladiator
+                    teamNames.Add(gladiatorName);
+                    assignedClasses.Add(candidateClass);
 
-                    if (!classAssigned)
-                    {
-                        AppendRandomizerLog($"Could not assign a class with gladiators to team member '{gladiatorName}'.", ErrorColor);
-                        return;
-                    }
+                    AppendRandomizerLog($"Assigned class '{candidateClass}' to team member '{gladiatorName}'.", InfoColor);
                 }
 
                 // Append the team to the existing hero files
@@ -462,6 +453,10 @@ namespace ModdingGUI
                 AppendUnitsToFile(projectFolder, teamNames, assignedClasses, gladiatorEntries, statSets, itemSets, skillSets, "ursulanordagh.tok");
 
                 AppendRandomizerLog("Team randomized and saved.", SuccessColor);
+            }
+            catch (Exception ex)
+            {
+                AppendRandomizerLog($"Error during team randomization: {ex.Message}", ErrorColor);
             }
             finally
             {
@@ -473,11 +468,9 @@ namespace ModdingGUI
                         AppendLog(logEntry.message, logEntry.color, false);
                     }
                 }
-
-                // Re-enable the randomize button
-                //btnRandomize.Enabled = true;
             }
         }
+
 
         private void RemoveAllRecruits(string projectFolder, IProgress<int> progress, ConcurrentQueue<(string message, Color color)> logMessages)
         {
@@ -532,7 +525,19 @@ namespace ModdingGUI
         {
             string classDefsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "classdefs.tok");
             List<string> eligibleClasses = new List<string>();
-
+            string[] blacklistedClasses = null;
+            if (rbnLeonarths.Checked)
+            {
+                blacklistedClasses = blacklistedLeonarthClasses;
+            }
+            if(rbnRagnaroks.Checked)
+            {
+                blacklistedClasses = blacklistedRagnarokClasses;
+            }
+            if (rbnVanilla.Checked)
+            {
+                blacklistedClasses = blacklistedVanillaClasses;
+            }
             foreach (string line in File.ReadLines(classDefsPath))
             {
                 if (line.StartsWith("CREATECLASS:"))
@@ -861,12 +866,7 @@ namespace ModdingGUI
         }
 
         // Precompile the regex patterns
-        private static readonly Regex teamZeroRegex = new Regex(@"^TEAM:\s*0\s*,\s*0\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex teamRegex = new Regex(@"^TEAM:", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex unitDbRegex = new Regex(@"^UNITDB:", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex unitDbLineRegex = new Regex(@"UNITDB:\s*""(.*?)""\s*,\s*99\s*,\s*""(.*?)""\s*,", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-        // Precompile the new regex pattern
         private static readonly Regex teamLineRegex = new Regex(@"^TEAM:\s*(\d+)\s*,\s*(\d+)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private void EditEncounterFiles(

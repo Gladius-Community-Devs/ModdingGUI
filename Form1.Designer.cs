@@ -67,6 +67,10 @@
             randomizerLogsMenuItem = new ToolStripMenuItem();
             funOptionsToolStripMenuItem = new ToolStripMenuItem();
             randomizerMenuItem = new ToolStripMenuItem();
+            grpGameVersion = new GroupBox();
+            rbnVanilla = new RadioButton();
+            rbnRagnaroks = new RadioButton();
+            rbnLeonarths = new RadioButton();
             tabContainer.SuspendLayout();
             tabUnpacking.SuspendLayout();
             tabPacking.SuspendLayout();
@@ -74,6 +78,7 @@
             grpHeroSelection.SuspendLayout();
             grpBaseOptions.SuspendLayout();
             mnuMain.SuspendLayout();
+            grpGameVersion.SuspendLayout();
             SuspendLayout();
             // 
             // tabContainer
@@ -248,6 +253,7 @@
             // 
             // tabRandomizer
             // 
+            tabRandomizer.Controls.Add(grpGameVersion);
             tabRandomizer.Controls.Add(grpHeroSelection);
             tabRandomizer.Controls.Add(txtSeed);
             tabRandomizer.Controls.Add(lblRandomizeStatus);
@@ -466,6 +472,50 @@
             randomizerMenuItem.Text = "Randomizer";
             randomizerMenuItem.Click += randomizerMenuItem_Click;
             // 
+            // grpGameVersion
+            // 
+            grpGameVersion.Controls.Add(rbnLeonarths);
+            grpGameVersion.Controls.Add(rbnRagnaroks);
+            grpGameVersion.Controls.Add(rbnVanilla);
+            grpGameVersion.Location = new Point(643, 108);
+            grpGameVersion.Name = "grpGameVersion";
+            grpGameVersion.Size = new Size(141, 136);
+            grpGameVersion.TabIndex = 11;
+            grpGameVersion.TabStop = false;
+            grpGameVersion.Text = "Choose Game Version";
+            // 
+            // rbnVanilla
+            // 
+            rbnVanilla.AutoSize = true;
+            rbnVanilla.Checked = true;
+            rbnVanilla.Location = new Point(6, 22);
+            rbnVanilla.Name = "rbnVanilla";
+            rbnVanilla.Size = new Size(59, 19);
+            rbnVanilla.TabIndex = 0;
+            rbnVanilla.TabStop = true;
+            rbnVanilla.Text = "Vanilla";
+            rbnVanilla.UseVisualStyleBackColor = true;
+            // 
+            // rbnRagnaroks
+            // 
+            rbnRagnaroks.AutoSize = true;
+            rbnRagnaroks.Location = new Point(6, 47);
+            rbnRagnaroks.Name = "rbnRagnaroks";
+            rbnRagnaroks.Size = new Size(111, 19);
+            rbnRagnaroks.TabIndex = 1;
+            rbnRagnaroks.Text = "Ragnarok's Mod";
+            rbnRagnaroks.UseVisualStyleBackColor = true;
+            // 
+            // rbnLeonarths
+            // 
+            rbnLeonarths.AutoSize = true;
+            rbnLeonarths.Location = new Point(6, 72);
+            rbnLeonarths.Name = "rbnLeonarths";
+            rbnLeonarths.Size = new Size(108, 19);
+            rbnLeonarths.TabIndex = 2;
+            rbnLeonarths.Text = "Leonarth's Mod";
+            rbnLeonarths.UseVisualStyleBackColor = true;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -491,6 +541,8 @@
             grpBaseOptions.PerformLayout();
             mnuMain.ResumeLayout(false);
             mnuMain.PerformLayout();
+            grpGameVersion.ResumeLayout(false);
+            grpGameVersion.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -535,5 +587,9 @@
         private RadioButton rbnValens;
         private CheckBox chbValidationSkip;
         private ProgressBar pgbValidation;
+        private GroupBox grpGameVersion;
+        private RadioButton rbnLeonarths;
+        private RadioButton rbnRagnaroks;
+        private RadioButton rbnVanilla;
     }
 }
