@@ -266,6 +266,7 @@ namespace ModdingGUI
 
         private async void RandomizeHeroes(string projectFolder)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             // Disable the randomize button
             btnRandomize.Enabled = false;
 
@@ -384,6 +385,7 @@ namespace ModdingGUI
 
         private async void RandomizeTeam(string projectFolder)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             // Disable the randomize button
             btnRandomize.Enabled = false;
 
@@ -474,6 +476,7 @@ namespace ModdingGUI
 
         private void RemoveAllRecruits(string projectFolder, IProgress<int> progress, ConcurrentQueue<(string message, Color color)> logMessages)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string leaguesPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "towns", "leagues");
             var tokFiles = Directory.GetFiles(leaguesPath, "*.tok", SearchOption.AllDirectories);
 
@@ -523,6 +526,7 @@ namespace ModdingGUI
         }
         private List<string> GetEligibleClasses(string projectFolder)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string classDefsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "classdefs.tok");
             List<string> eligibleClasses = new List<string>();
             string[] blacklistedClasses = null;
@@ -555,6 +559,7 @@ namespace ModdingGUI
         // Method to add CHARACTER entries to worldmap.tok for specified heroes
         private void UpdateWorldmapWithCharacter(string projectFolder, string heroName, string assignedClass)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string worldmapPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "worldmap.tok");
 
             // Check if worldmap.tok exists; if not, create it
@@ -574,6 +579,7 @@ namespace ModdingGUI
 
         private void WriteUnitsToFile(string projectFolder, List<string> unitNames, List<string> unitClasses, List<GladiatorEntry> gladiatorEntries, Dictionary<int, List<int>> statSets, Dictionary<int, List<string>> itemSets, Dictionary<int, List<string>> skillSets, string fileName, string heroName)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "school", fileName);
             List<string> outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 2500" };
 
@@ -654,6 +660,7 @@ namespace ModdingGUI
         }
         private void AddRandomizedMenuEntry(string projectFolder)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             // Path to main.mnu
             string menuFilePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "menu", "main.mnu");
 
@@ -686,6 +693,7 @@ namespace ModdingGUI
 
         private List<GladiatorEntry> ParseGladiators(string projectFolder)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "gladiators.txt");
             List<GladiatorEntry> entries = new List<GladiatorEntry>();
 
@@ -733,6 +741,7 @@ namespace ModdingGUI
 
         private Dictionary<int, List<int>> ParseStatSets(string projectFolder)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "statsets.txt");
             Dictionary<int, List<int>> statSets = new Dictionary<int, List<int>>();
 
@@ -760,6 +769,7 @@ namespace ModdingGUI
 
         private Dictionary<int, List<string>> ParseItemSets(string projectFolder)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "itemsets.txt");
             Dictionary<int, List<string>> itemSets = new Dictionary<int, List<string>>();
 
@@ -832,6 +842,7 @@ namespace ModdingGUI
 
         private Dictionary<int, List<string>> ParseSkillSets(string projectFolder)
         {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "skillsets.txt");
             Dictionary<int, List<string>> skillSets = new Dictionary<int, List<string>>();
 
@@ -877,6 +888,7 @@ namespace ModdingGUI
         {
             try
             {
+                projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 string encountersPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "encounters");
                 var encFiles = Directory.GetFiles(encountersPath, "*.enc", SearchOption.AllDirectories);
 

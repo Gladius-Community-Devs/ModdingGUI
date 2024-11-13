@@ -27,6 +27,13 @@ namespace ModdingGUI
         {
             string isoPath = txtISOPath.Text; // Get the ISO path from the text box
 
+            // Check if the ISO path contains parentheses
+            if (isoPath.Contains("(") || isoPath.Contains(")"))
+            {
+                MessageBox.Show("The ISO path cannot contain parentheses. Please select a different path.");
+                return; // Exit the method
+            }
+
             // Get the user input for the folder name, trim whitespace, and replace spaces with underscores
             string userInput = txtUnpackPath.Text.Trim().Replace(" ", "_");
 
@@ -81,6 +88,7 @@ namespace ModdingGUI
             // Get the selected folder path from the text box and ensure it ends with a directory separator
             string selectedFolder = txtPackPath.Text;
             selectedFolder = NormalizePath(EnsureTrailingSeparator(selectedFolder));
+            selectedFolder = selectedFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
             // Validate that the selected folder exists
             if (!Directory.Exists(selectedFolder))

@@ -46,6 +46,10 @@
             btnPackPath = new Button();
             txtPackPath = new TextBox();
             tabRandomizer = new TabPage();
+            grpGameVersion = new GroupBox();
+            rbnLeonarths = new RadioButton();
+            rbnRagnaroks = new RadioButton();
+            rbnVanilla = new RadioButton();
             grpHeroSelection = new GroupBox();
             rbnUrsula = new RadioButton();
             rbnValens = new RadioButton();
@@ -67,18 +71,14 @@
             randomizerLogsMenuItem = new ToolStripMenuItem();
             funOptionsToolStripMenuItem = new ToolStripMenuItem();
             randomizerMenuItem = new ToolStripMenuItem();
-            grpGameVersion = new GroupBox();
-            rbnVanilla = new RadioButton();
-            rbnRagnaroks = new RadioButton();
-            rbnLeonarths = new RadioButton();
             tabContainer.SuspendLayout();
             tabUnpacking.SuspendLayout();
             tabPacking.SuspendLayout();
             tabRandomizer.SuspendLayout();
+            grpGameVersion.SuspendLayout();
             grpHeroSelection.SuspendLayout();
             grpBaseOptions.SuspendLayout();
             mnuMain.SuspendLayout();
-            grpGameVersion.SuspendLayout();
             SuspendLayout();
             // 
             // tabContainer
@@ -269,11 +269,55 @@
             tabRandomizer.Text = "Randomizer";
             tabRandomizer.UseVisualStyleBackColor = true;
             // 
+            // grpGameVersion
+            // 
+            grpGameVersion.Controls.Add(rbnLeonarths);
+            grpGameVersion.Controls.Add(rbnRagnaroks);
+            grpGameVersion.Controls.Add(rbnVanilla);
+            grpGameVersion.Location = new Point(190, 108);
+            grpGameVersion.Name = "grpGameVersion";
+            grpGameVersion.Size = new Size(141, 136);
+            grpGameVersion.TabIndex = 11;
+            grpGameVersion.TabStop = false;
+            grpGameVersion.Text = "Choose Game Version";
+            // 
+            // rbnLeonarths
+            // 
+            rbnLeonarths.AutoSize = true;
+            rbnLeonarths.Location = new Point(6, 72);
+            rbnLeonarths.Name = "rbnLeonarths";
+            rbnLeonarths.Size = new Size(108, 19);
+            rbnLeonarths.TabIndex = 2;
+            rbnLeonarths.Text = "Leonarth's Mod";
+            rbnLeonarths.UseVisualStyleBackColor = true;
+            // 
+            // rbnRagnaroks
+            // 
+            rbnRagnaroks.AutoSize = true;
+            rbnRagnaroks.Location = new Point(6, 47);
+            rbnRagnaroks.Name = "rbnRagnaroks";
+            rbnRagnaroks.Size = new Size(111, 19);
+            rbnRagnaroks.TabIndex = 1;
+            rbnRagnaroks.Text = "Ragnarok's Mod";
+            rbnRagnaroks.UseVisualStyleBackColor = true;
+            // 
+            // rbnVanilla
+            // 
+            rbnVanilla.AutoSize = true;
+            rbnVanilla.Checked = true;
+            rbnVanilla.Location = new Point(6, 22);
+            rbnVanilla.Name = "rbnVanilla";
+            rbnVanilla.Size = new Size(59, 19);
+            rbnVanilla.TabIndex = 0;
+            rbnVanilla.TabStop = true;
+            rbnVanilla.Text = "Vanilla";
+            rbnVanilla.UseVisualStyleBackColor = true;
+            // 
             // grpHeroSelection
             // 
             grpHeroSelection.Controls.Add(rbnUrsula);
             grpHeroSelection.Controls.Add(rbnValens);
-            grpHeroSelection.Location = new Point(643, 36);
+            grpHeroSelection.Location = new Point(190, 36);
             grpHeroSelection.Name = "grpHeroSelection";
             grpHeroSelection.Size = new Size(141, 66);
             grpHeroSelection.TabIndex = 10;
@@ -304,7 +348,7 @@
             // 
             // txtSeed
             // 
-            txtSeed.Location = new Point(190, 54);
+            txtSeed.Location = new Point(367, 361);
             txtSeed.Name = "txtSeed";
             txtSeed.Size = new Size(219, 23);
             txtSeed.TabIndex = 9;
@@ -472,50 +516,6 @@
             randomizerMenuItem.Text = "Randomizer";
             randomizerMenuItem.Click += randomizerMenuItem_Click;
             // 
-            // grpGameVersion
-            // 
-            grpGameVersion.Controls.Add(rbnLeonarths);
-            grpGameVersion.Controls.Add(rbnRagnaroks);
-            grpGameVersion.Controls.Add(rbnVanilla);
-            grpGameVersion.Location = new Point(643, 108);
-            grpGameVersion.Name = "grpGameVersion";
-            grpGameVersion.Size = new Size(141, 136);
-            grpGameVersion.TabIndex = 11;
-            grpGameVersion.TabStop = false;
-            grpGameVersion.Text = "Choose Game Version";
-            // 
-            // rbnVanilla
-            // 
-            rbnVanilla.AutoSize = true;
-            rbnVanilla.Checked = true;
-            rbnVanilla.Location = new Point(6, 22);
-            rbnVanilla.Name = "rbnVanilla";
-            rbnVanilla.Size = new Size(59, 19);
-            rbnVanilla.TabIndex = 0;
-            rbnVanilla.TabStop = true;
-            rbnVanilla.Text = "Vanilla";
-            rbnVanilla.UseVisualStyleBackColor = true;
-            // 
-            // rbnRagnaroks
-            // 
-            rbnRagnaroks.AutoSize = true;
-            rbnRagnaroks.Location = new Point(6, 47);
-            rbnRagnaroks.Name = "rbnRagnaroks";
-            rbnRagnaroks.Size = new Size(111, 19);
-            rbnRagnaroks.TabIndex = 1;
-            rbnRagnaroks.Text = "Ragnarok's Mod";
-            rbnRagnaroks.UseVisualStyleBackColor = true;
-            // 
-            // rbnLeonarths
-            // 
-            rbnLeonarths.AutoSize = true;
-            rbnLeonarths.Location = new Point(6, 72);
-            rbnLeonarths.Name = "rbnLeonarths";
-            rbnLeonarths.Size = new Size(108, 19);
-            rbnLeonarths.TabIndex = 2;
-            rbnLeonarths.Text = "Leonarth's Mod";
-            rbnLeonarths.UseVisualStyleBackColor = true;
-            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -535,14 +535,14 @@
             tabPacking.PerformLayout();
             tabRandomizer.ResumeLayout(false);
             tabRandomizer.PerformLayout();
+            grpGameVersion.ResumeLayout(false);
+            grpGameVersion.PerformLayout();
             grpHeroSelection.ResumeLayout(false);
             grpHeroSelection.PerformLayout();
             grpBaseOptions.ResumeLayout(false);
             grpBaseOptions.PerformLayout();
             mnuMain.ResumeLayout(false);
             mnuMain.PerformLayout();
-            grpGameVersion.ResumeLayout(false);
-            grpGameVersion.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
