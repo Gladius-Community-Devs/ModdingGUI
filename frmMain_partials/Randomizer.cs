@@ -869,66 +869,129 @@ namespace ModdingGUI
         // Precompile the new regex pattern
         private static readonly Regex teamLineRegex = new Regex(@"^TEAM:\s*(\d+)\s*,\s*(\d+)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        private void EditEncounterFiles(string projectFolder, bool addCandie, IProgress<int> progress, ConcurrentQueue<(string message, Color color)> logMessages)
+        private void EditEncounterFiles(
+    string projectFolder,
+    bool addCandie,
+    IProgress<int> progress,
+    ConcurrentQueue<(string message, Color color)> logMessages)
         {
-            string encountersPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "encounters");
-            var encFiles = Directory.GetFiles(encountersPath, "*.enc", SearchOption.AllDirectories);
-
-            int filesProcessed = 0;
-
-            foreach (var encFile in encFiles)
+            try
             {
-                try
+                string encountersPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "encounters");
+                var encFiles = Directory.GetFiles(encountersPath, "*.enc", SearchOption.AllDirectories);
+
+                int totalFiles = encFiles.Length;
+                int filesProcessed = 0;
+
+                foreach (var encFile in encFiles)
                 {
-                    bool fileModified = false;
-                    bool inTeam0Section = false;
-                    bool candieExists = false;
-
-                    // Read all lines at once
-                    var allLines = File.ReadAllLines(encFile).ToList();
-
-                    // Check if CANDIE exists
-                    candieExists = allLines.Any(line => line.Trim().Equals("CANDIE:", StringComparison.OrdinalIgnoreCase));
-
-                    // Use StringBuilder for modified lines
-                    StringBuilder modifiedContent = new StringBuilder();
-
-                    for (int i = 0; i < allLines.Count; i++)
+                    try
                     {
-                        string line = allLines[i];
-                        string trimmedLine = line.Trim();
+                        bool fileModified = false;
+                        bool inTeam0Section = false;
+                        bool candieExists = false;
 
-                        // Process the lines as before...
+                        // Read all lines from the encounter file
+                        var allLines = File.ReadAllLines(encFile).ToList();
 
-                        // (Processing logic remains unchanged)
+                        // Check if "CANDIE:" already exists
+                        candieExists = allLines.Any(line => line.Trim().Equals("CANDIE:", StringComparison.OrdinalIgnoreCase));
+
+                        // Use StringBuilder to build modified content
+                        StringBuilder modifiedContent = new StringBuilder();
+
+                        foreach (var line in allLines)
+                        {
+                            string trimmedLine = line.Trim();
+
+                            // Detect TEAM lines
+                            var teamMatch = teamLineRegex.Match(trimmedLine);
+                            if (teamMatch.Success)
+                            {
+                                int teamNumber = int.Parse(teamMatch.Groups[1].Value);
+
+                                if (teamNumber == 0)
+                                {
+                                    // Before adding TEAM: 0,X, add CANDIE: if needed
+                                    if (addCandie && !candieExists)
+                                    {
+                                        modifiedContent.AppendLine("CANDIE:");
+                                        candieExists = true;
+                                        fileModified = true;
+                                    }
+
+                                    modifiedContent.AppendLine(line); // Add TEAM: 0,X
+                                    inTeam0Section = true;
+                                }
+                                else
+                                {
+                                    modifiedContent.AppendLine(line);
+                                    inTeam0Section = false;
+                                }
+                                continue;
+                            }
+
+                            // Modify UNITDB lines within TEAM: 0,X section
+                            if (inTeam0Section && unitDbRegex.IsMatch(trimmedLine))
+                            {
+                                // Extract the StartX value using regex
+                                var match = Regex.Match(trimmedLine, @"UNITDB:\s*""([^""]*)""\s*,\s*(\d+)\s*,\s*""([^""]+)""\s*,(.*)", RegexOptions.IgnoreCase);
+
+                                if (match.Success)
+                                {
+                                    string startPosition = match.Groups[3].Value; // Extracted StartX value
+
+                                    // Construct the new UNITDB line
+                                    string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", 0, 0, 0, 0, -1, \"\", \"\", \"\", \"\", 0, 0, 0, 0, 0, 0, 0, 0, 0";
+
+                                    modifiedContent.AppendLine(newUnitDbLine);
+                                    fileModified = true;
+                                }
+                                else
+                                {
+                                    // If regex does not match, retain the original line
+                                    modifiedContent.AppendLine(line);
+                                }
+                                continue;
+                            }
+
+                            // Retain all other lines as-is
+                            modifiedContent.AppendLine(line);
+                        }
+
+                        // If modifications were made, write back to the file
+                        if (fileModified)
+                        {
+                            File.WriteAllText(encFile, modifiedContent.ToString());
+                            logMessages.Enqueue(($"Updated file: {encFile}", SuccessColor));
+                        }
+                        else
+                        {
+                            logMessages.Enqueue(($"No changes needed for file: {encFile}", InfoColor));
+                        }
                     }
-
-                    // Write back the modified content if changes were made
-                    if (fileModified)
+                    catch (Exception ex)
                     {
-                        File.WriteAllText(encFile, modifiedContent.ToString());
-                        logMessages.Enqueue(($"Updated file: {encFile}", SuccessColor));
+                        // Log any errors encountered while processing a file
+                        logMessages.Enqueue(($"Error processing file {encFile}: {ex.Message}", ErrorColor));
                     }
-                    else
+                    finally
                     {
-                        logMessages.Enqueue(($"No changes needed for file: {encFile}", InfoColor));
+                        // Increment the count of processed files and report progress
+                        filesProcessed++;
+                        progress.Report(filesProcessed);
                     }
                 }
-                catch (Exception ex)
-                {
-                    logMessages.Enqueue(($"Error processing file {encFile}: {ex.Message}", ErrorColor));
-                }
-                finally
-                {
-                    int processed = Interlocked.Increment(ref filesProcessed);
-                    progress.Report(processed);
-                }
+
+                // After processing all files, log completion
+                logMessages.Enqueue(("All encounter files have been processed.", SuccessColor));
             }
-
-            // All processing is done; any final actions can be handled after Task.Run completes
+            catch (Exception ex)
+            {
+                // Log any unexpected errors during the process
+                logMessages.Enqueue(($"Unexpected error: {ex.Message}", ErrorColor));
+            }
         }
-
-
     }
 
     // Extension method for shuffling lists using the Random object

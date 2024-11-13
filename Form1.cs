@@ -311,8 +311,8 @@ namespace ModdingGUI
 
                 // Run the method on a background thread
                 await Task.Run(() => EditEncounterFiles(txtRandomizerPath.Text, chbRandomPermaDeath.Checked, editEncountersProgress, editEncountersLogMessages));
+                AddRandomizedMenuEntry(txtRandomizerPath.Text);
 
-               
 
                 // Reset lblRandomizeStatus and progress bar
                 lblRandomizeStatus.Text = "Ready";
