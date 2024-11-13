@@ -63,7 +63,7 @@ namespace ModdingGUI
                 AppendLog("Unpacking completed successfully.", SuccessColor, true); // Log successful completion
 
                 // Update the pack path text box to point to the created unpack folder
-                txtPackPath.Text = topLevelFolder;
+                txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 btnRandomize.Enabled = true;
             }
@@ -93,6 +93,25 @@ namespace ModdingGUI
 
             try
             {
+                bool valid = true; // Initialize a flag to track the overall validation result
+                // Run itemsets validation before packing
+                if (!ValidateItemsets(selectedFolder) && !chbValidationSkip.Checked)
+                {
+                    valid = false; // Exit the method if validation fails
+                };
+                if(!ValidateGladiatorsFile(selectedFolder) && !chbValidationSkip.Checked)
+                {
+                    valid = false;
+                }
+                if(!ValidateGladiatorsAndSkills(selectedFolder) && !chbValidationSkip.Checked)
+                {
+                    valid = false;
+                }
+                if (!valid)
+                {
+                    AppendLog("Validation failed. Please check the log for details.", ErrorColor, false); // Log validation failure
+                    return; // Exit the method
+                }
                 // Generate the batch file content for packing
                 string batchContent = GeneratePackBatchFileContent(selectedFolder);
 
@@ -108,6 +127,7 @@ namespace ModdingGUI
                 AppendLog("Error during packing: " + ex.Message, ErrorColor, false);
             }
         }
+
 
         // Event handler for the 'Select ISO' button click event
         private void btnSelectISO_Click(object sender, EventArgs e)
@@ -328,6 +348,20 @@ namespace ModdingGUI
             var textBox = (TextBox)sender;
             textBox.SelectAll();
             textBox.Focus();
+        }
+
+        private void chbValidationSkip_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!chbValidationSkip.Checked)
+            {
+                var result = MessageBox.Show("Are you sure you want to enable validation?\nThis is typically for Modders to double check their work!", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (result == DialogResult.No)
+                {
+                    chbValidationSkip.Checked = true;
+                    return;
+                }
+                pgbValidation.Visible = true;
+            }
         }
     }
 }

@@ -38,6 +38,8 @@
             btnSelectISO = new Button();
             txtISOPath = new TextBox();
             tabPacking = new TabPage();
+            pgbValidation = new ProgressBar();
+            chbValidationSkip = new CheckBox();
             btnOpenPackLocation = new Button();
             rtbPackOutput = new RichTextBox();
             btnPack = new Button();
@@ -76,10 +78,10 @@
             // 
             // tabContainer
             // 
+            tabContainer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tabContainer.Controls.Add(tabUnpacking);
             tabContainer.Controls.Add(tabPacking);
             tabContainer.Controls.Add(tabRandomizer);
-            tabContainer.Dock = DockStyle.Fill;
             tabContainer.Location = new Point(0, 24);
             tabContainer.Name = "tabContainer";
             tabContainer.SelectedIndex = 0;
@@ -114,6 +116,7 @@
             // 
             // rtbUnpackOutput
             // 
+            rtbUnpackOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbUnpackOutput.Location = new Point(6, 117);
             rtbUnpackOutput.Name = "rtbUnpackOutput";
             rtbUnpackOutput.Size = new Size(778, 162);
@@ -160,6 +163,8 @@
             // 
             // tabPacking
             // 
+            tabPacking.Controls.Add(pgbValidation);
+            tabPacking.Controls.Add(chbValidationSkip);
             tabPacking.Controls.Add(btnOpenPackLocation);
             tabPacking.Controls.Add(rtbPackOutput);
             tabPacking.Controls.Add(btnPack);
@@ -172,6 +177,27 @@
             tabPacking.TabIndex = 1;
             tabPacking.Text = "Packing";
             tabPacking.UseVisualStyleBackColor = true;
+            // 
+            // pgbValidation
+            // 
+            pgbValidation.Location = new Point(291, 57);
+            pgbValidation.Name = "pgbValidation";
+            pgbValidation.Size = new Size(150, 19);
+            pgbValidation.TabIndex = 7;
+            pgbValidation.Visible = false;
+            // 
+            // chbValidationSkip
+            // 
+            chbValidationSkip.AutoSize = true;
+            chbValidationSkip.Checked = true;
+            chbValidationSkip.CheckState = CheckState.Checked;
+            chbValidationSkip.Location = new Point(99, 57);
+            chbValidationSkip.Name = "chbValidationSkip";
+            chbValidationSkip.Size = new Size(186, 19);
+            chbValidationSkip.TabIndex = 6;
+            chbValidationSkip.Text = "Skip Validation (force packing)";
+            chbValidationSkip.UseVisualStyleBackColor = true;
+            chbValidationSkip.CheckedChanged += chbValidationSkip_CheckedChanged;
             // 
             // btnOpenPackLocation
             // 
@@ -507,5 +533,7 @@
         private GroupBox grpHeroSelection;
         private RadioButton rbnUrsula;
         private RadioButton rbnValens;
+        private CheckBox chbValidationSkip;
+        private ProgressBar pgbValidation;
     }
 }

@@ -25,7 +25,7 @@ namespace ModdingGUI
         // Define colors for logging
         private readonly Color WarningColor = Color.Orange;
 
-        // Blacklisted classes
+        // Blacklisted Vanilla classes
         string[] blacklistedClasses = new string[]
         {
             "BeastAir",
@@ -84,9 +84,149 @@ namespace ModdingGUI
             "UrsulaCostumeA",
             "UrsulaCostumeB",
             "ValensCostumeA",
+            "ValensCostumeB",
+            "Nephilia"
+        };
+        //blacklisted classes from Leonarth's mod
+        string[] blacklistedLeonarthClasses = new string[]
+        {
+            "BeastAirGreater",
+            "BeastDarkAirGreater",
+            "BeastDarkEarthGreater",
+            "BeastDarkFireGreater",
+            "BeastDarkWaterGreater",
+            "BeastEarthGreater",
+            "BeastFireGreater",
+            "BeastWaterGreater",
+            "BerserkerEnraged",
+            "BerserkerEnragedF",
+            "Boss",
+            "CitizenExp",
+            "CitizenExpF",
+            "CitizenImp",
+            "CitizenImpF",
+            "CitizenNor",
+            "CitizenNorF",
+            "CitizenSte",
+            "CitizenSteF",
+            "CyclopsGreater",
+            "DarkGod",
+            "DarkGodDragon",
+            "DarkGodDragon1",
+            "DarkGodDragon2",
+            "DarkGodDragon3",
+            "DarkGodFace",
+            "DarkGodKnight",
+            "MutuusSenate",
+            "Orin",
+            "PropBarrel",
+            "PropPracticePost",
+            "PropStatue",
+            "PropTombstone",
+            "TitanAir",
+            "TitanEarth",
+            "TitanFire",
+            "TitanWater",
+            "Usus"
+        };
+
+
+        // Blacklisted Ragnarok classes
+        string[] blacklistedRagnarokClasses = new string[]
+        {
+            
+            "BeastAirGreater",
+            "BeastDarkAirGreater",
+            "BeastDarkEarthGreater",
+            "BeastDarkFireGreater",
+            "BeastDarkWaterGreater",
+            "BeastEarthGreater",
+            "BeastFireGreater",
+            "BeastWaterGreater",
+            "BerserkerEnraged",
+            "BerserkerEnragedF",
+            "Boss",
+            "CitizenExp",
+            "CitizenExpF",
+            "CitizenImp",
+            "CitizenImpF",
+            "CitizenNor",
+            "CitizenNorF",
+            "CitizenSte",
+            "CitizenSteF",
+            "CyclopsGreater",
+            "DarkGod",
+            "DarkGodDragon",
+            "DarkGodDragon1",
+            "DarkGodDragon2",
+            "DarkGodDragon3",
+            "DarkGodFace",
+            "DarkGodKnight",
+            "DarkGodShiva",
+            "MutuusDark",
+            "PropBarrel",
+            "PropPracticePost",
+            "PropStatue",
+            "PropTombstone",
+            "TitanAir",
+            "TitanEarth",
+            "TitanFire",
+            "TitanWater",
+            "Jötunn",
+            "UrsulaCostumeA",
+            "UrsulaCostumeB",
+            "ValensCostumeA",
             "ValensCostumeB"
         };
 
+        string[] blacklistedOpenedClasses = new string[]
+        {
+
+            "BeastAirGreater",
+            "BeastDarkAirGreater",
+            "BeastDarkEarthGreater",
+            "BeastDarkFireGreater",
+            "BeastDarkWaterGreater",
+            "BeastEarthGreater",
+            "BeastFireGreater",
+            "BeastWaterGreater",
+            "BerserkerEnraged",
+            "BerserkerEnragedF",
+            "Boss",
+            "CatGreater",
+            "CitizenExp",
+            "CitizenExpF",
+            "CitizenImp",
+            "CitizenImpF",
+            "CitizenNor",
+            "CitizenNorF",
+            "CitizenSte",
+            "CitizenSteF",
+            "CyclopsGreater",
+            "DarkGod",
+            "DarkGodDragon",
+            "DarkGodDragon1",
+            "DarkGodDragon2",
+            "DarkGodDragon3",
+            "DarkGodFace",
+            "DarkGodKnight",
+            "DarkGodShiva",
+            "Mutuus",
+            "MutuusDark",
+            "PropBarrel",
+            "PropPracticePost",
+            "PropStatue",
+            "PropTombstone",
+            "TitanAir",
+            "TitanEarth",
+            "TitanFire",
+            "TitanWater",
+            "Jötunn",
+            "UrsulaCostumeA",
+            "UrsulaCostumeB",
+            "ValensCostumeA",
+            "ValensCostumeB"
+        };
         // Method to initialize Random with the seed from txtSeed
         private void InitializeRandom()
         {
