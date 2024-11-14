@@ -326,6 +326,26 @@ namespace ModdingGUI
                 lblRandomizeStatus.Text = "Ready";
                 pgbRandomizeStatus.Value = 0;
 
+                // Edit the scp files and recompile them
+                string projectFolder = txtRandomizerPath.Text.Trim();
+
+                if (string.IsNullOrEmpty(projectFolder) || !Directory.Exists(projectFolder))
+                {
+                    MessageBox.Show("Please select a valid project folder.");
+                    return;
+                }
+
+                AppendLog("Starting .scp files editing and compilation...", InfoColor, false);
+
+                try
+                {
+                    await EditScpFilesAndCompileAsync(projectFolder);
+                }
+                catch (Exception ex)
+                {
+                    AppendLog($"An error occurred: {ex.Message}", ErrorColor, false);
+                }
+
                 // Output the collected logs if logging is enabled
                 if (randomizerLogsMenuItem.Checked)
                 {

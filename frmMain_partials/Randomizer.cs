@@ -1004,6 +1004,238 @@ namespace ModdingGUI
                 logMessages.Enqueue(($"Unexpected error: {ex.Message}", ErrorColor));
             }
         }
+        // Add this method inside the frmMain partial class in RANDOMIZER.cs
+
+        private enum ModificationType
+        {
+            ReplaceCondition,
+            // Future modification types can be added here
+        }
+
+        private class Modification
+        {
+            public ModificationType Type { get; set; }
+            public string Original { get; set; }
+            public string Replacement { get; set; }
+        }
+
+        private async Task EditScpFilesAndCompileAsync(string projectFolder)
+        {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string scriptFolder = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "script");
+            string binFolder = Path.Combine(scriptFolder, "bin");
+
+            // Ensure the bin directory exists
+            if (!Directory.Exists(binFolder))
+            {
+                MessageBox.Show("The bin folder does not exist. Please unpack your project and check project/project_BEC/data/script/bin");
+                AppendRandomizerLog($"No bin folder at: {binFolder}", InfoColor);
+                return;
+            }
+
+            // List of .scp files to process with their specific modification requirements
+            var scpFiles = new List<(string FileName, List<Modification> Mods, List<string> LinesToRemove)>
+    {
+        // Original four files with conditional modification and line removals
+        ("gameflowvalenssteppes.scp", new List<Modification>
+            {
+                new Modification
+                {
+                    Type = ModificationType.ReplaceCondition,
+                    Original = "if (GetIntVar(\"CostumeChange\") != 1)",
+                    Replacement = "if (GetIntVar(\"CostumeChange\") != 0)"
+                }
+            },
+            new List<string>
+            {
+                "gb.SchoolRemoveCharacter(\"Ludo\")",
+                "gb.SchoolRemoveCharacter(\"Gwazi\")"
+            }
+        ),
+        ("gameflowvalensexpanse.scp", new List<Modification>
+            {
+                new Modification
+                {
+                    Type = ModificationType.ReplaceCondition,
+                    Original = "if (GetIntVar(\"CostumeChange\") != 1)",
+                    Replacement = "if (GetIntVar(\"CostumeChange\") != 0)"
+                }
+            },
+            new List<string>
+            {
+                "gb.SchoolRemoveCharacter(\"Ludo\")",
+                "gb.SchoolRemoveCharacter(\"Gwazi\")"
+            }
+        ),
+        ("gameflowursulasteppes.scp", new List<Modification>
+            {
+                new Modification
+                {
+                    Type = ModificationType.ReplaceCondition,
+                    Original = "if (GetIntVar(\"CostumeChange\") != 1)",
+                    Replacement = "if (GetIntVar(\"CostumeChange\") != 0)"
+                }
+            },
+            new List<string>
+            {
+                "gb.SchoolRemoveCharacter(\"Ludo\")",
+                "gb.SchoolRemoveCharacter(\"Gwazi\")"
+            }
+        ),
+        ("gameflowursulaexpanse.scp", new List<Modification>
+            {
+                new Modification
+                {
+                    Type = ModificationType.ReplaceCondition,
+                    Original = "if (GetIntVar(\"CostumeChange\") != 1)",
+                    Replacement = "if (GetIntVar(\"CostumeChange\") != 0)"
+                }
+            },
+            new List<string>
+            {
+                "gb.SchoolRemoveCharacter(\"Ludo\")",
+                "gb.SchoolRemoveCharacter(\"Gwazi\")"
+            }
+        ),
+        // Additional two endgame files with two conditional modifications each
+        ("gameflowvalensendgame.scp", new List<Modification>
+            {
+                new Modification
+                {
+                    Type = ModificationType.ReplaceCondition,
+                    Original = "if (GetIntVar(\"EndGameCostumeChangeAgain\") != 1)",
+                    Replacement = "if (GetIntVar(\"EndGameCostumeChangeAgain\") != 0)"
+                },
+                new Modification
+                {
+                    Type = ModificationType.ReplaceCondition,
+                    Original = "if (GetIntVar(\"EndGameCostumeChange\") != 1)",
+                    Replacement = "if (GetIntVar(\"EndGameCostumeChange\") != 0)"
+                }
+            },
+            new List<string>() // No lines to remove
+        ),
+        ("gameflowursulaendgame.scp", new List<Modification>
+            {
+                new Modification
+                {
+                    Type = ModificationType.ReplaceCondition,
+                    Original = "if (GetIntVar(\"EndGameCostumeChangeAgain\") != 1)",
+                    Replacement = "if (GetIntVar(\"EndGameCostumeChangeAgain\") != 0)"
+                },
+                new Modification
+                {
+                    Type = ModificationType.ReplaceCondition,
+                    Original = "if (GetIntVar(\"EndGameCostumeChange\") != 1)",
+                    Replacement = "if (GetIntVar(\"EndGameCostumeChange\") != 0)"
+                }
+            },
+            new List<string>() // No lines to remove
+        )
+    };
+
+            // Path to the compiler executable
+            string toolsPath = NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
+            string compilerPath = Path.Combine(toolsPath, "DOGCodeCompiler.exe");
+
+            if (!File.Exists(compilerPath))
+            {
+                AppendLog($"Compiler not found at: {compilerPath}\nPlease use the tools folder from the latest release!", ErrorColor);
+                return;
+            }
+
+            // Prepare batch commands
+            StringBuilder batchCommands = new StringBuilder();
+
+            foreach (var (FileName, Mods, LinesToRemove) in scpFiles)
+            {
+                string scpFilePath = Path.Combine(scriptFolder, FileName);
+
+                AppendRandomizerLog($"Processing file: {scpFilePath}", InfoColor);
+
+                if (!File.Exists(scpFilePath))
+                {
+                    //AppendRandomizerLog($"File not found: {scpFilePath}", WarningColor);
+                    MessageBox.Show($"File not found: {scpFilePath}");
+                    return;
+                }
+
+                try
+                {
+                    bool fileModified = false;
+                    var lines = File.ReadAllLines(scpFilePath).ToList();
+
+                    // Apply modifications
+                    foreach (var mod in Mods)
+                    {
+                        if (mod.Type == ModificationType.ReplaceCondition)
+                        {
+                            bool conditionFound = false;
+                            for (int i = 0; i < lines.Count; i++)
+                            {
+                                if (lines[i].Contains(mod.Original))
+                                {
+                                    lines[i] = lines[i].Replace(mod.Original, mod.Replacement);
+                                    fileModified = true;
+                                    conditionFound = true;
+                                    AppendRandomizerLog($"Modified condition in {FileName}: '{mod.Original}' to '{mod.Replacement}'", InfoColor);
+                                }
+                            }
+                            if (!conditionFound)
+                            {
+                                AppendRandomizerLog($"Condition '{mod.Original}' not found in {FileName}.", WarningColor);
+                            }
+                        }
+                        // Additional modification types can be handled here if needed
+                    }
+
+                    // Remove specified lines
+                    foreach (var lineToRemove in LinesToRemove)
+                    {
+                        int initialCount = lines.Count;
+                        lines = lines.Where(line => !line.Trim().Equals(lineToRemove)).ToList();
+
+                        if (lines.Count != initialCount)
+                        {
+                            fileModified = true;
+                            AppendRandomizerLog($"Removed line from {FileName}: {lineToRemove}", InfoColor);
+                        }
+                    }
+
+                    // Write back if modifications were made
+                    if (fileModified)
+                    {
+                        File.WriteAllLines(scpFilePath, lines);
+                        AppendRandomizerLog($"Saved changes to {FileName}", SuccessColor);
+                    }
+                    else
+                    {
+                        AppendRandomizerLog($"No changes needed for {FileName}", InfoColor);
+                    }
+
+                    // Add compiler command for this file
+                    string compileCommand = $"\"{compilerPath}\" \"{scpFilePath}\" \"{binFolder}\"";
+                    batchCommands.AppendLine(compileCommand);
+                }
+                catch (Exception ex)
+                {
+                    AppendRandomizerLog($"Error processing {FileName}: {ex.Message}", ErrorColor);
+                }
+            }
+
+            // Execute the batch commands if any
+            if (batchCommands.Length > 0)
+            {
+                string batchContent = batchCommands.ToString();
+                AppendRandomizerLog("Starting compilation of .scp files...", InfoColor);
+                await RunBatchFileAsync(batchContent, scriptFolder, false);
+                AppendRandomizerLog("Compilation of .scp files completed.", SuccessColor);
+            }
+            else
+            {
+                AppendRandomizerLog("No .scp files were modified. Compilation skipped.", InfoColor);
+            }
+        }
     }
 
     // Extension method for shuffling lists using the Random object
