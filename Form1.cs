@@ -103,22 +103,28 @@ namespace ModdingGUI
             {
                 bool valid = true; // Initialize a flag to track the overall validation result
                 // Run itemsets validation before packing
-                if (!ValidateItemsets(selectedFolder) && !chbValidationSkip.Checked)
-                {
-                    valid = false; // Exit the method if validation fails
-                };
-                if (!ValidateGladiatorsFile(selectedFolder) && !chbValidationSkip.Checked)
-                {
-                    valid = false;
+                if (!chbValidationSkip.Checked) { 
+                    if (!ValidateItemsets(selectedFolder))
+                    {
+                        valid = false; // Exit the method if validation fails
+                    };
+                    if (!ValidateGladiatorsFile(selectedFolder))
+                    {
+                        valid = false;
+                    }
+                    if (!ValidateGladiatorsAndSkills(selectedFolder))
+                    {
+                        valid = false;
+                    }
+                    if (!valid)
+                    {
+                        AppendLog("Validation failed. Please check the log for details.", ErrorColor, false); // Log validation failure
+                        return; // Exit the method
+                    }
                 }
-                if (!ValidateGladiatorsAndSkills(selectedFolder) && !chbValidationSkip.Checked)
+                else
                 {
-                    valid = false;
-                }
-                if (!valid)
-                {
-                    AppendLog("Validation failed. Please check the log for details.", ErrorColor, false); // Log validation failure
-                    return; // Exit the method
+                    AppendLog("Validation skipped.", InfoColor, false);
                 }
                 // Generate the batch file content for packing
                 string batchContent = GeneratePackBatchFileContent(selectedFolder);

@@ -7,6 +7,10 @@
       "RelativeMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|e:\\code_stuff\\gladiusmoddingtoolsgui\\moddinggui\\frmmain_partials\\packvalidation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|solutionrelative:frmmain_partials\\packvalidation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
@@ -25,10 +29,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|e:\\code_stuff\\gladiusmoddingtoolsgui\\moddinggui\\frmmain_partials\\batgeneration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|solutionrelative:frmmain_partials\\batgeneration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|e:\\code_stuff\\gladiusmoddingtoolsgui\\moddinggui\\frmmain_partials\\packvalidation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|solutionrelative:frmmain_partials\\packvalidation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|e:\\code_stuff\\gladiusmoddingtoolsgui\\moddinggui\\devnotes.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
@@ -56,22 +56,21 @@
               "RelativeDocumentMoniker": "Form1.cs",
               "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs",
               "RelativeToolTip": "Form1.cs",
-              "ViewState": "AgIAAAwCAAAAAAAAAAAAACYCAAA1AAAAAAAAAA==",
+              "ViewState": "AgIAAFMAAAAAAAAAAAAAAH4AAABHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-08T07:25:32.986Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Form1.cs [Design]",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs",
               "RelativeDocumentMoniker": "Form1.cs",
               "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs [Design]",
               "RelativeToolTip": "Form1.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-08T07:29:03.031Z",
-              "EditorCaption": " [Design]"
+              "WhenOpened": "2024-11-08T07:29:03.031Z"
             },
             {
               "$type": "Document",
@@ -87,7 +86,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "BATGeneration.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\frmMain_partials\\BATGeneration.cs",
               "RelativeDocumentMoniker": "frmMain_partials\\BATGeneration.cs",
@@ -99,7 +98,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "Randomizer.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\frmMain_partials\\Randomizer.cs",
               "RelativeDocumentMoniker": "frmMain_partials\\Randomizer.cs",
@@ -112,7 +111,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Utilities.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\frmMain_partials\\Utilities.cs",
               "RelativeDocumentMoniker": "frmMain_partials\\Utilities.cs",
@@ -125,7 +124,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 1,
               "Title": "PackValidation.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\frmMain_partials\\PackValidation.cs",
               "RelativeDocumentMoniker": "frmMain_partials\\PackValidation.cs",
@@ -133,11 +132,12 @@
               "RelativeToolTip": "frmMain_partials\\PackValidation.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAI0AAABGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-12T16:53:01.32Z"
+              "WhenOpened": "2024-11-12T16:53:01.32Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "Form1.Designer.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.Designer.cs",
               "RelativeDocumentMoniker": "Form1.Designer.cs",
@@ -145,8 +145,7 @@
               "RelativeToolTip": "Form1.Designer.cs",
               "ViewState": "AgIAAH4AAAAAAAAAAAAAAOsAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-08T07:27:10.268Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-08T07:27:10.268Z"
             }
           ]
         }
