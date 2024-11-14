@@ -125,5 +125,147 @@ namespace ModdingGUI
                 MessageBox.Show("Selected location does not exist."); // Show an error message
             }
         }
+        private void LoadProjects()
+        {
+            tvwProjects.Nodes.Clear();
+
+            string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            AppendLog($"App Directory: {appDirectory}", InfoColor, true);
+
+            var directories = Directory.GetDirectories(appDirectory);
+            AppendLog($"Found {directories.Length} directories in app directory. (including tools folder)", InfoColor, true);
+
+            foreach (var dir in directories)
+            {
+                string projectName = Path.GetFileName(dir);
+                if (projectName == "tools")
+                {
+                    AppendLog($"Skipping directory: {projectName}", InfoColor, true);
+                    continue;
+                }
+                AppendLog($"Checking directory: {projectName}", InfoColor, true);
+
+                if (IsProjectDirectory(dir))
+                {
+                    AppendLog($"Directory '{projectName}' is a valid project.", SuccessColor, true);
+
+                    // Create a tree node for the project
+                    TreeNode projectNode = new TreeNode(projectName)
+                    {
+                        Tag = dir,
+                        ImageKey = "folder",
+                        SelectedImageKey = "folder"
+                    };
+
+                    // Define paths for _ISO and _BEC
+                    string isoPath = Path.Combine(dir, $"{projectName}_ISO");
+                    string becPath = Path.Combine(dir, $"{projectName}_BEC");
+
+                    // Add _BEC node if it exists
+                    if (Directory.Exists(becPath))
+                    {
+                        //AppendLog($"_BEC directory found for project: {projectName}", SuccessColor, true);
+                        TreeNode becNode = new TreeNode("BEC")
+                        {
+                            Tag = becPath,
+                            ImageKey = "folder",
+                            SelectedImageKey = "folder"
+                        };
+
+                        // Check if BEC has subdirectories or files
+                        if (HasSubDirectories(becPath) || HasFiles(becPath))
+                        {
+                            becNode.Nodes.Add(new TreeNode("Loading...")); // Add dummy node
+                        }
+
+                        projectNode.Nodes.Add(becNode);
+                    }
+                    else
+                    {
+                        AppendLog($"_BEC directory not found for project: {projectName}", ErrorColor, true);
+                    }
+
+                    // Add _ISO node if it exists
+                    if (Directory.Exists(isoPath))
+                    {
+                        //AppendLog($"_ISO directory found for project: {projectName}", SuccessColor, true);
+                        TreeNode isoNode = new TreeNode("ISO")
+                        {
+                            Tag = isoPath,
+                            ImageKey = "folder",
+                            SelectedImageKey = "folder"
+                        };
+
+                        // Check if ISO has subdirectories or files
+                        if (HasSubDirectories(isoPath) || HasFiles(isoPath))
+                        {
+                            isoNode.Nodes.Add(new TreeNode("Loading...")); // Add dummy node
+                        }
+
+                        projectNode.Nodes.Add(isoNode);
+                    }
+                    else
+                    {
+                        AppendLog($"_ISO directory not found for project: {projectName}", ErrorColor, true);
+                    }
+
+                    // Add the project node to the TreeView
+                    tvwProjects.Nodes.Add(projectNode);
+                }
+                else
+                {
+                    AppendLog($"Directory '{projectName}' is not a valid project.", WarningColor, true);
+                }
+            }
+        }
+
+
+        // Helper method to check if a directory has subdirectories
+        private bool HasSubDirectories(string path)
+        {
+            try
+            {
+                return Directory.GetDirectories(path).Length > 0;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error accessing directory '{path}': {ex.Message}", ErrorColor, true);
+                return false;
+            }
+        }
+        private bool HasFiles(string path)
+        {
+            try
+            {
+                return Directory.GetFiles(path).Length > 0;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error accessing files in directory '{path}': {ex.Message}", ErrorColor, true);
+                return false;
+            }
+        }
+
+        private bool IsProjectDirectory(string projectPath)
+        {
+            projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string projectName = Path.GetFileName(projectPath);
+            string isoPath = Path.Combine(projectPath, $"{projectName}_ISO");
+            string becPath = Path.Combine(projectPath, $"{projectName}_BEC");
+            bool isValid = Directory.Exists(isoPath) && Directory.Exists(becPath);
+
+            // Optional: Log the validation result
+            if (isValid)
+            {
+                AppendLog($"Project '{projectName}' has both _ISO and _BEC directories.", SuccessColor, true);
+            }
+            else
+            {
+                AppendLog($"Project '{projectName}' is missing required subdirectories.", ErrorColor, true);
+            }
+
+            return isValid;
+        }
+
     }
 }

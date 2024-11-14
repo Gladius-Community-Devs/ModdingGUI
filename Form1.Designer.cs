@@ -28,7 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
+            mnuMain = new MenuStrip();
+            optionsToolStripMenuItem = new ToolStripMenuItem();
+            saveBatMenuItem = new ToolStripMenuItem();
+            randomizerLogsMenuItem = new ToolStripMenuItem();
+            funOptionsToolStripMenuItem = new ToolStripMenuItem();
+            randomizerMenuItem = new ToolStripMenuItem();
+            ttpInform = new ToolTip(components);
+            splitContainer1 = new SplitContainer();
             tabContainer = new TabControl();
             tabUnpacking = new TabPage();
             btnOpenUnpackLocation = new Button();
@@ -65,12 +74,15 @@
             chbRandomHeroes = new CheckBox();
             btnRandomizerPath = new Button();
             txtRandomizerPath = new TextBox();
-            mnuMain = new MenuStrip();
-            optionsToolStripMenuItem = new ToolStripMenuItem();
-            saveBatMenuItem = new ToolStripMenuItem();
-            randomizerLogsMenuItem = new ToolStripMenuItem();
-            funOptionsToolStripMenuItem = new ToolStripMenuItem();
-            randomizerMenuItem = new ToolStripMenuItem();
+            tabIngameRandom = new TabPage();
+            chbIngameRandom = new CheckBox();
+            txtFileHeader = new TextBox();
+            tvwProjects = new TreeView();
+            mnuMain.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
+            splitContainer1.SuspendLayout();
             tabContainer.SuspendLayout();
             tabUnpacking.SuspendLayout();
             tabPacking.SuspendLayout();
@@ -78,20 +90,87 @@
             grpGameVersion.SuspendLayout();
             grpHeroSelection.SuspendLayout();
             grpBaseOptions.SuspendLayout();
-            mnuMain.SuspendLayout();
+            tabIngameRandom.SuspendLayout();
             SuspendLayout();
+            // 
+            // mnuMain
+            // 
+            mnuMain.Items.AddRange(new ToolStripItem[] { optionsToolStripMenuItem, funOptionsToolStripMenuItem });
+            mnuMain.Location = new Point(0, 0);
+            mnuMain.Name = "mnuMain";
+            mnuMain.Size = new Size(1042, 24);
+            mnuMain.TabIndex = 1;
+            mnuMain.Text = "menuStrip1";
+            // 
+            // optionsToolStripMenuItem
+            // 
+            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { saveBatMenuItem, randomizerLogsMenuItem });
+            optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
+            optionsToolStripMenuItem.Size = new Size(99, 20);
+            optionsToolStripMenuItem.Text = "Debug Options";
+            // 
+            // saveBatMenuItem
+            // 
+            saveBatMenuItem.CheckOnClick = true;
+            saveBatMenuItem.Name = "saveBatMenuItem";
+            saveBatMenuItem.Size = new Size(165, 22);
+            saveBatMenuItem.Text = "Save BAT file";
+            // 
+            // randomizerLogsMenuItem
+            // 
+            randomizerLogsMenuItem.CheckOnClick = true;
+            randomizerLogsMenuItem.Name = "randomizerLogsMenuItem";
+            randomizerLogsMenuItem.Size = new Size(165, 22);
+            randomizerLogsMenuItem.Text = "Randomizer Logs";
+            // 
+            // funOptionsToolStripMenuItem
+            // 
+            funOptionsToolStripMenuItem.CheckOnClick = true;
+            funOptionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { randomizerMenuItem });
+            funOptionsToolStripMenuItem.Name = "funOptionsToolStripMenuItem";
+            funOptionsToolStripMenuItem.Size = new Size(84, 20);
+            funOptionsToolStripMenuItem.Text = "Fun Options";
+            // 
+            // randomizerMenuItem
+            // 
+            randomizerMenuItem.CheckOnClick = true;
+            randomizerMenuItem.Name = "randomizerMenuItem";
+            randomizerMenuItem.Size = new Size(137, 22);
+            randomizerMenuItem.Text = "Randomizer";
+            randomizerMenuItem.Click += randomizerMenuItem_Click;
+            // 
+            // splitContainer1
+            // 
+            splitContainer1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            splitContainer1.Location = new Point(0, 27);
+            splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            splitContainer1.Panel1.Controls.Add(tabContainer);
+            // 
+            // splitContainer1.Panel2
+            // 
+            splitContainer1.Panel2.Controls.Add(txtFileHeader);
+            splitContainer1.Panel2.Controls.Add(tvwProjects);
+            splitContainer1.Panel2.Margin = new Padding(5);
+            splitContainer1.Panel2.Padding = new Padding(5);
+            splitContainer1.Size = new Size(1042, 423);
+            splitContainer1.SplitterDistance = 785;
+            splitContainer1.TabIndex = 3;
             // 
             // tabContainer
             // 
-            tabContainer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tabContainer.Controls.Add(tabUnpacking);
             tabContainer.Controls.Add(tabPacking);
             tabContainer.Controls.Add(tabRandomizer);
-            tabContainer.Location = new Point(0, 24);
+            tabContainer.Controls.Add(tabIngameRandom);
+            tabContainer.Dock = DockStyle.Fill;
+            tabContainer.Location = new Point(0, 0);
             tabContainer.Name = "tabContainer";
             tabContainer.SelectedIndex = 0;
-            tabContainer.Size = new Size(800, 426);
-            tabContainer.TabIndex = 0;
+            tabContainer.Size = new Size(785, 423);
+            tabContainer.TabIndex = 1;
             // 
             // tabUnpacking
             // 
@@ -104,14 +183,14 @@
             tabUnpacking.Location = new Point(4, 24);
             tabUnpacking.Name = "tabUnpacking";
             tabUnpacking.Padding = new Padding(3);
-            tabUnpacking.Size = new Size(792, 398);
+            tabUnpacking.Size = new Size(777, 395);
             tabUnpacking.TabIndex = 0;
             tabUnpacking.Text = "Unpacking";
             tabUnpacking.UseVisualStyleBackColor = true;
             // 
             // btnOpenUnpackLocation
             // 
-            btnOpenUnpackLocation.Location = new Point(8, 285);
+            btnOpenUnpackLocation.Location = new Point(87, 88);
             btnOpenUnpackLocation.Name = "btnOpenUnpackLocation";
             btnOpenUnpackLocation.Size = new Size(179, 23);
             btnOpenUnpackLocation.TabIndex = 5;
@@ -122,9 +201,9 @@
             // rtbUnpackOutput
             // 
             rtbUnpackOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            rtbUnpackOutput.Location = new Point(6, 117);
+            rtbUnpackOutput.Location = new Point(9, 120);
             rtbUnpackOutput.Name = "rtbUnpackOutput";
-            rtbUnpackOutput.Size = new Size(778, 162);
+            rtbUnpackOutput.Size = new Size(756, 204);
             rtbUnpackOutput.TabIndex = 4;
             rtbUnpackOutput.Text = "";
             // 
@@ -145,7 +224,6 @@
             txtUnpackPath.Size = new Size(181, 23);
             txtUnpackPath.TabIndex = 2;
             txtUnpackPath.Text = "Enter project name here";
-            txtUnpackPath.Click += txtUnpackPath_Click;
             // 
             // btnSelectISO
             // 
@@ -178,16 +256,16 @@
             tabPacking.Location = new Point(4, 24);
             tabPacking.Name = "tabPacking";
             tabPacking.Padding = new Padding(3);
-            tabPacking.Size = new Size(792, 398);
+            tabPacking.Size = new Size(777, 395);
             tabPacking.TabIndex = 1;
             tabPacking.Text = "Packing";
             tabPacking.UseVisualStyleBackColor = true;
             // 
             // pgbValidation
             // 
-            pgbValidation.Location = new Point(291, 57);
+            pgbValidation.Location = new Point(264, 35);
             pgbValidation.Name = "pgbValidation";
-            pgbValidation.Size = new Size(150, 19);
+            pgbValidation.Size = new Size(186, 19);
             pgbValidation.TabIndex = 7;
             pgbValidation.Visible = false;
             // 
@@ -196,7 +274,7 @@
             chbValidationSkip.AutoSize = true;
             chbValidationSkip.Checked = true;
             chbValidationSkip.CheckState = CheckState.Checked;
-            chbValidationSkip.Location = new Point(99, 57);
+            chbValidationSkip.Location = new Point(267, 61);
             chbValidationSkip.Name = "chbValidationSkip";
             chbValidationSkip.Size = new Size(186, 19);
             chbValidationSkip.TabIndex = 6;
@@ -206,7 +284,7 @@
             // 
             // btnOpenPackLocation
             // 
-            btnOpenPackLocation.Location = new Point(8, 232);
+            btnOpenPackLocation.Location = new Point(99, 54);
             btnOpenPackLocation.Name = "btnOpenPackLocation";
             btnOpenPackLocation.Size = new Size(159, 23);
             btnOpenPackLocation.TabIndex = 5;
@@ -216,14 +294,16 @@
             // 
             // rtbPackOutput
             // 
-            rtbPackOutput.Location = new Point(6, 83);
+            rtbPackOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            rtbPackOutput.Location = new Point(9, 86);
             rtbPackOutput.Name = "rtbPackOutput";
-            rtbPackOutput.Size = new Size(778, 143);
+            rtbPackOutput.Size = new Size(762, 237);
             rtbPackOutput.TabIndex = 4;
             rtbPackOutput.Text = "";
             // 
             // btnPack
             // 
+            btnPack.Enabled = false;
             btnPack.Location = new Point(6, 54);
             btnPack.Name = "btnPack";
             btnPack.Size = new Size(87, 23);
@@ -264,7 +344,7 @@
             tabRandomizer.Location = new Point(4, 24);
             tabRandomizer.Name = "tabRandomizer";
             tabRandomizer.Padding = new Padding(3);
-            tabRandomizer.Size = new Size(792, 398);
+            tabRandomizer.Size = new Size(777, 395);
             tabRandomizer.TabIndex = 2;
             tabRandomizer.Text = "Randomizer";
             tabRandomizer.UseVisualStyleBackColor = true;
@@ -357,7 +437,7 @@
             // lblRandomizeStatus
             // 
             lblRandomizeStatus.AutoSize = true;
-            lblRandomizeStatus.Location = new Point(190, 340);
+            lblRandomizeStatus.Location = new Point(193, 343);
             lblRandomizeStatus.Name = "lblRandomizeStatus";
             lblRandomizeStatus.Size = new Size(42, 15);
             lblRandomizeStatus.TabIndex = 8;
@@ -470,64 +550,70 @@
             txtRandomizerPath.TabIndex = 3;
             txtRandomizerPath.Text = "Project filepath will show up here!";
             // 
-            // mnuMain
+            // tabIngameRandom
             // 
-            mnuMain.Items.AddRange(new ToolStripItem[] { optionsToolStripMenuItem, funOptionsToolStripMenuItem });
-            mnuMain.Location = new Point(0, 0);
-            mnuMain.Name = "mnuMain";
-            mnuMain.Size = new Size(800, 24);
-            mnuMain.TabIndex = 1;
-            mnuMain.Text = "menuStrip1";
+            tabIngameRandom.Controls.Add(chbIngameRandom);
+            tabIngameRandom.Location = new Point(4, 24);
+            tabIngameRandom.Name = "tabIngameRandom";
+            tabIngameRandom.Padding = new Padding(3);
+            tabIngameRandom.Size = new Size(777, 395);
+            tabIngameRandom.TabIndex = 3;
+            tabIngameRandom.Text = "Ingame Random";
+            tabIngameRandom.UseVisualStyleBackColor = true;
             // 
-            // optionsToolStripMenuItem
+            // chbIngameRandom
             // 
-            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { saveBatMenuItem, randomizerLogsMenuItem });
-            optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-            optionsToolStripMenuItem.Size = new Size(99, 20);
-            optionsToolStripMenuItem.Text = "Debug Options";
+            chbIngameRandom.AutoSize = true;
+            chbIngameRandom.Location = new Point(11, 9);
+            chbIngameRandom.Name = "chbIngameRandom";
+            chbIngameRandom.Size = new Size(162, 19);
+            chbIngameRandom.TabIndex = 8;
+            chbIngameRandom.Text = "Randomize on town leave";
+            chbIngameRandom.UseVisualStyleBackColor = true;
+            chbIngameRandom.Visible = false;
+            chbIngameRandom.CheckedChanged += chbIngameRandom_CheckedChanged;
+            chbIngameRandom.MouseHover += chbIngameRandom_MouseHover;
             // 
-            // saveBatMenuItem
+            // txtFileHeader
             // 
-            saveBatMenuItem.CheckOnClick = true;
-            saveBatMenuItem.Name = "saveBatMenuItem";
-            saveBatMenuItem.Size = new Size(165, 22);
-            saveBatMenuItem.Text = "Save BAT file";
+            txtFileHeader.Enabled = false;
+            txtFileHeader.Location = new Point(5, 0);
+            txtFileHeader.Name = "txtFileHeader";
+            txtFileHeader.Size = new Size(243, 23);
+            txtFileHeader.TabIndex = 4;
+            txtFileHeader.Text = "Project File Tree:";
             // 
-            // randomizerLogsMenuItem
+            // tvwProjects
             // 
-            randomizerLogsMenuItem.CheckOnClick = true;
-            randomizerLogsMenuItem.Name = "randomizerLogsMenuItem";
-            randomizerLogsMenuItem.Size = new Size(165, 22);
-            randomizerLogsMenuItem.Text = "Randomizer Logs";
-            // 
-            // funOptionsToolStripMenuItem
-            // 
-            funOptionsToolStripMenuItem.CheckOnClick = true;
-            funOptionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { randomizerMenuItem });
-            funOptionsToolStripMenuItem.Name = "funOptionsToolStripMenuItem";
-            funOptionsToolStripMenuItem.Size = new Size(84, 20);
-            funOptionsToolStripMenuItem.Text = "Fun Options";
-            // 
-            // randomizerMenuItem
-            // 
-            randomizerMenuItem.CheckOnClick = true;
-            randomizerMenuItem.Name = "randomizerMenuItem";
-            randomizerMenuItem.Size = new Size(137, 22);
-            randomizerMenuItem.Text = "Randomizer";
-            randomizerMenuItem.Click += randomizerMenuItem_Click;
+            tvwProjects.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvwProjects.Location = new Point(5, 24);
+            tvwProjects.Name = "tvwProjects";
+            tvwProjects.Size = new Size(243, 394);
+            tvwProjects.TabIndex = 3;
+            tvwProjects.BeforeExpand += tvwProjects_BeforeExpand;
+            tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;
+            tvwProjects.AfterSelect += tvwProjects_AfterSelect;
+            tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
-            Controls.Add(tabContainer);
+            ClientSize = new Size(1042, 450);
             Controls.Add(mnuMain);
+            Controls.Add(splitContainer1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = mnuMain;
             Name = "frmMain";
             Text = "Modding Tools GUI";
             Load += frmMain_Load;
+            mnuMain.ResumeLayout(false);
+            mnuMain.PerformLayout();
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel2.ResumeLayout(false);
+            splitContainer1.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
             tabContainer.ResumeLayout(false);
             tabUnpacking.ResumeLayout(false);
             tabUnpacking.PerformLayout();
@@ -541,55 +627,60 @@
             grpHeroSelection.PerformLayout();
             grpBaseOptions.ResumeLayout(false);
             grpBaseOptions.PerformLayout();
-            mnuMain.ResumeLayout(false);
-            mnuMain.PerformLayout();
+            tabIngameRandom.ResumeLayout(false);
+            tabIngameRandom.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-
-        private TabControl tabContainer;
-        private TabPage tabUnpacking;
-        private TabPage tabPacking;
-        private TextBox txtUnpackPath;
-        private Button btnSelectISO;
-        private TextBox txtISOPath;
-        private Button btnUnpack;
-        private Button btnPack;
-        private Button btnPackPath;
-        private TextBox txtPackPath;
         private MenuStrip mnuMain;
         private ToolStripMenuItem optionsToolStripMenuItem;
         private ToolStripMenuItem saveBatMenuItem;
-        private RichTextBox rtbUnpackOutput;
-        private RichTextBox rtbPackOutput;
-        private Button btnOpenUnpackLocation;
-        private Button btnOpenPackLocation;
         private ToolStripMenuItem funOptionsToolStripMenuItem;
         private ToolStripMenuItem randomizerMenuItem;
-        private TabPage tabRandomizer;
-        private Button btnRandomizerPath;
-        private TextBox txtRandomizerPath;
-        private GroupBox grpBaseOptions;
-        private CheckBox chbRandomHeroes;
-        private CheckBox chbRandomTeam;
-        private Button btnRandomize;
-        private CheckBox chbRandomVanillaOrNah;
-        private CheckBox chbRandomPermaDeath;
-        private CheckBox chbRandomNoRecruits;
-        private ProgressBar pgbRandomizeStatus;
-        private Label lblRandomizeStatus;
-        private TextBox txtSeed;
         private ToolStripMenuItem randomizerLogsMenuItem;
-        private GroupBox grpHeroSelection;
-        private RadioButton rbnUrsula;
-        private RadioButton rbnValens;
-        private CheckBox chbValidationSkip;
+        private ToolTip ttpInform;
+        private SplitContainer splitContainer1;
+        private TabControl tabContainer;
+        private TabPage tabUnpacking;
+        private Button btnOpenUnpackLocation;
+        private RichTextBox rtbUnpackOutput;
+        private Button btnUnpack;
+        private TextBox txtUnpackPath;
+        private Button btnSelectISO;
+        private TextBox txtISOPath;
+        private TabPage tabPacking;
         private ProgressBar pgbValidation;
+        private CheckBox chbValidationSkip;
+        private Button btnOpenPackLocation;
+        private RichTextBox rtbPackOutput;
+        private Button btnPack;
+        private Button btnPackPath;
+        private TextBox txtPackPath;
+        private TabPage tabRandomizer;
         private GroupBox grpGameVersion;
         private RadioButton rbnLeonarths;
         private RadioButton rbnRagnaroks;
         private RadioButton rbnVanilla;
+        private GroupBox grpHeroSelection;
+        private RadioButton rbnUrsula;
+        private RadioButton rbnValens;
+        private TextBox txtSeed;
+        private Label lblRandomizeStatus;
+        private ProgressBar pgbRandomizeStatus;
+        private GroupBox grpBaseOptions;
+        private CheckBox chbRandomPermaDeath;
+        private CheckBox chbRandomNoRecruits;
+        private CheckBox chbRandomVanillaOrNah;
+        private Button btnRandomize;
+        private CheckBox chbRandomTeam;
+        private CheckBox chbRandomHeroes;
+        private Button btnRandomizerPath;
+        private TextBox txtRandomizerPath;
+        private TabPage tabIngameRandom;
+        private CheckBox chbIngameRandom;
+        private TreeView tvwProjects;
+        private TextBox txtFileHeader;
     }
 }

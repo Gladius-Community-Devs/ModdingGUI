@@ -1214,8 +1214,14 @@ namespace ModdingGUI
                     }
 
                     // Add compiler command for this file
-                    string compileCommand = $"\"{compilerPath}\" \"{scpFilePath}\" \"{binFolder}\"";
+                    // Determine the output .scb file path
+                    string scbFileName = Path.GetFileNameWithoutExtension(scpFilePath) + ".scb";
+                    string scbFilePath = Path.Combine(binFolder, scbFileName);
+
+                    // Add compiler command for this file
+                    string compileCommand = $"\"{compilerPath}\" \"{scpFilePath}\" \"{scbFilePath}\"";
                     batchCommands.AppendLine(compileCommand);
+
                 }
                 catch (Exception ex)
                 {
@@ -1234,6 +1240,227 @@ namespace ModdingGUI
             else
             {
                 AppendRandomizerLog("No .scp files were modified. Compilation skipped.", InfoColor);
+            }
+        }
+        private async Task ApplyIngameRandomAsync(string projectFolder)
+        {
+            try
+            {
+                // Remove any trailing directory separators from the project folder path
+                projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+                // Define the path to the script folder within the project
+                string scriptFolder = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "script");
+
+                // Define the path to the bin folder within the script directory
+                string binFolder = Path.Combine(scriptFolder, "bin");
+
+                // Ensure the script directory exists
+                if (!Directory.Exists(scriptFolder))
+                {
+                    AppendRandomizerLog($"Script folder not found at: {scriptFolder}", ErrorColor);
+                    return;
+                }
+
+                // Ensure the bin directory exists; create it if it doesn't
+                if (!Directory.Exists(binFolder))
+                {
+                    AppendRandomizerLog($"Bin folder not found at: {binFolder}. Creating bin folder.", WarningColor);
+                    Directory.CreateDirectory(binFolder);
+                }
+
+                // Define the path to the wmglobal.scp file
+                string wmGlobalScpPath = Path.Combine(scriptFolder, "wmglobal.scp");
+
+                // Check if wmglobal.scp exists
+                if (!File.Exists(wmGlobalScpPath))
+                {
+                    AppendRandomizerLog($"wmglobal.scp file not found at: {wmGlobalScpPath}", ErrorColor);
+                    return;
+                }
+
+                AppendRandomizerLog($"Found wmglobal.scp at: {wmGlobalScpPath} for in-game randomization.", InfoColor);
+
+                // Define the lines to add within the OnInit() function
+                string[] onInitLinesToAdd = new string[]
+                {
+            "shared school \t\t= gb.GetSchool()", // Ensure this line is first
+            "global math\t\t= InterfaceMath()",
+            "shared characterValens \t= school.GetCharacterByName(\"Valens\")",
+            "shared characterLudo \t= school.GetCharacterByName(\"Ludo\")",
+            "shared characterGwazi \t= school.GetCharacterByName(\"Gwazi\")",
+            "shared characterEiji \t= school.GetCharacterByName(\"Eiji\")",
+            "shared characterUrsula \t= school.GetCharacterByName(\"Ursula\")",
+            "shared characterUrlan \t= school.GetCharacterByName(\"Urlan\")"
+                };
+
+                // Define the code block to add within the OnKill() function
+                string[] onKillCodeToAdd = new string[]
+                {
+            "roll = math.RandomInRange(0,3)",
+            "if(roll == 0)",
+            "\tcharacterValens.ChangeClass(\"Bandit\")",
+            "endif",
+            "if(roll == 1)",
+            "\tcharacterValens.ChangeClass(\"Bear\")",
+            "endif",
+            "if(roll == 2)",
+            "\tcharacterValens.ChangeClass(\"Ogre\")",
+            "endif",
+            "if(roll == 3)",
+            "\tcharacterValens.ChangeClass(\"Mongrel\")",
+            "endif"
+                };
+
+                // Define the path to the compiler executable
+                string toolsPath = NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
+                string compilerPath = Path.Combine(toolsPath, "DOGCodeCompiler.exe");
+
+                // Check if the compiler exists
+                if (!File.Exists(compilerPath))
+                {
+                    AppendRandomizerLog($"Compiler not found at: {compilerPath}", ErrorColor);
+                    return;
+                }
+
+                // Initialize a StringBuilder to accumulate compiler commands
+                StringBuilder batchCommands = new StringBuilder();
+
+                string fileName = Path.GetFileName(wmGlobalScpPath);
+                AppendRandomizerLog($"Processing wmglobal.scp file: {wmGlobalScpPath}", InfoColor);
+
+                try
+                {
+                    // Optional: Create a backup of wmglobal.scp if it doesn't already exist
+                    string backupScpPath = Path.Combine(scriptFolder, "wmglobal_backup.scp");
+                    if (!File.Exists(backupScpPath))
+                    {
+                        File.Copy(wmGlobalScpPath, backupScpPath);
+                        AppendRandomizerLog($"Backup created at: {backupScpPath}", InfoColor);
+                    }
+                    else
+                    {
+                        AppendRandomizerLog($"Backup already exists at: {backupScpPath}", InfoColor);
+                    }
+
+                    // Read all lines from wmglobal.scp
+                    var lines = File.ReadAllLines(wmGlobalScpPath).ToList();
+                    bool fileModified = false;
+
+                    // Find the start index of the OnInit function (flexible search)
+                    int onInitStart = lines.FindIndex(line => line.Trim().StartsWith("function OnInit", StringComparison.OrdinalIgnoreCase));
+                    if (onInitStart == -1)
+                    {
+                        AppendRandomizerLog($"'function OnInit' not found in {fileName}. Skipping.", WarningColor);
+                        // Optionally, you can decide to add the function if it doesn't exist
+                        return;
+                    }
+
+                    // Find the end index of the OnInit function
+                    int onInitEnd = lines.FindIndex(onInitStart, line => line.Trim().Equals("endfunction", StringComparison.OrdinalIgnoreCase));
+                    if (onInitEnd == -1)
+                    {
+                        AppendRandomizerLog($"'endfunction' for 'OnInit' not found in {fileName}. Skipping.", WarningColor);
+                        return;
+                    }
+
+                    // Insert lines into OnInit in reverse order to maintain desired sequence
+                    for (int i = onInitLinesToAdd.Length - 1; i >= 0; i--)
+                    {
+                        string initLine = onInitLinesToAdd[i];
+                        if (!lines.Skip(onInitStart + 1).Take(onInitEnd - onInitStart - 1).Any(l => l.Trim() == initLine))
+                        {
+                            lines.Insert(onInitEnd, "\t" + initLine); // Insert before 'endfunction'
+                            fileModified = true;
+                            AppendRandomizerLog($"Added line to OnInit in {fileName}: {initLine}", InfoColor);
+                        }
+                    }
+
+                    // Find the start index of the OnKill function (flexible search)
+                    int onKillStart = lines.FindIndex(line => line.Trim().StartsWith("function OnKill", StringComparison.OrdinalIgnoreCase));
+                    if (onKillStart == -1)
+                    {
+                        AppendRandomizerLog($"'function OnKill' not found in {fileName}. Skipping.", WarningColor);
+                        // Optionally, you can decide to add the function if it doesn't exist
+                        return;
+                    }
+
+                    // Find the end index of the OnKill function
+                    int onKillEnd = lines.FindIndex(onKillStart, line => line.Trim().Equals("endfunction", StringComparison.OrdinalIgnoreCase));
+                    if (onKillEnd == -1)
+                    {
+                        AppendRandomizerLog($"'endfunction' for 'OnKill' not found in {fileName}. Skipping.", WarningColor);
+                        return;
+                    }
+
+                    // Check if the OnKill code already exists
+                    bool killCodeExists = onKillCodeToAdd.All(codeLine =>
+                        lines.Skip(onKillStart + 1).Take(onKillEnd - onKillStart - 1).Any(l => l.Trim() == codeLine));
+
+                    // Add the OnKill code block if it doesn't already exist
+                    if (!killCodeExists)
+                    {
+                        // Insert the OnKill code before 'endfunction' in reverse order
+                        for (int i = onKillCodeToAdd.Length - 1; i >= 0; i--)
+                        {
+                            lines.Insert(onKillEnd, "\t" + onKillCodeToAdd[i]);
+                        }
+                        fileModified = true;
+                        AppendRandomizerLog($"Added code to OnKill in {fileName}.", InfoColor);
+                    }
+
+                    // Write the modified lines back to wmglobal.scp if any changes were made
+                    if (fileModified)
+                    {
+                        File.WriteAllLines(wmGlobalScpPath, lines);
+                        AppendRandomizerLog($"Saved changes to {fileName}.", SuccessColor);
+                    }
+                    else
+                    {
+                        AppendRandomizerLog($"No changes needed for {fileName}.", InfoColor);
+                    }
+
+                    // Determine the output .scb file path
+                    string scbFileName = Path.GetFileNameWithoutExtension(wmGlobalScpPath) + ".scb";
+                    string scbFilePath = Path.Combine(binFolder, scbFileName);
+
+                    // Construct the compiler command with the correct output file path
+                    string compileCommand = $"\"{compilerPath}\" \"{wmGlobalScpPath}\" \"{scbFilePath}\"";
+                    batchCommands.AppendLine(compileCommand);
+                }
+                catch (Exception ex)
+                {
+                    AppendRandomizerLog($"Error processing {fileName}: {ex.Message}", ErrorColor);
+                }
+
+                // Execute the compiler commands if any modifications were made
+                if (batchCommands.Length > 0)
+                {
+                    string batchContent = batchCommands.ToString();
+                    AppendRandomizerLog("Starting compilation of in-game randomized wmglobal.scp file...", InfoColor);
+                    await RunBatchFileAsync(batchContent, scriptFolder, false);
+                    AppendRandomizerLog("Compilation of in-game randomized wmglobal.scp file completed.", SuccessColor);
+
+                    // Validate compilation success
+                    string scbFileName = Path.GetFileNameWithoutExtension("wmglobal.scp") + ".scb";
+                    string scbFilePath = Path.Combine(binFolder, scbFileName);
+                    if (File.Exists(scbFilePath))
+                    {
+                        AppendRandomizerLog($"Compilation successful: {scbFilePath}", SuccessColor);
+                    }
+                    else
+                    {
+                        AppendRandomizerLog($"Compilation failed for: wmglobal.scp", ErrorColor);
+                    }
+                }
+                else
+                {
+                    AppendRandomizerLog("No in-game randomized wmglobal.scp file was modified. Compilation skipped.", InfoColor);
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendRandomizerLog($"Unexpected error in ApplyIngameRandomAsync: {ex.Message}", ErrorColor);
             }
         }
     }
