@@ -3,7 +3,11 @@
   "WorkspaceRootPath": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|e:\\code_stuff\\gladiusmoddingtoolsgui\\moddinggui\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|e:\\code_stuff\\gladiusmoddingtoolsgui\\moddinggui\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
@@ -21,10 +25,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|e:\\code_stuff\\gladiusmoddingtoolsgui\\moddinggui\\frmmain_partials\\randomizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|solutionrelative:frmmain_partials\\randomizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|e:\\code_stuff\\gladiusmoddingtoolsgui\\moddinggui\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9CA4C3E6-7DA0-448E-9E11-024BF1B07A92}|ModdingGUI.csproj|e:\\code_stuff\\gladiusmoddingtoolsgui\\moddinggui\\frmmain_partials\\packvalidation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -46,7 +46,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Bookmark",
@@ -54,32 +54,32 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
               "Title": "Form1.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs",
               "RelativeDocumentMoniker": "Form1.cs",
-              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs*",
-              "RelativeToolTip": "Form1.cs*",
-              "ViewState": "AgIAAM8AAAAAAAAAAAAwwOAAAAA0AAAAAAAAAA==",
+              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs",
+              "RelativeToolTip": "Form1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEACAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-08T07:25:32.986Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Form1.cs [Design]",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs",
               "RelativeDocumentMoniker": "Form1.cs",
-              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs [Design]*",
-              "RelativeToolTip": "Form1.cs [Design]*",
+              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.cs [Design]",
+              "RelativeToolTip": "Form1.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-08T07:29:03.031Z",
               "EditorCaption": " [Design]"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "devnotes.txt",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\devnotes.txt",
               "RelativeDocumentMoniker": "devnotes.txt",
@@ -103,7 +103,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "Randomizer.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\frmMain_partials\\Randomizer.cs",
               "RelativeDocumentMoniker": "frmMain_partials\\Randomizer.cs",
@@ -139,7 +139,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "TeamBuilder.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\frmMain_partials\\TeamBuilder.cs",
               "RelativeDocumentMoniker": "frmMain_partials\\TeamBuilder.cs",
@@ -147,18 +147,17 @@
               "RelativeToolTip": "frmMain_partials\\TeamBuilder.cs",
               "ViewState": "AgIAABAAAAAAAAAAAAA9wOQAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-15T06:50:15.894Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-15T06:50:15.894Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Form1.Designer.cs",
               "DocumentMoniker": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.Designer.cs",
               "RelativeDocumentMoniker": "Form1.Designer.cs",
-              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.Designer.cs*",
-              "RelativeToolTip": "Form1.Designer.cs*",
-              "ViewState": "AgIAAAUDAAAAAAAAAAAAACkDAABXAAAAAAAAAA==",
+              "ToolTip": "E:\\code_stuff\\GladiusModdingToolsGUI\\ModdingGUI\\Form1.Designer.cs",
+              "RelativeToolTip": "Form1.Designer.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAIBJwBYAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-08T07:27:10.268Z",
               "EditorCaption": ""

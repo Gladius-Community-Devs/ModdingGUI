@@ -717,12 +717,12 @@
             // 
             // txtPreviewUnitName
             // 
-            txtPreviewUnitName.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            txtPreviewUnitName.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtPreviewUnitName.Location = new Point(77, 3);
             txtPreviewUnitName.Multiline = true;
             txtPreviewUnitName.Name = "txtPreviewUnitName";
             txtPreviewUnitName.ReadOnly = true;
-            txtPreviewUnitName.Size = new Size(111, 29);
+            txtPreviewUnitName.Size = new Size(153, 29);
             txtPreviewUnitName.TabIndex = 0;
             // 
             // label4
