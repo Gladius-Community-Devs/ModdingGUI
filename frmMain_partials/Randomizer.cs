@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Drawing;
-using System.Threading;
-using System.Linq;
-using System.Security.Cryptography;
-using System.IO;
-using System.Windows.Forms;
-using System.Diagnostics;
 
 namespace ModdingGUI
 {

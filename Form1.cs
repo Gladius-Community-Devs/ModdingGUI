@@ -1,7 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;      // Provides classes for working with processes
-using System.Text;             // Contains classes representing ASCII and Unicode character encodings
-using System.Text.RegularExpressions; // Provides classes for regular expressions
 
 namespace ModdingGUI
 {
@@ -103,7 +100,8 @@ namespace ModdingGUI
             {
                 bool valid = true; // Initialize a flag to track the overall validation result
                 // Run itemsets validation before packing
-                if (!chbValidationSkip.Checked) { 
+                if (!chbValidationSkip.Checked)
+                {
                     if (!ValidateItemsets(selectedFolder))
                     {
                         valid = false; // Exit the method if validation fails
@@ -205,6 +203,7 @@ namespace ModdingGUI
             // Remove the randomizer tab on load
             tabContainer.TabPages.Remove(tabRandomizer);
             tabContainer.TabPages.Remove(tabIngameRandom);
+            tabContainer.TabPages.Remove(tabTeamBuilder);
             LoadProjects();
         }
 
@@ -218,6 +217,26 @@ namespace ModdingGUI
             else
             {
                 tabContainer.TabPages.Remove(tabRandomizer);
+            }
+        }
+
+        private void teamBuilderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (teamBuilderToolStripMenuItem.Checked)
+            {
+                // Check if the tab is already added to prevent duplicates
+                if (!tabContainer.TabPages.Contains(tabTeamBuilder))
+                {
+                    tabContainer.TabPages.Add(tabTeamBuilder);
+                    LoadClassesIntoDropdown();
+                }
+            }
+            else
+            {
+                if (tabContainer.TabPages.Contains(tabTeamBuilder))
+                {
+                    tabContainer.TabPages.Remove(tabTeamBuilder);
+                }
             }
         }
 
@@ -566,7 +585,7 @@ namespace ModdingGUI
             else
             {
                 // Optional: Clear txtPackPath or handle selections of sub-nodes
-                txtPackPath.Text = string.Empty;
+                // txtPackPath.Text = string.Empty;
             }
         }
     }

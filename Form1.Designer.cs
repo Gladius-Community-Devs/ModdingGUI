@@ -36,6 +36,7 @@
             randomizerLogsMenuItem = new ToolStripMenuItem();
             funOptionsToolStripMenuItem = new ToolStripMenuItem();
             randomizerMenuItem = new ToolStripMenuItem();
+            teamBuilderToolStripMenuItem = new ToolStripMenuItem();
             ttpInform = new ToolTip(components);
             splitContainer1 = new SplitContainer();
             tabContainer = new TabControl();
@@ -76,6 +77,28 @@
             txtRandomizerPath = new TextBox();
             tabIngameRandom = new TabPage();
             chbIngameRandom = new CheckBox();
+            tabTeamBuilder = new TabPage();
+            splitContainer2 = new SplitContainer();
+            tabTeamBuilderMaster = new TabControl();
+            tabTeamUnitSelection = new TabPage();
+            grpPreview = new GroupBox();
+            tableLayoutPanel1 = new TableLayoutPanel();
+            label3 = new Label();
+            txtPreviewUnitName = new TextBox();
+            label4 = new Label();
+            txtPreviewAttributes = new TextBox();
+            label5 = new Label();
+            txtPreviewAffinity = new TextBox();
+            label2 = new Label();
+            label1 = new Label();
+            lblTeamUnitCreator = new Label();
+            ddlTeamClasses = new ComboBox();
+            txtTeamUnitName = new TextBox();
+            btnTeamAddUnit = new Button();
+            tabTeamItemSelection = new TabPage();
+            tabTeamSkillSelection = new TabPage();
+            tvwTeam = new TreeView();
+            txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
             mnuMain.SuspendLayout();
@@ -91,6 +114,15 @@
             grpHeroSelection.SuspendLayout();
             grpBaseOptions.SuspendLayout();
             tabIngameRandom.SuspendLayout();
+            tabTeamBuilder.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
+            splitContainer2.Panel1.SuspendLayout();
+            splitContainer2.Panel2.SuspendLayout();
+            splitContainer2.SuspendLayout();
+            tabTeamBuilderMaster.SuspendLayout();
+            tabTeamUnitSelection.SuspendLayout();
+            grpPreview.SuspendLayout();
+            tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
             // mnuMain
@@ -126,7 +158,7 @@
             // funOptionsToolStripMenuItem
             // 
             funOptionsToolStripMenuItem.CheckOnClick = true;
-            funOptionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { randomizerMenuItem });
+            funOptionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { randomizerMenuItem, teamBuilderToolStripMenuItem });
             funOptionsToolStripMenuItem.Name = "funOptionsToolStripMenuItem";
             funOptionsToolStripMenuItem.Size = new Size(84, 20);
             funOptionsToolStripMenuItem.Text = "Fun Options";
@@ -135,9 +167,17 @@
             // 
             randomizerMenuItem.CheckOnClick = true;
             randomizerMenuItem.Name = "randomizerMenuItem";
-            randomizerMenuItem.Size = new Size(137, 22);
+            randomizerMenuItem.Size = new Size(142, 22);
             randomizerMenuItem.Text = "Randomizer";
             randomizerMenuItem.Click += randomizerMenuItem_Click;
+            // 
+            // teamBuilderToolStripMenuItem
+            // 
+            teamBuilderToolStripMenuItem.CheckOnClick = true;
+            teamBuilderToolStripMenuItem.Name = "teamBuilderToolStripMenuItem";
+            teamBuilderToolStripMenuItem.Size = new Size(142, 22);
+            teamBuilderToolStripMenuItem.Text = "Team Builder";
+            teamBuilderToolStripMenuItem.Click += teamBuilderToolStripMenuItem_Click;
             // 
             // splitContainer1
             // 
@@ -165,6 +205,7 @@
             tabContainer.Controls.Add(tabPacking);
             tabContainer.Controls.Add(tabRandomizer);
             tabContainer.Controls.Add(tabIngameRandom);
+            tabContainer.Controls.Add(tabTeamBuilder);
             tabContainer.Dock = DockStyle.Fill;
             tabContainer.Location = new Point(0, 0);
             tabContainer.Name = "tabContainer";
@@ -574,18 +615,269 @@
             chbIngameRandom.CheckedChanged += chbIngameRandom_CheckedChanged;
             chbIngameRandom.MouseHover += chbIngameRandom_MouseHover;
             // 
+            // tabTeamBuilder
+            // 
+            tabTeamBuilder.Controls.Add(splitContainer2);
+            tabTeamBuilder.Location = new Point(4, 24);
+            tabTeamBuilder.Name = "tabTeamBuilder";
+            tabTeamBuilder.Padding = new Padding(3);
+            tabTeamBuilder.Size = new Size(777, 395);
+            tabTeamBuilder.TabIndex = 4;
+            tabTeamBuilder.Text = "Team Builder";
+            tabTeamBuilder.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer2
+            // 
+            splitContainer2.Dock = DockStyle.Fill;
+            splitContainer2.Location = new Point(3, 3);
+            splitContainer2.Name = "splitContainer2";
+            // 
+            // splitContainer2.Panel1
+            // 
+            splitContainer2.Panel1.Controls.Add(tabTeamBuilderMaster);
+            // 
+            // splitContainer2.Panel2
+            // 
+            splitContainer2.Panel2.Controls.Add(tvwTeam);
+            splitContainer2.Panel2.Controls.Add(txtTeamHeader);
+            splitContainer2.Size = new Size(771, 389);
+            splitContainer2.SplitterDistance = 607;
+            splitContainer2.TabIndex = 0;
+            // 
+            // tabTeamBuilderMaster
+            // 
+            tabTeamBuilderMaster.Controls.Add(tabTeamUnitSelection);
+            tabTeamBuilderMaster.Controls.Add(tabTeamItemSelection);
+            tabTeamBuilderMaster.Controls.Add(tabTeamSkillSelection);
+            tabTeamBuilderMaster.Dock = DockStyle.Fill;
+            tabTeamBuilderMaster.Location = new Point(0, 0);
+            tabTeamBuilderMaster.Name = "tabTeamBuilderMaster";
+            tabTeamBuilderMaster.SelectedIndex = 0;
+            tabTeamBuilderMaster.Size = new Size(607, 389);
+            tabTeamBuilderMaster.TabIndex = 1;
+            // 
+            // tabTeamUnitSelection
+            // 
+            tabTeamUnitSelection.Controls.Add(grpPreview);
+            tabTeamUnitSelection.Controls.Add(label2);
+            tabTeamUnitSelection.Controls.Add(label1);
+            tabTeamUnitSelection.Controls.Add(lblTeamUnitCreator);
+            tabTeamUnitSelection.Controls.Add(ddlTeamClasses);
+            tabTeamUnitSelection.Controls.Add(txtTeamUnitName);
+            tabTeamUnitSelection.Controls.Add(btnTeamAddUnit);
+            tabTeamUnitSelection.Location = new Point(4, 24);
+            tabTeamUnitSelection.Name = "tabTeamUnitSelection";
+            tabTeamUnitSelection.Padding = new Padding(3);
+            tabTeamUnitSelection.Size = new Size(599, 361);
+            tabTeamUnitSelection.TabIndex = 0;
+            tabTeamUnitSelection.Text = "Unit Selection";
+            tabTeamUnitSelection.UseVisualStyleBackColor = true;
+            // 
+            // grpPreview
+            // 
+            grpPreview.Controls.Add(tableLayoutPanel1);
+            grpPreview.Location = new Point(354, 37);
+            grpPreview.Name = "grpPreview";
+            grpPreview.Size = new Size(239, 321);
+            grpPreview.TabIndex = 6;
+            grpPreview.TabStop = false;
+            grpPreview.Text = "Unit Preview";
+            // 
+            // tableLayoutPanel1
+            // 
+            tableLayoutPanel1.ColumnCount = 2;
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 31.7596569F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 68.24034F));
+            tableLayoutPanel1.Controls.Add(label3, 0, 0);
+            tableLayoutPanel1.Controls.Add(txtPreviewUnitName, 1, 0);
+            tableLayoutPanel1.Controls.Add(label4, 0, 1);
+            tableLayoutPanel1.Controls.Add(txtPreviewAttributes, 1, 1);
+            tableLayoutPanel1.Controls.Add(label5, 0, 2);
+            tableLayoutPanel1.Controls.Add(txtPreviewAffinity, 1, 2);
+            tableLayoutPanel1.Dock = DockStyle.Fill;
+            tableLayoutPanel1.Location = new Point(3, 19);
+            tableLayoutPanel1.Name = "tableLayoutPanel1";
+            tableLayoutPanel1.RowCount = 3;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.7647095F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 71.23746F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 17.0568562F));
+            tableLayoutPanel1.Size = new Size(233, 299);
+            tableLayoutPanel1.TabIndex = 0;
+            // 
+            // label3
+            // 
+            label3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            label3.AutoSize = true;
+            label3.Location = new Point(3, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(68, 35);
+            label3.TabIndex = 1;
+            label3.Text = "Unit Name:";
+            label3.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // txtPreviewUnitName
+            // 
+            txtPreviewUnitName.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            txtPreviewUnitName.Location = new Point(77, 3);
+            txtPreviewUnitName.Multiline = true;
+            txtPreviewUnitName.Name = "txtPreviewUnitName";
+            txtPreviewUnitName.ReadOnly = true;
+            txtPreviewUnitName.Size = new Size(111, 29);
+            txtPreviewUnitName.TabIndex = 0;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Dock = DockStyle.Fill;
+            label4.Location = new Point(3, 35);
+            label4.Name = "label4";
+            label4.Size = new Size(68, 212);
+            label4.TabIndex = 2;
+            label4.Text = "Attributes:";
+            label4.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // txtPreviewAttributes
+            // 
+            txtPreviewAttributes.Dock = DockStyle.Fill;
+            txtPreviewAttributes.Location = new Point(77, 38);
+            txtPreviewAttributes.Multiline = true;
+            txtPreviewAttributes.Name = "txtPreviewAttributes";
+            txtPreviewAttributes.ReadOnly = true;
+            txtPreviewAttributes.Size = new Size(153, 206);
+            txtPreviewAttributes.TabIndex = 3;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Dock = DockStyle.Fill;
+            label5.Location = new Point(3, 247);
+            label5.Name = "label5";
+            label5.Size = new Size(68, 52);
+            label5.TabIndex = 4;
+            label5.Text = "Affinity:";
+            label5.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // txtPreviewAffinity
+            // 
+            txtPreviewAffinity.Dock = DockStyle.Fill;
+            txtPreviewAffinity.Location = new Point(77, 250);
+            txtPreviewAffinity.Multiline = true;
+            txtPreviewAffinity.Name = "txtPreviewAffinity";
+            txtPreviewAffinity.ReadOnly = true;
+            txtPreviewAffinity.Size = new Size(153, 46);
+            txtPreviewAffinity.TabIndex = 5;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Segoe UI", 9F, FontStyle.Underline);
+            label2.Location = new Point(6, 69);
+            label2.Name = "label2";
+            label2.Size = new Size(78, 15);
+            label2.TabIndex = 5;
+            label2.Text = "Select a class:";
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 9F, FontStyle.Underline);
+            label1.Location = new Point(6, 40);
+            label1.Name = "label1";
+            label1.Size = new Size(97, 15);
+            label1.TabIndex = 4;
+            label1.Text = "Enter unit name: ";
+            // 
+            // lblTeamUnitCreator
+            // 
+            lblTeamUnitCreator.AutoSize = true;
+            lblTeamUnitCreator.BackColor = Color.LightGray;
+            lblTeamUnitCreator.BorderStyle = BorderStyle.Fixed3D;
+            lblTeamUnitCreator.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblTeamUnitCreator.Location = new Point(71, 3);
+            lblTeamUnitCreator.Margin = new Padding(4);
+            lblTeamUnitCreator.Name = "lblTeamUnitCreator";
+            lblTeamUnitCreator.Size = new Size(454, 27);
+            lblTeamUnitCreator.TabIndex = 3;
+            lblTeamUnitCreator.Text = "Welcome to the unit creator! Go from top to bottom!";
+            // 
+            // ddlTeamClasses
+            // 
+            ddlTeamClasses.FormattingEnabled = true;
+            ddlTeamClasses.Location = new Point(109, 66);
+            ddlTeamClasses.Name = "ddlTeamClasses";
+            ddlTeamClasses.Size = new Size(239, 23);
+            ddlTeamClasses.TabIndex = 2;
+            ddlTeamClasses.SelectedIndexChanged += ddlTeamClasses_SelectedIndexChanged;
+            // 
+            // txtTeamUnitName
+            // 
+            txtTeamUnitName.Location = new Point(109, 37);
+            txtTeamUnitName.Name = "txtTeamUnitName";
+            txtTeamUnitName.Size = new Size(239, 23);
+            txtTeamUnitName.TabIndex = 1;
+            txtTeamUnitName.TextChanged += txtTeamUnitName_TextChanged;
+            // 
+            // btnTeamAddUnit
+            // 
+            btnTeamAddUnit.Location = new Point(226, 220);
+            btnTeamAddUnit.Name = "btnTeamAddUnit";
+            btnTeamAddUnit.Size = new Size(75, 23);
+            btnTeamAddUnit.TabIndex = 0;
+            btnTeamAddUnit.Text = "Add Unit";
+            btnTeamAddUnit.UseVisualStyleBackColor = true;
+            btnTeamAddUnit.Click += btnTeamAddUnit_Click;
+            // 
+            // tabTeamItemSelection
+            // 
+            tabTeamItemSelection.Location = new Point(4, 24);
+            tabTeamItemSelection.Name = "tabTeamItemSelection";
+            tabTeamItemSelection.Padding = new Padding(3);
+            tabTeamItemSelection.Size = new Size(599, 361);
+            tabTeamItemSelection.TabIndex = 1;
+            tabTeamItemSelection.Text = "Item Selection";
+            tabTeamItemSelection.UseVisualStyleBackColor = true;
+            // 
+            // tabTeamSkillSelection
+            // 
+            tabTeamSkillSelection.Location = new Point(4, 24);
+            tabTeamSkillSelection.Name = "tabTeamSkillSelection";
+            tabTeamSkillSelection.Padding = new Padding(3);
+            tabTeamSkillSelection.Size = new Size(599, 361);
+            tabTeamSkillSelection.TabIndex = 2;
+            tabTeamSkillSelection.Text = "Skills Selection";
+            tabTeamSkillSelection.UseVisualStyleBackColor = true;
+            // 
+            // tvwTeam
+            // 
+            tvwTeam.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvwTeam.Location = new Point(3, 27);
+            tvwTeam.Name = "tvwTeam";
+            tvwTeam.Size = new Size(154, 362);
+            tvwTeam.TabIndex = 1;
+            // 
+            // txtTeamHeader
+            // 
+            txtTeamHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtTeamHeader.Location = new Point(3, 3);
+            txtTeamHeader.Name = "txtTeamHeader";
+            txtTeamHeader.ReadOnly = true;
+            txtTeamHeader.Size = new Size(154, 23);
+            txtTeamHeader.TabIndex = 0;
+            txtTeamHeader.Text = "Current Team:";
+            // 
             // txtFileHeader
             // 
-            txtFileHeader.Enabled = false;
+            txtFileHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtFileHeader.Location = new Point(5, 0);
             txtFileHeader.Name = "txtFileHeader";
+            txtFileHeader.ReadOnly = true;
             txtFileHeader.Size = new Size(243, 23);
             txtFileHeader.TabIndex = 4;
             txtFileHeader.Text = "Project File Tree:";
             // 
             // tvwProjects
             // 
-            tvwProjects.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvwProjects.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwProjects.Location = new Point(5, 24);
             tvwProjects.Name = "tvwProjects";
             tvwProjects.Size = new Size(243, 394);
@@ -629,6 +921,18 @@
             grpBaseOptions.PerformLayout();
             tabIngameRandom.ResumeLayout(false);
             tabIngameRandom.PerformLayout();
+            tabTeamBuilder.ResumeLayout(false);
+            splitContainer2.Panel1.ResumeLayout(false);
+            splitContainer2.Panel2.ResumeLayout(false);
+            splitContainer2.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
+            splitContainer2.ResumeLayout(false);
+            tabTeamBuilderMaster.ResumeLayout(false);
+            tabTeamUnitSelection.ResumeLayout(false);
+            tabTeamUnitSelection.PerformLayout();
+            grpPreview.ResumeLayout(false);
+            tableLayoutPanel1.ResumeLayout(false);
+            tableLayoutPanel1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -682,5 +986,28 @@
         private CheckBox chbIngameRandom;
         private TreeView tvwProjects;
         private TextBox txtFileHeader;
+        private ToolStripMenuItem teamBuilderToolStripMenuItem;
+        private TabPage tabTeamBuilder;
+        private SplitContainer splitContainer2;
+        private TabControl tabTeamBuilderMaster;
+        private TabPage tabTeamUnitSelection;
+        private ComboBox ddlTeamClasses;
+        private TextBox txtTeamUnitName;
+        private Button btnTeamAddUnit;
+        private TabPage tabTeamItemSelection;
+        private TabPage tabTeamSkillSelection;
+        private Label lblTeamUnitCreator;
+        private Label label2;
+        private Label label1;
+        private TextBox txtTeamHeader;
+        private TreeView tvwTeam;
+        private GroupBox grpPreview;
+        private TableLayoutPanel tableLayoutPanel1;
+        private Label label3;
+        private TextBox txtPreviewUnitName;
+        private Label label4;
+        private TextBox txtPreviewAttributes;
+        private Label label5;
+        private TextBox txtPreviewAffinity;
     }
 }
