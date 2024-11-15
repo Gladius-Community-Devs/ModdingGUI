@@ -585,7 +585,7 @@
             // 
             // tvwProjects
             // 
-            tvwProjects.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvwProjects.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwProjects.Location = new Point(5, 24);
             tvwProjects.Name = "tvwProjects";
             tvwProjects.Size = new Size(243, 394);

@@ -168,6 +168,7 @@ namespace ModdingGUI
                     txtPackPath.Text = folderBrowserDialog.SelectedPath; // Set the pack path text box to the selected folder
                     txtRandomizerPath.Text = folderBrowserDialog.SelectedPath; // Set the randomizer path text box to the selected folder
                     btnRandomize.Enabled = true; // Enable the randomize button
+                    btnPack.Enabled = true; // Enable the pack button   
                 }
             }
         }
@@ -236,6 +237,7 @@ namespace ModdingGUI
                         txtRandomizerPath.Text = selectedPath; // Set the randomizer path text box to the selected folder
                         btnRandomize.Enabled = true; // Enable the randomize button
                         txtPackPath.Text = selectedPath; // Set the pack path text box to the selected folder
+                        btnPack.Enabled = true; // Enable the pack button 
                     }
                     else
                     {
