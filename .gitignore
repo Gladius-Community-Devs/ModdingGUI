@@ -1,7 +1,34 @@
-*.suo
+# Build Folders
+bin/
+obj/
+
+# User-specific files
 *.user
-_ReSharper.*
-bin
-obj
-packages
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio and IDE-specific directories
+.vs/
+.vscode/
+
+# Test Results
+TestResults/
+*.trx
+*.coverage
+
+# Package directories
+packages/
+node_modules/
+
+# Log and Cache files
+*.log
+*.cache
+*.tmp
+
+# Publish and Deployment files
+publish/
+*.Publish.xml
+*.pubxml
+
 devnotes.txt
