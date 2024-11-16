@@ -91,7 +91,6 @@
             txtPreviewAffinity = new TextBox();
             label2 = new Label();
             label1 = new Label();
-            lblTeamUnitCreator = new Label();
             ddlTeamClasses = new ComboBox();
             txtTeamUnitName = new TextBox();
             btnTeamAddUnit = new Button();
@@ -101,6 +100,11 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
+            tabTeamRulesSelection = new TabPage();
+            lblTeamUnitCreator = new Label();
+            grpRules = new GroupBox();
+            txtTeamLevel = new TextBox();
+            lblTeamLevel = new Label();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -123,6 +127,8 @@
             tabTeamUnitSelection.SuspendLayout();
             grpPreview.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
+            tabTeamRulesSelection.SuspendLayout();
+            grpRules.SuspendLayout();
             SuspendLayout();
             // 
             // mnuMain
@@ -646,6 +652,7 @@
             // 
             // tabTeamBuilderMaster
             // 
+            tabTeamBuilderMaster.Controls.Add(tabTeamRulesSelection);
             tabTeamBuilderMaster.Controls.Add(tabTeamUnitSelection);
             tabTeamBuilderMaster.Controls.Add(tabTeamItemSelection);
             tabTeamBuilderMaster.Controls.Add(tabTeamSkillSelection);
@@ -661,7 +668,6 @@
             tabTeamUnitSelection.Controls.Add(grpPreview);
             tabTeamUnitSelection.Controls.Add(label2);
             tabTeamUnitSelection.Controls.Add(label1);
-            tabTeamUnitSelection.Controls.Add(lblTeamUnitCreator);
             tabTeamUnitSelection.Controls.Add(ddlTeamClasses);
             tabTeamUnitSelection.Controls.Add(txtTeamUnitName);
             tabTeamUnitSelection.Controls.Add(btnTeamAddUnit);
@@ -787,19 +793,6 @@
             label1.TabIndex = 4;
             label1.Text = "Enter unit name: ";
             // 
-            // lblTeamUnitCreator
-            // 
-            lblTeamUnitCreator.AutoSize = true;
-            lblTeamUnitCreator.BackColor = Color.LightGray;
-            lblTeamUnitCreator.BorderStyle = BorderStyle.Fixed3D;
-            lblTeamUnitCreator.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lblTeamUnitCreator.Location = new Point(71, 3);
-            lblTeamUnitCreator.Margin = new Padding(4);
-            lblTeamUnitCreator.Name = "lblTeamUnitCreator";
-            lblTeamUnitCreator.Size = new Size(454, 27);
-            lblTeamUnitCreator.TabIndex = 3;
-            lblTeamUnitCreator.Text = "Welcome to the unit creator! Go from top to bottom!";
-            // 
             // ddlTeamClasses
             // 
             ddlTeamClasses.FormattingEnabled = true;
@@ -887,6 +880,59 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
+            // tabTeamRulesSelection
+            // 
+            tabTeamRulesSelection.Controls.Add(grpRules);
+            tabTeamRulesSelection.Controls.Add(lblTeamUnitCreator);
+            tabTeamRulesSelection.Location = new Point(4, 24);
+            tabTeamRulesSelection.Name = "tabTeamRulesSelection";
+            tabTeamRulesSelection.Padding = new Padding(3);
+            tabTeamRulesSelection.Size = new Size(599, 361);
+            tabTeamRulesSelection.TabIndex = 3;
+            tabTeamRulesSelection.Text = "Rules Selection";
+            tabTeamRulesSelection.UseVisualStyleBackColor = true;
+            // 
+            // lblTeamUnitCreator
+            // 
+            lblTeamUnitCreator.AutoSize = true;
+            lblTeamUnitCreator.BackColor = Color.LightGray;
+            lblTeamUnitCreator.BorderStyle = BorderStyle.Fixed3D;
+            lblTeamUnitCreator.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblTeamUnitCreator.Location = new Point(166, 7);
+            lblTeamUnitCreator.Margin = new Padding(4);
+            lblTeamUnitCreator.Name = "lblTeamUnitCreator";
+            lblTeamUnitCreator.Size = new Size(254, 27);
+            lblTeamUnitCreator.TabIndex = 4;
+            lblTeamUnitCreator.Text = "Welcome to the unit creator!";
+            // 
+            // grpRules
+            // 
+            grpRules.Controls.Add(lblTeamLevel);
+            grpRules.Controls.Add(txtTeamLevel);
+            grpRules.Location = new Point(6, 41);
+            grpRules.Name = "grpRules";
+            grpRules.Size = new Size(587, 314);
+            grpRules.TabIndex = 7;
+            grpRules.TabStop = false;
+            grpRules.Text = "First, let's start with some rules:";
+            // 
+            // txtTeamLevel
+            // 
+            txtTeamLevel.Location = new Point(265, 37);
+            txtTeamLevel.Name = "txtTeamLevel";
+            txtTeamLevel.Size = new Size(100, 23);
+            txtTeamLevel.TabIndex = 6;
+            txtTeamLevel.TextChanged += txtTeamLevel_TextChanged;
+            // 
+            // lblTeamLevel
+            // 
+            lblTeamLevel.AutoSize = true;
+            lblTeamLevel.Location = new Point(0, 40);
+            lblTeamLevel.Name = "lblTeamLevel";
+            lblTeamLevel.Size = new Size(259, 15);
+            lblTeamLevel.TabIndex = 7;
+            lblTeamLevel.Text = "Input a team level. (All units will have this level):";
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -933,6 +979,10 @@
             grpPreview.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
+            tabTeamRulesSelection.ResumeLayout(false);
+            tabTeamRulesSelection.PerformLayout();
+            grpRules.ResumeLayout(false);
+            grpRules.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -996,7 +1046,6 @@
         private Button btnTeamAddUnit;
         private TabPage tabTeamItemSelection;
         private TabPage tabTeamSkillSelection;
-        private Label lblTeamUnitCreator;
         private Label label2;
         private Label label1;
         private TextBox txtTeamHeader;
@@ -1009,5 +1058,10 @@
         private TextBox txtPreviewAttributes;
         private Label label5;
         private TextBox txtPreviewAffinity;
+        private TabPage tabTeamRulesSelection;
+        private Label lblTeamUnitCreator;
+        private GroupBox grpRules;
+        private Label lblTeamLevel;
+        private TextBox txtTeamLevel;
     }
 }

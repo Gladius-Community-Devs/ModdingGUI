@@ -588,5 +588,39 @@ namespace ModdingGUI
                 // txtPackPath.Text = string.Empty;
             }
         }
+
+        private void txtTeamLevel_TextChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(txtTeamLevel.Text, out int value))
+            {
+                if (value >= 1 && value <= 30)
+                {
+                    // Valid input
+                    lblTeamLevel.ForeColor = Color.Green; // Highlight in green
+                }
+                else
+                {
+                    // Invalid input
+                    txtTeamLevel.Clear(); // Clear invalid input
+                    txtTeamLevel.Focus(); // Refocus on the control
+                    lblTeamLevel.Text = "Please enter a number between 1 and 30.";
+                    lblTeamLevel.ForeColor = Color.Red; // Highlight in red
+                }
+            }
+            else if (!string.IsNullOrEmpty(txtTeamLevel.Text)) // Handle non-numeric cases
+            {
+                txtTeamLevel.Clear(); // Clear invalid input
+                txtTeamLevel.Focus(); // Refocus on the control
+                lblTeamLevel.Text = "Please enter a number between 1 and 30.";
+                lblTeamLevel.ForeColor = Color.Red; // Highlight in red
+            }
+            else
+            {
+                // Clear the message and reset color if the input is empty
+                lblTeamLevel.Text = "";
+                lblTeamLevel.ForeColor = Color.Black;
+            }
+        }
+
     }
 }
