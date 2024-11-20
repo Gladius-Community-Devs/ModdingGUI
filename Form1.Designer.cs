@@ -80,31 +80,40 @@
             tabTeamBuilder = new TabPage();
             splitContainer2 = new SplitContainer();
             tabTeamBuilderMaster = new TabControl();
+            tabTeamRulesSelection = new TabPage();
+            grpRules = new GroupBox();
+            chbTeamEquipRestrict = new CheckBox();
+            label6 = new Label();
+            lblEquipmentRules = new Label();
+            grpTeamType = new GroupBox();
+            rbnTeamCampaign = new RadioButton();
+            rbnTeamPVP = new RadioButton();
+            lblTeamLevel = new Label();
+            txtTeamLevel = new TextBox();
+            lblTeamUnitCreator = new Label();
             tabTeamUnitSelection = new TabPage();
+            btnTeamRemoveUnit = new Button();
             grpPreview = new GroupBox();
             tableLayoutPanel1 = new TableLayoutPanel();
             label3 = new Label();
             txtPreviewUnitName = new TextBox();
             label4 = new Label();
-            txtPreviewAttributes = new TextBox();
+            txtPreviewStats = new TextBox();
             label5 = new Label();
             txtPreviewAffinity = new TextBox();
+            label7 = new Label();
+            txtPreviewAttributes = new TextBox();
             label2 = new Label();
             label1 = new Label();
             ddlTeamClasses = new ComboBox();
             txtTeamUnitName = new TextBox();
             btnTeamAddUnit = new Button();
-            tabTeamItemSelection = new TabPage();
+            tabTeamGearSelection = new TabPage();
             tabTeamSkillSelection = new TabPage();
             tvwTeam = new TreeView();
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            tabTeamRulesSelection = new TabPage();
-            lblTeamUnitCreator = new Label();
-            grpRules = new GroupBox();
-            txtTeamLevel = new TextBox();
-            lblTeamLevel = new Label();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -124,11 +133,12 @@
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
             tabTeamBuilderMaster.SuspendLayout();
+            tabTeamRulesSelection.SuspendLayout();
+            grpRules.SuspendLayout();
+            grpTeamType.SuspendLayout();
             tabTeamUnitSelection.SuspendLayout();
             grpPreview.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
-            tabTeamRulesSelection.SuspendLayout();
-            grpRules.SuspendLayout();
             SuspendLayout();
             // 
             // mnuMain
@@ -654,7 +664,7 @@
             // 
             tabTeamBuilderMaster.Controls.Add(tabTeamRulesSelection);
             tabTeamBuilderMaster.Controls.Add(tabTeamUnitSelection);
-            tabTeamBuilderMaster.Controls.Add(tabTeamItemSelection);
+            tabTeamBuilderMaster.Controls.Add(tabTeamGearSelection);
             tabTeamBuilderMaster.Controls.Add(tabTeamSkillSelection);
             tabTeamBuilderMaster.Dock = DockStyle.Fill;
             tabTeamBuilderMaster.Location = new Point(0, 0);
@@ -663,8 +673,133 @@
             tabTeamBuilderMaster.Size = new Size(607, 389);
             tabTeamBuilderMaster.TabIndex = 1;
             // 
+            // tabTeamRulesSelection
+            // 
+            tabTeamRulesSelection.Controls.Add(grpRules);
+            tabTeamRulesSelection.Controls.Add(lblTeamUnitCreator);
+            tabTeamRulesSelection.Location = new Point(4, 24);
+            tabTeamRulesSelection.Name = "tabTeamRulesSelection";
+            tabTeamRulesSelection.Padding = new Padding(3);
+            tabTeamRulesSelection.Size = new Size(599, 361);
+            tabTeamRulesSelection.TabIndex = 3;
+            tabTeamRulesSelection.Text = "Rules Selection";
+            tabTeamRulesSelection.UseVisualStyleBackColor = true;
+            // 
+            // grpRules
+            // 
+            grpRules.Controls.Add(chbTeamEquipRestrict);
+            grpRules.Controls.Add(label6);
+            grpRules.Controls.Add(lblEquipmentRules);
+            grpRules.Controls.Add(grpTeamType);
+            grpRules.Controls.Add(lblTeamLevel);
+            grpRules.Controls.Add(txtTeamLevel);
+            grpRules.Location = new Point(6, 41);
+            grpRules.Name = "grpRules";
+            grpRules.Size = new Size(587, 314);
+            grpRules.TabIndex = 7;
+            grpRules.TabStop = false;
+            grpRules.Text = "First, let's start with some rules:";
+            // 
+            // chbTeamEquipRestrict
+            // 
+            chbTeamEquipRestrict.AutoSize = true;
+            chbTeamEquipRestrict.Location = new Point(190, 114);
+            chbTeamEquipRestrict.Name = "chbTeamEquipRestrict";
+            chbTeamEquipRestrict.Size = new Size(133, 19);
+            chbTeamEquipRestrict.TabIndex = 2;
+            chbTeamEquipRestrict.Text = "Remove Restrictions";
+            chbTeamEquipRestrict.UseVisualStyleBackColor = true;
+            chbTeamEquipRestrict.CheckedChanged += chbTeamEquipRestrict_CheckedChanged;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Font = new Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label6.ForeColor = Color.Red;
+            label6.Location = new Point(6, 130);
+            label6.Name = "label6";
+            label6.Size = new Size(409, 13);
+            label6.TabIndex = 10;
+            label6.Text = "(This will brand your ISO. You cannot use this team in PvP unless agreed upon)";
+            // 
+            // lblEquipmentRules
+            // 
+            lblEquipmentRules.AutoSize = true;
+            lblEquipmentRules.Location = new Point(6, 115);
+            lblEquipmentRules.Name = "lblEquipmentRules";
+            lblEquipmentRules.Size = new Size(178, 15);
+            lblEquipmentRules.TabIndex = 9;
+            lblEquipmentRules.Text = "Remove equipment restrictions: ";
+            // 
+            // grpTeamType
+            // 
+            grpTeamType.Controls.Add(rbnTeamCampaign);
+            grpTeamType.Controls.Add(rbnTeamPVP);
+            grpTeamType.Location = new Point(6, 22);
+            grpTeamType.Name = "grpTeamType";
+            grpTeamType.Size = new Size(347, 44);
+            grpTeamType.TabIndex = 8;
+            grpTeamType.TabStop = false;
+            grpTeamType.Text = "Is this for PvP or a campaign?";
+            // 
+            // rbnTeamCampaign
+            // 
+            rbnTeamCampaign.AutoSize = true;
+            rbnTeamCampaign.Location = new Point(57, 19);
+            rbnTeamCampaign.Name = "rbnTeamCampaign";
+            rbnTeamCampaign.Size = new Size(80, 19);
+            rbnTeamCampaign.TabIndex = 1;
+            rbnTeamCampaign.TabStop = true;
+            rbnTeamCampaign.Text = "Campaign";
+            rbnTeamCampaign.UseVisualStyleBackColor = true;
+            rbnTeamCampaign.CheckedChanged += rbnTeamCampaign_CheckedChanged;
+            // 
+            // rbnTeamPVP
+            // 
+            rbnTeamPVP.AutoSize = true;
+            rbnTeamPVP.Checked = true;
+            rbnTeamPVP.Location = new Point(6, 19);
+            rbnTeamPVP.Name = "rbnTeamPVP";
+            rbnTeamPVP.Size = new Size(45, 19);
+            rbnTeamPVP.TabIndex = 0;
+            rbnTeamPVP.TabStop = true;
+            rbnTeamPVP.Text = "PvP";
+            rbnTeamPVP.UseVisualStyleBackColor = true;
+            // 
+            // lblTeamLevel
+            // 
+            lblTeamLevel.AutoSize = true;
+            lblTeamLevel.Location = new Point(6, 85);
+            lblTeamLevel.Name = "lblTeamLevel";
+            lblTeamLevel.Size = new Size(295, 15);
+            lblTeamLevel.TabIndex = 7;
+            lblTeamLevel.Text = "Input a team level. (All units added will have this level):";
+            // 
+            // txtTeamLevel
+            // 
+            txtTeamLevel.Location = new Point(307, 82);
+            txtTeamLevel.Name = "txtTeamLevel";
+            txtTeamLevel.Size = new Size(100, 23);
+            txtTeamLevel.TabIndex = 6;
+            txtTeamLevel.TextChanged += txtTeamLevel_TextChanged;
+            txtTeamLevel.Leave += txtTeamLevel_Leave;
+            // 
+            // lblTeamUnitCreator
+            // 
+            lblTeamUnitCreator.AutoSize = true;
+            lblTeamUnitCreator.BackColor = Color.LightGray;
+            lblTeamUnitCreator.BorderStyle = BorderStyle.Fixed3D;
+            lblTeamUnitCreator.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblTeamUnitCreator.Location = new Point(166, 7);
+            lblTeamUnitCreator.Margin = new Padding(4);
+            lblTeamUnitCreator.Name = "lblTeamUnitCreator";
+            lblTeamUnitCreator.Size = new Size(254, 27);
+            lblTeamUnitCreator.TabIndex = 4;
+            lblTeamUnitCreator.Text = "Welcome to the unit creator!";
+            // 
             // tabTeamUnitSelection
             // 
+            tabTeamUnitSelection.Controls.Add(btnTeamRemoveUnit);
             tabTeamUnitSelection.Controls.Add(grpPreview);
             tabTeamUnitSelection.Controls.Add(label2);
             tabTeamUnitSelection.Controls.Add(label1);
@@ -679,6 +814,17 @@
             tabTeamUnitSelection.Text = "Unit Selection";
             tabTeamUnitSelection.UseVisualStyleBackColor = true;
             // 
+            // btnTeamRemoveUnit
+            // 
+            btnTeamRemoveUnit.Enabled = false;
+            btnTeamRemoveUnit.Location = new Point(9, 120);
+            btnTeamRemoveUnit.Name = "btnTeamRemoveUnit";
+            btnTeamRemoveUnit.Size = new Size(94, 23);
+            btnTeamRemoveUnit.TabIndex = 7;
+            btnTeamRemoveUnit.Text = "Remove Unit";
+            btnTeamRemoveUnit.UseVisualStyleBackColor = true;
+            btnTeamRemoveUnit.Click += btnTeamRemoveUnit_Click;
+            // 
             // grpPreview
             // 
             grpPreview.Controls.Add(tableLayoutPanel1);
@@ -692,21 +838,24 @@
             // tableLayoutPanel1
             // 
             tableLayoutPanel1.ColumnCount = 2;
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 31.7596569F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 31.75966F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 68.24034F));
             tableLayoutPanel1.Controls.Add(label3, 0, 0);
             tableLayoutPanel1.Controls.Add(txtPreviewUnitName, 1, 0);
             tableLayoutPanel1.Controls.Add(label4, 0, 1);
-            tableLayoutPanel1.Controls.Add(txtPreviewAttributes, 1, 1);
+            tableLayoutPanel1.Controls.Add(txtPreviewStats, 1, 1);
             tableLayoutPanel1.Controls.Add(label5, 0, 2);
             tableLayoutPanel1.Controls.Add(txtPreviewAffinity, 1, 2);
+            tableLayoutPanel1.Controls.Add(label7, 0, 3);
+            tableLayoutPanel1.Controls.Add(txtPreviewAttributes, 1, 3);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(3, 19);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 3;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.7647095F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 71.23746F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 17.0568562F));
+            tableLayoutPanel1.RowCount = 4;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 10.7375069F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 45.8739662F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 10.0551939F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
             tableLayoutPanel1.Size = new Size(233, 299);
             tableLayoutPanel1.TabIndex = 0;
             // 
@@ -716,7 +865,7 @@
             label3.AutoSize = true;
             label3.Location = new Point(3, 0);
             label3.Name = "label3";
-            label3.Size = new Size(68, 35);
+            label3.Size = new Size(68, 32);
             label3.TabIndex = 1;
             label3.Text = "Unit Name:";
             label3.TextAlign = ContentAlignment.MiddleCenter;
@@ -728,37 +877,39 @@
             txtPreviewUnitName.Multiline = true;
             txtPreviewUnitName.Name = "txtPreviewUnitName";
             txtPreviewUnitName.ReadOnly = true;
-            txtPreviewUnitName.Size = new Size(153, 29);
+            txtPreviewUnitName.Size = new Size(153, 26);
             txtPreviewUnitName.TabIndex = 0;
             // 
             // label4
             // 
             label4.AutoSize = true;
             label4.Dock = DockStyle.Fill;
-            label4.Location = new Point(3, 35);
+            label4.Location = new Point(3, 32);
             label4.Name = "label4";
-            label4.Size = new Size(68, 212);
+            label4.Size = new Size(68, 137);
             label4.TabIndex = 2;
-            label4.Text = "Attributes:";
+            label4.Text = "Base Stats:";
             label4.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // txtPreviewAttributes
+            // txtPreviewStats
             // 
-            txtPreviewAttributes.Dock = DockStyle.Fill;
-            txtPreviewAttributes.Location = new Point(77, 38);
-            txtPreviewAttributes.Multiline = true;
-            txtPreviewAttributes.Name = "txtPreviewAttributes";
-            txtPreviewAttributes.ReadOnly = true;
-            txtPreviewAttributes.Size = new Size(153, 206);
-            txtPreviewAttributes.TabIndex = 3;
+            txtPreviewStats.AcceptsReturn = true;
+            txtPreviewStats.Dock = DockStyle.Fill;
+            txtPreviewStats.Location = new Point(77, 35);
+            txtPreviewStats.Multiline = true;
+            txtPreviewStats.Name = "txtPreviewStats";
+            txtPreviewStats.ReadOnly = true;
+            txtPreviewStats.ScrollBars = ScrollBars.Vertical;
+            txtPreviewStats.Size = new Size(153, 131);
+            txtPreviewStats.TabIndex = 3;
             // 
             // label5
             // 
             label5.AutoSize = true;
             label5.Dock = DockStyle.Fill;
-            label5.Location = new Point(3, 247);
+            label5.Location = new Point(3, 169);
             label5.Name = "label5";
-            label5.Size = new Size(68, 52);
+            label5.Size = new Size(68, 30);
             label5.TabIndex = 4;
             label5.Text = "Affinity:";
             label5.TextAlign = ContentAlignment.MiddleCenter;
@@ -766,12 +917,34 @@
             // txtPreviewAffinity
             // 
             txtPreviewAffinity.Dock = DockStyle.Fill;
-            txtPreviewAffinity.Location = new Point(77, 250);
+            txtPreviewAffinity.Location = new Point(77, 172);
             txtPreviewAffinity.Multiline = true;
             txtPreviewAffinity.Name = "txtPreviewAffinity";
             txtPreviewAffinity.ReadOnly = true;
-            txtPreviewAffinity.Size = new Size(153, 46);
+            txtPreviewAffinity.Size = new Size(153, 24);
             txtPreviewAffinity.TabIndex = 5;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Dock = DockStyle.Fill;
+            label7.Location = new Point(3, 199);
+            label7.Name = "label7";
+            label7.Size = new Size(68, 100);
+            label7.TabIndex = 6;
+            label7.Text = "Attributes:";
+            label7.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // txtPreviewAttributes
+            // 
+            txtPreviewAttributes.Dock = DockStyle.Fill;
+            txtPreviewAttributes.Location = new Point(77, 202);
+            txtPreviewAttributes.Multiline = true;
+            txtPreviewAttributes.Name = "txtPreviewAttributes";
+            txtPreviewAttributes.ReadOnly = true;
+            txtPreviewAttributes.ScrollBars = ScrollBars.Vertical;
+            txtPreviewAttributes.Size = new Size(153, 94);
+            txtPreviewAttributes.TabIndex = 7;
             // 
             // label2
             // 
@@ -812,23 +985,23 @@
             // 
             // btnTeamAddUnit
             // 
-            btnTeamAddUnit.Location = new Point(226, 220);
+            btnTeamAddUnit.Location = new Point(9, 91);
             btnTeamAddUnit.Name = "btnTeamAddUnit";
-            btnTeamAddUnit.Size = new Size(75, 23);
+            btnTeamAddUnit.Size = new Size(94, 23);
             btnTeamAddUnit.TabIndex = 0;
             btnTeamAddUnit.Text = "Add Unit";
             btnTeamAddUnit.UseVisualStyleBackColor = true;
             btnTeamAddUnit.Click += btnTeamAddUnit_Click;
             // 
-            // tabTeamItemSelection
+            // tabTeamGearSelection
             // 
-            tabTeamItemSelection.Location = new Point(4, 24);
-            tabTeamItemSelection.Name = "tabTeamItemSelection";
-            tabTeamItemSelection.Padding = new Padding(3);
-            tabTeamItemSelection.Size = new Size(599, 361);
-            tabTeamItemSelection.TabIndex = 1;
-            tabTeamItemSelection.Text = "Item Selection";
-            tabTeamItemSelection.UseVisualStyleBackColor = true;
+            tabTeamGearSelection.Location = new Point(4, 24);
+            tabTeamGearSelection.Name = "tabTeamGearSelection";
+            tabTeamGearSelection.Padding = new Padding(3);
+            tabTeamGearSelection.Size = new Size(599, 361);
+            tabTeamGearSelection.TabIndex = 1;
+            tabTeamGearSelection.Text = "Gear Selection";
+            tabTeamGearSelection.UseVisualStyleBackColor = true;
             // 
             // tabTeamSkillSelection
             // 
@@ -847,6 +1020,7 @@
             tvwTeam.Name = "tvwTeam";
             tvwTeam.Size = new Size(154, 362);
             tvwTeam.TabIndex = 1;
+            tvwTeam.AfterSelect += tvwTeam_AfterSelect;
             // 
             // txtTeamHeader
             // 
@@ -879,59 +1053,6 @@
             tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
-            // 
-            // tabTeamRulesSelection
-            // 
-            tabTeamRulesSelection.Controls.Add(grpRules);
-            tabTeamRulesSelection.Controls.Add(lblTeamUnitCreator);
-            tabTeamRulesSelection.Location = new Point(4, 24);
-            tabTeamRulesSelection.Name = "tabTeamRulesSelection";
-            tabTeamRulesSelection.Padding = new Padding(3);
-            tabTeamRulesSelection.Size = new Size(599, 361);
-            tabTeamRulesSelection.TabIndex = 3;
-            tabTeamRulesSelection.Text = "Rules Selection";
-            tabTeamRulesSelection.UseVisualStyleBackColor = true;
-            // 
-            // lblTeamUnitCreator
-            // 
-            lblTeamUnitCreator.AutoSize = true;
-            lblTeamUnitCreator.BackColor = Color.LightGray;
-            lblTeamUnitCreator.BorderStyle = BorderStyle.Fixed3D;
-            lblTeamUnitCreator.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lblTeamUnitCreator.Location = new Point(166, 7);
-            lblTeamUnitCreator.Margin = new Padding(4);
-            lblTeamUnitCreator.Name = "lblTeamUnitCreator";
-            lblTeamUnitCreator.Size = new Size(254, 27);
-            lblTeamUnitCreator.TabIndex = 4;
-            lblTeamUnitCreator.Text = "Welcome to the unit creator!";
-            // 
-            // grpRules
-            // 
-            grpRules.Controls.Add(lblTeamLevel);
-            grpRules.Controls.Add(txtTeamLevel);
-            grpRules.Location = new Point(6, 41);
-            grpRules.Name = "grpRules";
-            grpRules.Size = new Size(587, 314);
-            grpRules.TabIndex = 7;
-            grpRules.TabStop = false;
-            grpRules.Text = "First, let's start with some rules:";
-            // 
-            // txtTeamLevel
-            // 
-            txtTeamLevel.Location = new Point(265, 37);
-            txtTeamLevel.Name = "txtTeamLevel";
-            txtTeamLevel.Size = new Size(100, 23);
-            txtTeamLevel.TabIndex = 6;
-            txtTeamLevel.TextChanged += txtTeamLevel_TextChanged;
-            // 
-            // lblTeamLevel
-            // 
-            lblTeamLevel.AutoSize = true;
-            lblTeamLevel.Location = new Point(0, 40);
-            lblTeamLevel.Name = "lblTeamLevel";
-            lblTeamLevel.Size = new Size(259, 15);
-            lblTeamLevel.TabIndex = 7;
-            lblTeamLevel.Text = "Input a team level. (All units will have this level):";
             // 
             // frmMain
             // 
@@ -974,15 +1095,17 @@
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
             tabTeamBuilderMaster.ResumeLayout(false);
+            tabTeamRulesSelection.ResumeLayout(false);
+            tabTeamRulesSelection.PerformLayout();
+            grpRules.ResumeLayout(false);
+            grpRules.PerformLayout();
+            grpTeamType.ResumeLayout(false);
+            grpTeamType.PerformLayout();
             tabTeamUnitSelection.ResumeLayout(false);
             tabTeamUnitSelection.PerformLayout();
             grpPreview.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
-            tabTeamRulesSelection.ResumeLayout(false);
-            tabTeamRulesSelection.PerformLayout();
-            grpRules.ResumeLayout(false);
-            grpRules.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1044,7 +1167,7 @@
         private ComboBox ddlTeamClasses;
         private TextBox txtTeamUnitName;
         private Button btnTeamAddUnit;
-        private TabPage tabTeamItemSelection;
+        private TabPage tabTeamGearSelection;
         private TabPage tabTeamSkillSelection;
         private Label label2;
         private Label label1;
@@ -1055,7 +1178,7 @@
         private Label label3;
         private TextBox txtPreviewUnitName;
         private Label label4;
-        private TextBox txtPreviewAttributes;
+        private TextBox txtPreviewStats;
         private Label label5;
         private TextBox txtPreviewAffinity;
         private TabPage tabTeamRulesSelection;
@@ -1063,5 +1186,14 @@
         private GroupBox grpRules;
         private Label lblTeamLevel;
         private TextBox txtTeamLevel;
+        private GroupBox grpTeamType;
+        private RadioButton rbnTeamCampaign;
+        private RadioButton rbnTeamPVP;
+        private Label label6;
+        private Label lblEquipmentRules;
+        private CheckBox chbTeamEquipRestrict;
+        private Label label7;
+        private TextBox txtPreviewAttributes;
+        private Button btnTeamRemoveUnit;
     }
 }

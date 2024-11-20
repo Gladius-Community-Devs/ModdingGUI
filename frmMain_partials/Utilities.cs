@@ -266,6 +266,44 @@ namespace ModdingGUI
 
             return isValid;
         }
+        private void AddMenuEntry(string projectFolder, string userInput)
+        {
+            // Ensure projectFolder has no trailing directory separators
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            // Path to main.mnu
+            string menuFilePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "menu", "main.mnu");
+
+            // Check if the file exists
+            if (!File.Exists(menuFilePath))
+            {
+                MessageBox.Show("Menu file not found. Please check the project structure.");
+                return;
+            }
+
+            // Ensure userInput is sanitized for potential invalid characters
+            userInput = userInput.Replace("\"", "\\\""); // Escape quotes to avoid breaking the entry
+
+            // Entry to add, incorporating userInput
+            string newEntry = $"ENTRY \"..\",    \"{userInput}\",    \"\"";
+
+            // Read all lines from the file
+            List<string> lines = File.ReadAllLines(menuFilePath).ToList();
+
+            // Check if the entry already exists
+            if (lines.Any(line => line.Trim() == newEntry))
+            {
+                // Entry already exists, no need to add it
+                return;
+            }
+
+            // Add the new entry to the end of the file
+            lines.Add(newEntry);
+
+            // Write the updated lines back to the file
+            File.WriteAllLines(menuFilePath, lines);
+        }
+
 
     }
 }

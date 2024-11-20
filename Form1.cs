@@ -375,7 +375,7 @@ namespace ModdingGUI
                 await Task.Run(() => EditEncounterFiles(projectFolder, chbRandomPermaDeath.Checked, editEncountersProgress, editEncountersLogMessages));
 
                 // Add the randomized menu entry after editing encounter files
-                AddRandomizedMenuEntry(projectFolder);
+                AddMenuEntry(projectFolder, "Game is Randomized!");
                 AppendLog("Encounter files edited and menu entry added successfully.", SuccessColor, false);
 
                 // 5. Edit and Compile .scp Files
@@ -599,6 +599,7 @@ namespace ModdingGUI
                 {
                     // Valid input
                     lblTeamLevel.ForeColor = Color.Green; // Highlight in green
+                    UpdatePreview();
                 }
                 else
                 {
@@ -624,5 +625,54 @@ namespace ModdingGUI
             }
         }
 
+        private void txtTeamLevel_Leave(object sender, EventArgs e)
+        {
+            if (int.TryParse(txtTeamLevel.Text, out int value))
+            {
+                if (value >= 1 && value <= 30)
+                {
+                    // Valid input
+                    lblTeamLevel.Text = "Team level selected:";
+                    lblTeamLevel.ForeColor = Color.Green; // Highlight in green
+                }
+                else
+                {
+                    // Invalid input
+                    txtTeamLevel.Clear(); // Clear invalid input
+                    lblTeamLevel.Text = "Input a team level. (All units will have this level):";
+                    lblTeamLevel.ForeColor = Color.Black; // Highlight in red
+                }
+            }
+            else
+            {
+                txtTeamLevel.Clear(); // Clear invalid input
+                lblTeamLevel.Text = "Input a team level. (All units will have this level):";
+                lblTeamLevel.ForeColor = Color.Black; // Highlight in red
+            }
+        }
+
+        private void rbnTeamCampaign_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rbnTeamCampaign.Checked)
+            {
+                txtTeamLevel.Text = "1";
+            }
+        }
+
+        private void chbTeamEquipRestrict_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chbTeamEquipRestrict.Checked)
+            {
+                var result = MessageBox.Show("Are you sure you want to remove equipment restrictions? This will invalidate your ISO for usage in a PvP setup unless agreed upon by all participants.\nJust by checking this box, your ISO will be marked. Do not do this unless you are absolutely sure.", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (result == DialogResult.No)
+                {
+                    chbTeamEquipRestrict.Checked = false;
+                }
+                else
+                {
+                    AddMenuEntry(txtPackPath.Text, "Equipment Restrictions Removed");
+                }
+            }
+        }
     }
 }
