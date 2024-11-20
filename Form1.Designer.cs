@@ -210,7 +210,7 @@
             splitContainer1.Panel2.Margin = new Padding(5);
             splitContainer1.Panel2.Padding = new Padding(5);
             splitContainer1.Size = new Size(1132, 581);
-            splitContainer1.SplitterDistance = 886;
+            splitContainer1.SplitterDistance = 885;
             splitContainer1.TabIndex = 3;
             // 
             // tabContainer
@@ -224,7 +224,7 @@
             tabContainer.Location = new Point(0, 0);
             tabContainer.Name = "tabContainer";
             tabContainer.SelectedIndex = 0;
-            tabContainer.Size = new Size(886, 581);
+            tabContainer.Size = new Size(885, 581);
             tabContainer.TabIndex = 1;
             // 
             // tabUnpacking
@@ -238,7 +238,7 @@
             tabUnpacking.Location = new Point(4, 24);
             tabUnpacking.Name = "tabUnpacking";
             tabUnpacking.Padding = new Padding(3);
-            tabUnpacking.Size = new Size(777, 395);
+            tabUnpacking.Size = new Size(877, 553);
             tabUnpacking.TabIndex = 0;
             tabUnpacking.Text = "Unpacking";
             tabUnpacking.UseVisualStyleBackColor = true;
@@ -258,7 +258,7 @@
             rtbUnpackOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbUnpackOutput.Location = new Point(9, 120);
             rtbUnpackOutput.Name = "rtbUnpackOutput";
-            rtbUnpackOutput.Size = new Size(756, 204);
+            rtbUnpackOutput.Size = new Size(856, 362);
             rtbUnpackOutput.TabIndex = 4;
             rtbUnpackOutput.Text = "";
             // 
@@ -311,7 +311,7 @@
             tabPacking.Location = new Point(4, 24);
             tabPacking.Name = "tabPacking";
             tabPacking.Padding = new Padding(3);
-            tabPacking.Size = new Size(777, 395);
+            tabPacking.Size = new Size(878, 553);
             tabPacking.TabIndex = 1;
             tabPacking.Text = "Packing";
             tabPacking.UseVisualStyleBackColor = true;
@@ -352,7 +352,7 @@
             rtbPackOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbPackOutput.Location = new Point(9, 86);
             rtbPackOutput.Name = "rtbPackOutput";
-            rtbPackOutput.Size = new Size(762, 237);
+            rtbPackOutput.Size = new Size(863, 395);
             rtbPackOutput.TabIndex = 4;
             rtbPackOutput.Text = "";
             // 
@@ -399,7 +399,7 @@
             tabRandomizer.Location = new Point(4, 24);
             tabRandomizer.Name = "tabRandomizer";
             tabRandomizer.Padding = new Padding(3);
-            tabRandomizer.Size = new Size(777, 395);
+            tabRandomizer.Size = new Size(878, 553);
             tabRandomizer.TabIndex = 2;
             tabRandomizer.Text = "Randomizer";
             tabRandomizer.UseVisualStyleBackColor = true;
@@ -611,7 +611,7 @@
             tabIngameRandom.Location = new Point(4, 24);
             tabIngameRandom.Name = "tabIngameRandom";
             tabIngameRandom.Padding = new Padding(3);
-            tabIngameRandom.Size = new Size(777, 395);
+            tabIngameRandom.Size = new Size(878, 553);
             tabIngameRandom.TabIndex = 3;
             tabIngameRandom.Text = "Ingame Random";
             tabIngameRandom.UseVisualStyleBackColor = true;
@@ -635,7 +635,7 @@
             tabTeamBuilder.Location = new Point(4, 24);
             tabTeamBuilder.Name = "tabTeamBuilder";
             tabTeamBuilder.Padding = new Padding(3);
-            tabTeamBuilder.Size = new Size(878, 553);
+            tabTeamBuilder.Size = new Size(877, 553);
             tabTeamBuilder.TabIndex = 4;
             tabTeamBuilder.Text = "Team Builder";
             tabTeamBuilder.UseVisualStyleBackColor = true;
@@ -654,8 +654,8 @@
             // 
             splitContainer2.Panel2.Controls.Add(tvwTeam);
             splitContainer2.Panel2.Controls.Add(txtTeamHeader);
-            splitContainer2.Size = new Size(872, 547);
-            splitContainer2.SplitterDistance = 686;
+            splitContainer2.Size = new Size(871, 547);
+            splitContainer2.SplitterDistance = 685;
             splitContainer2.TabIndex = 0;
             // 
             // tabTeamBuilderMaster
@@ -668,7 +668,7 @@
             tabTeamBuilderMaster.Location = new Point(0, 0);
             tabTeamBuilderMaster.Name = "tabTeamBuilderMaster";
             tabTeamBuilderMaster.SelectedIndex = 0;
-            tabTeamBuilderMaster.Size = new Size(686, 547);
+            tabTeamBuilderMaster.Size = new Size(685, 547);
             tabTeamBuilderMaster.TabIndex = 1;
             // 
             // tabTeamRulesSelection
@@ -678,7 +678,7 @@
             tabTeamRulesSelection.Location = new Point(4, 24);
             tabTeamRulesSelection.Name = "tabTeamRulesSelection";
             tabTeamRulesSelection.Padding = new Padding(3);
-            tabTeamRulesSelection.Size = new Size(678, 519);
+            tabTeamRulesSelection.Size = new Size(677, 519);
             tabTeamRulesSelection.TabIndex = 3;
             tabTeamRulesSelection.Text = "Rules Selection";
             tabTeamRulesSelection.UseVisualStyleBackColor = true;
@@ -807,7 +807,7 @@
             tabTeamUnitSelection.Location = new Point(4, 24);
             tabTeamUnitSelection.Name = "tabTeamUnitSelection";
             tabTeamUnitSelection.Padding = new Padding(3);
-            tabTeamUnitSelection.Size = new Size(678, 519);
+            tabTeamUnitSelection.Size = new Size(677, 519);
             tabTeamUnitSelection.TabIndex = 0;
             tabTeamUnitSelection.Text = "Unit Selection";
             tabTeamUnitSelection.UseVisualStyleBackColor = true;
@@ -973,7 +973,7 @@
             tabTeamGearSelection.Location = new Point(4, 24);
             tabTeamGearSelection.Name = "tabTeamGearSelection";
             tabTeamGearSelection.Padding = new Padding(3);
-            tabTeamGearSelection.Size = new Size(678, 519);
+            tabTeamGearSelection.Size = new Size(677, 519);
             tabTeamGearSelection.TabIndex = 1;
             tabTeamGearSelection.Text = "Gear Selection";
             tabTeamGearSelection.UseVisualStyleBackColor = true;
@@ -983,7 +983,7 @@
             tabTeamSkillSelection.Location = new Point(4, 24);
             tabTeamSkillSelection.Name = "tabTeamSkillSelection";
             tabTeamSkillSelection.Padding = new Padding(3);
-            tabTeamSkillSelection.Size = new Size(599, 361);
+            tabTeamSkillSelection.Size = new Size(678, 519);
             tabTeamSkillSelection.TabIndex = 2;
             tabTeamSkillSelection.Text = "Skills Selection";
             tabTeamSkillSelection.UseVisualStyleBackColor = true;
@@ -1013,7 +1013,7 @@
             txtFileHeader.Location = new Point(5, 0);
             txtFileHeader.Name = "txtFileHeader";
             txtFileHeader.ReadOnly = true;
-            txtFileHeader.Size = new Size(232, 23);
+            txtFileHeader.Size = new Size(233, 23);
             txtFileHeader.TabIndex = 4;
             txtFileHeader.Text = "Project File Tree:";
             // 
@@ -1022,7 +1022,7 @@
             tvwProjects.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwProjects.Location = new Point(5, 24);
             tvwProjects.Name = "tvwProjects";
-            tvwProjects.Size = new Size(232, 552);
+            tvwProjects.Size = new Size(233, 552);
             tvwProjects.TabIndex = 3;
             tvwProjects.BeforeExpand += tvwProjects_BeforeExpand;
             tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;

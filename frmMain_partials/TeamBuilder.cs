@@ -730,6 +730,7 @@ namespace ModdingGUI
             // Display in txtPreviewStats
             txtPreviewStats.Text = statsText;
             txtPreviewUnitName.Text = unitName;
+            txtPreviewAttributes.Text = string.Join("\r\n", selectedClass.Attributes);
         }
 
         /// <summary>
@@ -948,21 +949,27 @@ namespace ModdingGUI
         /// </summary>
         private void tvwTeam_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            // Check if the selected node is a unit node (Level 0)
-            if (e.Node.Level == 0 && e.Node.Tag is Unit unit)
+            if (tabContainer.SelectedTab == tabTeamBuilder)
             {
-                DisplayUnitStats(unit);
-                btnTeamRemoveUnit.Enabled = true;
-            }
-            else
+                // Check if the selected node is a unit node (Level 0)
+                if (e.Node.Level == 0 && e.Node.Tag is Unit unit)
+                {
+                    DisplayUnitStats(unit);
+                    btnTeamRemoveUnit.Enabled = true;
+                }
+                else
+                {
+                    // If a child node is selected, clear the preview and disable the Remove button
+                    ClearPreviewStats();
+                    btnTeamRemoveUnit.Enabled = false;
+                }
+                AppendLog("Selected node: " + e.Node.Text, Color.Blue, false);
+                // Update other UI elements if necessary
+                UpdateUnitCountAndButtons();
+            }else if(tabContainer.SelectedTab == tabTeamGearSelection)
             {
-                // If a child node is selected, clear the preview and disable the Remove button
-                ClearPreviewStats();
-                btnTeamRemoveUnit.Enabled = false;
+
             }
-            AppendLog("Selected node: " + e.Node.Text, Color.Blue, false);
-            // Update other UI elements if necessary
-            UpdateUnitCountAndButtons();
         }
 
         /// <summary>
