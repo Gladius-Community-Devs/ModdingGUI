@@ -99,8 +99,6 @@
             txtPreviewUnitName = new TextBox();
             label4 = new Label();
             txtPreviewStats = new TextBox();
-            label5 = new Label();
-            txtPreviewAffinity = new TextBox();
             label7 = new Label();
             txtPreviewAttributes = new TextBox();
             label2 = new Label();
@@ -146,7 +144,7 @@
             mnuMain.Items.AddRange(new ToolStripItem[] { optionsToolStripMenuItem, funOptionsToolStripMenuItem });
             mnuMain.Location = new Point(0, 0);
             mnuMain.Name = "mnuMain";
-            mnuMain.Size = new Size(1042, 24);
+            mnuMain.Size = new Size(1132, 24);
             mnuMain.TabIndex = 1;
             mnuMain.Text = "menuStrip1";
             // 
@@ -211,8 +209,8 @@
             splitContainer1.Panel2.Controls.Add(tvwProjects);
             splitContainer1.Panel2.Margin = new Padding(5);
             splitContainer1.Panel2.Padding = new Padding(5);
-            splitContainer1.Size = new Size(1042, 423);
-            splitContainer1.SplitterDistance = 785;
+            splitContainer1.Size = new Size(1132, 581);
+            splitContainer1.SplitterDistance = 886;
             splitContainer1.TabIndex = 3;
             // 
             // tabContainer
@@ -226,7 +224,7 @@
             tabContainer.Location = new Point(0, 0);
             tabContainer.Name = "tabContainer";
             tabContainer.SelectedIndex = 0;
-            tabContainer.Size = new Size(785, 423);
+            tabContainer.Size = new Size(886, 581);
             tabContainer.TabIndex = 1;
             // 
             // tabUnpacking
@@ -637,7 +635,7 @@
             tabTeamBuilder.Location = new Point(4, 24);
             tabTeamBuilder.Name = "tabTeamBuilder";
             tabTeamBuilder.Padding = new Padding(3);
-            tabTeamBuilder.Size = new Size(777, 395);
+            tabTeamBuilder.Size = new Size(878, 553);
             tabTeamBuilder.TabIndex = 4;
             tabTeamBuilder.Text = "Team Builder";
             tabTeamBuilder.UseVisualStyleBackColor = true;
@@ -656,8 +654,8 @@
             // 
             splitContainer2.Panel2.Controls.Add(tvwTeam);
             splitContainer2.Panel2.Controls.Add(txtTeamHeader);
-            splitContainer2.Size = new Size(771, 389);
-            splitContainer2.SplitterDistance = 607;
+            splitContainer2.Size = new Size(872, 547);
+            splitContainer2.SplitterDistance = 686;
             splitContainer2.TabIndex = 0;
             // 
             // tabTeamBuilderMaster
@@ -670,7 +668,7 @@
             tabTeamBuilderMaster.Location = new Point(0, 0);
             tabTeamBuilderMaster.Name = "tabTeamBuilderMaster";
             tabTeamBuilderMaster.SelectedIndex = 0;
-            tabTeamBuilderMaster.Size = new Size(607, 389);
+            tabTeamBuilderMaster.Size = new Size(686, 547);
             tabTeamBuilderMaster.TabIndex = 1;
             // 
             // tabTeamRulesSelection
@@ -680,7 +678,7 @@
             tabTeamRulesSelection.Location = new Point(4, 24);
             tabTeamRulesSelection.Name = "tabTeamRulesSelection";
             tabTeamRulesSelection.Padding = new Padding(3);
-            tabTeamRulesSelection.Size = new Size(599, 361);
+            tabTeamRulesSelection.Size = new Size(678, 519);
             tabTeamRulesSelection.TabIndex = 3;
             tabTeamRulesSelection.Text = "Rules Selection";
             tabTeamRulesSelection.UseVisualStyleBackColor = true;
@@ -695,7 +693,7 @@
             grpRules.Controls.Add(txtTeamLevel);
             grpRules.Location = new Point(6, 41);
             grpRules.Name = "grpRules";
-            grpRules.Size = new Size(587, 314);
+            grpRules.Size = new Size(666, 314);
             grpRules.TabIndex = 7;
             grpRules.TabStop = false;
             grpRules.Text = "First, let's start with some rules:";
@@ -809,7 +807,7 @@
             tabTeamUnitSelection.Location = new Point(4, 24);
             tabTeamUnitSelection.Name = "tabTeamUnitSelection";
             tabTeamUnitSelection.Padding = new Padding(3);
-            tabTeamUnitSelection.Size = new Size(599, 361);
+            tabTeamUnitSelection.Size = new Size(678, 519);
             tabTeamUnitSelection.TabIndex = 0;
             tabTeamUnitSelection.Text = "Unit Selection";
             tabTeamUnitSelection.UseVisualStyleBackColor = true;
@@ -830,7 +828,7 @@
             grpPreview.Controls.Add(tableLayoutPanel1);
             grpPreview.Location = new Point(354, 37);
             grpPreview.Name = "grpPreview";
-            grpPreview.Size = new Size(239, 321);
+            grpPreview.Size = new Size(318, 379);
             grpPreview.TabIndex = 6;
             grpPreview.TabStop = false;
             grpPreview.Text = "Unit Preview";
@@ -844,19 +842,17 @@
             tableLayoutPanel1.Controls.Add(txtPreviewUnitName, 1, 0);
             tableLayoutPanel1.Controls.Add(label4, 0, 1);
             tableLayoutPanel1.Controls.Add(txtPreviewStats, 1, 1);
-            tableLayoutPanel1.Controls.Add(label5, 0, 2);
-            tableLayoutPanel1.Controls.Add(txtPreviewAffinity, 1, 2);
-            tableLayoutPanel1.Controls.Add(label7, 0, 3);
-            tableLayoutPanel1.Controls.Add(txtPreviewAttributes, 1, 3);
+            tableLayoutPanel1.Controls.Add(label7, 0, 2);
+            tableLayoutPanel1.Controls.Add(txtPreviewAttributes, 1, 2);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(3, 19);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 4;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 10.7375069F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 45.8739662F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 10.0551939F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
-            tableLayoutPanel1.Size = new Size(233, 299);
+            tableLayoutPanel1.RowCount = 3;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.9378872F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 51.00235F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 37.0597572F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel1.Size = new Size(312, 357);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // label3
@@ -865,7 +861,7 @@
             label3.AutoSize = true;
             label3.Location = new Point(3, 0);
             label3.Name = "label3";
-            label3.Size = new Size(68, 32);
+            label3.Size = new Size(93, 42);
             label3.TabIndex = 1;
             label3.Text = "Unit Name:";
             label3.TextAlign = ContentAlignment.MiddleCenter;
@@ -873,20 +869,20 @@
             // txtPreviewUnitName
             // 
             txtPreviewUnitName.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            txtPreviewUnitName.Location = new Point(77, 3);
+            txtPreviewUnitName.Location = new Point(102, 3);
             txtPreviewUnitName.Multiline = true;
             txtPreviewUnitName.Name = "txtPreviewUnitName";
             txtPreviewUnitName.ReadOnly = true;
-            txtPreviewUnitName.Size = new Size(153, 26);
+            txtPreviewUnitName.Size = new Size(207, 36);
             txtPreviewUnitName.TabIndex = 0;
             // 
             // label4
             // 
             label4.AutoSize = true;
             label4.Dock = DockStyle.Fill;
-            label4.Location = new Point(3, 32);
+            label4.Location = new Point(3, 42);
             label4.Name = "label4";
-            label4.Size = new Size(68, 137);
+            label4.Size = new Size(93, 182);
             label4.TabIndex = 2;
             label4.Text = "Base Stats:";
             label4.TextAlign = ContentAlignment.MiddleCenter;
@@ -895,42 +891,21 @@
             // 
             txtPreviewStats.AcceptsReturn = true;
             txtPreviewStats.Dock = DockStyle.Fill;
-            txtPreviewStats.Location = new Point(77, 35);
+            txtPreviewStats.Location = new Point(102, 45);
             txtPreviewStats.Multiline = true;
             txtPreviewStats.Name = "txtPreviewStats";
             txtPreviewStats.ReadOnly = true;
             txtPreviewStats.ScrollBars = ScrollBars.Vertical;
-            txtPreviewStats.Size = new Size(153, 131);
+            txtPreviewStats.Size = new Size(207, 176);
             txtPreviewStats.TabIndex = 3;
-            // 
-            // label5
-            // 
-            label5.AutoSize = true;
-            label5.Dock = DockStyle.Fill;
-            label5.Location = new Point(3, 169);
-            label5.Name = "label5";
-            label5.Size = new Size(68, 30);
-            label5.TabIndex = 4;
-            label5.Text = "Affinity:";
-            label5.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // txtPreviewAffinity
-            // 
-            txtPreviewAffinity.Dock = DockStyle.Fill;
-            txtPreviewAffinity.Location = new Point(77, 172);
-            txtPreviewAffinity.Multiline = true;
-            txtPreviewAffinity.Name = "txtPreviewAffinity";
-            txtPreviewAffinity.ReadOnly = true;
-            txtPreviewAffinity.Size = new Size(153, 24);
-            txtPreviewAffinity.TabIndex = 5;
             // 
             // label7
             // 
             label7.AutoSize = true;
             label7.Dock = DockStyle.Fill;
-            label7.Location = new Point(3, 199);
+            label7.Location = new Point(3, 224);
             label7.Name = "label7";
-            label7.Size = new Size(68, 100);
+            label7.Size = new Size(93, 133);
             label7.TabIndex = 6;
             label7.Text = "Attributes:";
             label7.TextAlign = ContentAlignment.MiddleCenter;
@@ -938,12 +913,12 @@
             // txtPreviewAttributes
             // 
             txtPreviewAttributes.Dock = DockStyle.Fill;
-            txtPreviewAttributes.Location = new Point(77, 202);
+            txtPreviewAttributes.Location = new Point(102, 227);
             txtPreviewAttributes.Multiline = true;
             txtPreviewAttributes.Name = "txtPreviewAttributes";
             txtPreviewAttributes.ReadOnly = true;
             txtPreviewAttributes.ScrollBars = ScrollBars.Vertical;
-            txtPreviewAttributes.Size = new Size(153, 94);
+            txtPreviewAttributes.Size = new Size(207, 127);
             txtPreviewAttributes.TabIndex = 7;
             // 
             // label2
@@ -998,7 +973,7 @@
             tabTeamGearSelection.Location = new Point(4, 24);
             tabTeamGearSelection.Name = "tabTeamGearSelection";
             tabTeamGearSelection.Padding = new Padding(3);
-            tabTeamGearSelection.Size = new Size(599, 361);
+            tabTeamGearSelection.Size = new Size(678, 519);
             tabTeamGearSelection.TabIndex = 1;
             tabTeamGearSelection.Text = "Gear Selection";
             tabTeamGearSelection.UseVisualStyleBackColor = true;
@@ -1018,7 +993,7 @@
             tvwTeam.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwTeam.Location = new Point(3, 27);
             tvwTeam.Name = "tvwTeam";
-            tvwTeam.Size = new Size(154, 362);
+            tvwTeam.Size = new Size(176, 520);
             tvwTeam.TabIndex = 1;
             tvwTeam.AfterSelect += tvwTeam_AfterSelect;
             // 
@@ -1028,7 +1003,7 @@
             txtTeamHeader.Location = new Point(3, 3);
             txtTeamHeader.Name = "txtTeamHeader";
             txtTeamHeader.ReadOnly = true;
-            txtTeamHeader.Size = new Size(154, 23);
+            txtTeamHeader.Size = new Size(176, 23);
             txtTeamHeader.TabIndex = 0;
             txtTeamHeader.Text = "Current Team:";
             // 
@@ -1038,7 +1013,7 @@
             txtFileHeader.Location = new Point(5, 0);
             txtFileHeader.Name = "txtFileHeader";
             txtFileHeader.ReadOnly = true;
-            txtFileHeader.Size = new Size(243, 23);
+            txtFileHeader.Size = new Size(232, 23);
             txtFileHeader.TabIndex = 4;
             txtFileHeader.Text = "Project File Tree:";
             // 
@@ -1047,7 +1022,7 @@
             tvwProjects.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwProjects.Location = new Point(5, 24);
             tvwProjects.Name = "tvwProjects";
-            tvwProjects.Size = new Size(243, 394);
+            tvwProjects.Size = new Size(232, 552);
             tvwProjects.TabIndex = 3;
             tvwProjects.BeforeExpand += tvwProjects_BeforeExpand;
             tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;
@@ -1058,7 +1033,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1042, 450);
+            ClientSize = new Size(1132, 608);
             Controls.Add(mnuMain);
             Controls.Add(splitContainer1);
             Icon = (Icon)resources.GetObject("$this.Icon");
@@ -1179,8 +1154,6 @@
         private TextBox txtPreviewUnitName;
         private Label label4;
         private TextBox txtPreviewStats;
-        private Label label5;
-        private TextBox txtPreviewAffinity;
         private TabPage tabTeamRulesSelection;
         private Label lblTeamUnitCreator;
         private GroupBox grpRules;

@@ -739,7 +739,6 @@ namespace ModdingGUI
         {
             txtPreviewUnitName.Text = string.Empty;
             txtPreviewAttributes.Text = string.Empty;
-            txtPreviewAffinity.Text = string.Empty;
             txtPreviewStats.Text = string.Empty; // Clear stats as well
         }
 
