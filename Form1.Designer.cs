@@ -379,12 +379,13 @@
             // 
             // txtPackPath
             // 
-            txtPackPath.Enabled = false;
+            txtPackPath.ForeColor = Color.Black;
             txtPackPath.Location = new Point(99, 6);
             txtPackPath.Name = "txtPackPath";
+            txtPackPath.ReadOnly = true;
             txtPackPath.Size = new Size(685, 23);
             txtPackPath.TabIndex = 0;
-            txtPackPath.Text = "Project filepath will show up here!";
+            txtPackPath.Text = "Project filepath will show up here! (SELECT ONE TO CONTINUE)";
             // 
             // tabRandomizer
             // 
