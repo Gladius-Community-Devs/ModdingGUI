@@ -899,6 +899,11 @@ namespace ModdingGUI
                                 }
                                 continue;
                             }
+                            if (trimmedLine.StartsWith("SCHOOL:", StringComparison.OrdinalIgnoreCase))
+                            {
+                                    fileModified = true;
+                                    continue;
+                            }
 
                             // Modify UNITDB lines within TEAM: 0,X section
                             if (unitDbRegex.IsMatch(trimmedLine))
@@ -923,7 +928,7 @@ namespace ModdingGUI
                                         if (string.IsNullOrEmpty(unitName))
                                         {
                                             // Randomize this enemy unit
-                                            string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", 0, 0, 0, 0, -1, \"\", \"\", \"\", \"\", 0, 0, 0, 0, 0, 0, 0, 0, 0";
+                                            string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", -3, 3, 1, 0, -1, \"Boss\", \"Prop\", \"\", \"\", 0, 1, 0, 0, 0, 0, 0, 0, 0";
                                             modifiedContent.AppendLine(newUnitDbLine);
                                             fileModified = true;
                                         }

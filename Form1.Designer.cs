@@ -67,9 +67,9 @@
             lblRandomizeStatus = new Label();
             pgbRandomizeStatus = new ProgressBar();
             grpBaseOptions = new GroupBox();
+            chbRandomizedEnemies = new CheckBox();
             chbRandomPermaDeath = new CheckBox();
             chbRandomNoRecruits = new CheckBox();
-            chbRandomVanillaOrNah = new CheckBox();
             btnRandomize = new Button();
             chbRandomTeam = new CheckBox();
             chbRandomHeroes = new CheckBox();
@@ -112,7 +112,6 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            chbRandomizedEnemies = new CheckBox();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -489,6 +488,7 @@
             txtSeed.Size = new Size(219, 23);
             txtSeed.TabIndex = 9;
             txtSeed.Text = "Enter a seed here!";
+            txtSeed.MouseHover += txtSeed_MouseHover;
             // 
             // lblRandomizeStatus
             // 
@@ -511,7 +511,6 @@
             grpBaseOptions.Controls.Add(chbRandomizedEnemies);
             grpBaseOptions.Controls.Add(chbRandomPermaDeath);
             grpBaseOptions.Controls.Add(chbRandomNoRecruits);
-            grpBaseOptions.Controls.Add(chbRandomVanillaOrNah);
             grpBaseOptions.Controls.Add(btnRandomize);
             grpBaseOptions.Controls.Add(chbRandomTeam);
             grpBaseOptions.Controls.Add(chbRandomHeroes);
@@ -522,6 +521,17 @@
             grpBaseOptions.TabStop = false;
             grpBaseOptions.Text = "Randomized Options";
             // 
+            // chbRandomizedEnemies
+            // 
+            chbRandomizedEnemies.AutoSize = true;
+            chbRandomizedEnemies.Location = new Point(6, 97);
+            chbRandomizedEnemies.Name = "chbRandomizedEnemies";
+            chbRandomizedEnemies.Size = new Size(143, 19);
+            chbRandomizedEnemies.TabIndex = 7;
+            chbRandomizedEnemies.Text = "Fully random enemies";
+            chbRandomizedEnemies.UseVisualStyleBackColor = true;
+            chbRandomizedEnemies.MouseHover += chbRandomizedEnemies_MouseHover;
+            // 
             // chbRandomPermaDeath
             // 
             chbRandomPermaDeath.AutoSize = true;
@@ -531,6 +541,7 @@
             chbRandomPermaDeath.TabIndex = 6;
             chbRandomPermaDeath.Text = "All fights are deadly";
             chbRandomPermaDeath.UseVisualStyleBackColor = true;
+            chbRandomPermaDeath.MouseHover += chbRandomPermaDeath_MouseHover;
             // 
             // chbRandomNoRecruits
             // 
@@ -541,17 +552,7 @@
             chbRandomNoRecruits.TabIndex = 6;
             chbRandomNoRecruits.Text = "No recruits";
             chbRandomNoRecruits.UseVisualStyleBackColor = true;
-            // 
-            // chbRandomVanillaOrNah
-            // 
-            chbRandomVanillaOrNah.AutoSize = true;
-            chbRandomVanillaOrNah.Location = new Point(2, 300);
-            chbRandomVanillaOrNah.Name = "chbRandomVanillaOrNah";
-            chbRandomVanillaOrNah.Size = new Size(168, 19);
-            chbRandomVanillaOrNah.TabIndex = 6;
-            chbRandomVanillaOrNah.Text = "Check if using a Vanilla ISO";
-            chbRandomVanillaOrNah.UseVisualStyleBackColor = true;
-            chbRandomVanillaOrNah.Visible = false;
+            chbRandomNoRecruits.MouseHover += chbRandomNoRecruits_MouseHover;
             // 
             // btnRandomize
             // 
@@ -575,6 +576,7 @@
             chbRandomTeam.TabIndex = 6;
             chbRandomTeam.Text = "Give Full Random Team";
             chbRandomTeam.UseVisualStyleBackColor = true;
+            chbRandomTeam.MouseHover += chbRandomTeam_MouseHover;
             // 
             // chbRandomHeroes
             // 
@@ -587,6 +589,7 @@
             chbRandomHeroes.TabIndex = 0;
             chbRandomHeroes.Text = "Random Heroes";
             chbRandomHeroes.UseVisualStyleBackColor = true;
+            chbRandomHeroes.MouseHover += chbRandomHeroes_MouseHover;
             // 
             // btnRandomizerPath
             // 
@@ -1031,16 +1034,6 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
-            // chbRandomizedEnemies
-            // 
-            chbRandomizedEnemies.AutoSize = true;
-            chbRandomizedEnemies.Location = new Point(6, 97);
-            chbRandomizedEnemies.Name = "chbRandomizedEnemies";
-            chbRandomizedEnemies.Size = new Size(143, 19);
-            chbRandomizedEnemies.TabIndex = 7;
-            chbRandomizedEnemies.Text = "Fully random enemies";
-            chbRandomizedEnemies.UseVisualStyleBackColor = true;
-            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1136,7 +1129,6 @@
         private GroupBox grpBaseOptions;
         private CheckBox chbRandomPermaDeath;
         private CheckBox chbRandomNoRecruits;
-        private CheckBox chbRandomVanillaOrNah;
         private Button btnRandomize;
         private CheckBox chbRandomTeam;
         private CheckBox chbRandomHeroes;

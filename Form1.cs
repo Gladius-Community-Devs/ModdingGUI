@@ -675,5 +675,35 @@ namespace ModdingGUI
                 }
             }
         }
+
+        private void chbRandomizedEnemies_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandomizedEnemies, "Randomizes the enemies you encounter in the game. This includes the enemies in the main story, side quests, and random encounters.\nSpecific enemies will not randomize. Levels are randomized -3 to 3 above school average level");
+        }
+
+        private void chbRandomNoRecruits_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandomNoRecruits, "Removes all recruits from the game. This includes the recruits you can hire in towns.\nThis will not remove the recruits you have already hired.");
+        }
+
+        private void chbRandomPermaDeath_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandomPermaDeath, "Sets all fights to be perma-death. Some 'hero' level characters will not die. Main character death is Game Over.");
+        }
+
+        private void chbRandomHeroes_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandomHeroes, "Randomizes your heroes. You start with all 6 heroes. Gwazi and Ludo will not leave the team.");
+        }
+
+        private void chbRandomTeam_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandomTeam, "Randomizes your team fully with 14 units. This leaves space for your heroes.");
+        }
+
+        private void txtSeed_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(txtSeed, "Sets the seed for the randomizer. This will allow you to replay the same randomization or share it with friends!");
+        }
     }
 }
