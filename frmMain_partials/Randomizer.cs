@@ -839,11 +839,7 @@ namespace ModdingGUI
         private static readonly Regex unitDbRegex = new Regex(@"^UNITDB:", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex teamLineRegex = new Regex(@"^TEAM:\s*(\d+)\s*,\s*(\d+)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        private void EditEncounterFiles(
-    string projectFolder,
-    bool addCandie,
-    IProgress<int> progress,
-    ConcurrentQueue<(string message, Color color)> logMessages)
+        private void EditEncounterFiles(string projectFolder, bool addCandie, IProgress<int> progress, ConcurrentQueue<(string message, Color color)> logMessages)
         {
             try
             {
@@ -861,6 +857,7 @@ namespace ModdingGUI
                         bool fileModified = false;
                         bool inTeam0Section = false;
                         bool candieExists = false;
+                        int currentTeamNumber = -1; // Added to keep track of the current team number
 
                         // Read all lines from the encounter file
                         var allLines = File.ReadAllLines(encFile).ToList();
@@ -880,6 +877,7 @@ namespace ModdingGUI
                             if (teamMatch.Success)
                             {
                                 int teamNumber = int.Parse(teamMatch.Groups[1].Value);
+                                currentTeamNumber = teamNumber; // Update current team number
 
                                 if (teamNumber == 0)
                                 {
@@ -903,24 +901,46 @@ namespace ModdingGUI
                             }
 
                             // Modify UNITDB lines within TEAM: 0,X section
-                            if (inTeam0Section && unitDbRegex.IsMatch(trimmedLine))
+                            if (unitDbRegex.IsMatch(trimmedLine))
                             {
-                                // Extract the StartX value using regex
                                 var match = Regex.Match(trimmedLine, @"UNITDB:\s*""([^""]*)""\s*,\s*(\d+)\s*,\s*""([^""]+)""\s*,(.*)", RegexOptions.IgnoreCase);
 
                                 if (match.Success)
                                 {
-                                    string startPosition = match.Groups[3].Value; // Extracted StartX value
+                                    string unitName = match.Groups[1].Value;
+                                    string startPosition = match.Groups[3].Value;
 
-                                    // Construct the new UNITDB line
-                                    string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", 0, 0, 0, 0, -1, \"\", \"\", \"\", \"\", 0, 0, 0, 0, 0, 0, 0, 0, 0";
+                                    if (currentTeamNumber == 0 && inTeam0Section)
+                                    {
+                                        // Construct the new UNITDB line
+                                        string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", 0, 0, 0, 0, -1, \"\", \"\", \"\", \"\", 0, 0, 0, 0, 0, 0, 0, 0, 0";
 
-                                    modifiedContent.AppendLine(newUnitDbLine);
-                                    fileModified = true;
+                                        modifiedContent.AppendLine(newUnitDbLine);
+                                        fileModified = true;
+                                    }
+                                    else if (currentTeamNumber == 1 && chbRandomizedEnemies.Checked)
+                                    {
+                                        if (string.IsNullOrEmpty(unitName))
+                                        {
+                                            // Randomize this enemy unit
+                                            string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", 0, 0, 0, 0, -1, \"\", \"\", \"\", \"\", 0, 0, 0, 0, 0, 0, 0, 0, 0";
+                                            modifiedContent.AppendLine(newUnitDbLine);
+                                            fileModified = true;
+                                        }
+                                        else
+                                        {
+                                            // Keep specific enemy units unchanged
+                                            modifiedContent.AppendLine(line);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Keep lines for other teams unchanged
+                                        modifiedContent.AppendLine(line);
+                                    }
                                 }
                                 else
                                 {
-                                    // If regex does not match, retain the original line
                                     modifiedContent.AppendLine(line);
                                 }
                                 continue;

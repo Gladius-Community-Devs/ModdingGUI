@@ -112,6 +112,7 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
+            chbRandomizedEnemies = new CheckBox();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -311,7 +312,7 @@
             tabPacking.Location = new Point(4, 24);
             tabPacking.Name = "tabPacking";
             tabPacking.Padding = new Padding(3);
-            tabPacking.Size = new Size(878, 553);
+            tabPacking.Size = new Size(877, 553);
             tabPacking.TabIndex = 1;
             tabPacking.Text = "Packing";
             tabPacking.UseVisualStyleBackColor = true;
@@ -352,7 +353,7 @@
             rtbPackOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbPackOutput.Location = new Point(9, 86);
             rtbPackOutput.Name = "rtbPackOutput";
-            rtbPackOutput.Size = new Size(863, 395);
+            rtbPackOutput.Size = new Size(862, 395);
             rtbPackOutput.TabIndex = 4;
             rtbPackOutput.Text = "";
             // 
@@ -399,7 +400,7 @@
             tabRandomizer.Location = new Point(4, 24);
             tabRandomizer.Name = "tabRandomizer";
             tabRandomizer.Padding = new Padding(3);
-            tabRandomizer.Size = new Size(878, 553);
+            tabRandomizer.Size = new Size(877, 553);
             tabRandomizer.TabIndex = 2;
             tabRandomizer.Text = "Randomizer";
             tabRandomizer.UseVisualStyleBackColor = true;
@@ -507,6 +508,7 @@
             // 
             // grpBaseOptions
             // 
+            grpBaseOptions.Controls.Add(chbRandomizedEnemies);
             grpBaseOptions.Controls.Add(chbRandomPermaDeath);
             grpBaseOptions.Controls.Add(chbRandomNoRecruits);
             grpBaseOptions.Controls.Add(chbRandomVanillaOrNah);
@@ -523,7 +525,7 @@
             // chbRandomPermaDeath
             // 
             chbRandomPermaDeath.AutoSize = true;
-            chbRandomPermaDeath.Location = new Point(6, 97);
+            chbRandomPermaDeath.Location = new Point(6, 122);
             chbRandomPermaDeath.Name = "chbRandomPermaDeath";
             chbRandomPermaDeath.Size = new Size(130, 19);
             chbRandomPermaDeath.TabIndex = 6;
@@ -611,7 +613,7 @@
             tabIngameRandom.Location = new Point(4, 24);
             tabIngameRandom.Name = "tabIngameRandom";
             tabIngameRandom.Padding = new Padding(3);
-            tabIngameRandom.Size = new Size(878, 553);
+            tabIngameRandom.Size = new Size(877, 553);
             tabIngameRandom.TabIndex = 3;
             tabIngameRandom.Text = "Ingame Random";
             tabIngameRandom.UseVisualStyleBackColor = true;
@@ -983,7 +985,7 @@
             tabTeamSkillSelection.Location = new Point(4, 24);
             tabTeamSkillSelection.Name = "tabTeamSkillSelection";
             tabTeamSkillSelection.Padding = new Padding(3);
-            tabTeamSkillSelection.Size = new Size(678, 519);
+            tabTeamSkillSelection.Size = new Size(677, 519);
             tabTeamSkillSelection.TabIndex = 2;
             tabTeamSkillSelection.Text = "Skills Selection";
             tabTeamSkillSelection.UseVisualStyleBackColor = true;
@@ -1028,6 +1030,16 @@
             tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
+            // 
+            // chbRandomizedEnemies
+            // 
+            chbRandomizedEnemies.AutoSize = true;
+            chbRandomizedEnemies.Location = new Point(6, 97);
+            chbRandomizedEnemies.Name = "chbRandomizedEnemies";
+            chbRandomizedEnemies.Size = new Size(143, 19);
+            chbRandomizedEnemies.TabIndex = 7;
+            chbRandomizedEnemies.Text = "Fully random enemies";
+            chbRandomizedEnemies.UseVisualStyleBackColor = true;
             // 
             // frmMain
             // 
@@ -1168,5 +1180,6 @@
         private Label label7;
         private TextBox txtPreviewAttributes;
         private Button btnTeamRemoveUnit;
+        private CheckBox chbRandomizedEnemies;
     }
 }

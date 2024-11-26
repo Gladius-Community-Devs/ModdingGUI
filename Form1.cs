@@ -70,6 +70,7 @@ namespace ModdingGUI
                 txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 btnRandomize.Enabled = true;
+                LoadProjects();
             }
             catch (Exception ex)
             {
