@@ -107,19 +107,6 @@
             txtTeamUnitName = new TextBox();
             btnTeamAddUnit = new Button();
             tabTeamGearSelection = new TabPage();
-            tabTeamSkillSelection = new TabPage();
-            tvwTeam = new TreeView();
-            txtTeamHeader = new TextBox();
-            txtFileHeader = new TextBox();
-            tvwProjects = new TreeView();
-            groupBox1 = new GroupBox();
-            radioButton1 = new RadioButton();
-            radioButton2 = new RadioButton();
-            radioButton3 = new RadioButton();
-            radioButton4 = new RadioButton();
-            radioButton5 = new RadioButton();
-            textBox1 = new TextBox();
-            richTextBox1 = new RichTextBox();
             tableLayoutPanel2 = new TableLayoutPanel();
             label5 = new Label();
             label8 = new Label();
@@ -131,6 +118,20 @@
             label14 = new Label();
             label15 = new Label();
             label16 = new Label();
+            richTextBox1 = new RichTextBox();
+            textBox1 = new TextBox();
+            groupBox1 = new GroupBox();
+            radioButton5 = new RadioButton();
+            radioButton4 = new RadioButton();
+            radioButton3 = new RadioButton();
+            radioButton2 = new RadioButton();
+            radioButton1 = new RadioButton();
+            tabTeamSkillSelection = new TabPage();
+            tvwTeam = new TreeView();
+            txtTeamHeader = new TextBox();
+            txtFileHeader = new TextBox();
+            tvwProjects = new TreeView();
+            tabPatching = new TabPage();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -157,8 +158,8 @@
             grpPreview.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             tabTeamGearSelection.SuspendLayout();
-            groupBox1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
+            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // mnuMain
@@ -237,6 +238,7 @@
             // 
             // tabContainer
             // 
+            tabContainer.Controls.Add(tabPatching);
             tabContainer.Controls.Add(tabUnpacking);
             tabContainer.Controls.Add(tabPacking);
             tabContainer.Controls.Add(tabRandomizer);
@@ -260,7 +262,7 @@
             tabUnpacking.Location = new Point(4, 24);
             tabUnpacking.Name = "tabUnpacking";
             tabUnpacking.Padding = new Padding(3);
-            tabUnpacking.Size = new Size(877, 553);
+            tabUnpacking.Size = new Size(1221, 722);
             tabUnpacking.TabIndex = 0;
             tabUnpacking.Text = "Unpacking";
             tabUnpacking.UseVisualStyleBackColor = true;
@@ -280,7 +282,7 @@
             rtbUnpackOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbUnpackOutput.Location = new Point(9, 120);
             rtbUnpackOutput.Name = "rtbUnpackOutput";
-            rtbUnpackOutput.Size = new Size(856, 362);
+            rtbUnpackOutput.Size = new Size(1200, 531);
             rtbUnpackOutput.TabIndex = 4;
             rtbUnpackOutput.Text = "";
             // 
@@ -333,7 +335,7 @@
             tabPacking.Location = new Point(4, 24);
             tabPacking.Name = "tabPacking";
             tabPacking.Padding = new Padding(3);
-            tabPacking.Size = new Size(877, 553);
+            tabPacking.Size = new Size(1221, 722);
             tabPacking.TabIndex = 1;
             tabPacking.Text = "Packing";
             tabPacking.UseVisualStyleBackColor = true;
@@ -374,7 +376,7 @@
             rtbPackOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbPackOutput.Location = new Point(9, 86);
             rtbPackOutput.Name = "rtbPackOutput";
-            rtbPackOutput.Size = new Size(862, 395);
+            rtbPackOutput.Size = new Size(1206, 564);
             rtbPackOutput.TabIndex = 4;
             rtbPackOutput.Text = "";
             // 
@@ -639,7 +641,7 @@
             tabIngameRandom.Location = new Point(4, 24);
             tabIngameRandom.Name = "tabIngameRandom";
             tabIngameRandom.Padding = new Padding(3);
-            tabIngameRandom.Size = new Size(877, 553);
+            tabIngameRandom.Size = new Size(1221, 722);
             tabIngameRandom.TabIndex = 3;
             tabIngameRandom.Text = "Ingame Random";
             tabIngameRandom.UseVisualStyleBackColor = true;
@@ -706,7 +708,7 @@
             tabTeamRulesSelection.Location = new Point(4, 24);
             tabTeamRulesSelection.Name = "tabTeamRulesSelection";
             tabTeamRulesSelection.Padding = new Padding(3);
-            tabTeamRulesSelection.Size = new Size(677, 519);
+            tabTeamRulesSelection.Size = new Size(947, 688);
             tabTeamRulesSelection.TabIndex = 3;
             tabTeamRulesSelection.Text = "Rules Selection";
             tabTeamRulesSelection.UseVisualStyleBackColor = true;
@@ -1010,142 +1012,6 @@
             tabTeamGearSelection.Text = "Gear Selection";
             tabTeamGearSelection.UseVisualStyleBackColor = true;
             // 
-            // tabTeamSkillSelection
-            // 
-            tabTeamSkillSelection.Location = new Point(4, 24);
-            tabTeamSkillSelection.Name = "tabTeamSkillSelection";
-            tabTeamSkillSelection.Padding = new Padding(3);
-            tabTeamSkillSelection.Size = new Size(677, 519);
-            tabTeamSkillSelection.TabIndex = 2;
-            tabTeamSkillSelection.Text = "Skills Selection";
-            tabTeamSkillSelection.UseVisualStyleBackColor = true;
-            // 
-            // tvwTeam
-            // 
-            tvwTeam.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tvwTeam.Location = new Point(3, 27);
-            tvwTeam.Name = "tvwTeam";
-            tvwTeam.Size = new Size(250, 689);
-            tvwTeam.TabIndex = 1;
-            tvwTeam.AfterSelect += tvwTeam_AfterSelect;
-            // 
-            // txtTeamHeader
-            // 
-            txtTeamHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtTeamHeader.Location = new Point(3, 3);
-            txtTeamHeader.Name = "txtTeamHeader";
-            txtTeamHeader.ReadOnly = true;
-            txtTeamHeader.Size = new Size(250, 23);
-            txtTeamHeader.TabIndex = 0;
-            txtTeamHeader.Text = "Current Team:";
-            // 
-            // txtFileHeader
-            // 
-            txtFileHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtFileHeader.Location = new Point(5, 0);
-            txtFileHeader.Name = "txtFileHeader";
-            txtFileHeader.ReadOnly = true;
-            txtFileHeader.Size = new Size(246, 23);
-            txtFileHeader.TabIndex = 4;
-            txtFileHeader.Text = "Project File Tree:";
-            // 
-            // tvwProjects
-            // 
-            tvwProjects.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tvwProjects.Location = new Point(5, 24);
-            tvwProjects.Name = "tvwProjects";
-            tvwProjects.Size = new Size(246, 721);
-            tvwProjects.TabIndex = 3;
-            tvwProjects.BeforeExpand += tvwProjects_BeforeExpand;
-            tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;
-            tvwProjects.AfterSelect += tvwProjects_AfterSelect;
-            tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
-            // 
-            // groupBox1
-            // 
-            groupBox1.Controls.Add(radioButton5);
-            groupBox1.Controls.Add(radioButton4);
-            groupBox1.Controls.Add(radioButton3);
-            groupBox1.Controls.Add(radioButton2);
-            groupBox1.Controls.Add(radioButton1);
-            groupBox1.Location = new Point(3, 6);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(359, 53);
-            groupBox1.TabIndex = 0;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "Gear Type";
-            // 
-            // radioButton1
-            // 
-            radioButton1.AutoSize = true;
-            radioButton1.Location = new Point(6, 22);
-            radioButton1.Name = "radioButton1";
-            radioButton1.Size = new Size(64, 19);
-            radioButton1.TabIndex = 0;
-            radioButton1.TabStop = true;
-            radioButton1.Text = "Helmet";
-            radioButton1.UseVisualStyleBackColor = true;
-            // 
-            // radioButton2
-            // 
-            radioButton2.AutoSize = true;
-            radioButton2.Location = new Point(76, 22);
-            radioButton2.Name = "radioButton2";
-            radioButton2.Size = new Size(59, 19);
-            radioButton2.TabIndex = 1;
-            radioButton2.TabStop = true;
-            radioButton2.Text = "Armor";
-            radioButton2.UseVisualStyleBackColor = true;
-            // 
-            // radioButton3
-            // 
-            radioButton3.AutoSize = true;
-            radioButton3.Location = new Point(141, 22);
-            radioButton3.Name = "radioButton3";
-            radioButton3.Size = new Size(69, 19);
-            radioButton3.TabIndex = 2;
-            radioButton3.TabStop = true;
-            radioButton3.Text = "Weapon";
-            radioButton3.UseVisualStyleBackColor = true;
-            // 
-            // radioButton4
-            // 
-            radioButton4.AutoSize = true;
-            radioButton4.Location = new Point(216, 22);
-            radioButton4.Name = "radioButton4";
-            radioButton4.Size = new Size(57, 19);
-            radioButton4.TabIndex = 3;
-            radioButton4.TabStop = true;
-            radioButton4.Text = "Shield";
-            radioButton4.UseVisualStyleBackColor = true;
-            // 
-            // radioButton5
-            // 
-            radioButton5.AutoSize = true;
-            radioButton5.Location = new Point(279, 22);
-            radioButton5.Name = "radioButton5";
-            radioButton5.Size = new Size(78, 19);
-            radioButton5.TabIndex = 4;
-            radioButton5.TabStop = true;
-            radioButton5.Text = "Accessory";
-            radioButton5.UseVisualStyleBackColor = true;
-            // 
-            // textBox1
-            // 
-            textBox1.Location = new Point(6, 65);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(270, 23);
-            textBox1.TabIndex = 2;
-            textBox1.Text = "UnitNameHere (Stat Preview)";
-            // 
-            // richTextBox1
-            // 
-            richTextBox1.Location = new Point(6, 94);
-            richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(270, 588);
-            richTextBox1.TabIndex = 3;
-            richTextBox1.Text = resources.GetString("richTextBox1.Text");
-            // 
             // tableLayoutPanel2
             // 
             tableLayoutPanel2.ColumnCount = 5;
@@ -1276,6 +1142,151 @@
             label16.TabIndex = 9;
             label16.Text = "INI and MOV up";
             // 
+            // richTextBox1
+            // 
+            richTextBox1.Location = new Point(6, 94);
+            richTextBox1.Name = "richTextBox1";
+            richTextBox1.Size = new Size(270, 588);
+            richTextBox1.TabIndex = 3;
+            richTextBox1.Text = resources.GetString("richTextBox1.Text");
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(6, 65);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(270, 23);
+            textBox1.TabIndex = 2;
+            textBox1.Text = "UnitNameHere (Stat Preview)";
+            // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(radioButton5);
+            groupBox1.Controls.Add(radioButton4);
+            groupBox1.Controls.Add(radioButton3);
+            groupBox1.Controls.Add(radioButton2);
+            groupBox1.Controls.Add(radioButton1);
+            groupBox1.Location = new Point(3, 6);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(359, 53);
+            groupBox1.TabIndex = 0;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Gear Type";
+            // 
+            // radioButton5
+            // 
+            radioButton5.AutoSize = true;
+            radioButton5.Location = new Point(279, 22);
+            radioButton5.Name = "radioButton5";
+            radioButton5.Size = new Size(78, 19);
+            radioButton5.TabIndex = 4;
+            radioButton5.TabStop = true;
+            radioButton5.Text = "Accessory";
+            radioButton5.UseVisualStyleBackColor = true;
+            // 
+            // radioButton4
+            // 
+            radioButton4.AutoSize = true;
+            radioButton4.Location = new Point(216, 22);
+            radioButton4.Name = "radioButton4";
+            radioButton4.Size = new Size(57, 19);
+            radioButton4.TabIndex = 3;
+            radioButton4.TabStop = true;
+            radioButton4.Text = "Shield";
+            radioButton4.UseVisualStyleBackColor = true;
+            // 
+            // radioButton3
+            // 
+            radioButton3.AutoSize = true;
+            radioButton3.Location = new Point(141, 22);
+            radioButton3.Name = "radioButton3";
+            radioButton3.Size = new Size(69, 19);
+            radioButton3.TabIndex = 2;
+            radioButton3.TabStop = true;
+            radioButton3.Text = "Weapon";
+            radioButton3.UseVisualStyleBackColor = true;
+            // 
+            // radioButton2
+            // 
+            radioButton2.AutoSize = true;
+            radioButton2.Location = new Point(76, 22);
+            radioButton2.Name = "radioButton2";
+            radioButton2.Size = new Size(59, 19);
+            radioButton2.TabIndex = 1;
+            radioButton2.TabStop = true;
+            radioButton2.Text = "Armor";
+            radioButton2.UseVisualStyleBackColor = true;
+            // 
+            // radioButton1
+            // 
+            radioButton1.AutoSize = true;
+            radioButton1.Location = new Point(6, 22);
+            radioButton1.Name = "radioButton1";
+            radioButton1.Size = new Size(64, 19);
+            radioButton1.TabIndex = 0;
+            radioButton1.TabStop = true;
+            radioButton1.Text = "Helmet";
+            radioButton1.UseVisualStyleBackColor = true;
+            // 
+            // tabTeamSkillSelection
+            // 
+            tabTeamSkillSelection.Location = new Point(4, 24);
+            tabTeamSkillSelection.Name = "tabTeamSkillSelection";
+            tabTeamSkillSelection.Padding = new Padding(3);
+            tabTeamSkillSelection.Size = new Size(947, 688);
+            tabTeamSkillSelection.TabIndex = 2;
+            tabTeamSkillSelection.Text = "Skills Selection";
+            tabTeamSkillSelection.UseVisualStyleBackColor = true;
+            // 
+            // tvwTeam
+            // 
+            tvwTeam.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvwTeam.Location = new Point(3, 27);
+            tvwTeam.Name = "tvwTeam";
+            tvwTeam.Size = new Size(250, 689);
+            tvwTeam.TabIndex = 1;
+            tvwTeam.AfterSelect += tvwTeam_AfterSelect;
+            // 
+            // txtTeamHeader
+            // 
+            txtTeamHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtTeamHeader.Location = new Point(3, 3);
+            txtTeamHeader.Name = "txtTeamHeader";
+            txtTeamHeader.ReadOnly = true;
+            txtTeamHeader.Size = new Size(250, 23);
+            txtTeamHeader.TabIndex = 0;
+            txtTeamHeader.Text = "Current Team:";
+            // 
+            // txtFileHeader
+            // 
+            txtFileHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtFileHeader.Location = new Point(5, 0);
+            txtFileHeader.Name = "txtFileHeader";
+            txtFileHeader.ReadOnly = true;
+            txtFileHeader.Size = new Size(246, 23);
+            txtFileHeader.TabIndex = 4;
+            txtFileHeader.Text = "Project File Tree:";
+            // 
+            // tvwProjects
+            // 
+            tvwProjects.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvwProjects.Location = new Point(5, 24);
+            tvwProjects.Name = "tvwProjects";
+            tvwProjects.Size = new Size(246, 721);
+            tvwProjects.TabIndex = 3;
+            tvwProjects.BeforeExpand += tvwProjects_BeforeExpand;
+            tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;
+            tvwProjects.AfterSelect += tvwProjects_AfterSelect;
+            tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
+            // 
+            // tabPatching
+            // 
+            tabPatching.Location = new Point(4, 24);
+            tabPatching.Name = "tabPatching";
+            tabPatching.Size = new Size(1221, 722);
+            tabPatching.TabIndex = 5;
+            tabPatching.Text = "Patching";
+            tabPatching.UseVisualStyleBackColor = true;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1330,10 +1341,10 @@
             tableLayoutPanel1.PerformLayout();
             tabTeamGearSelection.ResumeLayout(false);
             tabTeamGearSelection.PerformLayout();
-            groupBox1.ResumeLayout(false);
-            groupBox1.PerformLayout();
             tableLayoutPanel2.ResumeLayout(false);
             tableLayoutPanel2.PerformLayout();
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1440,5 +1451,6 @@
         private Label label14;
         private Label label15;
         private Label label16;
+        private TabPage tabPatching;
     }
 }
