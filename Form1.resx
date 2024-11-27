@@ -123,6 +123,23 @@
   <metadata name="ttpInform.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>123, 17</value>
   </metadata>
+  <data name="richTextBox1.Text" xml:space="preserve">
+    <value>- stats
+    HP: 105
+    ETCETC
++ weapon
++ shield
+- helmet (helmet name)
+    --Grants 45 HP
+    --Grants: Phys Damage Reduction (expandable)
+        -- SKILLCREATE: "Item HPUP", "Innate", "Status"
+             SKILLUSECLASS: "Other"
+             SKILLDISPLAYNAMEID: 4582
+             SKILLLEVEL: 0
++ armor
++ accessory
+</value>
+  </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

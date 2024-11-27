@@ -112,6 +112,25 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
+            groupBox1 = new GroupBox();
+            radioButton1 = new RadioButton();
+            radioButton2 = new RadioButton();
+            radioButton3 = new RadioButton();
+            radioButton4 = new RadioButton();
+            radioButton5 = new RadioButton();
+            textBox1 = new TextBox();
+            richTextBox1 = new RichTextBox();
+            tableLayoutPanel2 = new TableLayoutPanel();
+            label5 = new Label();
+            label8 = new Label();
+            label9 = new Label();
+            label10 = new Label();
+            label11 = new Label();
+            label12 = new Label();
+            label13 = new Label();
+            label14 = new Label();
+            label15 = new Label();
+            label16 = new Label();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -137,6 +156,9 @@
             tabTeamUnitSelection.SuspendLayout();
             grpPreview.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
+            tabTeamGearSelection.SuspendLayout();
+            groupBox1.SuspendLayout();
+            tableLayoutPanel2.SuspendLayout();
             SuspendLayout();
             // 
             // mnuMain
@@ -144,7 +166,7 @@
             mnuMain.Items.AddRange(new ToolStripItem[] { optionsToolStripMenuItem, funOptionsToolStripMenuItem });
             mnuMain.Location = new Point(0, 0);
             mnuMain.Name = "mnuMain";
-            mnuMain.Size = new Size(1132, 24);
+            mnuMain.Size = new Size(1489, 24);
             mnuMain.TabIndex = 1;
             mnuMain.Text = "menuStrip1";
             // 
@@ -209,8 +231,8 @@
             splitContainer1.Panel2.Controls.Add(tvwProjects);
             splitContainer1.Panel2.Margin = new Padding(5);
             splitContainer1.Panel2.Padding = new Padding(5);
-            splitContainer1.Size = new Size(1132, 581);
-            splitContainer1.SplitterDistance = 885;
+            splitContainer1.Size = new Size(1489, 750);
+            splitContainer1.SplitterDistance = 1229;
             splitContainer1.TabIndex = 3;
             // 
             // tabContainer
@@ -224,7 +246,7 @@
             tabContainer.Location = new Point(0, 0);
             tabContainer.Name = "tabContainer";
             tabContainer.SelectedIndex = 0;
-            tabContainer.Size = new Size(885, 581);
+            tabContainer.Size = new Size(1229, 750);
             tabContainer.TabIndex = 1;
             // 
             // tabUnpacking
@@ -400,7 +422,7 @@
             tabRandomizer.Location = new Point(4, 24);
             tabRandomizer.Name = "tabRandomizer";
             tabRandomizer.Padding = new Padding(3);
-            tabRandomizer.Size = new Size(877, 553);
+            tabRandomizer.Size = new Size(1221, 722);
             tabRandomizer.TabIndex = 2;
             tabRandomizer.Text = "Randomizer";
             tabRandomizer.UseVisualStyleBackColor = true;
@@ -641,7 +663,7 @@
             tabTeamBuilder.Location = new Point(4, 24);
             tabTeamBuilder.Name = "tabTeamBuilder";
             tabTeamBuilder.Padding = new Padding(3);
-            tabTeamBuilder.Size = new Size(877, 553);
+            tabTeamBuilder.Size = new Size(1221, 722);
             tabTeamBuilder.TabIndex = 4;
             tabTeamBuilder.Text = "Team Builder";
             tabTeamBuilder.UseVisualStyleBackColor = true;
@@ -660,8 +682,8 @@
             // 
             splitContainer2.Panel2.Controls.Add(tvwTeam);
             splitContainer2.Panel2.Controls.Add(txtTeamHeader);
-            splitContainer2.Size = new Size(871, 547);
-            splitContainer2.SplitterDistance = 685;
+            splitContainer2.Size = new Size(1215, 716);
+            splitContainer2.SplitterDistance = 955;
             splitContainer2.TabIndex = 0;
             // 
             // tabTeamBuilderMaster
@@ -674,7 +696,7 @@
             tabTeamBuilderMaster.Location = new Point(0, 0);
             tabTeamBuilderMaster.Name = "tabTeamBuilderMaster";
             tabTeamBuilderMaster.SelectedIndex = 0;
-            tabTeamBuilderMaster.Size = new Size(685, 547);
+            tabTeamBuilderMaster.Size = new Size(955, 716);
             tabTeamBuilderMaster.TabIndex = 1;
             // 
             // tabTeamRulesSelection
@@ -813,7 +835,7 @@
             tabTeamUnitSelection.Location = new Point(4, 24);
             tabTeamUnitSelection.Name = "tabTeamUnitSelection";
             tabTeamUnitSelection.Padding = new Padding(3);
-            tabTeamUnitSelection.Size = new Size(677, 519);
+            tabTeamUnitSelection.Size = new Size(947, 688);
             tabTeamUnitSelection.TabIndex = 0;
             tabTeamUnitSelection.Text = "Unit Selection";
             tabTeamUnitSelection.UseVisualStyleBackColor = true;
@@ -976,10 +998,14 @@
             // 
             // tabTeamGearSelection
             // 
+            tabTeamGearSelection.Controls.Add(tableLayoutPanel2);
+            tabTeamGearSelection.Controls.Add(richTextBox1);
+            tabTeamGearSelection.Controls.Add(textBox1);
+            tabTeamGearSelection.Controls.Add(groupBox1);
             tabTeamGearSelection.Location = new Point(4, 24);
             tabTeamGearSelection.Name = "tabTeamGearSelection";
             tabTeamGearSelection.Padding = new Padding(3);
-            tabTeamGearSelection.Size = new Size(677, 519);
+            tabTeamGearSelection.Size = new Size(947, 688);
             tabTeamGearSelection.TabIndex = 1;
             tabTeamGearSelection.Text = "Gear Selection";
             tabTeamGearSelection.UseVisualStyleBackColor = true;
@@ -999,7 +1025,7 @@
             tvwTeam.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwTeam.Location = new Point(3, 27);
             tvwTeam.Name = "tvwTeam";
-            tvwTeam.Size = new Size(176, 520);
+            tvwTeam.Size = new Size(250, 689);
             tvwTeam.TabIndex = 1;
             tvwTeam.AfterSelect += tvwTeam_AfterSelect;
             // 
@@ -1009,7 +1035,7 @@
             txtTeamHeader.Location = new Point(3, 3);
             txtTeamHeader.Name = "txtTeamHeader";
             txtTeamHeader.ReadOnly = true;
-            txtTeamHeader.Size = new Size(176, 23);
+            txtTeamHeader.Size = new Size(250, 23);
             txtTeamHeader.TabIndex = 0;
             txtTeamHeader.Text = "Current Team:";
             // 
@@ -1019,7 +1045,7 @@
             txtFileHeader.Location = new Point(5, 0);
             txtFileHeader.Name = "txtFileHeader";
             txtFileHeader.ReadOnly = true;
-            txtFileHeader.Size = new Size(233, 23);
+            txtFileHeader.Size = new Size(246, 23);
             txtFileHeader.TabIndex = 4;
             txtFileHeader.Text = "Project File Tree:";
             // 
@@ -1028,18 +1054,233 @@
             tvwProjects.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwProjects.Location = new Point(5, 24);
             tvwProjects.Name = "tvwProjects";
-            tvwProjects.Size = new Size(233, 552);
+            tvwProjects.Size = new Size(246, 721);
             tvwProjects.TabIndex = 3;
             tvwProjects.BeforeExpand += tvwProjects_BeforeExpand;
             tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(radioButton5);
+            groupBox1.Controls.Add(radioButton4);
+            groupBox1.Controls.Add(radioButton3);
+            groupBox1.Controls.Add(radioButton2);
+            groupBox1.Controls.Add(radioButton1);
+            groupBox1.Location = new Point(3, 6);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(359, 53);
+            groupBox1.TabIndex = 0;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Gear Type";
+            // 
+            // radioButton1
+            // 
+            radioButton1.AutoSize = true;
+            radioButton1.Location = new Point(6, 22);
+            radioButton1.Name = "radioButton1";
+            radioButton1.Size = new Size(64, 19);
+            radioButton1.TabIndex = 0;
+            radioButton1.TabStop = true;
+            radioButton1.Text = "Helmet";
+            radioButton1.UseVisualStyleBackColor = true;
+            // 
+            // radioButton2
+            // 
+            radioButton2.AutoSize = true;
+            radioButton2.Location = new Point(76, 22);
+            radioButton2.Name = "radioButton2";
+            radioButton2.Size = new Size(59, 19);
+            radioButton2.TabIndex = 1;
+            radioButton2.TabStop = true;
+            radioButton2.Text = "Armor";
+            radioButton2.UseVisualStyleBackColor = true;
+            // 
+            // radioButton3
+            // 
+            radioButton3.AutoSize = true;
+            radioButton3.Location = new Point(141, 22);
+            radioButton3.Name = "radioButton3";
+            radioButton3.Size = new Size(69, 19);
+            radioButton3.TabIndex = 2;
+            radioButton3.TabStop = true;
+            radioButton3.Text = "Weapon";
+            radioButton3.UseVisualStyleBackColor = true;
+            // 
+            // radioButton4
+            // 
+            radioButton4.AutoSize = true;
+            radioButton4.Location = new Point(216, 22);
+            radioButton4.Name = "radioButton4";
+            radioButton4.Size = new Size(57, 19);
+            radioButton4.TabIndex = 3;
+            radioButton4.TabStop = true;
+            radioButton4.Text = "Shield";
+            radioButton4.UseVisualStyleBackColor = true;
+            // 
+            // radioButton5
+            // 
+            radioButton5.AutoSize = true;
+            radioButton5.Location = new Point(279, 22);
+            radioButton5.Name = "radioButton5";
+            radioButton5.Size = new Size(78, 19);
+            radioButton5.TabIndex = 4;
+            radioButton5.TabStop = true;
+            radioButton5.Text = "Accessory";
+            radioButton5.UseVisualStyleBackColor = true;
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(6, 65);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(270, 23);
+            textBox1.TabIndex = 2;
+            textBox1.Text = "UnitNameHere (Stat Preview)";
+            // 
+            // richTextBox1
+            // 
+            richTextBox1.Location = new Point(6, 94);
+            richTextBox1.Name = "richTextBox1";
+            richTextBox1.Size = new Size(270, 588);
+            richTextBox1.TabIndex = 3;
+            richTextBox1.Text = resources.GetString("richTextBox1.Text");
+            // 
+            // tableLayoutPanel2
+            // 
+            tableLayoutPanel2.ColumnCount = 5;
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel2.Controls.Add(label5, 0, 0);
+            tableLayoutPanel2.Controls.Add(label8, 1, 0);
+            tableLayoutPanel2.Controls.Add(label9, 2, 0);
+            tableLayoutPanel2.Controls.Add(label10, 3, 0);
+            tableLayoutPanel2.Controls.Add(label11, 4, 0);
+            tableLayoutPanel2.Controls.Add(label12, 0, 1);
+            tableLayoutPanel2.Controls.Add(label13, 1, 1);
+            tableLayoutPanel2.Controls.Add(label14, 2, 1);
+            tableLayoutPanel2.Controls.Add(label15, 3, 1);
+            tableLayoutPanel2.Controls.Add(label16, 4, 1);
+            tableLayoutPanel2.Location = new Point(282, 65);
+            tableLayoutPanel2.Name = "tableLayoutPanel2";
+            tableLayoutPanel2.RowCount = 6;
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
+            tableLayoutPanel2.Size = new Size(662, 620);
+            tableLayoutPanel2.TabIndex = 4;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Dock = DockStyle.Fill;
+            label5.Location = new Point(3, 0);
+            label5.Name = "label5";
+            label5.Size = new Size(126, 103);
+            label5.TabIndex = 0;
+            label5.Text = "Item Name";
+            label5.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Dock = DockStyle.Fill;
+            label8.Location = new Point(135, 0);
+            label8.Name = "label8";
+            label8.Size = new Size(126, 103);
+            label8.TabIndex = 1;
+            label8.Text = "Star Rating";
+            label8.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Dock = DockStyle.Fill;
+            label9.Location = new Point(267, 0);
+            label9.Name = "label9";
+            label9.Size = new Size(126, 103);
+            label9.TabIndex = 2;
+            label9.Text = "Level";
+            label9.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Dock = DockStyle.Fill;
+            label10.Location = new Point(399, 0);
+            label10.Name = "label10";
+            label10.Size = new Size(126, 103);
+            label10.TabIndex = 3;
+            label10.Text = "Stat Changes";
+            label10.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // label11
+            // 
+            label11.AutoSize = true;
+            label11.Dock = DockStyle.Fill;
+            label11.Location = new Point(531, 0);
+            label11.Name = "label11";
+            label11.Size = new Size(128, 103);
+            label11.TabIndex = 4;
+            label11.Text = "Effects";
+            label11.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(3, 103);
+            label12.Name = "label12";
+            label12.Size = new Size(52, 15);
+            label12.TabIndex = 5;
+            label12.Text = "Example";
+            // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new Point(135, 103);
+            label13.Name = "label13";
+            label13.Size = new Size(19, 15);
+            label13.TabIndex = 6;
+            label13.Text = "25";
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new Point(267, 103);
+            label14.Name = "label14";
+            label14.Size = new Size(13, 15);
+            label14.TabIndex = 7;
+            label14.Text = "5";
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new Point(399, 103);
+            label15.Name = "label15";
+            label15.Size = new Size(60, 60);
+            label15.TabIndex = 8;
+            label15.Text = "DAM: +15\r\nINI: +5\r\nDEF: -5\r\nACC: +7\r\n";
+            // 
+            // label16
+            // 
+            label16.AutoSize = true;
+            label16.Location = new Point(531, 103);
+            label16.Name = "label16";
+            label16.Size = new Size(92, 15);
+            label16.TabIndex = 9;
+            label16.Text = "INI and MOV up";
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1132, 608);
+            ClientSize = new Size(1489, 777);
             Controls.Add(mnuMain);
             Controls.Add(splitContainer1);
             Icon = (Icon)resources.GetObject("$this.Icon");
@@ -1087,6 +1328,12 @@
             grpPreview.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
+            tabTeamGearSelection.ResumeLayout(false);
+            tabTeamGearSelection.PerformLayout();
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
+            tableLayoutPanel2.ResumeLayout(false);
+            tableLayoutPanel2.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1174,5 +1421,24 @@
         private TextBox txtPreviewAttributes;
         private Button btnTeamRemoveUnit;
         private CheckBox chbRandomizedEnemies;
+        private TextBox textBox1;
+        private GroupBox groupBox1;
+        private RadioButton radioButton5;
+        private RadioButton radioButton4;
+        private RadioButton radioButton3;
+        private RadioButton radioButton2;
+        private RadioButton radioButton1;
+        private RichTextBox richTextBox1;
+        private TableLayoutPanel tableLayoutPanel2;
+        private Label label5;
+        private Label label8;
+        private Label label9;
+        private Label label10;
+        private Label label11;
+        private Label label12;
+        private Label label13;
+        private Label label14;
+        private Label label15;
+        private Label label16;
     }
 }

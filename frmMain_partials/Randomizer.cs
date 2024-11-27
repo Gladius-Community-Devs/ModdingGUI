@@ -572,7 +572,7 @@ namespace ModdingGUI
         {
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "school", fileName);
-            List<string> outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 2500" };
+            List<string> outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 25000" };
 
             // Add CREATEUNIT blocks for each hero
             AppendUnitBlocks(outputLines, unitNames, unitClasses, gladiatorEntries, statSets, itemSets, skillSets);
@@ -837,7 +837,7 @@ namespace ModdingGUI
 
         // Precompile the regex patterns
         private static readonly Regex unitDbRegex = new Regex(@"^UNITDB:", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex teamLineRegex = new Regex(@"^TEAM:\s*(\d+)\s*,\s*(\d+)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex teamLineRegex = new Regex(@"^TEAM:\s*(-?\d+)\s*,\s*(\d+)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private void EditEncounterFiles(string projectFolder, bool addCandie, IProgress<int> progress, ConcurrentQueue<(string message, Color color)> logMessages)
         {
@@ -876,6 +876,7 @@ namespace ModdingGUI
                             var teamMatch = teamLineRegex.Match(trimmedLine);
                             if (teamMatch.Success)
                             {
+                                
                                 int teamNumber = int.Parse(teamMatch.Groups[1].Value);
                                 currentTeamNumber = teamNumber; // Update current team number
 
@@ -901,7 +902,6 @@ namespace ModdingGUI
                             }
                             if (trimmedLine.StartsWith("SCHOOL:", StringComparison.OrdinalIgnoreCase))
                             {
-
                                 if (currentTeamNumber != -1)
                                 {
                                     // Skip SCHOOL: lines inside Prop Teams
@@ -913,12 +913,6 @@ namespace ModdingGUI
                                     modifiedContent.AppendLine(line);
                                     continue;
                                 }
-                            }
-                            if (trimmedLine.StartsWith("GOLD:", StringComparison.OrdinalIgnoreCase))
-                            {
-                                string goldLine = "GOLD: 25000";
-                                modifiedContent.AppendLine(goldLine);
-                                continue;
                             }
                             // Modify UNITDB lines within TEAM: 0,X section
                             if (unitDbRegex.IsMatch(trimmedLine))
