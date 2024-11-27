@@ -627,7 +627,7 @@ namespace ModdingGUI
                 outputLines.Add($"CREATEUNIT: \"{unitName}\", \"{unitClass}\"    // Name, class");
                 outputLines.Add("\tLEVEL: 1");
                 outputLines.Add("\tEXPERIENCE: 0");
-                outputLines.Add("\tJOBPOINTS: 5");
+                outputLines.Add("\tJOBPOINTS: 8");
                 outputLines.Add("\tCUSTOMIZE: 0, \"\"");
 
                 // Insert stats
@@ -901,8 +901,18 @@ namespace ModdingGUI
                             }
                             if (trimmedLine.StartsWith("SCHOOL:", StringComparison.OrdinalIgnoreCase))
                             {
+
+                                if (currentTeamNumber != -1)
+                                {
+                                    // Skip SCHOOL: lines inside Prop Teams
                                     fileModified = true;
                                     continue;
+                                }
+                                else
+                                {
+                                    modifiedContent.AppendLine(line);
+                                    continue;
+                                }
                             }
                             if (trimmedLine.StartsWith("GOLD:", StringComparison.OrdinalIgnoreCase))
                             {

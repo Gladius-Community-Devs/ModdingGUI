@@ -886,7 +886,7 @@ namespace ModdingGUI
         /// <param name="unit">The Unit to add.</param>
         private void AddUnitToTreeView(Unit unit)
         {
-            TreeNode unitNode = new TreeNode(unit.UnitName)
+            TreeNode unitNode = new TreeNode(unit.UnitName + " (" + unit.Class.ClassName + ")")
             {
                 Tag = unit
             };
