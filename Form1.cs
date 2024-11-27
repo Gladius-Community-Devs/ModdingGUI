@@ -207,6 +207,7 @@ namespace ModdingGUI
             tabContainer.TabPages.Remove(tabRandomizer);
             tabContainer.TabPages.Remove(tabIngameRandom);
             tabContainer.TabPages.Remove(tabTeamBuilder);
+            tabContainer.TabPages.Remove(tabPatching);
             LoadProjects();
         }
 
