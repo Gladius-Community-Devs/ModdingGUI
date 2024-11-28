@@ -16,11 +16,18 @@ namespace ModdingGUI
         {
             public string ClassName { get; set; }
             public List<string> Attributes { get; set; } = new List<string>();
-            public string Affinity { get; set; } // Optional
+            public string Affinity { get; set; }
+            public List<AllowedGear> AllowedGears { get; set; } = new List<AllowedGear>();
 
-            // Future Properties: Description, Mesh, etc.
+            public override string ToString()
+            {
+                return ClassName;
+            }
+
         }
-
+        /// <summary>
+        /// Represents item fields.
+        /// </summary>
         /// <summary>
         /// Represents the statistical attributes of a unit.
         /// </summary>
@@ -72,7 +79,7 @@ namespace ModdingGUI
             public string UnitName { get; set; }
             public ClassDefinition Class { get; set; }
             public List<Skill> LearnedSkills { get; set; } = new List<Skill>();
-            public List<Equipment> EquippedItems { get; set; } = new List<Equipment>();
+            public List<Gear> EquippedGear { get; set; } = new List<Gear>();
             public int Level { get; set; } = 1; // Default to level 1
 
             // BaseStats are set directly from statsets.txt
@@ -107,16 +114,16 @@ namespace ModdingGUI
             private int GetEquipmentStatBonus(string statName)
             {
                 int bonus = 0;
-                foreach (var item in EquippedItems)
+                foreach (var item in EquippedGear)
                 {
                     switch (statName.ToUpper())
                     {
                         case "HP":
-                            if (item.Type == EquipmentType.Helmet || item.Type == EquipmentType.Armor)
+                            if (item.GearType == GearType.Helmet || item.GearType == GearType.Armor)
                                 bonus += item.HP;
                             break;
                         case "DAM":
-                            if (item.Type == EquipmentType.Weapon)
+                            if (item.GearType == GearType.Weapon)
                                 bonus += item.Damage;
                             break;
                         case "ACC":
@@ -141,36 +148,43 @@ namespace ModdingGUI
         public class Skill
         {
             public string Name { get; set; }
-            public string Description { get; set; }
+            public string InternalName { get; set; }
+            public string JPCost { get; set; }
             public List<string> ClassesThatCanUse { get; set; } = new List<string>();
             public int DisplayID { get; set; }
 
             public override string ToString()
             {
-                return Name;
+                return InternalName;
             }
         }
 
         /// <summary>
         /// Represents an equipment item with its properties.
         /// </summary>
-        public enum EquipmentType
+        public enum GearType
         {
             Weapon,
             Armor,
             Helmet,
             Shield,
             Accessory
-            // Add more types as needed
         }
 
-        public class Equipment
+        public class Gear
         {
             public string Name { get; set; }
-            public string Description { get; set; }
-            public EquipmentType Type { get; set; }
-            public List<string> Effects { get; set; } = new List<string>(); // Optional
-            public int? Durability { get; set; } // Applicable only to shields
+            public string InternalName { get; set; }
+            public GearType GearType { get; set; }
+            public string SubType { get; set; }
+            public string Style { get; set; }
+            public int StarValue { get; set; }
+            public int DisplayID { get; set; }
+            public int MinLevel { get; set; }
+            public string Affinity { get; set; }
+            public int AffinityValue { get; set; }
+            public List<Skill> Skills { get; set; } = new List<Skill>(); // Optional
+            public int? Durability { get; set; } // Applicable only to shields and helmets
 
             // Stat bonuses
             public int HP { get; set; }
@@ -181,14 +195,20 @@ namespace ModdingGUI
 
             public override string ToString()
             {
-                return Name;
+                return InternalName;
             }
         }
+        public class AllowedGear
+        {
+            public string GearType { get; set; }
+            public string SubType { get; set; }
+            public string Style { get; set; }
+        }
 
-        /// <summary>
-        /// Represents a gladiator entry parsed from gladiators.txt.
-        /// </summary>
-        public class GladiatorEntry
+            /// <summary>
+            /// Represents a gladiator entry parsed from gladiators.txt.
+            /// </summary>
+            public class GladiatorEntry
         {
             public string Name { get; set; }
             public string Class { get; set; }
@@ -462,6 +482,131 @@ namespace ModdingGUI
             }
         }
 
+        public class GearParser
+        {
+            public List<Gear> ParseGear(string filePath)
+            {
+                var gears = new List<Gear>();
+
+                if (!File.Exists(filePath))
+                {
+                    throw new FileNotFoundException($"The file '{filePath}' does not exist.");
+                }
+
+                var lines = File.ReadAllLines(filePath);
+                Gear currentGear = null;
+
+                foreach (var line in lines)
+                {
+                    var trimmedLine = line.Trim();
+
+                    if (string.IsNullOrEmpty(trimmedLine))
+                        continue;
+
+                    if (trimmedLine.StartsWith("ITEMCREATE:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (currentGear != null)
+                        {
+                            gears.Add(currentGear);
+                        }
+
+                        currentGear = new Gear();
+
+                        var match = Regex.Match(trimmedLine, @"ITEMCREATE:\s*""([^""]+)"",\s*""([^""]+)"",\s*""([^""]+)"",\s*""([^""]+)"",\s*(\d+)", RegexOptions.IgnoreCase);
+                        if (match.Success)
+                        {
+                            currentGear.InternalName = match.Groups[1].Value.Trim();
+
+                            if (Enum.TryParse<GearType>(match.Groups[2].Value.Trim(), true, out GearType gearType))
+                            {
+                                currentGear.GearType = gearType;
+                            }
+
+                            currentGear.SubType = match.Groups[3].Value.Trim();
+                            currentGear.Style = match.Groups[4].Value.Trim();
+                            currentGear.StarValue = int.Parse(match.Groups[5].Value.Trim());
+                        }
+                        else
+                        {
+                            currentGear = null;
+                        }
+                        continue;
+                    }
+
+                    if (currentGear != null)
+                    {
+                        if (trimmedLine.StartsWith("ITEMDISPLAYNAMEID:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var match = Regex.Match(trimmedLine, @"ITEMDISPLAYNAMEID:\s*(\d+)", RegexOptions.IgnoreCase);
+                            if (match.Success)
+                            {
+                                currentGear.DisplayID = int.Parse(match.Groups[1].Value.Trim());
+                            }
+                        }
+                        else if (trimmedLine.StartsWith("ITEMMINLEVEL:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var match = Regex.Match(trimmedLine, @"ITEMMINLEVEL:\s*(\d+)", RegexOptions.IgnoreCase);
+                            if (match.Success)
+                            {
+                                currentGear.MinLevel = int.Parse(match.Groups[1].Value.Trim());
+                            }
+                        }
+                        else if (trimmedLine.StartsWith("ITEMAFFINITY:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var match = Regex.Match(trimmedLine, @"ITEMAFFINITY:\s*(\w+)\s*,\s*(\d+)", RegexOptions.IgnoreCase);
+                            if (match.Success)
+                            {
+                                currentGear.Affinity = match.Groups[1].Value.Trim();
+                                currentGear.AffinityValue = int.Parse(match.Groups[2].Value.Trim());
+                            }
+                        }
+                        else if (trimmedLine.StartsWith("ITEMSTATMOD:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var match = Regex.Match(trimmedLine, @"ITEMSTATMOD:\s*(\w+)\s*,\s*(-?\d+)", RegexOptions.IgnoreCase);
+                            if (match.Success)
+                            {
+                                var statName = match.Groups[1].Value.Trim().ToLower();
+                                var statValue = int.Parse(match.Groups[2].Value.Trim());
+                                switch (statName)
+                                {
+                                    case "accuracy":
+                                        currentGear.Accuracy = statValue;
+                                        break;
+                                    case "initiative":
+                                        currentGear.Initiative = statValue;
+                                        break;
+                                    case "defense":
+                                        currentGear.Defense = statValue;
+                                        break;
+                                    case "hp":
+                                        currentGear.HP = statValue;
+                                        break;
+                                    case "damage":
+                                        currentGear.Damage = statValue;
+                                        break;
+                                }
+                            }
+                        }
+                        else if (trimmedLine.StartsWith("ITEMSKILL:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var match = Regex.Match(trimmedLine, @"ITEMSKILL:\s*""([^""]+)""", RegexOptions.IgnoreCase);
+                            if (match.Success)
+                            {
+                                var skill = new Skill { InternalName = match.Groups[1].Value.Trim() };
+                                currentGear.Skills.Add(skill);
+                            }
+                        }
+                    }
+                }
+
+                if (currentGear != null)
+                {
+                    gears.Add(currentGear);
+                }
+
+                return gears;
+            }
+        }
         #endregion
 
         #region Class and Stats Management
@@ -838,7 +983,7 @@ namespace ModdingGUI
                     DEF = statsList[3],
                     INI = statsList[4]
                 }
-                // EquippedItems and LearnedSkills are initialized as empty lists
+                // EquippedGear and LearnedSkills are initialized as empty lists
             };
 
             teamUnits.Add(unit);
@@ -914,9 +1059,9 @@ namespace ModdingGUI
 
             // Equipped Items
             TreeNode equipmentNode = new TreeNode("Equipped Items");
-            foreach (var equipment in unit.EquippedItems)
+            foreach (var equipment in unit.EquippedGear)
             {
-                TreeNode equipmentItemNode = new TreeNode(equipment.Name)
+                TreeNode equipmentItemNode = new TreeNode(equipment.InternalName)
                 {
                     Tag = equipment
                 };
@@ -928,7 +1073,7 @@ namespace ModdingGUI
             TreeNode skillsNode = new TreeNode("Learned Skills");
             foreach (var skill in unit.LearnedSkills)
             {
-                TreeNode skillNode = new TreeNode(skill.Name)
+                TreeNode skillNode = new TreeNode(skill.InternalName)
                 {
                     Tag = skill
                 };

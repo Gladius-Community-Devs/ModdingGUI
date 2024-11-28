@@ -40,6 +40,7 @@
             ttpInform = new ToolTip(components);
             splitContainer1 = new SplitContainer();
             tabContainer = new TabControl();
+            tabPatching = new TabPage();
             tabUnpacking = new TabPage();
             btnOpenUnpackLocation = new Button();
             rtbUnpackOutput = new RichTextBox();
@@ -107,17 +108,6 @@
             txtTeamUnitName = new TextBox();
             btnTeamAddUnit = new Button();
             tabTeamGearSelection = new TabPage();
-            tableLayoutPanel2 = new TableLayoutPanel();
-            label5 = new Label();
-            label8 = new Label();
-            label9 = new Label();
-            label10 = new Label();
-            label11 = new Label();
-            label12 = new Label();
-            label13 = new Label();
-            label14 = new Label();
-            label15 = new Label();
-            label16 = new Label();
             richTextBox1 = new RichTextBox();
             textBox1 = new TextBox();
             groupBox1 = new GroupBox();
@@ -131,7 +121,7 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            tabPatching = new TabPage();
+            dgvGear = new DataGridView();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -158,8 +148,8 @@
             grpPreview.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             tabTeamGearSelection.SuspendLayout();
-            tableLayoutPanel2.SuspendLayout();
             groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvGear).BeginInit();
             SuspendLayout();
             // 
             // mnuMain
@@ -250,6 +240,15 @@
             tabContainer.SelectedIndex = 0;
             tabContainer.Size = new Size(1229, 750);
             tabContainer.TabIndex = 1;
+            // 
+            // tabPatching
+            // 
+            tabPatching.Location = new Point(4, 24);
+            tabPatching.Name = "tabPatching";
+            tabPatching.Size = new Size(1221, 722);
+            tabPatching.TabIndex = 5;
+            tabPatching.Text = "Patching";
+            tabPatching.UseVisualStyleBackColor = true;
             // 
             // tabUnpacking
             // 
@@ -1000,7 +999,7 @@
             // 
             // tabTeamGearSelection
             // 
-            tabTeamGearSelection.Controls.Add(tableLayoutPanel2);
+            tabTeamGearSelection.Controls.Add(dgvGear);
             tabTeamGearSelection.Controls.Add(richTextBox1);
             tabTeamGearSelection.Controls.Add(textBox1);
             tabTeamGearSelection.Controls.Add(groupBox1);
@@ -1011,136 +1010,6 @@
             tabTeamGearSelection.TabIndex = 1;
             tabTeamGearSelection.Text = "Gear Selection";
             tabTeamGearSelection.UseVisualStyleBackColor = true;
-            // 
-            // tableLayoutPanel2
-            // 
-            tableLayoutPanel2.ColumnCount = 5;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tableLayoutPanel2.Controls.Add(label5, 0, 0);
-            tableLayoutPanel2.Controls.Add(label8, 1, 0);
-            tableLayoutPanel2.Controls.Add(label9, 2, 0);
-            tableLayoutPanel2.Controls.Add(label10, 3, 0);
-            tableLayoutPanel2.Controls.Add(label11, 4, 0);
-            tableLayoutPanel2.Controls.Add(label12, 0, 1);
-            tableLayoutPanel2.Controls.Add(label13, 1, 1);
-            tableLayoutPanel2.Controls.Add(label14, 2, 1);
-            tableLayoutPanel2.Controls.Add(label15, 3, 1);
-            tableLayoutPanel2.Controls.Add(label16, 4, 1);
-            tableLayoutPanel2.Location = new Point(282, 65);
-            tableLayoutPanel2.Name = "tableLayoutPanel2";
-            tableLayoutPanel2.RowCount = 6;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.6666679F));
-            tableLayoutPanel2.Size = new Size(662, 620);
-            tableLayoutPanel2.TabIndex = 4;
-            // 
-            // label5
-            // 
-            label5.AutoSize = true;
-            label5.Dock = DockStyle.Fill;
-            label5.Location = new Point(3, 0);
-            label5.Name = "label5";
-            label5.Size = new Size(126, 103);
-            label5.TabIndex = 0;
-            label5.Text = "Item Name";
-            label5.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // label8
-            // 
-            label8.AutoSize = true;
-            label8.Dock = DockStyle.Fill;
-            label8.Location = new Point(135, 0);
-            label8.Name = "label8";
-            label8.Size = new Size(126, 103);
-            label8.TabIndex = 1;
-            label8.Text = "Star Rating";
-            label8.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // label9
-            // 
-            label9.AutoSize = true;
-            label9.Dock = DockStyle.Fill;
-            label9.Location = new Point(267, 0);
-            label9.Name = "label9";
-            label9.Size = new Size(126, 103);
-            label9.TabIndex = 2;
-            label9.Text = "Level";
-            label9.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // label10
-            // 
-            label10.AutoSize = true;
-            label10.Dock = DockStyle.Fill;
-            label10.Location = new Point(399, 0);
-            label10.Name = "label10";
-            label10.Size = new Size(126, 103);
-            label10.TabIndex = 3;
-            label10.Text = "Stat Changes";
-            label10.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // label11
-            // 
-            label11.AutoSize = true;
-            label11.Dock = DockStyle.Fill;
-            label11.Location = new Point(531, 0);
-            label11.Name = "label11";
-            label11.Size = new Size(128, 103);
-            label11.TabIndex = 4;
-            label11.Text = "Effects";
-            label11.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // label12
-            // 
-            label12.AutoSize = true;
-            label12.Location = new Point(3, 103);
-            label12.Name = "label12";
-            label12.Size = new Size(52, 15);
-            label12.TabIndex = 5;
-            label12.Text = "Example";
-            // 
-            // label13
-            // 
-            label13.AutoSize = true;
-            label13.Location = new Point(135, 103);
-            label13.Name = "label13";
-            label13.Size = new Size(19, 15);
-            label13.TabIndex = 6;
-            label13.Text = "25";
-            // 
-            // label14
-            // 
-            label14.AutoSize = true;
-            label14.Location = new Point(267, 103);
-            label14.Name = "label14";
-            label14.Size = new Size(13, 15);
-            label14.TabIndex = 7;
-            label14.Text = "5";
-            // 
-            // label15
-            // 
-            label15.AutoSize = true;
-            label15.Location = new Point(399, 103);
-            label15.Name = "label15";
-            label15.Size = new Size(60, 60);
-            label15.TabIndex = 8;
-            label15.Text = "DAM: +15\r\nINI: +5\r\nDEF: -5\r\nACC: +7\r\n";
-            // 
-            // label16
-            // 
-            label16.AutoSize = true;
-            label16.Location = new Point(531, 103);
-            label16.Name = "label16";
-            label16.Size = new Size(92, 15);
-            label16.TabIndex = 9;
-            label16.Text = "INI and MOV up";
             // 
             // richTextBox1
             // 
@@ -1278,14 +1147,13 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
-            // tabPatching
+            // dgvGear
             // 
-            tabPatching.Location = new Point(4, 24);
-            tabPatching.Name = "tabPatching";
-            tabPatching.Size = new Size(1221, 722);
-            tabPatching.TabIndex = 5;
-            tabPatching.Text = "Patching";
-            tabPatching.UseVisualStyleBackColor = true;
+            dgvGear.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvGear.Location = new Point(282, 65);
+            dgvGear.Name = "dgvGear";
+            dgvGear.Size = new Size(662, 617);
+            dgvGear.TabIndex = 4;
             // 
             // frmMain
             // 
@@ -1341,10 +1209,9 @@
             tableLayoutPanel1.PerformLayout();
             tabTeamGearSelection.ResumeLayout(false);
             tabTeamGearSelection.PerformLayout();
-            tableLayoutPanel2.ResumeLayout(false);
-            tableLayoutPanel2.PerformLayout();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvGear).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1440,17 +1307,7 @@
         private RadioButton radioButton2;
         private RadioButton radioButton1;
         private RichTextBox richTextBox1;
-        private TableLayoutPanel tableLayoutPanel2;
-        private Label label5;
-        private Label label8;
-        private Label label9;
-        private Label label10;
-        private Label label11;
-        private Label label12;
-        private Label label13;
-        private Label label14;
-        private Label label15;
-        private Label label16;
         private TabPage tabPatching;
+        private DataGridView dgvGear;
     }
 }
