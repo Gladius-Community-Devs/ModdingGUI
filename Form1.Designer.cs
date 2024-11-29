@@ -102,12 +102,15 @@
             txtPreviewStats = new TextBox();
             label7 = new Label();
             txtPreviewAttributes = new TextBox();
+            label5 = new Label();
+            txtPreviewAllowedGear = new TextBox();
             label2 = new Label();
             label1 = new Label();
             ddlTeamClasses = new ComboBox();
             txtTeamUnitName = new TextBox();
             btnTeamAddUnit = new Button();
             tabTeamGearSelection = new TabPage();
+            dgvGear = new DataGridView();
             richTextBox1 = new RichTextBox();
             textBox1 = new TextBox();
             groupBox1 = new GroupBox();
@@ -121,7 +124,6 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            dgvGear = new DataGridView();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -148,8 +150,8 @@
             grpPreview.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             tabTeamGearSelection.SuspendLayout();
-            groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvGear).BeginInit();
+            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // mnuMain
@@ -857,7 +859,7 @@
             grpPreview.Controls.Add(tableLayoutPanel1);
             grpPreview.Location = new Point(354, 37);
             grpPreview.Name = "grpPreview";
-            grpPreview.Size = new Size(318, 379);
+            grpPreview.Size = new Size(445, 528);
             grpPreview.TabIndex = 6;
             grpPreview.TabStop = false;
             grpPreview.Text = "Unit Preview";
@@ -873,15 +875,17 @@
             tableLayoutPanel1.Controls.Add(txtPreviewStats, 1, 1);
             tableLayoutPanel1.Controls.Add(label7, 0, 2);
             tableLayoutPanel1.Controls.Add(txtPreviewAttributes, 1, 2);
+            tableLayoutPanel1.Controls.Add(label5, 0, 3);
+            tableLayoutPanel1.Controls.Add(txtPreviewAllowedGear, 1, 3);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(3, 19);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 3;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.9378872F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 51.00235F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 37.0597572F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel1.Size = new Size(312, 357);
+            tableLayoutPanel1.RowCount = 4;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 10.5929852F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 36.07266F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 32.8846741F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 20.44968F));
+            tableLayoutPanel1.Size = new Size(439, 506);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // label3
@@ -890,7 +894,7 @@
             label3.AutoSize = true;
             label3.Location = new Point(3, 0);
             label3.Name = "label3";
-            label3.Size = new Size(93, 42);
+            label3.Size = new Size(133, 53);
             label3.TabIndex = 1;
             label3.Text = "Unit Name:";
             label3.TextAlign = ContentAlignment.MiddleCenter;
@@ -898,20 +902,20 @@
             // txtPreviewUnitName
             // 
             txtPreviewUnitName.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            txtPreviewUnitName.Location = new Point(102, 3);
+            txtPreviewUnitName.Location = new Point(142, 3);
             txtPreviewUnitName.Multiline = true;
             txtPreviewUnitName.Name = "txtPreviewUnitName";
             txtPreviewUnitName.ReadOnly = true;
-            txtPreviewUnitName.Size = new Size(207, 36);
+            txtPreviewUnitName.Size = new Size(294, 47);
             txtPreviewUnitName.TabIndex = 0;
             // 
             // label4
             // 
             label4.AutoSize = true;
             label4.Dock = DockStyle.Fill;
-            label4.Location = new Point(3, 42);
+            label4.Location = new Point(3, 53);
             label4.Name = "label4";
-            label4.Size = new Size(93, 182);
+            label4.Size = new Size(133, 182);
             label4.TabIndex = 2;
             label4.Text = "Base Stats:";
             label4.TextAlign = ContentAlignment.MiddleCenter;
@@ -920,21 +924,21 @@
             // 
             txtPreviewStats.AcceptsReturn = true;
             txtPreviewStats.Dock = DockStyle.Fill;
-            txtPreviewStats.Location = new Point(102, 45);
+            txtPreviewStats.Location = new Point(142, 56);
             txtPreviewStats.Multiline = true;
             txtPreviewStats.Name = "txtPreviewStats";
             txtPreviewStats.ReadOnly = true;
             txtPreviewStats.ScrollBars = ScrollBars.Vertical;
-            txtPreviewStats.Size = new Size(207, 176);
+            txtPreviewStats.Size = new Size(294, 176);
             txtPreviewStats.TabIndex = 3;
             // 
             // label7
             // 
             label7.AutoSize = true;
             label7.Dock = DockStyle.Fill;
-            label7.Location = new Point(3, 224);
+            label7.Location = new Point(3, 235);
             label7.Name = "label7";
-            label7.Size = new Size(93, 133);
+            label7.Size = new Size(133, 166);
             label7.TabIndex = 6;
             label7.Text = "Attributes:";
             label7.TextAlign = ContentAlignment.MiddleCenter;
@@ -942,13 +946,35 @@
             // txtPreviewAttributes
             // 
             txtPreviewAttributes.Dock = DockStyle.Fill;
-            txtPreviewAttributes.Location = new Point(102, 227);
+            txtPreviewAttributes.Location = new Point(142, 238);
             txtPreviewAttributes.Multiline = true;
             txtPreviewAttributes.Name = "txtPreviewAttributes";
             txtPreviewAttributes.ReadOnly = true;
             txtPreviewAttributes.ScrollBars = ScrollBars.Vertical;
-            txtPreviewAttributes.Size = new Size(207, 127);
+            txtPreviewAttributes.Size = new Size(294, 160);
             txtPreviewAttributes.TabIndex = 7;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Dock = DockStyle.Fill;
+            label5.Location = new Point(3, 401);
+            label5.Name = "label5";
+            label5.Size = new Size(133, 105);
+            label5.TabIndex = 8;
+            label5.Text = "Gear Types:";
+            label5.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // txtPreviewAllowedGear
+            // 
+            txtPreviewAllowedGear.Dock = DockStyle.Fill;
+            txtPreviewAllowedGear.Location = new Point(142, 404);
+            txtPreviewAllowedGear.Multiline = true;
+            txtPreviewAllowedGear.Name = "txtPreviewAllowedGear";
+            txtPreviewAllowedGear.ReadOnly = true;
+            txtPreviewAllowedGear.ScrollBars = ScrollBars.Vertical;
+            txtPreviewAllowedGear.Size = new Size(294, 99);
+            txtPreviewAllowedGear.TabIndex = 9;
             // 
             // label2
             // 
@@ -1011,6 +1037,14 @@
             tabTeamGearSelection.Text = "Gear Selection";
             tabTeamGearSelection.UseVisualStyleBackColor = true;
             // 
+            // dgvGear
+            // 
+            dgvGear.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvGear.Location = new Point(282, 65);
+            dgvGear.Name = "dgvGear";
+            dgvGear.Size = new Size(662, 617);
+            dgvGear.TabIndex = 4;
+            // 
             // richTextBox1
             // 
             richTextBox1.Location = new Point(6, 94);
@@ -1048,7 +1082,6 @@
             radioButton5.Name = "radioButton5";
             radioButton5.Size = new Size(78, 19);
             radioButton5.TabIndex = 4;
-            radioButton5.TabStop = true;
             radioButton5.Text = "Accessory";
             radioButton5.UseVisualStyleBackColor = true;
             // 
@@ -1059,7 +1092,6 @@
             radioButton4.Name = "radioButton4";
             radioButton4.Size = new Size(57, 19);
             radioButton4.TabIndex = 3;
-            radioButton4.TabStop = true;
             radioButton4.Text = "Shield";
             radioButton4.UseVisualStyleBackColor = true;
             // 
@@ -1070,7 +1102,6 @@
             radioButton3.Name = "radioButton3";
             radioButton3.Size = new Size(69, 19);
             radioButton3.TabIndex = 2;
-            radioButton3.TabStop = true;
             radioButton3.Text = "Weapon";
             radioButton3.UseVisualStyleBackColor = true;
             // 
@@ -1081,13 +1112,13 @@
             radioButton2.Name = "radioButton2";
             radioButton2.Size = new Size(59, 19);
             radioButton2.TabIndex = 1;
-            radioButton2.TabStop = true;
             radioButton2.Text = "Armor";
             radioButton2.UseVisualStyleBackColor = true;
             // 
             // radioButton1
             // 
             radioButton1.AutoSize = true;
+            radioButton1.Checked = true;
             radioButton1.Location = new Point(6, 22);
             radioButton1.Name = "radioButton1";
             radioButton1.Size = new Size(64, 19);
@@ -1147,14 +1178,6 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
-            // dgvGear
-            // 
-            dgvGear.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvGear.Location = new Point(282, 65);
-            dgvGear.Name = "dgvGear";
-            dgvGear.Size = new Size(662, 617);
-            dgvGear.TabIndex = 4;
-            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1209,9 +1232,9 @@
             tableLayoutPanel1.PerformLayout();
             tabTeamGearSelection.ResumeLayout(false);
             tabTeamGearSelection.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvGear).EndInit();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvGear).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1309,5 +1332,7 @@
         private RichTextBox richTextBox1;
         private TabPage tabPatching;
         private DataGridView dgvGear;
+        private Label label5;
+        private TextBox txtPreviewAllowedGear;
     }
 }

@@ -230,11 +230,6 @@ namespace ModdingGUI
         /// </summary>
         public class ClassParser
         {
-            /// <summary>
-            /// Parses the classdefs.tok file and returns a list of ClassDefinition objects.
-            /// </summary>
-            /// <param name="filePath">Path to the classdefs.tok file.</param>
-            /// <returns>List of ClassDefinition objects.</returns>
             public List<ClassDefinition> ParseClassDefs(string filePath)
             {
                 var classDefinitions = new List<ClassDefinition>();
@@ -251,19 +246,15 @@ namespace ModdingGUI
                 {
                     var trimmedLine = line.Trim();
 
-                    // Check for the start of a new class definition
                     if (trimmedLine.StartsWith("CREATECLASS:", StringComparison.OrdinalIgnoreCase))
                     {
-                        // If there's an existing class being parsed, add it to the list
                         if (currentClass != null)
                         {
                             classDefinitions.Add(currentClass);
                         }
 
-                        // Initialize a new ClassDefinition object
                         currentClass = new ClassDefinition();
 
-                        // Extract the class name
                         var match = Regex.Match(trimmedLine, @"CREATECLASS:\s*(\w+)", RegexOptions.IgnoreCase);
                         if (match.Success)
                         {
@@ -271,17 +262,14 @@ namespace ModdingGUI
                         }
                         else
                         {
-                            // If class name is not found, skip this class definition
                             currentClass = null;
                         }
 
                         continue;
                     }
 
-                    // If currently parsing a class, extract relevant fields
                     if (currentClass != null)
                     {
-                        // Extract ATTRIBUTE lines
                         if (trimmedLine.StartsWith("ATTRIBUTE:", StringComparison.OrdinalIgnoreCase))
                         {
                             var attrMatch = Regex.Match(trimmedLine, @"ATTRIBUTE:\s*""([^""]+)""", RegexOptions.IgnoreCase);
@@ -290,9 +278,7 @@ namespace ModdingGUI
                                 currentClass.Attributes.Add(attrMatch.Groups[1].Value.Trim());
                             }
                         }
-
-                        // Extract AFFINITY line (assuming only one per class)
-                        if (trimmedLine.StartsWith("AFFINITY:", StringComparison.OrdinalIgnoreCase))
+                        else if (trimmedLine.StartsWith("AFFINITY:", StringComparison.OrdinalIgnoreCase))
                         {
                             var affMatch = Regex.Match(trimmedLine, @"AFFINITY:\s*""([^""]+)""", RegexOptions.IgnoreCase);
                             if (affMatch.Success)
@@ -300,12 +286,23 @@ namespace ModdingGUI
                                 currentClass.Affinity = affMatch.Groups[1].Value.Trim();
                             }
                         }
-
-                        // Future Parsing: Description, Mesh, etc.
+                        else if (trimmedLine.StartsWith("ITEMCAT:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var catMatch = Regex.Match(trimmedLine, @"ITEMCAT:\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)", RegexOptions.IgnoreCase);
+                            if (catMatch.Success)
+                            {
+                                var allowedGear = new AllowedGear
+                                {
+                                    GearType = catMatch.Groups[1].Value.Trim(),
+                                    SubType = catMatch.Groups[2].Value.Trim(),
+                                    Style = catMatch.Groups[3].Value.Trim()
+                                };
+                                currentClass.AllowedGears.Add(allowedGear);
+                            }
+                        }
                     }
                 }
 
-                // After the loop, add the last parsed class if it exists
                 if (currentClass != null)
                 {
                     classDefinitions.Add(currentClass);
@@ -314,6 +311,7 @@ namespace ModdingGUI
                 return classDefinitions;
             }
         }
+
 
         /// <summary>
         /// Parses the gladiators.txt file to extract gladiator entries.
@@ -800,7 +798,6 @@ namespace ModdingGUI
             // Validate Class Selection
             if (string.IsNullOrEmpty(selectedClassName))
             {
-                // Clear the preview if no class is selected
                 ClearPreview();
                 return;
             }
@@ -809,7 +806,6 @@ namespace ModdingGUI
 
             if (selectedClass == null)
             {
-                // Clear the preview if class not found
                 ClearPreview();
                 return;
             }
@@ -817,7 +813,6 @@ namespace ModdingGUI
             // Attempt to parse the level input
             if (!int.TryParse(levelText, out unitLevel) || unitLevel < 1 || unitLevel > 30)
             {
-                // Invalid level input; show placeholders or an error message
                 txtPreviewStats.Text = "Invalid level input. Please enter a level between 1 and 30.";
                 return;
             }
@@ -826,7 +821,6 @@ namespace ModdingGUI
             int mostUsedStatSet = GetMostUsedStatSet(selectedClassName);
             if (mostUsedStatSet == -1)
             {
-                // No statset found for the selected class
                 txtPreviewStats.Text = $"No statset found for class '{selectedClassName}'.";
                 return;
             }
@@ -834,7 +828,6 @@ namespace ModdingGUI
             // Retrieve stats for the selected statset and level
             if (!statSets.ContainsKey(mostUsedStatSet) || !statSets[mostUsedStatSet].ContainsKey(unitLevel))
             {
-                // Stats not found for the given statset and level
                 txtPreviewStats.Text = $"Stats not found for statset '{mostUsedStatSet}' at level '{unitLevel}'.";
                 return;
             }
@@ -842,7 +835,6 @@ namespace ModdingGUI
             var statsList = statSets[mostUsedStatSet][unitLevel];
             if (statsList.Count < 5)
             {
-                // Insufficient stats data
                 txtPreviewStats.Text = $"Insufficient stats data for statset '{mostUsedStatSet}' at level '{unitLevel}'.";
                 return;
             }
@@ -863,7 +855,7 @@ namespace ModdingGUI
             int MOV = baseStats.INI;
 
             // Format stats for display
-            string statsText = $"HP: {HP}\r\n" + 
+            string statsText = $"HP: {HP}\r\n" +
                                $"DAM: {DAM}\r\n" +
                                $"PWR: {baseStats.PWR}\r\n" +
                                $"ACC: {baseStats.ACC}\r\n" +
@@ -872,11 +864,22 @@ namespace ModdingGUI
                                $"CON: {baseStats.CON}\r\n" +
                                $"MOV: {MOV}";
 
+            // Format AllowedGears for display
+            string allowedGearsText = "Allowed Gears:\r\n" +
+                string.Join("\r\n", selectedClass.AllowedGears.Select(ag =>
+                    $"Type: {ag.GearType}, SubType: {ag.SubType}, Style: {ag.Style}"));
+
+            // Combine Attributes and AllowedGears
+            string attributesText = "Attributes:\r\n" +
+                string.Join("\r\n", selectedClass.Attributes);
+
             // Display in txtPreviewStats
             txtPreviewStats.Text = statsText;
             txtPreviewUnitName.Text = unitName;
-            txtPreviewAttributes.Text = string.Join("\r\n", selectedClass.Attributes);
+            txtPreviewAttributes.Text = attributesText;
+            txtPreviewAllowedGear.Text = allowedGearsText;
         }
+
 
         /// <summary>
         /// Clears the grpPreview controls.
@@ -886,6 +889,7 @@ namespace ModdingGUI
             txtPreviewUnitName.Text = string.Empty;
             txtPreviewAttributes.Text = string.Empty;
             txtPreviewStats.Text = string.Empty; // Clear stats as well
+            txtPreviewAllowedGear.Text = string.Empty;
         }
 
         #endregion
