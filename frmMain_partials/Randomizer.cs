@@ -999,12 +999,15 @@ namespace ModdingGUI
         }
         // Add this method inside the frmMain partial class in RANDOMIZER.cs
 
+        // Enum defining the types of modifications that can be applied
         private enum ModificationType
         {
             ReplaceCondition,
-            // Future modification types can be added here
+            ReplaceBlock, // New type for replacing multi-line code blocks
+                          // Future modification types can be added here
         }
 
+        // Class representing a modification to be applied
         private class Modification
         {
             public ModificationType Type { get; set; }
@@ -1026,7 +1029,7 @@ namespace ModdingGUI
                 return;
             }
 
-            // List of .scp files to process with their specific modification requirements
+            // Initialize the list of .scp files with their specific modification requirements
             var scpFiles = new List<(string FileName, List<Modification> Mods, List<string> LinesToRemove)>
     {
         // Original four files with conditional modification and line removals
@@ -1127,6 +1130,63 @@ namespace ModdingGUI
         )
     };
 
+            // Conditionally add leaguefjordfallen.scp modifications if rbnValens is checked
+            // Adjust the property access based on your UI framework (WinForms or WPF)
+            // For WinForms: rbnValens.Checked
+            // For WPF: rbnValens.IsChecked == true
+            if (rbnValens.Checked) // Replace with (rbnValens.IsChecked == true) if using WPF
+            {
+                scpFiles.Add((
+                    "leaguefjordfallen.scp",
+                    new List<Modification>
+                    {
+                new Modification
+                {
+                    Type = ModificationType.ReplaceBlock,
+                    Original = @"
+        if ( school.IsMember(""Urlan"") )
+        	
+        	if ( name == ""AheadOfThePack"" )
+        	
+        		return (greyleague)
+        	
+        	else 
+        	
+        		return (hideleague)
+        			
+        	endif
+        	
+        else
+        	
+        	if ( name == ""PackValens"" )
+        	
+        		return (greyleague)
+        	
+        	else 
+        	
+        		return (hideleague)
+        			
+        	endif
+        	
+        endif
+    ".Trim(),
+                    Replacement = @"
+        if ( name == ""PackValens"" )
+        	
+        	return (greyleague)
+        	
+        else 
+        	
+        	return (hideleague)
+        			
+        endif
+    ".Trim()
+                }
+                    },
+                    new List<string>() // No lines to remove
+                ));
+            }
+
             // Path to the compiler executable
             string toolsPath = NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
             string compilerPath = Path.Combine(toolsPath, "DOGCodeCompiler.exe");
@@ -1148,9 +1208,9 @@ namespace ModdingGUI
 
                 if (!File.Exists(scpFilePath))
                 {
-                    //AppendRandomizerLog($"File not found: {scpFilePath}", WarningColor);
                     MessageBox.Show($"File not found: {scpFilePath}");
-                    return;
+                    AppendRandomizerLog($"File not found: {scpFilePath}", WarningColor);
+                    continue; // Continue processing other files instead of returning
                 }
 
                 try
@@ -1161,25 +1221,74 @@ namespace ModdingGUI
                     // Apply modifications
                     foreach (var mod in Mods)
                     {
-                        if (mod.Type == ModificationType.ReplaceCondition)
+                        switch (mod.Type)
                         {
-                            bool conditionFound = false;
-                            for (int i = 0; i < lines.Count; i++)
-                            {
-                                if (lines[i].Contains(mod.Original))
+                            case ModificationType.ReplaceCondition:
+                                bool conditionFound = false;
+                                for (int i = 0; i < lines.Count; i++)
                                 {
-                                    lines[i] = lines[i].Replace(mod.Original, mod.Replacement);
-                                    fileModified = true;
-                                    conditionFound = true;
-                                    AppendRandomizerLog($"Modified condition in {FileName}: '{mod.Original}' to '{mod.Replacement}'", InfoColor);
+                                    if (lines[i].Contains(mod.Original))
+                                    {
+                                        lines[i] = lines[i].Replace(mod.Original, mod.Replacement);
+                                        fileModified = true;
+                                        conditionFound = true;
+                                        AppendRandomizerLog($"Modified condition in {FileName}: '{mod.Original}' to '{mod.Replacement}'", InfoColor);
+                                    }
                                 }
-                            }
-                            if (!conditionFound)
-                            {
-                                AppendRandomizerLog($"Condition '{mod.Original}' not found in {FileName}.", WarningColor);
-                            }
+                                if (!conditionFound)
+                                {
+                                    AppendRandomizerLog($"Condition '{mod.Original}' not found in {FileName}.", WarningColor);
+                                }
+                                break;
+
+                            case ModificationType.ReplaceBlock:
+                                string originalBlock = mod.Original;
+                                string replacementBlock = mod.Replacement;
+
+                                // Split the blocks into trimmed lines for comparison
+                                var originalLines = originalBlock.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                 .Select(line => line.Trim())
+                                                                 .ToList();
+                                var replacementLines = replacementBlock.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                       .Select(line => line.Trim())
+                                                                       .ToList();
+
+                                bool blockReplaced = false;
+
+                                // Iterate through the file to find the block
+                                for (int i = 0; i <= lines.Count - originalLines.Count; i++)
+                                {
+                                    bool match = true;
+                                    for (int j = 0; j < originalLines.Count; j++)
+                                    {
+                                        if (!lines[i + j].Trim().Equals(originalLines[j]))
+                                        {
+                                            match = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if (match)
+                                    {
+                                        // Replace the block
+                                        lines.RemoveRange(i, originalLines.Count);
+                                        lines.InsertRange(i, replacementLines);
+                                        fileModified = true;
+                                        blockReplaced = true;
+                                        AppendRandomizerLog($"Replaced code block in {FileName}.", InfoColor);
+                                        break; // Assuming only one block to replace
+                                    }
+                                }
+
+                                if (!blockReplaced)
+                                {
+                                    AppendRandomizerLog($"Original code block not found or did not match completely in {FileName}.", WarningColor);
+                                }
+
+                                break;
+
+                                // Handle additional modification types here if needed
                         }
-                        // Additional modification types can be handled here if needed
                     }
 
                     // Remove specified lines
@@ -1214,7 +1323,6 @@ namespace ModdingGUI
                     // Add compiler command for this file
                     string compileCommand = $"\"{compilerPath}\" \"{scpFilePath}\" \"{scbFilePath}\"";
                     batchCommands.AppendLine(compileCommand);
-
                 }
                 catch (Exception ex)
                 {
@@ -1235,6 +1343,8 @@ namespace ModdingGUI
                 AppendRandomizerLog("No .scp files were modified. Compilation skipped.", InfoColor);
             }
         }
+
+
         private async Task ApplyIngameRandomAsync(string projectFolder)
         {
             try
