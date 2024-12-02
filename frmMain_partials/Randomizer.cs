@@ -932,7 +932,7 @@ namespace ModdingGUI
                                         modifiedContent.AppendLine(newUnitDbLine);
                                         fileModified = true;
                                     }
-                                    else if (currentTeamNumber == 1 && chbRandomizedEnemies.Checked)
+                                    else if (currentTeamNumber > 0 && chbRandomizedEnemies.Checked)
                                     {
                                         if (string.IsNullOrEmpty(unitName))
                                         {
