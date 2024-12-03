@@ -429,7 +429,7 @@
             btnPatchingCreationOutputPath.Name = "btnPatchingCreationOutputPath";
             btnPatchingCreationOutputPath.Size = new Size(152, 23);
             btnPatchingCreationOutputPath.TabIndex = 13;
-            btnPatchingCreationOutputPath.Text = "Get Xdelta Path";
+            btnPatchingCreationOutputPath.Text = "Get xDelta Path";
             btnPatchingCreationOutputPath.UseVisualStyleBackColor = true;
             btnPatchingCreationOutputPath.Click += btnPatchingCreationOutputPath_Click;
             // 
