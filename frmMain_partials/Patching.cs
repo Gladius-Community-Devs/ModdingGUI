@@ -5,8 +5,9 @@ namespace ModdingGUI
 {
     public partial class frmMain : Form
     {
-        private void btnPatchingApplicationISOPath_Click(object sender, EventArgs e)
+        private async void btnPatchingApplicationISOPath_Click(object sender, EventArgs e)
         {
+            btnPatchingApplicationApply.Enabled = false;
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.Filter = "ISO files (*.iso;*.nkit.iso)|*.iso;*.nkit.iso|All files (*.*)|*.*";
@@ -14,7 +15,21 @@ namespace ModdingGUI
                 {
                     txtPatchingApplicationISOPath.Text = openFileDialog.FileName;
                 }
+
+                string isoPath = txtPatchingApplicationISOPath.Text;
+                AppendLog("Verifying ISO MD5 hash...", InfoColor, rtbPatchingApplicationOutput);
+                string md5Hash = await ComputeMD5Async(isoPath);
+                if (!string.Equals(md5Hash, "a78d6e1c9de69886ce827ad2a7507339", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("The selected ISO does not match the expected Vanilla ISO. Proceeding may cause unexpected results.");
+                    AppendLog("MD5 hash does not match the expected Vanilla ISO hash.\nProceed if you know what you are doing.", ErrorColor, rtbPatchingApplicationOutput);
+                }
+                else
+                {
+                    AppendLog("Verified!", SuccessColor, rtbPatchingApplicationOutput);
+                }
             }
+            btnPatchingApplicationApply.Enabled = true;
         }
 
         private void btnPatchingApplicationXdeltaPath_Click(object sender, EventArgs e)
@@ -43,12 +58,6 @@ namespace ModdingGUI
             if (isoPath.EndsWith(".nkit.iso", StringComparison.OrdinalIgnoreCase))
             {
                 MessageBox.Show("The selected ISO is an .nkit.iso file. Please use Swift's linked tool in Discord to convert it to a standard ISO.");
-            }
-            AppendLog("Verifying ISO MD5 hash...", InfoColor, rtbPatchingApplicationOutput);
-            string md5Hash = await ComputeMD5Async(isoPath);
-            if (!string.Equals(md5Hash, "a78d6e1c9de69886ce827ad2a7507339", StringComparison.OrdinalIgnoreCase))
-            {
-                MessageBox.Show("The selected ISO does not match the expected Vanilla ISO. Proceeding may cause unexpected results.");
             }
 
             AppendLog("Applying xDelta patch...", InfoColor, rtbPatchingApplicationOutput);
@@ -81,6 +90,7 @@ namespace ModdingGUI
 
             if (!File.Exists(xdeltaExePath))
             {
+                MessageBox.Show("xdelta3.exe not found in tools folder.");
                 throw new FileNotFoundException("xdelta3.exe not found in tools folder.");
             }
 
