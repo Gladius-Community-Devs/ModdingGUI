@@ -69,8 +69,8 @@ namespace ModdingGUI
                 // Update the pack path text box to point to the created unpack folder
                 txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                txtPatchingCreationModISOPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso";
-                txtPatchingCreationOutputPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta";
+                txtPatchingCreationModISOPath.Text = NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso");
+                txtPatchingCreationOutputPath.Text = NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta");
                 btnRandomize.Enabled = true;
                 btnPack.Enabled = true;
                 LoadProjects();
@@ -578,10 +578,12 @@ namespace ModdingGUI
                 string projectPath = selectedNode.Tag as string;
                 if (!string.IsNullOrEmpty(projectPath) && Directory.Exists(projectPath))
                 {
+                    projectPath = NormalizePath(projectPath);
+                    string projectName = Path.GetFileName(projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
                     txtPackPath.Text = projectPath;
                     txtRandomizerPath.Text = projectPath;
-                    txtPatchingCreationOutputPath.Text = projectPath;
-                    string projectName = Path.GetFileName(projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                    txtPatchingCreationOutputPath.Text = projectPath + $"/{projectName}.xDelta";
+                    txtPatchingCreationModISOPath.Text = projectPath + $"/{projectName}.iso";
                     txtUnpackPath.Text = projectName;
                     btnPack.Enabled = true;
                     btnRandomize.Enabled = true;
