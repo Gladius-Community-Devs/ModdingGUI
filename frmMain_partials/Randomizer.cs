@@ -344,7 +344,7 @@ namespace ModdingGUI
                 {
                     if (heroClassMap.TryGetValue("Valens", out string valensClass))
                     {
-                        UpdateWorldmapWithCharacter(projectFolder, "Valens", valensClass);
+                        //UpdateWorldmapWithCharacter(projectFolder, "Valens", valensClass);
                         AppendRandomizerLog("Valens entry added to worldmap.tok.", SuccessColor);
                     }
                 }
@@ -352,7 +352,7 @@ namespace ModdingGUI
                 {
                     if (heroClassMap.TryGetValue("Ursula", out string ursulaClass))
                     {
-                        UpdateWorldmapWithCharacter(projectFolder, "Ursula", ursulaClass);
+                        //UpdateWorldmapWithCharacter(projectFolder, "Ursula", ursulaClass);
                         AppendRandomizerLog("Ursula entry added to worldmap.tok.", SuccessColor);
                     }
                 }
@@ -858,6 +858,9 @@ namespace ModdingGUI
                         bool inTeam0Section = false;
                         bool candieExists = false;
                         int currentTeamNumber = -1; // Added to keep track of the current team number
+                        // Check if special handling is needed for scene47u.enc and scene47v.enc
+                        bool isSpecialFile = encFile.EndsWith("scene47u.enc") || encFile.EndsWith("scene47v.enc");
+                        bool replacedUnitDBInTeam0 = false; // Added flag
 
                         // Read all lines from the encounter file
                         var allLines = File.ReadAllLines(encFile).ToList();
@@ -876,28 +879,66 @@ namespace ModdingGUI
                             var teamMatch = teamLineRegex.Match(trimmedLine);
                             if (teamMatch.Success)
                             {
-                                
                                 int teamNumber = int.Parse(teamMatch.Groups[1].Value);
-                                currentTeamNumber = teamNumber; // Update current team number
+                                currentTeamNumber = teamNumber;
 
                                 if (teamNumber == 0)
                                 {
-                                    // Before adding TEAM: 0,X, add CANDIE: if needed
-                                    if (addCandie && !candieExists)
+                                    if (isSpecialFile)
                                     {
-                                        modifiedContent.AppendLine("CANDIE:");
-                                        candieExists = true;
-                                        fileModified = true;
-                                    }
+                                        if (addCandie && !candieExists)
+                                        {
+                                            modifiedContent.AppendLine("CANDIE:");
+                                            candieExists = true;
+                                            fileModified = true;
+                                        }
 
-                                    modifiedContent.AppendLine(line); // Add TEAM: 0,X
-                                    inTeam0Section = true;
+                                        modifiedContent.AppendLine(line);
+                                        inTeam0Section = true;
+
+                                        // Insert UNITDB entries once
+                                        if (!replacedUnitDBInTeam0)
+                                        {
+                                            modifiedContent.AppendLine(@"UNITDB:	""Ursula"", 99, ""Start2"", 0, 0, 0, 0, -1, """", """", """", """", 0, 0, 0, 0, 0, 0, 0, 0, 0");
+                                            modifiedContent.AppendLine(@"UNITDB:	""Valens"", 99, ""Start1"", 0, 0, 0, 0, -1, """", """", """", """", 0, 0, 0, 0, 0, 0, 0, 0, 0");
+                                            modifiedContent.AppendLine(@"UNITDB:	""Urlan"", 99, ""Start3"", 0, 0, 0, 0, -1, """", """", """", """", 0, 0, 0, 0, 0, 0, 0, 0, 0");
+                                            modifiedContent.AppendLine(@"UNITDB:	""Eiji"", 99, ""Start4"", 0, 0, 0, 0, -1, """", """", """", """", 0, 0, 0, 0, 0, 0, 0, 0, 0");
+                                            replacedUnitDBInTeam0 = true;
+                                            fileModified = true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (addCandie && !candieExists)
+                                        {
+                                            modifiedContent.AppendLine("CANDIE:");
+                                            candieExists = true;
+                                            fileModified = true;
+                                        }
+                                        modifiedContent.AppendLine(line);
+                                        inTeam0Section = true;
+                                    }
+                                    continue;
                                 }
                                 else
                                 {
                                     modifiedContent.AppendLine(line);
                                     inTeam0Section = false;
+                                    continue;
                                 }
+                            }
+                            if (isSpecialFile && inTeam0Section && unitDbRegex.IsMatch(trimmedLine))
+                            {
+                                if (!replacedUnitDBInTeam0)
+                                {
+                                    modifiedContent.AppendLine(@"UNITDB:	""Ursula"", 99, ""Start2"", 0, 0, 0, 0, -1, """", """", """", """", 0, 0, 0, 0, 0, 0, 0, 0, 0");
+                                    modifiedContent.AppendLine(@"UNITDB:	""Valens"", 99, ""Start1"", 0, 0, 0, 0, -1, """", """", """", """", 0, 0, 0, 0, 0, 0, 0, 0, 0");
+                                    modifiedContent.AppendLine(@"UNITDB:	""Urlan"", 99, ""Start3"", 0, 0, 0, 0, -1, """", """", """", """", 0, 0, 0, 0, 0, 0, 0, 0, 0");
+                                    modifiedContent.AppendLine(@"UNITDB:	""Eiji"", 99, ""Start4"", 0, 0, 0, 0, -1, """", """", """", """", 0, 0, 0, 0, 0, 0, 0, 0, 0");
+                                    replacedUnitDBInTeam0 = true;
+                                    fileModified = true;
+                                }
+                                // Skip existing UNITDB lines
                                 continue;
                             }
                             if (trimmedLine.StartsWith("SCHOOL:", StringComparison.OrdinalIgnoreCase))
