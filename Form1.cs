@@ -41,7 +41,7 @@ namespace ModdingGUI
                 return; // Exit the method
             }
 
-            AppendLog("Starting unpack operation...", InfoColor, true); // Log the start of the unpack operation
+            AppendLog("Starting unpack operation...", InfoColor); // Log the start of the unpack operation
 
             try
             {
@@ -52,7 +52,7 @@ namespace ModdingGUI
                 if (!Directory.Exists(topLevelFolder))
                 {
                     Directory.CreateDirectory(topLevelFolder);
-                    AppendLog($"Top-level folder created: {topLevelFolder}", InfoColor, true); // Log the creation of the folder
+                    AppendLog($"Top-level folder created: {topLevelFolder}", InfoColor); // Log the creation of the folder
                 }
 
                 // Normalize the path for batch file generation
@@ -62,13 +62,15 @@ namespace ModdingGUI
                 string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
 
                 // Run the batch file asynchronously within the top-level folder
-                await RunBatchFileAsync(batchContent, topLevelFolder, true);
+                await RunBatchFileAsync(batchContent, topLevelFolder);
 
-                AppendLog("Unpacking completed successfully.", SuccessColor, true); // Log successful completion
+                AppendLog("Unpacking completed successfully.", SuccessColor); // Log successful completion
 
                 // Update the pack path text box to point to the created unpack folder
                 txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                txtPatchingCreationModISOPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso";
+                txtPatchingCreationOutputPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta";
                 btnRandomize.Enabled = true;
                 btnPack.Enabled = true;
                 LoadProjects();
@@ -76,7 +78,7 @@ namespace ModdingGUI
             catch (Exception ex)
             {
                 // Log any exceptions that occur during unpacking
-                AppendLog("Error during unpacking: " + ex.Message, ErrorColor, true);
+                AppendLog("Error during unpacking: " + ex.Message, ErrorColor);
             }
         }
 
@@ -96,7 +98,7 @@ namespace ModdingGUI
                 return; // Exit the method
             }
 
-            AppendLog("Starting pack operation...", InfoColor, false); // Log the start of the pack operation
+            AppendLog("Starting pack operation...", InfoColor, rtbPackOutput); // Log the start of the pack operation
 
             try
             {
@@ -118,27 +120,28 @@ namespace ModdingGUI
                     }
                     if (!valid)
                     {
-                        AppendLog("Validation failed. Please check the log for details.", ErrorColor, false); // Log validation failure
+                        AppendLog("Validation failed. Please check the log for details.", ErrorColor, rtbPackOutput); // Log validation failure
                         return; // Exit the method
                     }
                 }
                 else
                 {
-                    AppendLog("Validation skipped.", InfoColor, false);
+                    AppendLog("Validation skipped.", InfoColor, rtbPackOutput);
                 }
                 // Generate the batch file content for packing
                 string batchContent = GeneratePackBatchFileContent(selectedFolder);
 
                 // Run the batch file asynchronously within the selected folder
-                await RunBatchFileAsync(batchContent, selectedFolder, false);
+                await RunBatchFileAsync(batchContent, selectedFolder, rtbPackOutput);
 
-                AppendLog("Packing completed successfully.", SuccessColor, false); // Log successful completion
+                AppendLog("Packing completed successfully.", SuccessColor, rtbPackOutput); // Log successful completion
                 btnRandomize.Enabled = true;
+                btnToPatching.Enabled = true;
             }
             catch (Exception ex)
             {
                 // Log any exceptions that occur during packing
-                AppendLog("Error during packing: " + ex.Message, ErrorColor, false);
+                AppendLog("Error during packing: " + ex.Message, ErrorColor, rtbPackOutput);
             }
         }
 
@@ -207,7 +210,7 @@ namespace ModdingGUI
             tabContainer.TabPages.Remove(tabRandomizer);
             tabContainer.TabPages.Remove(tabIngameRandom);
             tabContainer.TabPages.Remove(tabTeamBuilder);
-            tabContainer.TabPages.Remove(tabPatching);
+            // tabContainer.TabPages.Remove(tabPatching);
             LoadProjects();
         }
 
@@ -287,7 +290,7 @@ namespace ModdingGUI
                 if (string.IsNullOrEmpty(projectFolder) || !Directory.Exists(projectFolder))
                 {
                     MessageBox.Show("Please select a valid project folder.", "Invalid Path", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    AppendLog("Invalid project folder selected.", WarningColor, false);
+                    AppendLog("Invalid project folder selected.", WarningColor, rtbPackOutput);
                     return;
                 }
 
@@ -295,25 +298,25 @@ namespace ModdingGUI
                 if (chbRandomHeroes.Checked)
                 {
                     lblRandomizeStatus.Text = "Randomizing heroes...";
-                    AppendLog("Starting hero randomization...", InfoColor, false);
+                    AppendLog("Starting hero randomization...", InfoColor, rtbPackOutput);
                     await Task.Run(() => RandomizeHeroes(projectFolder));
-                    AppendLog("Heroes randomized successfully.", SuccessColor, false);
+                    AppendLog("Heroes randomized successfully.", SuccessColor, rtbPackOutput);
                 }
 
                 // 2. Randomize Team if the corresponding checkbox is checked
                 if (chbRandomTeam.Checked)
                 {
                     lblRandomizeStatus.Text = "Randomizing team...";
-                    AppendLog("Starting team randomization...", InfoColor, false);
+                    AppendLog("Starting team randomization...", InfoColor, rtbPackOutput);
                     await Task.Run(() => RandomizeTeam(projectFolder));
-                    AppendLog("Team randomized successfully.", SuccessColor, false);
+                    AppendLog("Team randomized successfully.", SuccessColor, rtbPackOutput);
                 }
 
                 // 3. Remove All Recruits if the corresponding checkbox is checked
                 if (chbRandomNoRecruits.Checked)
                 {
                     lblRandomizeStatus.Text = "Removing all recruits...";
-                    AppendLog("Starting removal of all recruits...", InfoColor, false);
+                    AppendLog("Starting removal of all recruits...", InfoColor, rtbPackOutput);
 
                     // Setup progress bar for recruit removal
                     pgbRandomizeStatus.Minimum = 0;
@@ -343,16 +346,16 @@ namespace ModdingGUI
                     {
                         while (removeRecruitsLogMessages.TryDequeue(out var logMessage))
                         {
-                            AppendLog(logMessage.message, logMessage.color, false);
+                            AppendLog(logMessage.message, logMessage.color, rtbPackOutput);
                         }
                     }
 
-                    AppendLog("All recruits removed successfully.", SuccessColor, false);
+                    AppendLog("All recruits removed successfully.", SuccessColor, rtbPackOutput);
                 }
 
                 // 4. Edit Encounter Files
                 lblRandomizeStatus.Text = "Editing encounter files...";
-                AppendLog("Starting editing of encounter files...", InfoColor, false);
+                AppendLog("Starting editing of encounter files...", InfoColor, rtbPackOutput);
 
                 // Setup progress bar for encounter file editing
                 pgbRandomizeStatus.Minimum = 0;
@@ -379,20 +382,20 @@ namespace ModdingGUI
 
                 // Add the randomized menu entry after editing encounter files
                 AddMenuEntry(projectFolder, "Game is Randomized!");
-                AppendLog("Encounter files edited and menu entry added successfully.", SuccessColor, false);
+                AppendLog("Encounter files edited and menu entry added successfully.", SuccessColor, rtbPackOutput);
 
                 // 5. Edit and Compile .scp Files
-                AppendLog("Starting .scp files editing and compilation...", InfoColor, false);
-                AppendLog("Editing and compiling .scp files...", InfoColor, false);
+                AppendLog("Starting .scp files editing and compilation...", InfoColor, rtbPackOutput);
+                AppendLog("Editing and compiling .scp files...", InfoColor, rtbPackOutput);
                 await Task.Run(() => EditScpFilesAndCompileAsync(projectFolder));
-                AppendLog(".scp files edited and compiled successfully.", SuccessColor, false);
+                AppendLog(".scp files edited and compiled successfully.", SuccessColor, rtbPackOutput);
 
                 // 6. Apply In-Game Randomization if the checkbox is checked
                 if (chbIngameRandom.Checked)
                 {
-                    AppendLog("Applying in-game randomization...", InfoColor, false);
+                    AppendLog("Applying in-game randomization...", InfoColor, rtbPackOutput);
                     await Task.Run(() => ApplyIngameRandomAsync(projectFolder));
-                    AppendLog("In-game randomization applied successfully.", SuccessColor, false);
+                    AppendLog("In-game randomization applied successfully.", SuccessColor, rtbPackOutput);
                 }
 
                 // If logging is enabled, process and display the collected log messages
@@ -401,13 +404,13 @@ namespace ModdingGUI
                     // Append general log entries
                     foreach (var logEntry in randomizerLogBuffer)
                     {
-                        AppendLog(logEntry.message, logEntry.color, false);
+                        AppendLog(logEntry.message, logEntry.color, rtbPackOutput);
                     }
 
                     // Append encounter-specific log entries
                     while (editEncountersLogMessages.TryDequeue(out var logMessage))
                     {
-                        AppendLog(logMessage.message, logMessage.color, false);
+                        AppendLog(logMessage.message, logMessage.color, rtbPackOutput);
                     }
 
                     // Clear the log buffer after processing
@@ -423,7 +426,7 @@ namespace ModdingGUI
                 btnRandomize.Enabled = true;
 
                 // Append completion log
-                AppendLog("Randomization completed. (That was snappy!)", SuccessColor, false);
+                AppendLog("Randomization completed. (That was snappy!)", SuccessColor, rtbPackOutput);
 
                 // Switch to the packing tab
                 tabContainer.SelectedTab = tabPacking;
@@ -525,7 +528,7 @@ namespace ModdingGUI
                 }
                 catch (Exception ex)
                 {
-                    AppendLog($"Error expanding node '{node.Text}': {ex.Message}", ErrorColor, true);
+                    AppendLog($"Error expanding node '{node.Text}': {ex.Message}", ErrorColor);
                 }
             }
         }
@@ -559,7 +562,7 @@ namespace ModdingGUI
                 }
                 catch (Exception ex)
                 {
-                    AppendLog($"Error opening file '{path}': {ex.Message}", ErrorColor, true);
+                    AppendLog($"Error opening file '{path}': {ex.Message}", ErrorColor);
                     MessageBox.Show($"Unable to open the file.\n\nError: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -577,6 +580,7 @@ namespace ModdingGUI
                 {
                     txtPackPath.Text = projectPath;
                     txtRandomizerPath.Text = projectPath;
+                    txtPatchingCreationOutputPath.Text = projectPath;
                     string projectName = Path.GetFileName(projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
                     txtUnpackPath.Text = projectName;
                     btnPack.Enabled = true;
@@ -706,6 +710,11 @@ namespace ModdingGUI
         private void txtSeed_MouseHover(object sender, EventArgs e)
         {
             ttpInform.SetToolTip(txtSeed, "Sets the seed for the randomizer. This will allow you to replay the same randomization or share it with friends!");
+        }
+
+        private void btnToPatching_Click(object sender, EventArgs e)
+        {
+            tabContainer.SelectedTab = tabPatching;
         }
     }
 }

@@ -76,7 +76,7 @@ namespace ModdingGUI
 
 
         // Asynchronous method to run the generated batch file
-        private async Task RunBatchFileAsync(string batchContent, string workingDirectory, bool isUnpack)
+        private async Task RunBatchFileAsync(string batchContent, string workingDirectory, RichTextBox targetRtb = null)
         {
             // Generate a unique batch file name using a GUID
             var batchFilePath = Path.Combine(workingDirectory, $"GeneratedBatch_{Guid.NewGuid()}.bat");
@@ -85,7 +85,7 @@ namespace ModdingGUI
             {
                 // Write the batch content to the batch file
                 File.WriteAllText(batchFilePath, batchContent);
-                AppendLog($"Saved batch file: {batchFilePath}", InfoColor, isUnpack); // Log that the batch file was saved
+                AppendLog($"Saved batch file: {batchFilePath}", InfoColor, targetRtb); // Log that the batch file was saved
 
                 // Use QuotePath to properly quote and escape the batch file path
                 string quotedBatchFilePath = QuotePath(batchFilePath);
@@ -106,8 +106,8 @@ namespace ModdingGUI
                 using (var process = new Process { StartInfo = startInfo })
                 {
                     // Subscribe to the output and error data received events
-                    process.OutputDataReceived += (sender, e) => LogProcessOutput(e, isUnpack);
-                    process.ErrorDataReceived += (sender, e) => LogProcessOutput(e, isUnpack, ErrorColor);
+                    process.OutputDataReceived += (sender, e) => LogProcessOutput(e, null, targetRtb);
+                    process.ErrorDataReceived += (sender, e) => LogProcessOutput(e, ErrorColor, targetRtb);
 
                     process.Start(); // Start the process
                     process.BeginOutputReadLine(); // Begin asynchronous read of standard output
@@ -119,7 +119,7 @@ namespace ModdingGUI
             catch (Exception ex)
             {
                 // Log any exceptions that occur during execution
-                AppendLog($"An error occurred while executing the batch file: {ex.Message}", ErrorColor, isUnpack);
+                AppendLog($"An error occurred while executing the batch file: {ex.Message}", ErrorColor, targetRtb);
             }
             finally
             {
@@ -127,7 +127,7 @@ namespace ModdingGUI
                 if (!saveBatMenuItem.Checked && File.Exists(batchFilePath))
                 {
                     File.Delete(batchFilePath); // Delete the batch file
-                    AppendLog("Batch file deleted after execution.", InfoColor, isUnpack); // Log that the batch file was deleted
+                    AppendLog("Batch file deleted after execution.", InfoColor, targetRtb); // Log that the batch file was deleted
                 }
             }
         }

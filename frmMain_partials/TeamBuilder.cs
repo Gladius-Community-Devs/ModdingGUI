@@ -515,7 +515,7 @@ namespace ModdingGUI
                         {
                             currentGear.InternalName = match.Groups[1].Value.Trim();
 
-                            if (Enum.TryParse<GearType>(match.Groups[2].Value.Trim(), true, out GearType gearType))
+                            if (Enum.TryParse<GearType>(match.Groups[2].Value.Trim(), out GearType gearType))
                             {
                                 currentGear.GearType = gearType;
                             }
@@ -628,7 +628,7 @@ namespace ModdingGUI
             if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
             {
                 MessageBox.Show("No project selected. Please unpack or select a project first.", "Project Not Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                AppendLog("Attempted to access Team Builder without selecting a valid project.", Color.Red, true);
+                AppendLog("Attempted to access Team Builder without selecting a valid project.", Color.Red);
 
                 // Switch back to tabPacking
                 foreach (TabPage tab in tabContainer.TabPages)
@@ -660,7 +660,7 @@ namespace ModdingGUI
             if (!File.Exists(classDefsPath))
             {
                 MessageBox.Show($"classdefs.tok not found at '{classDefsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"classdefs.tok not found at '{classDefsPath}'.", Color.Red, true);
+                AppendLog($"classdefs.tok not found at '{classDefsPath}'.", Color.Red);
 
                 // Optionally, switch back to tabPacking
                 foreach (TabPage tab in tabContainer.TabPages)
@@ -680,7 +680,7 @@ namespace ModdingGUI
             if (!File.Exists(gladiatorsPath))
             {
                 MessageBox.Show($"gladiators.txt not found at '{gladiatorsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"gladiators.txt not found at '{gladiatorsPath}'.", Color.Red, true);
+                AppendLog($"gladiators.txt not found at '{gladiatorsPath}'.", Color.Red);
 
                 // Optionally, switch back to tabPacking
                 foreach (TabPage tab in tabContainer.TabPages)
@@ -700,7 +700,7 @@ namespace ModdingGUI
             if (!File.Exists(statSetsPath))
             {
                 MessageBox.Show($"statsets.txt not found at '{statSetsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"statsets.txt not found at '{statSetsPath}'.", Color.Red, true);
+                AppendLog($"statsets.txt not found at '{statSetsPath}'.", Color.Red);
 
                 // Optionally, switch back to tabPacking
                 foreach (TabPage tab in tabContainer.TabPages)
@@ -742,13 +742,13 @@ namespace ModdingGUI
                 else
                 {
                     MessageBox.Show("No classes found in the selected project.", "No Classes", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    AppendLog("No classes found in classdefs.tok.", Color.Blue, true);
+                    AppendLog("No classes found in classdefs.tok.", Color.Blue);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading classes, gladiators, or statsets: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"Error loading classes, gladiators, or statsets: {ex.Message}", Color.Red, true);
+                AppendLog($"Error loading classes, gladiators, or statsets: {ex.Message}", Color.Red);
 
                 // Optionally, switch back to tabPacking
                 foreach (TabPage tab in tabContainer.TabPages)
@@ -935,7 +935,7 @@ namespace ModdingGUI
             if (selectedClass == null)
             {
                 MessageBox.Show("Selected class is invalid.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog("Attempted to add a unit with an invalid class.", Color.Red, true);
+                AppendLog("Attempted to add a unit with an invalid class.", Color.Red);
                 return;
             }
 
@@ -944,7 +944,7 @@ namespace ModdingGUI
             {
                 MessageBox.Show("A unit with this name already exists.", "Duplicate Unit", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtTeamUnitName.Focus();
-                AppendLog($"Attempted to add duplicate unit '{unitName}'.", Color.Orange, true);
+                AppendLog($"Attempted to add duplicate unit '{unitName}'.", Color.Orange);
                 return;
             }
 
@@ -953,7 +953,7 @@ namespace ModdingGUI
             if (mostUsedStatSet == -1)
             {
                 MessageBox.Show($"No statset found for class '{selectedClassName}'. Cannot create unit.", "StatSet Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"No statset found for class '{selectedClassName}'.", Color.Red, true);
+                AppendLog($"No statset found for class '{selectedClassName}'.", Color.Red);
                 return;
             }
 
@@ -961,7 +961,7 @@ namespace ModdingGUI
             if (!statSets.ContainsKey(mostUsedStatSet) || !statSets[mostUsedStatSet].ContainsKey(unitLevel))
             {
                 MessageBox.Show($"Stats not found for statset '{mostUsedStatSet}' at level '{unitLevel}'.", "Stats Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"Stats not found for statset '{mostUsedStatSet}' at level '{unitLevel}'.", Color.Red, true);
+                AppendLog($"Stats not found for statset '{mostUsedStatSet}' at level '{unitLevel}'.", Color.Red);
                 return;
             }
 
@@ -969,7 +969,7 @@ namespace ModdingGUI
             if (statsList.Count < 5)
             {
                 MessageBox.Show($"Insufficient stats data for statset '{mostUsedStatSet}' at level '{unitLevel}'.", "Insufficient Stats", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"Insufficient stats data for statset '{mostUsedStatSet}' at level '{unitLevel}'.", Color.Red, true);
+                AppendLog($"Insufficient stats data for statset '{mostUsedStatSet}' at level '{unitLevel}'.", Color.Red);
                 return;
             }
 
@@ -999,7 +999,7 @@ namespace ModdingGUI
             ddlTeamClasses.SelectedIndex = 0;
 
             // Log the addition
-            AppendLog($"Added unit '{unitName}' with class '{selectedClassName}' at level {unitLevel}.", Color.Green, false);
+            AppendLog($"Added unit '{unitName}' with class '{selectedClassName}' at level {unitLevel}.", Color.Green, rtbPackOutput);
             int maxUnits = rbnTeamPVP.Checked ? 20 : rbnTeamCampaign.Checked ? 14 : 20;
             btnTeamAddUnit.Enabled = teamUnits.Count < maxUnits;
             txtTeamHeader.Text = $"Current Team: ({teamUnits.Count}/{maxUnits})";
@@ -1112,7 +1112,7 @@ namespace ModdingGUI
                     ClearPreviewStats();
                     btnTeamRemoveUnit.Enabled = false;
                 }
-                AppendLog("Selected node: " + e.Node.Text, Color.Blue, false);
+                AppendLog("Selected node: " + e.Node.Text, Color.Blue, rtbPackOutput);
                 // Update other UI elements if necessary
                 UpdateUnitCountAndButtons();
             }else if(tabContainer.SelectedTab == tabTeamGearSelection)
@@ -1164,7 +1164,7 @@ namespace ModdingGUI
             if (!removedFromList)
             {
                 MessageBox.Show("Failed to remove the unit from the internal list.", "Removal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"Failed to remove unit '{selectedUnit.UnitName}' from the internal list.", Color.Red, true);
+                AppendLog($"Failed to remove unit '{selectedUnit.UnitName}' from the internal list.", Color.Red);
                 return;
             }
 
@@ -1178,7 +1178,7 @@ namespace ModdingGUI
             UpdateUnitCountAndButtons();
 
             // Log the removal
-            AppendLog($"Removed unit '{selectedUnit.UnitName}'.", Color.Blue, true);
+            AppendLog($"Removed unit '{selectedUnit.UnitName}'.", Color.Blue);
         }
 
 

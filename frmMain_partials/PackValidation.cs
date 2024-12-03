@@ -86,7 +86,7 @@ namespace ModdingGUI
                 {
                     foreach (var (startGap, endGap) in gaps)
                     {
-                        AppendLog($"Itemset {itemset} is missing weapon coverage between levels {startGap} and {endGap}.", ErrorColor, false);
+                        AppendLog($"Itemset {itemset} is missing weapon coverage between levels {startGap} and {endGap}.", ErrorColor, rtbPackOutput);
                     }
                     overallIsValid = false;
                 }
@@ -125,7 +125,7 @@ namespace ModdingGUI
                 Match match = fieldRegex.Match(line);
                 if (!match.Success || string.IsNullOrWhiteSpace(match.Groups[2].Value))
                 {
-                    AppendLog($"Error in gladiators.txt: Missing or empty field in line: {line}", ErrorColor, false);
+                    AppendLog($"Error in gladiators.txt: Missing or empty field in line: {line}", ErrorColor, rtbPackOutput);
                     isValid = false;
                 }
             }
@@ -143,7 +143,7 @@ namespace ModdingGUI
 
             if (!File.Exists(gladiatorsPath) || !File.Exists(skillsetsPath) || !File.Exists(skillsTokPath) || !File.Exists(classDefsPath))
             {
-                AppendLog("One or more required files (gladiators.txt, skillsets.txt, skills.tok, classdefs.tok) are missing.", ErrorColor, false);
+                AppendLog("One or more required files (gladiators.txt, skillsets.txt, skills.tok, classdefs.tok) are missing.", ErrorColor, rtbPackOutput);
                 return false;
             }
 
@@ -177,7 +177,7 @@ namespace ModdingGUI
                     }
                     else
                     {
-                        AppendLog($"Error: SKILLUSENAME not found for class '{className}' in classdefs.tok.", ErrorColor, false);
+                        AppendLog($"Error: SKILLUSENAME not found for class '{className}' in classdefs.tok.", ErrorColor, rtbPackOutput);
                         validationPassed = false;
                         continue;
                     }
@@ -185,7 +185,7 @@ namespace ModdingGUI
 
                 if (!skillSets.TryGetValue(skillSetId, out List<string> skillNames) || skillNames.Count == 0)
                 {
-                    AppendLog($"Warning: Skill set {skillSetId} for class '{className}' is empty or not found.", WarningColor, false);
+                    AppendLog($"Warning: Skill set {skillSetId} for class '{className}' is empty or not found.", WarningColor, rtbPackOutput);
                     continue;
                 }
 
@@ -201,7 +201,7 @@ namespace ModdingGUI
 
                     if (!skills.TryGetValue(skillName, out List<string> skillUseClasses) || skillUseClasses.Count == 0)
                     {
-                        AppendLog($"Error: Skill '{skillName}' not found in skills.tok.", ErrorColor, false);
+                        AppendLog($"Error: Skill '{skillName}' not found in skills.tok.", ErrorColor, rtbPackOutput);
                         validationPassed = false;
                         continue;
                     }
@@ -209,7 +209,7 @@ namespace ModdingGUI
                     bool isMatch = skillUseClasses.Any(skillUseClass => IsSkillUseClassValid(skillUseName, skillUseClass));
                     if (!isMatch)
                     {
-                        AppendLog($"Error: Skill '{skillName}' in skill set {skillSetId} does not align with SKILLUSENAME '{skillUseName}'. Unit: {unitName}", ErrorColor, false);
+                        AppendLog($"Error: Skill '{skillName}' in skill set {skillSetId} does not align with SKILLUSENAME '{skillUseName}'. Unit: {unitName}", ErrorColor, rtbPackOutput);
                         validationPassed = false;
                     }
                 }
@@ -348,7 +348,7 @@ namespace ModdingGUI
             string currentSkill = null;
             var skillCreateRegex = new Regex(@"^\s*SKILLCREATE:\s*""(.+?)"",", RegexOptions.IgnoreCase);
 
-            AppendLog("Starting to parse skills.tok...", InfoColor, false);
+            AppendLog("Starting to parse skills.tok...", InfoColor, rtbPackOutput);
 
             foreach (string line in File.ReadLines(skillsTokPath))
             {
@@ -358,7 +358,7 @@ namespace ModdingGUI
                 {
                     currentSkill = skillMatch.Groups[1].Value.Trim();
                     skills[currentSkill] = new List<string>();  // Initialize a new list for SKILLUSECLASS values
-                    //AppendLog($"Found skill: {currentSkill}", InfoColor, false);
+                    //AppendLog($"Found skill: {currentSkill}", InfoColor, rtbPackOutput);
                     continue;
                 }
 
@@ -369,7 +369,7 @@ namespace ModdingGUI
                     {
                         string skillUseClass = line.Split(":")[1].Trim().Trim('"');
                         skills[currentSkill].Add(skillUseClass);
-                        //AppendLog($"Assigned SKILLUSECLASS '{skillUseClass}' to skill '{currentSkill}'", InfoColor, false);
+                        //AppendLog($"Assigned SKILLUSECLASS '{skillUseClass}' to skill '{currentSkill}'", InfoColor, rtbPackOutput);
                     }
 
                     // End the current skill block if we encounter a new SKILLCREATE
@@ -380,7 +380,7 @@ namespace ModdingGUI
                 }
             }
 
-            AppendLog("Finished parsing skills.tok", InfoColor, false);
+            AppendLog("Finished parsing skills.tok", InfoColor, rtbPackOutput);
             return skills;
         }
 

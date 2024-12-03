@@ -41,6 +41,29 @@
             splitContainer1 = new SplitContainer();
             tabContainer = new TabControl();
             tabPatching = new TabPage();
+            splitContainer3 = new SplitContainer();
+            rtbPatchingApplicationOutput = new RichTextBox();
+            btnPatchingApplicationApply = new Button();
+            btnPatchingApplicationXdeltaPath = new Button();
+            label11 = new Label();
+            txtPatchingApplicationXdeltaPath = new TextBox();
+            btnPatchingApplicationISOPath = new Button();
+            label10 = new Label();
+            txtPatchingApplicationISOPath = new TextBox();
+            label8 = new Label();
+            txtPatchApplicationHeader = new TextBox();
+            btnPatchingCreation = new Button();
+            btnPatchingCreationOutputPath = new Button();
+            label14 = new Label();
+            txtPatchingCreationOutputPath = new TextBox();
+            btnPatchingCreationModISOPath = new Button();
+            label13 = new Label();
+            txtPatchingCreationModISOPath = new TextBox();
+            btnPatchingCreationVanISOPath = new Button();
+            label12 = new Label();
+            txtPatchingCreationVanISOPath = new TextBox();
+            label9 = new Label();
+            txtPatchingCreationHeader = new TextBox();
             tabUnpacking = new TabPage();
             btnOpenUnpackLocation = new Button();
             rtbUnpackOutput = new RichTextBox();
@@ -49,6 +72,7 @@
             btnSelectISO = new Button();
             txtISOPath = new TextBox();
             tabPacking = new TabPage();
+            btnToPatching = new Button();
             pgbValidation = new ProgressBar();
             chbValidationSkip = new CheckBox();
             btnOpenPackLocation = new Button();
@@ -130,6 +154,11 @@
             splitContainer1.Panel2.SuspendLayout();
             splitContainer1.SuspendLayout();
             tabContainer.SuspendLayout();
+            tabPatching.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer3).BeginInit();
+            splitContainer3.Panel1.SuspendLayout();
+            splitContainer3.Panel2.SuspendLayout();
+            splitContainer3.SuspendLayout();
             tabUnpacking.SuspendLayout();
             tabPacking.SuspendLayout();
             tabRandomizer.SuspendLayout();
@@ -245,12 +274,255 @@
             // 
             // tabPatching
             // 
+            tabPatching.Controls.Add(splitContainer3);
             tabPatching.Location = new Point(4, 24);
             tabPatching.Name = "tabPatching";
             tabPatching.Size = new Size(1221, 722);
             tabPatching.TabIndex = 5;
             tabPatching.Text = "Patching";
             tabPatching.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer3
+            // 
+            splitContainer3.BorderStyle = BorderStyle.FixedSingle;
+            splitContainer3.Dock = DockStyle.Fill;
+            splitContainer3.Location = new Point(0, 0);
+            splitContainer3.Name = "splitContainer3";
+            // 
+            // splitContainer3.Panel1
+            // 
+            splitContainer3.Panel1.Controls.Add(rtbPatchingApplicationOutput);
+            splitContainer3.Panel1.Controls.Add(btnPatchingApplicationApply);
+            splitContainer3.Panel1.Controls.Add(btnPatchingApplicationXdeltaPath);
+            splitContainer3.Panel1.Controls.Add(label11);
+            splitContainer3.Panel1.Controls.Add(txtPatchingApplicationXdeltaPath);
+            splitContainer3.Panel1.Controls.Add(btnPatchingApplicationISOPath);
+            splitContainer3.Panel1.Controls.Add(label10);
+            splitContainer3.Panel1.Controls.Add(txtPatchingApplicationISOPath);
+            splitContainer3.Panel1.Controls.Add(label8);
+            splitContainer3.Panel1.Controls.Add(txtPatchApplicationHeader);
+            // 
+            // splitContainer3.Panel2
+            // 
+            splitContainer3.Panel2.Controls.Add(btnPatchingCreation);
+            splitContainer3.Panel2.Controls.Add(btnPatchingCreationOutputPath);
+            splitContainer3.Panel2.Controls.Add(label14);
+            splitContainer3.Panel2.Controls.Add(txtPatchingCreationOutputPath);
+            splitContainer3.Panel2.Controls.Add(btnPatchingCreationModISOPath);
+            splitContainer3.Panel2.Controls.Add(label13);
+            splitContainer3.Panel2.Controls.Add(txtPatchingCreationModISOPath);
+            splitContainer3.Panel2.Controls.Add(btnPatchingCreationVanISOPath);
+            splitContainer3.Panel2.Controls.Add(label12);
+            splitContainer3.Panel2.Controls.Add(txtPatchingCreationVanISOPath);
+            splitContainer3.Panel2.Controls.Add(label9);
+            splitContainer3.Panel2.Controls.Add(txtPatchingCreationHeader);
+            splitContainer3.Size = new Size(1221, 722);
+            splitContainer3.SplitterDistance = 610;
+            splitContainer3.TabIndex = 0;
+            // 
+            // rtbPatchingApplicationOutput
+            // 
+            rtbPatchingApplicationOutput.Location = new Point(34, 452);
+            rtbPatchingApplicationOutput.Name = "rtbPatchingApplicationOutput";
+            rtbPatchingApplicationOutput.ReadOnly = true;
+            rtbPatchingApplicationOutput.Size = new Size(549, 215);
+            rtbPatchingApplicationOutput.TabIndex = 10;
+            rtbPatchingApplicationOutput.Text = "";
+            // 
+            // btnPatchingApplicationApply
+            // 
+            btnPatchingApplicationApply.Location = new Point(231, 411);
+            btnPatchingApplicationApply.Name = "btnPatchingApplicationApply";
+            btnPatchingApplicationApply.Size = new Size(123, 23);
+            btnPatchingApplicationApply.TabIndex = 9;
+            btnPatchingApplicationApply.Text = "Apply Patch!";
+            btnPatchingApplicationApply.UseVisualStyleBackColor = true;
+            btnPatchingApplicationApply.Click += btnPatchingApplicationApply_Click;
+            // 
+            // btnPatchingApplicationXdeltaPath
+            // 
+            btnPatchingApplicationXdeltaPath.Location = new Point(106, 265);
+            btnPatchingApplicationXdeltaPath.Name = "btnPatchingApplicationXdeltaPath";
+            btnPatchingApplicationXdeltaPath.Size = new Size(152, 23);
+            btnPatchingApplicationXdeltaPath.TabIndex = 7;
+            btnPatchingApplicationXdeltaPath.Text = "Get xDelta Path";
+            btnPatchingApplicationXdeltaPath.UseVisualStyleBackColor = true;
+            btnPatchingApplicationXdeltaPath.Click += btnPatchingApplicationXdeltaPath_Click;
+            // 
+            // label11
+            // 
+            label11.AutoSize = true;
+            label11.Location = new Point(30, 239);
+            label11.Name = "label11";
+            label11.Size = new Size(70, 15);
+            label11.TabIndex = 6;
+            label11.Text = "xDelta Path:";
+            // 
+            // txtPatchingApplicationXdeltaPath
+            // 
+            txtPatchingApplicationXdeltaPath.Location = new Point(106, 236);
+            txtPatchingApplicationXdeltaPath.Name = "txtPatchingApplicationXdeltaPath";
+            txtPatchingApplicationXdeltaPath.ReadOnly = true;
+            txtPatchingApplicationXdeltaPath.Size = new Size(501, 23);
+            txtPatchingApplicationXdeltaPath.TabIndex = 5;
+            // 
+            // btnPatchingApplicationISOPath
+            // 
+            btnPatchingApplicationISOPath.Location = new Point(106, 161);
+            btnPatchingApplicationISOPath.Name = "btnPatchingApplicationISOPath";
+            btnPatchingApplicationISOPath.Size = new Size(152, 23);
+            btnPatchingApplicationISOPath.TabIndex = 4;
+            btnPatchingApplicationISOPath.Text = "Get Vanilla ISO Path";
+            btnPatchingApplicationISOPath.UseVisualStyleBackColor = true;
+            btnPatchingApplicationISOPath.Click += btnPatchingApplicationISOPath_Click;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(8, 135);
+            label10.Name = "label10";
+            label10.Size = new Size(92, 15);
+            label10.TabIndex = 3;
+            label10.Text = "Vanilla ISO Path:";
+            // 
+            // txtPatchingApplicationISOPath
+            // 
+            txtPatchingApplicationISOPath.Location = new Point(106, 132);
+            txtPatchingApplicationISOPath.Name = "txtPatchingApplicationISOPath";
+            txtPatchingApplicationISOPath.ReadOnly = true;
+            txtPatchingApplicationISOPath.Size = new Size(501, 23);
+            txtPatchingApplicationISOPath.TabIndex = 2;
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(210, 60);
+            label8.Name = "label8";
+            label8.Size = new Size(195, 15);
+            label8.TabIndex = 1;
+            label8.Text = "For applying xDeltas to a vanilla ISO";
+            // 
+            // txtPatchApplicationHeader
+            // 
+            txtPatchApplicationHeader.Font = new Font("Segoe UI", 26.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtPatchApplicationHeader.Location = new Point(3, 3);
+            txtPatchApplicationHeader.Name = "txtPatchApplicationHeader";
+            txtPatchApplicationHeader.ReadOnly = true;
+            txtPatchApplicationHeader.Size = new Size(604, 54);
+            txtPatchApplicationHeader.TabIndex = 0;
+            txtPatchApplicationHeader.Text = "xDelta Patch Application";
+            txtPatchApplicationHeader.TextAlign = HorizontalAlignment.Center;
+            // 
+            // btnPatchingCreation
+            // 
+            btnPatchingCreation.Location = new Point(112, 411);
+            btnPatchingCreation.Name = "btnPatchingCreation";
+            btnPatchingCreation.Size = new Size(152, 23);
+            btnPatchingCreation.TabIndex = 14;
+            btnPatchingCreation.Text = "Create xDelta!";
+            btnPatchingCreation.UseVisualStyleBackColor = true;
+            btnPatchingCreation.Click += btnPatchingCreation_Click;
+            // 
+            // btnPatchingCreationOutputPath
+            // 
+            btnPatchingCreationOutputPath.Location = new Point(112, 319);
+            btnPatchingCreationOutputPath.Name = "btnPatchingCreationOutputPath";
+            btnPatchingCreationOutputPath.Size = new Size(152, 23);
+            btnPatchingCreationOutputPath.TabIndex = 13;
+            btnPatchingCreationOutputPath.Text = "Get Xdelta Path";
+            btnPatchingCreationOutputPath.UseVisualStyleBackColor = true;
+            btnPatchingCreationOutputPath.Click += btnPatchingCreationOutputPath_Click;
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new Point(22, 293);
+            label14.Name = "label14";
+            label14.Size = new Size(84, 15);
+            label14.TabIndex = 12;
+            label14.Text = "xDelta Output:";
+            // 
+            // txtPatchingCreationOutputPath
+            // 
+            txtPatchingCreationOutputPath.Location = new Point(112, 290);
+            txtPatchingCreationOutputPath.Name = "txtPatchingCreationOutputPath";
+            txtPatchingCreationOutputPath.ReadOnly = true;
+            txtPatchingCreationOutputPath.Size = new Size(490, 23);
+            txtPatchingCreationOutputPath.TabIndex = 11;
+            // 
+            // btnPatchingCreationModISOPath
+            // 
+            btnPatchingCreationModISOPath.Location = new Point(112, 239);
+            btnPatchingCreationModISOPath.Name = "btnPatchingCreationModISOPath";
+            btnPatchingCreationModISOPath.Size = new Size(152, 23);
+            btnPatchingCreationModISOPath.TabIndex = 10;
+            btnPatchingCreationModISOPath.Text = "Get Modded ISO Path";
+            btnPatchingCreationModISOPath.UseVisualStyleBackColor = true;
+            btnPatchingCreationModISOPath.Click += btnPatchingCreationModISOPath_Click;
+            // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new Point(3, 213);
+            label13.Name = "label13";
+            label13.Size = new Size(103, 15);
+            label13.TabIndex = 9;
+            label13.Text = "Modded ISO Path:";
+            // 
+            // txtPatchingCreationModISOPath
+            // 
+            txtPatchingCreationModISOPath.Location = new Point(112, 210);
+            txtPatchingCreationModISOPath.Name = "txtPatchingCreationModISOPath";
+            txtPatchingCreationModISOPath.ReadOnly = true;
+            txtPatchingCreationModISOPath.Size = new Size(490, 23);
+            txtPatchingCreationModISOPath.TabIndex = 8;
+            // 
+            // btnPatchingCreationVanISOPath
+            // 
+            btnPatchingCreationVanISOPath.Location = new Point(112, 161);
+            btnPatchingCreationVanISOPath.Name = "btnPatchingCreationVanISOPath";
+            btnPatchingCreationVanISOPath.Size = new Size(152, 23);
+            btnPatchingCreationVanISOPath.TabIndex = 7;
+            btnPatchingCreationVanISOPath.Text = "Get Vanilla ISO Path";
+            btnPatchingCreationVanISOPath.UseVisualStyleBackColor = true;
+            btnPatchingCreationVanISOPath.Click += btnPatchingCreationVanISOPath_Click;
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(14, 135);
+            label12.Name = "label12";
+            label12.Size = new Size(92, 15);
+            label12.TabIndex = 6;
+            label12.Text = "Vanilla ISO Path:";
+            // 
+            // txtPatchingCreationVanISOPath
+            // 
+            txtPatchingCreationVanISOPath.Location = new Point(112, 132);
+            txtPatchingCreationVanISOPath.Name = "txtPatchingCreationVanISOPath";
+            txtPatchingCreationVanISOPath.ReadOnly = true;
+            txtPatchingCreationVanISOPath.Size = new Size(490, 23);
+            txtPatchingCreationVanISOPath.TabIndex = 5;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(218, 60);
+            label9.Name = "label9";
+            label9.Size = new Size(178, 15);
+            label9.TabIndex = 2;
+            label9.Text = "For creating xDeltas to distribute";
+            // 
+            // txtPatchingCreationHeader
+            // 
+            txtPatchingCreationHeader.Font = new Font("Segoe UI", 26.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtPatchingCreationHeader.Location = new Point(3, 3);
+            txtPatchingCreationHeader.Name = "txtPatchingCreationHeader";
+            txtPatchingCreationHeader.ReadOnly = true;
+            txtPatchingCreationHeader.Size = new Size(601, 54);
+            txtPatchingCreationHeader.TabIndex = 1;
+            txtPatchingCreationHeader.Text = "xDelta Patch Creation";
+            txtPatchingCreationHeader.TextAlign = HorizontalAlignment.Center;
             // 
             // tabUnpacking
             // 
@@ -326,6 +598,7 @@
             // 
             // tabPacking
             // 
+            tabPacking.Controls.Add(btnToPatching);
             tabPacking.Controls.Add(pgbValidation);
             tabPacking.Controls.Add(chbValidationSkip);
             tabPacking.Controls.Add(btnOpenPackLocation);
@@ -340,6 +613,17 @@
             tabPacking.TabIndex = 1;
             tabPacking.Text = "Packing";
             tabPacking.UseVisualStyleBackColor = true;
+            // 
+            // btnToPatching
+            // 
+            btnToPatching.Enabled = false;
+            btnToPatching.Location = new Point(9, 656);
+            btnToPatching.Name = "btnToPatching";
+            btnToPatching.Size = new Size(137, 23);
+            btnToPatching.TabIndex = 8;
+            btnToPatching.Text = "Go to patching tab";
+            btnToPatching.UseVisualStyleBackColor = true;
+            btnToPatching.Click += btnToPatching_Click;
             // 
             // pgbValidation
             // 
@@ -1198,6 +1482,13 @@
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
             tabContainer.ResumeLayout(false);
+            tabPatching.ResumeLayout(false);
+            splitContainer3.Panel1.ResumeLayout(false);
+            splitContainer3.Panel1.PerformLayout();
+            splitContainer3.Panel2.ResumeLayout(false);
+            splitContainer3.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
+            splitContainer3.ResumeLayout(false);
             tabUnpacking.ResumeLayout(false);
             tabUnpacking.PerformLayout();
             tabPacking.ResumeLayout(false);
@@ -1334,5 +1625,29 @@
         private DataGridView dgvGear;
         private Label label5;
         private TextBox txtPreviewAllowedGear;
+        private SplitContainer splitContainer3;
+        private TextBox txtPatchApplicationHeader;
+        private Button btnPatchingApplicationISOPath;
+        private Label label10;
+        private TextBox txtPatchingApplicationISOPath;
+        private Label label8;
+        private Label label9;
+        private TextBox txtPatchingCreationHeader;
+        private Button btnPatchingApplicationXdeltaPath;
+        private Label label11;
+        private TextBox txtPatchingApplicationXdeltaPath;
+        private Button btnPatchingApplicationApply;
+        private RichTextBox rtbPatchingApplicationOutput;
+        private Button btnPatchingCreationModISOPath;
+        private Label label13;
+        private TextBox txtPatchingCreationModISOPath;
+        private Button btnPatchingCreationVanISOPath;
+        private Label label12;
+        private TextBox txtPatchingCreationVanISOPath;
+        private Button btnPatchingCreationOutputPath;
+        private Label label14;
+        private TextBox txtPatchingCreationOutputPath;
+        private Button btnPatchingCreation;
+        private Button btnToPatching;
     }
 }

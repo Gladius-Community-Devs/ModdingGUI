@@ -365,7 +365,7 @@ namespace ModdingGUI
                 {
                     foreach (var logEntry in randomizerLogBuffer)
                     {
-                        AppendLog(logEntry.message, logEntry.color, false);
+                        AppendLog(logEntry.message, logEntry.color, rtbPackOutput);
                     }
                 }
 
@@ -458,7 +458,7 @@ namespace ModdingGUI
                 {
                     foreach (var logEntry in randomizerLogBuffer)
                     {
-                        AppendLog(logEntry.message, logEntry.color, false);
+                        AppendLog(logEntry.message, logEntry.color, rtbPackOutput);
                     }
                 }
             }
@@ -1376,7 +1376,7 @@ namespace ModdingGUI
             {
                 string batchContent = batchCommands.ToString();
                 AppendRandomizerLog("Starting compilation of .scp files...", InfoColor);
-                await RunBatchFileAsync(batchContent, scriptFolder, false);
+                await RunBatchFileAsync(batchContent, scriptFolder, rtbPackOutput);
                 AppendRandomizerLog("Compilation of .scp files completed.", SuccessColor);
             }
             else
@@ -1582,7 +1582,7 @@ namespace ModdingGUI
                 {
                     string batchContent = batchCommands.ToString();
                     AppendRandomizerLog("Starting compilation of in-game randomized wmglobal.scp file...", InfoColor);
-                    await RunBatchFileAsync(batchContent, scriptFolder, false);
+                    await RunBatchFileAsync(batchContent, scriptFolder, rtbPackOutput);
                     AppendRandomizerLog("Compilation of in-game randomized wmglobal.scp file completed.", SuccessColor);
 
                     // Validate compilation success
