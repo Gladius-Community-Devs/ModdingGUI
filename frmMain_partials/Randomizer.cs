@@ -572,7 +572,7 @@ namespace ModdingGUI
         {
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "school", fileName);
-            List<string> outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 25000" };
+            List<string> outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 15000" };
 
             // Add CREATEUNIT blocks for each hero
             AppendUnitBlocks(outputLines, unitNames, unitClasses, gladiatorEntries, statSets, itemSets, skillSets);
@@ -975,10 +975,11 @@ namespace ModdingGUI
                                     }
                                     else if (currentTeamNumber > 0 && chbRandomizedEnemies.Checked)
                                     {
+
                                         if (string.IsNullOrEmpty(unitName))
                                         {
                                             // Randomize this enemy unit
-                                            string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", -2, 2, 1, 0, -1, \"Boss\", \"Prop\", \"DarkGod\", \"\", 0, 1, 0, 0, 0, 0, 0, 0, 0";
+                                            string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", -2, 2, 1, 0, -1, \"Boss\", \"Prop\", \"DarkGod\", \"\", 0, 1, 0, 0, 0, 0, 25, 0, 0";
                                             modifiedContent.AppendLine(newUnitDbLine);
                                             fileModified = true;
                                         }
