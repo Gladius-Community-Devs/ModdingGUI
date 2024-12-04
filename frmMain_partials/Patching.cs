@@ -15,19 +15,109 @@ namespace ModdingGUI
                 {
                     txtPatchingApplicationISOPath.Text = openFileDialog.FileName;
                 }
+            }
 
-                string isoPath = txtPatchingApplicationISOPath.Text;
-                AppendLog("Verifying ISO MD5 hash...", InfoColor, rtbPatchingApplicationOutput);
-                string md5Hash = await ComputeMD5Async(isoPath);
-                if (!string.Equals(md5Hash, "a78d6e1c9de69886ce827ad2a7507339", StringComparison.OrdinalIgnoreCase))
+            string isoPath = txtPatchingApplicationISOPath.Text;
+
+            if (isoPath.Contains("(") || isoPath.Contains(")"))
+            {
+                // Prompt the user for action
+                var result = MessageBox.Show(
+                    "The selected ISO file name contains parentheses. Do you want to create a copy with parentheses replaced by spaces?",
+                    "Filename Issue",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                );
+
+                if (result == DialogResult.Yes)
                 {
-                    MessageBox.Show("The selected ISO does not match the expected Vanilla ISO. Proceeding may cause unexpected results.");
-                    AppendLog("MD5 hash does not match the expected Vanilla ISO hash.\nProceed if you know what you are doing.", ErrorColor, rtbPatchingApplicationOutput);
+                    try
+                    {
+                        // Extract directory and filename
+                        string directory = Path.GetDirectoryName(isoPath);
+                        string originalFilename = Path.GetFileName(isoPath);
+
+                        if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(originalFilename))
+                        {
+                            MessageBox.Show("Invalid ISO path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        // Create the new filename by replacing parentheses with spaces
+                        string newFilename = originalFilename.Replace("(", " ").Replace(")", "");
+
+                        // Optionally, you can trim extra spaces or handle multiple spaces if needed
+                        // newFilename = Regex.Replace(newFilename, @"\s+", " ").Trim();
+
+                        string newPath = Path.Combine(directory, newFilename);
+
+                        // Check if the new file already exists to avoid overwriting
+                        if (File.Exists(newPath))
+                        {
+                            var overwriteResult = MessageBox.Show(
+                                $"A file named \"{newFilename}\" already exists. Do you want to overwrite it?",
+                                "File Exists",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Warning
+                            );
+
+                            if (overwriteResult != DialogResult.Yes)
+                            {
+                                // If user chooses not to overwrite, abort the operation
+                                return;
+                            }
+                        }
+
+                        // Copy the original file to the new path
+                        File.Copy(isoPath, newPath, overwrite: true);
+
+                        // Update the text box and isoPath variable to the new path
+                        txtPatchingApplicationISOPath.Text = newPath;
+                        isoPath = newPath;
+
+                        MessageBox.Show(
+                            $"File copied successfully to:\n{newPath}",
+                            "Success",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information
+                        );
+                        AppendLog($"File copied successfully to: {newPath}", InfoColor, rtbPatchingApplicationOutput);
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        MessageBox.Show($"Access denied: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    catch (PathTooLongException ex)
+                    {
+                        MessageBox.Show($"Path too long: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    catch (IOException ex)
+                    {
+                        MessageBox.Show($"I/O error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
                 else
                 {
-                    AppendLog("Verified!", SuccessColor, rtbPatchingApplicationOutput);
+                    // User selected "No", so abort the operation
+                    AppendLog("Please select a valid ISO file.", ErrorColor, rtbPatchingApplicationOutput);
+                    return;
                 }
+            }
+
+            AppendLog("Verifying ISO MD5 hash...", InfoColor, rtbPatchingApplicationOutput);
+            string md5Hash = await ComputeMD5Async(txtPatchingApplicationISOPath.Text);
+            if (!string.Equals(md5Hash, "a78d6e1c9de69886ce827ad2a7507339", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("The selected ISO does not match the expected Vanilla ISO. Proceeding may cause unexpected results.");
+                AppendLog("MD5 hash does not match the expected Vanilla ISO hash.\nProceed if you know what you are doing.", ErrorColor, rtbPatchingApplicationOutput);
+            }
+            else
+            {
+                AppendLog("Verified!", SuccessColor, rtbPatchingApplicationOutput);
             }
             btnPatchingApplicationApply.Enabled = true;
         }
