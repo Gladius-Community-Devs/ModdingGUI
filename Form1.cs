@@ -698,6 +698,7 @@ namespace ModdingGUI
                 else
                 {
                     AddMenuEntry(txtPackPath.Text, "Equipment Restrictions Removed");
+                    chbTeamEquipRestrict.Enabled = false;
                 }
             }
         }
