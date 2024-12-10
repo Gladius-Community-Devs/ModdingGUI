@@ -13,9 +13,6 @@ namespace ModdingGUI
         // Log buffer to collect log messages
         private List<(string message, Color color)> randomizerLogBuffer = new List<(string, Color)>();
 
-        // Define colors for logging
-        private readonly Color WarningColor = Color.Orange;
-
         // Blacklisted Vanilla classes
         string[] blacklistedVanillaClasses = new string[]
         {

@@ -14,7 +14,7 @@ namespace ModdingGUI
             if (!IsPythonInstalled())
             {
                 // Display a message box if Python 3 is not installed
-                MessageBox.Show("Python is either not installed or not in PATH. Please fix this to use the program!");
+                MessageBox.Show("Python is either not installed or not in PATH. Please fix this to use the program!\nhttps://www.python.org/downloads/ \nDuring install, check the box labelled 'Add python.exe to PATH'");
                 Environment.Exit(0); // Exit the application
             }
         }
@@ -35,10 +35,9 @@ namespace ModdingGUI
             string userInput = txtUnpackPath.Text.Trim().Replace(" ", "_");
 
             // Validate that the ISO file exists and the user input is not empty
-            if (!File.Exists(isoPath) || string.IsNullOrEmpty(userInput))
+            if (!ValidateFilePath(isoPath, "ISO"))
             {
-                MessageBox.Show("Please select a valid ISO file and enter a folder name."); // Show an error message
-                return; // Exit the method
+                return;
             }
 
             AppendLog("Starting unpack operation...", InfoColor); // Log the start of the unpack operation
@@ -190,30 +189,49 @@ namespace ModdingGUI
 
         private void frmMain_Load(object sender, EventArgs e)
         {
-            // Check for parentheses in the executable path
-            string exePath = Application.ExecutablePath;
-            if (exePath.Contains("(") || exePath.Contains(")"))
+            try
             {
-                MessageBox.Show("The program cannot run from a file path containing parentheses. Please move it to a different location.");
+                // Retrieve the original executable directory using the helper method
+                string appDirectory = GetAppDirectory();
+                AppendLog($"App Directory: {appDirectory}", InfoColor);
+
+                // Check for parentheses in the executable path
+                if (appDirectory.Contains("(") || appDirectory.Contains(")"))
+                {
+                    MessageBox.Show("The program cannot run from a file path containing parentheses. Please move it to a different location.", "Invalid Path", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Environment.Exit(0); // Exit the application
+                }
+
+                // Define the full path to the tools folder
+                string toolsPath = Path.Combine(appDirectory, "tools");
+
+                // Check for the existence of the tools folder
+                if (!Directory.Exists(toolsPath))
+                {
+                    MessageBox.Show("Tools folder not found. Download modding tools v007 or higher from the Discord!", "Missing Tools Folder", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Environment.Exit(0); // Exit the application
+                }
+
+                // Proceed with loading the file list asynchronously
+                LoadFileListAsync();
+
+                // Remove specific tabs on load
+                tabContainer.TabPages.Remove(tabRandomizer);
+                tabContainer.TabPages.Remove(tabIngameRandom);
+                tabContainer.TabPages.Remove(tabTeamBuilder);
+                // tabContainer.TabPages.Remove(tabPatching);
+
+                // Load projects
+                LoadProjects();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception and notify the user
+                AppendLog($"Error during application load: {ex.Message}", ErrorColor);
+                MessageBox.Show($"An unexpected error occurred:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(0); // Exit the application
             }
-
-            // Check for the existence of the tools folder
-            string path = @"tools/";
-            if (!Directory.Exists(path))
-            {
-                MessageBox.Show("Tools folder not found. Download modding tools v007 or higher from the Discord!");
-                Environment.Exit(0); // Exit the application
-            }
-
-            // Remove the randomizer tab on load
-            tabContainer.TabPages.Remove(tabRandomizer);
-            tabContainer.TabPages.Remove(tabIngameRandom);
-            tabContainer.TabPages.Remove(tabTeamBuilder);
-            // tabContainer.TabPages.Remove(tabPatching);
-            LoadProjects();
         }
-
 
         private void randomizerMenuItem_Click(object sender, EventArgs e)
         {
@@ -714,9 +732,15 @@ namespace ModdingGUI
             ttpInform.SetToolTip(txtSeed, "Sets the seed for the randomizer. This will allow you to replay the same randomization or share it with friends!");
         }
 
+
         private void btnToPatching_Click(object sender, EventArgs e)
         {
             tabContainer.SelectedTab = tabPatching;
+        }
+
+        private void tvwxdeltaFiles_NodeMouseHover(object sender, TreeNodeMouseHoverEventArgs e)
+        {
+            ttpInform.SetToolTip(tvwxdeltaFiles, "Double click a file to start the download!");
         }
     }
 }

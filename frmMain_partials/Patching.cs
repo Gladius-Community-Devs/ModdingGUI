@@ -197,7 +197,7 @@ namespace ModdingGUI
             using (Process process = new Process())
             {
                 process.StartInfo = psi;
-                process.OutputDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, null, rtbPatchingApplicationOutput); };
+                process.OutputDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, InfoColor, rtbPatchingApplicationOutput); };
                 process.ErrorDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, ErrorColor, rtbPatchingApplicationOutput); };
                 process.Start();
                 process.BeginOutputReadLine();
@@ -301,7 +301,7 @@ namespace ModdingGUI
             using (Process process = new Process())
             {
                 process.StartInfo = psi;
-                process.OutputDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, null, rtbPatchingApplicationOutput); };
+                process.OutputDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, InfoColor, rtbPatchingApplicationOutput); };
                 process.ErrorDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, ErrorColor, rtbPatchingApplicationOutput); };
                 process.Start();
                 process.BeginOutputReadLine();

@@ -106,7 +106,7 @@ namespace ModdingGUI
                 using (var process = new Process { StartInfo = startInfo })
                 {
                     // Subscribe to the output and error data received events
-                    process.OutputDataReceived += (sender, e) => LogProcessOutput(e, null, targetRtb);
+                    process.OutputDataReceived += (sender, e) => LogProcessOutput(e, InfoColor, targetRtb);
                     process.ErrorDataReceived += (sender, e) => LogProcessOutput(e, ErrorColor, targetRtb);
 
                     process.Start(); // Start the process

@@ -52,18 +52,22 @@
             txtPatchingApplicationISOPath = new TextBox();
             label8 = new Label();
             txtPatchApplicationHeader = new TextBox();
+            splitContainer4 = new SplitContainer();
+            tvwxdeltaFiles = new TreeView();
+            txtPatchingDownloadHeader = new TextBox();
+            txtPatchingCreationHeader = new TextBox();
+            btnPatchingUpload = new Button();
+            txtPatchingCreationVanISOPath = new TextBox();
             btnPatchingCreation = new Button();
+            label9 = new Label();
             btnPatchingCreationOutputPath = new Button();
+            label12 = new Label();
             label14 = new Label();
+            btnPatchingCreationVanISOPath = new Button();
             txtPatchingCreationOutputPath = new TextBox();
+            txtPatchingCreationModISOPath = new TextBox();
             btnPatchingCreationModISOPath = new Button();
             label13 = new Label();
-            txtPatchingCreationModISOPath = new TextBox();
-            btnPatchingCreationVanISOPath = new Button();
-            label12 = new Label();
-            txtPatchingCreationVanISOPath = new TextBox();
-            label9 = new Label();
-            txtPatchingCreationHeader = new TextBox();
             tabUnpacking = new TabPage();
             btnOpenUnpackLocation = new Button();
             rtbUnpackOutput = new RichTextBox();
@@ -159,6 +163,10 @@
             splitContainer3.Panel1.SuspendLayout();
             splitContainer3.Panel2.SuspendLayout();
             splitContainer3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer4).BeginInit();
+            splitContainer4.Panel1.SuspendLayout();
+            splitContainer4.Panel2.SuspendLayout();
+            splitContainer4.SuspendLayout();
             tabUnpacking.SuspendLayout();
             tabPacking.SuspendLayout();
             tabRandomizer.SuspendLayout();
@@ -304,18 +312,7 @@
             // 
             // splitContainer3.Panel2
             // 
-            splitContainer3.Panel2.Controls.Add(btnPatchingCreation);
-            splitContainer3.Panel2.Controls.Add(btnPatchingCreationOutputPath);
-            splitContainer3.Panel2.Controls.Add(label14);
-            splitContainer3.Panel2.Controls.Add(txtPatchingCreationOutputPath);
-            splitContainer3.Panel2.Controls.Add(btnPatchingCreationModISOPath);
-            splitContainer3.Panel2.Controls.Add(label13);
-            splitContainer3.Panel2.Controls.Add(txtPatchingCreationModISOPath);
-            splitContainer3.Panel2.Controls.Add(btnPatchingCreationVanISOPath);
-            splitContainer3.Panel2.Controls.Add(label12);
-            splitContainer3.Panel2.Controls.Add(txtPatchingCreationVanISOPath);
-            splitContainer3.Panel2.Controls.Add(label9);
-            splitContainer3.Panel2.Controls.Add(txtPatchingCreationHeader);
+            splitContainer3.Panel2.Controls.Add(splitContainer4);
             splitContainer3.Size = new Size(1221, 722);
             splitContainer3.SplitterDistance = 610;
             splitContainer3.TabIndex = 0;
@@ -413,49 +410,167 @@
             txtPatchApplicationHeader.Text = "xDelta Patch Application";
             txtPatchApplicationHeader.TextAlign = HorizontalAlignment.Center;
             // 
+            // splitContainer4
+            // 
+            splitContainer4.Dock = DockStyle.Fill;
+            splitContainer4.Location = new Point(0, 0);
+            splitContainer4.Name = "splitContainer4";
+            splitContainer4.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer4.Panel1
+            // 
+            splitContainer4.Panel1.Controls.Add(tvwxdeltaFiles);
+            splitContainer4.Panel1.Controls.Add(txtPatchingDownloadHeader);
+            // 
+            // splitContainer4.Panel2
+            // 
+            splitContainer4.Panel2.Controls.Add(txtPatchingCreationHeader);
+            splitContainer4.Panel2.Controls.Add(btnPatchingUpload);
+            splitContainer4.Panel2.Controls.Add(txtPatchingCreationVanISOPath);
+            splitContainer4.Panel2.Controls.Add(btnPatchingCreation);
+            splitContainer4.Panel2.Controls.Add(label9);
+            splitContainer4.Panel2.Controls.Add(btnPatchingCreationOutputPath);
+            splitContainer4.Panel2.Controls.Add(label12);
+            splitContainer4.Panel2.Controls.Add(label14);
+            splitContainer4.Panel2.Controls.Add(btnPatchingCreationVanISOPath);
+            splitContainer4.Panel2.Controls.Add(txtPatchingCreationOutputPath);
+            splitContainer4.Panel2.Controls.Add(txtPatchingCreationModISOPath);
+            splitContainer4.Panel2.Controls.Add(btnPatchingCreationModISOPath);
+            splitContainer4.Panel2.Controls.Add(label13);
+            splitContainer4.Size = new Size(605, 720);
+            splitContainer4.SplitterDistance = 321;
+            splitContainer4.TabIndex = 15;
+            // 
+            // tvwxdeltaFiles
+            // 
+            tvwxdeltaFiles.Dock = DockStyle.Bottom;
+            tvwxdeltaFiles.Location = new Point(0, 60);
+            tvwxdeltaFiles.Name = "tvwxdeltaFiles";
+            tvwxdeltaFiles.Size = new Size(605, 261);
+            tvwxdeltaFiles.TabIndex = 1;
+            tvwxdeltaFiles.NodeMouseHover += tvwxdeltaFiles_NodeMouseHover;
+            tvwxdeltaFiles.NodeMouseDoubleClick += tvwxdeltaFiles_NodeMouseDoubleClick;
+            // 
+            // txtPatchingDownloadHeader
+            // 
+            txtPatchingDownloadHeader.BackColor = SystemColors.Control;
+            txtPatchingDownloadHeader.Font = new Font("Segoe UI", 26.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtPatchingDownloadHeader.Location = new Point(3, 3);
+            txtPatchingDownloadHeader.Multiline = true;
+            txtPatchingDownloadHeader.Name = "txtPatchingDownloadHeader";
+            txtPatchingDownloadHeader.Size = new Size(599, 54);
+            txtPatchingDownloadHeader.TabIndex = 0;
+            txtPatchingDownloadHeader.Text = "xDelta Downloads";
+            txtPatchingDownloadHeader.TextAlign = HorizontalAlignment.Center;
+            // 
+            // txtPatchingCreationHeader
+            // 
+            txtPatchingCreationHeader.Font = new Font("Segoe UI", 26.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtPatchingCreationHeader.Location = new Point(2, 3);
+            txtPatchingCreationHeader.Name = "txtPatchingCreationHeader";
+            txtPatchingCreationHeader.ReadOnly = true;
+            txtPatchingCreationHeader.Size = new Size(601, 54);
+            txtPatchingCreationHeader.TabIndex = 15;
+            txtPatchingCreationHeader.Text = "xDelta Patch Creation";
+            txtPatchingCreationHeader.TextAlign = HorizontalAlignment.Center;
+            // 
+            // btnPatchingUpload
+            // 
+            btnPatchingUpload.Location = new Point(270, 317);
+            btnPatchingUpload.Name = "btnPatchingUpload";
+            btnPatchingUpload.Size = new Size(112, 23);
+            btnPatchingUpload.TabIndex = 27;
+            btnPatchingUpload.Text = "Upload xDelta";
+            btnPatchingUpload.UseVisualStyleBackColor = true;
+            btnPatchingUpload.Click += btnPatchingUpload_Click;
+            // 
+            // txtPatchingCreationVanISOPath
+            // 
+            txtPatchingCreationVanISOPath.Location = new Point(112, 101);
+            txtPatchingCreationVanISOPath.Name = "txtPatchingCreationVanISOPath";
+            txtPatchingCreationVanISOPath.ReadOnly = true;
+            txtPatchingCreationVanISOPath.Size = new Size(490, 23);
+            txtPatchingCreationVanISOPath.TabIndex = 17;
+            // 
             // btnPatchingCreation
             // 
-            btnPatchingCreation.Location = new Point(112, 411);
+            btnPatchingCreation.Location = new Point(112, 317);
             btnPatchingCreation.Name = "btnPatchingCreation";
             btnPatchingCreation.Size = new Size(152, 23);
-            btnPatchingCreation.TabIndex = 14;
+            btnPatchingCreation.TabIndex = 26;
             btnPatchingCreation.Text = "Create xDelta!";
             btnPatchingCreation.UseVisualStyleBackColor = true;
             btnPatchingCreation.Click += btnPatchingCreation_Click;
             // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(218, 59);
+            label9.Name = "label9";
+            label9.Size = new Size(178, 15);
+            label9.TabIndex = 16;
+            label9.Text = "For creating xDeltas to distribute";
+            // 
             // btnPatchingCreationOutputPath
             // 
-            btnPatchingCreationOutputPath.Location = new Point(112, 319);
+            btnPatchingCreationOutputPath.Location = new Point(112, 288);
             btnPatchingCreationOutputPath.Name = "btnPatchingCreationOutputPath";
             btnPatchingCreationOutputPath.Size = new Size(152, 23);
-            btnPatchingCreationOutputPath.TabIndex = 13;
+            btnPatchingCreationOutputPath.TabIndex = 25;
             btnPatchingCreationOutputPath.Text = "Get xDelta Path";
             btnPatchingCreationOutputPath.UseVisualStyleBackColor = true;
             btnPatchingCreationOutputPath.Click += btnPatchingCreationOutputPath_Click;
             // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(14, 104);
+            label12.Name = "label12";
+            label12.Size = new Size(92, 15);
+            label12.TabIndex = 18;
+            label12.Text = "Vanilla ISO Path:";
+            // 
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(22, 293);
+            label14.Location = new Point(22, 262);
             label14.Name = "label14";
             label14.Size = new Size(84, 15);
-            label14.TabIndex = 12;
+            label14.TabIndex = 24;
             label14.Text = "xDelta Output:";
+            // 
+            // btnPatchingCreationVanISOPath
+            // 
+            btnPatchingCreationVanISOPath.Location = new Point(112, 130);
+            btnPatchingCreationVanISOPath.Name = "btnPatchingCreationVanISOPath";
+            btnPatchingCreationVanISOPath.Size = new Size(152, 23);
+            btnPatchingCreationVanISOPath.TabIndex = 19;
+            btnPatchingCreationVanISOPath.Text = "Get Vanilla ISO Path";
+            btnPatchingCreationVanISOPath.UseVisualStyleBackColor = true;
+            btnPatchingCreationVanISOPath.Click += btnPatchingCreationVanISOPath_Click;
             // 
             // txtPatchingCreationOutputPath
             // 
-            txtPatchingCreationOutputPath.Location = new Point(112, 290);
+            txtPatchingCreationOutputPath.Location = new Point(112, 259);
             txtPatchingCreationOutputPath.Name = "txtPatchingCreationOutputPath";
             txtPatchingCreationOutputPath.ReadOnly = true;
             txtPatchingCreationOutputPath.Size = new Size(490, 23);
-            txtPatchingCreationOutputPath.TabIndex = 11;
+            txtPatchingCreationOutputPath.TabIndex = 23;
+            // 
+            // txtPatchingCreationModISOPath
+            // 
+            txtPatchingCreationModISOPath.Location = new Point(112, 179);
+            txtPatchingCreationModISOPath.Name = "txtPatchingCreationModISOPath";
+            txtPatchingCreationModISOPath.ReadOnly = true;
+            txtPatchingCreationModISOPath.Size = new Size(490, 23);
+            txtPatchingCreationModISOPath.TabIndex = 20;
             // 
             // btnPatchingCreationModISOPath
             // 
-            btnPatchingCreationModISOPath.Location = new Point(112, 239);
+            btnPatchingCreationModISOPath.Location = new Point(112, 208);
             btnPatchingCreationModISOPath.Name = "btnPatchingCreationModISOPath";
             btnPatchingCreationModISOPath.Size = new Size(152, 23);
-            btnPatchingCreationModISOPath.TabIndex = 10;
+            btnPatchingCreationModISOPath.TabIndex = 22;
             btnPatchingCreationModISOPath.Text = "Get Modded ISO Path";
             btnPatchingCreationModISOPath.UseVisualStyleBackColor = true;
             btnPatchingCreationModISOPath.Click += btnPatchingCreationModISOPath_Click;
@@ -463,66 +578,11 @@
             // label13
             // 
             label13.AutoSize = true;
-            label13.Location = new Point(3, 213);
+            label13.Location = new Point(3, 182);
             label13.Name = "label13";
             label13.Size = new Size(103, 15);
-            label13.TabIndex = 9;
+            label13.TabIndex = 21;
             label13.Text = "Modded ISO Path:";
-            // 
-            // txtPatchingCreationModISOPath
-            // 
-            txtPatchingCreationModISOPath.Location = new Point(112, 210);
-            txtPatchingCreationModISOPath.Name = "txtPatchingCreationModISOPath";
-            txtPatchingCreationModISOPath.ReadOnly = true;
-            txtPatchingCreationModISOPath.Size = new Size(490, 23);
-            txtPatchingCreationModISOPath.TabIndex = 8;
-            // 
-            // btnPatchingCreationVanISOPath
-            // 
-            btnPatchingCreationVanISOPath.Location = new Point(112, 161);
-            btnPatchingCreationVanISOPath.Name = "btnPatchingCreationVanISOPath";
-            btnPatchingCreationVanISOPath.Size = new Size(152, 23);
-            btnPatchingCreationVanISOPath.TabIndex = 7;
-            btnPatchingCreationVanISOPath.Text = "Get Vanilla ISO Path";
-            btnPatchingCreationVanISOPath.UseVisualStyleBackColor = true;
-            btnPatchingCreationVanISOPath.Click += btnPatchingCreationVanISOPath_Click;
-            // 
-            // label12
-            // 
-            label12.AutoSize = true;
-            label12.Location = new Point(14, 135);
-            label12.Name = "label12";
-            label12.Size = new Size(92, 15);
-            label12.TabIndex = 6;
-            label12.Text = "Vanilla ISO Path:";
-            // 
-            // txtPatchingCreationVanISOPath
-            // 
-            txtPatchingCreationVanISOPath.Location = new Point(112, 132);
-            txtPatchingCreationVanISOPath.Name = "txtPatchingCreationVanISOPath";
-            txtPatchingCreationVanISOPath.ReadOnly = true;
-            txtPatchingCreationVanISOPath.Size = new Size(490, 23);
-            txtPatchingCreationVanISOPath.TabIndex = 5;
-            // 
-            // label9
-            // 
-            label9.AutoSize = true;
-            label9.Location = new Point(218, 60);
-            label9.Name = "label9";
-            label9.Size = new Size(178, 15);
-            label9.TabIndex = 2;
-            label9.Text = "For creating xDeltas to distribute";
-            // 
-            // txtPatchingCreationHeader
-            // 
-            txtPatchingCreationHeader.Font = new Font("Segoe UI", 26.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            txtPatchingCreationHeader.Location = new Point(3, 3);
-            txtPatchingCreationHeader.Name = "txtPatchingCreationHeader";
-            txtPatchingCreationHeader.ReadOnly = true;
-            txtPatchingCreationHeader.Size = new Size(601, 54);
-            txtPatchingCreationHeader.TabIndex = 1;
-            txtPatchingCreationHeader.Text = "xDelta Patch Creation";
-            txtPatchingCreationHeader.TextAlign = HorizontalAlignment.Center;
             // 
             // tabUnpacking
             // 
@@ -1486,9 +1546,14 @@
             splitContainer3.Panel1.ResumeLayout(false);
             splitContainer3.Panel1.PerformLayout();
             splitContainer3.Panel2.ResumeLayout(false);
-            splitContainer3.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
             splitContainer3.ResumeLayout(false);
+            splitContainer4.Panel1.ResumeLayout(false);
+            splitContainer4.Panel1.PerformLayout();
+            splitContainer4.Panel2.ResumeLayout(false);
+            splitContainer4.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer4).EndInit();
+            splitContainer4.ResumeLayout(false);
             tabUnpacking.ResumeLayout(false);
             tabUnpacking.PerformLayout();
             tabPacking.ResumeLayout(false);
@@ -1631,23 +1696,27 @@
         private Label label10;
         private TextBox txtPatchingApplicationISOPath;
         private Label label8;
-        private Label label9;
-        private TextBox txtPatchingCreationHeader;
         private Button btnPatchingApplicationXdeltaPath;
         private Label label11;
         private TextBox txtPatchingApplicationXdeltaPath;
         private Button btnPatchingApplicationApply;
         private RichTextBox rtbPatchingApplicationOutput;
+        private Button btnToPatching;
+        private SplitContainer splitContainer4;
+        private Button btnPatchingCreation;
+        private Button btnPatchingCreationOutputPath;
+        private Label label14;
+        private TextBox txtPatchingCreationOutputPath;
         private Button btnPatchingCreationModISOPath;
         private Label label13;
         private TextBox txtPatchingCreationModISOPath;
         private Button btnPatchingCreationVanISOPath;
         private Label label12;
         private TextBox txtPatchingCreationVanISOPath;
-        private Button btnPatchingCreationOutputPath;
-        private Label label14;
-        private TextBox txtPatchingCreationOutputPath;
-        private Button btnPatchingCreation;
-        private Button btnToPatching;
+        private Label label9;
+        private TextBox txtPatchingCreationHeader;
+        private Button btnPatchingUpload;
+        private TextBox txtPatchingDownloadHeader;
+        private TreeView tvwxdeltaFiles;
     }
 }
