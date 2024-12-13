@@ -249,8 +249,16 @@ namespace ModdingGUI
         // Modified method to collect logs instead of directly appending to the UI
         private void AppendRandomizerLog(string message, Color color)
         {
-            randomizerLogBuffer.Add((message, color));
+            if (InvokeRequired)
+            {
+                Invoke(new Action<string, Color>(AppendRandomizerLog), message, color);
+            }
+            else
+            {
+                randomizerLogBuffer.Add((message, color));
+            }
         }
+
 
         private async void RandomizeHeroes(string projectFolder)
         {
@@ -461,6 +469,458 @@ namespace ModdingGUI
             }
         }
 
+        private void RandomizeStatsets(string projectFolder, IProgress<int> progress)
+        {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string gladiatorsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "gladiators.txt");
+            string statsetsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "statsets.txt");
+
+            if (!File.Exists(gladiatorsPath))
+            {
+                AppendRandomizerLog($"gladiators.txt not found at: {gladiatorsPath}", ErrorColor);
+                return;
+            }
+
+            if (!File.Exists(statsetsPath))
+            {
+                AppendRandomizerLog($"statsets.txt not found at: {statsetsPath}", ErrorColor);
+                return;
+            }
+
+            try
+            {
+                // Parse gladiators and statsets
+                var gladiators = ParseGladiators(projectFolder);
+                var statSets = ParseStatSets(projectFolder).Keys.ToList();
+
+                if (statSets.Count == 0)
+                {
+                    AppendRandomizerLog("No statsets available to assign.", WarningColor);
+                    return;
+                }
+
+                AppendRandomizerLog($"Total statsets available: {statSets.Count}", InfoColor);
+
+                int processed = 0;
+
+                // Assign a random statset to each gladiator
+                foreach (var gladiator in gladiators)
+                {
+                    int originalStatSet = gladiator.StatSet;
+                    int newStatSet = statSets[random.Next(statSets.Count)];
+
+                    gladiator.StatSet = newStatSet;
+                    AppendRandomizerLog($"Assigned StatSet {newStatSet} to Gladiator '{gladiator.Name}' (Original StatSet: {originalStatSet})", InfoColor);
+
+                    processed++;
+                    progress.Report(processed);
+                }
+
+                // Save updated gladiators back to gladiators.txt
+                SaveGladiators(projectFolder, gladiators);
+                AppendRandomizerLog("gladiators.txt updated with randomized statsets.", SuccessColor);
+            }
+            catch (Exception ex)
+            {
+                AppendRandomizerLog($"Error during statset randomization: {ex.Message}", ErrorColor);
+            }
+        }
+
+        private void RandomizeItemsets(string projectFolder, IProgress<int> progress)
+        {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string gladiatorsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "gladiators.txt");
+            string itemsetsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "itemsets.txt");
+            string itemsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "items.tok");
+
+            if (!File.Exists(gladiatorsPath))
+            {
+                AppendRandomizerLog($"gladiators.txt not found at: {gladiatorsPath}", ErrorColor);
+                return;
+            }
+
+            if (!File.Exists(itemsetsPath))
+            {
+                AppendRandomizerLog($"itemsets.txt not found at: {itemsetsPath}", ErrorColor);
+                return;
+            }
+
+            if (!File.Exists(itemsPath))
+            {
+                AppendRandomizerLog($"items.tok not found at: {itemsPath}", ErrorColor);
+                return;
+            }
+
+            try
+            {
+                var gladiators = ParseGladiators(projectFolder);
+                var itemSets = ParseItemSetsFull(projectFolder);
+                var itemAffinities = ParseItemsForAffinityAndType(itemsPath, out Dictionary<string, string> itemWeaponTypes);
+
+                if (itemSets.Count == 0)
+                {
+                    AppendRandomizerLog("No itemsets available to assign.", WarningColor);
+                    return;
+                }
+
+                var itemsetAffinities = DetermineItemsetAffinity(projectFolder, itemSets, itemAffinities);
+
+                // Filter valid itemsets based on weapon coverage (already implemented)
+                var validItemsetAffinities = FilterValidItemsets(itemsetAffinities, itemSets);
+                if (validItemsetAffinities.Count == 0)
+                {
+                    AppendRandomizerLog("No valid itemsets available after filtering based on affinity and weapon coverage.", ErrorColor);
+                    return;
+                }
+
+                // Log itemset affinities
+                foreach (var kvp in validItemsetAffinities)
+                {
+                    AppendRandomizerLog($"Itemset {kvp.Key} Affinity: {kvp.Value}", InfoColor);
+                }
+
+                // Create affinity pools
+                var affinityPools = CreateAffinityPools(validItemsetAffinities);
+
+                // Log affinity pools
+                foreach (var pool in affinityPools)
+                {
+                    string poolContents = pool.Value.Count > 0 ? string.Join(", ", pool.Value) : "None";
+                    AppendRandomizerLog($"Affinity Pool '{pool.Key}': ItemSets [{poolContents}]", InfoColor);
+                }
+
+                int processed = 0;
+
+                foreach (var gladiator in gladiators)
+                {
+                    string gladiatorAffinity = gladiator.Affinity?.Trim() ?? "None";
+                    List<int> possibleItemsets = new List<int>();
+
+                    if (gladiatorAffinity.Equals("None", StringComparison.OrdinalIgnoreCase))
+                    {
+                        possibleItemsets.AddRange(validItemsetAffinities.Keys);
+                        AppendRandomizerLog($"Gladiator '{gladiator.Name}' Affinity 'None' can use any ItemSet.", InfoColor);
+                    }
+                    else
+                    {
+                        if (affinityPools.ContainsKey(gladiatorAffinity))
+                        {
+                            possibleItemsets.AddRange(affinityPools[gladiatorAffinity]);
+                        }
+                        if (affinityPools.ContainsKey("Light"))
+                        {
+                            possibleItemsets.AddRange(affinityPools["Light"]);
+                        }
+
+                        AppendRandomizerLog($"Gladiator '{gladiator.Name}' Affinity '{gladiatorAffinity}' can use ItemSets: {string.Join(", ", possibleItemsets)}", InfoColor);
+                    }
+
+                    // **NEW REQUIREMENT:** If the gladiator is Archer or ArcherF, filter only sets that contain a Bow
+                    if (gladiator.Class.Equals("Archer", StringComparison.OrdinalIgnoreCase)
+                        || gladiator.Class.Equals("ArcherF", StringComparison.OrdinalIgnoreCase))
+                    {
+                        possibleItemsets = possibleItemsets.Where(id => ItemsetContainsBow(itemSets[id], itemWeaponTypes)).ToList();
+                        AppendRandomizerLog($"Gladiator '{gladiator.Name}' is an Archer-type. Valid Bow ItemSets: {string.Join(", ", possibleItemsets)}", InfoColor);
+                    }
+
+                    if (possibleItemsets.Count == 0)
+                    {
+                        AppendRandomizerLog($"No valid itemsets available for Gladiator '{gladiator.Name}' with Affinity '{gladiatorAffinity}'.", ErrorColor);
+                        processed++;
+                        progress.Report(processed);
+                        continue;
+                    }
+
+                    int originalItemSet = gladiator.ItemSet;
+                    int newItemSet = possibleItemsets[random.Next(possibleItemsets.Count)];
+                    gladiator.ItemSet = newItemSet;
+
+                    AppendRandomizerLog($"Assigned ItemSet {newItemSet} to Gladiator '{gladiator.Name}' (Original ItemSet: {originalItemSet})", InfoColor);
+
+                    processed++;
+                    progress.Report(processed);
+                }
+
+                SaveGladiators(projectFolder, gladiators);
+                AppendRandomizerLog("gladiators.txt updated with randomized itemsets.", SuccessColor);
+            }
+            catch (Exception ex)
+            {
+                AppendRandomizerLog($"Error during itemset randomization: {ex.Message}", ErrorColor);
+            }
+        }
+
+        private bool ItemsetContainsBow(List<string> itemLines, Dictionary<string, string> itemWeaponTypes)
+        {
+            // Check if any weapon line in this itemset corresponds to a weapon with type "Bow"
+            foreach (var line in itemLines)
+            {
+                if (line.Contains("[Weapon]"))
+                {
+                    // Extract the weapon name. We know the format: "firstLevel lastLevel ItemName [Weapon]"
+                    // Let's split by space and rejoin appropriately or use a regex.
+                    var parts = line.Split(' ');
+                    // The weapon name starts from index 2 until we hit "[Weapon]"
+                    // Find the [Weapon] index
+                    int weaponIndex = Array.IndexOf(parts, "[Weapon]");
+                    if (weaponIndex > 2)
+                    {
+                        // Weapon name is everything from parts[2] to parts[weaponIndex - 1]
+                        string weaponName = string.Join(" ", parts.Skip(2).Take(weaponIndex - 2));
+                        if (itemWeaponTypes.TryGetValue(weaponName, out string weaponType))
+                        {
+                            if (weaponType.Equals("Bow", StringComparison.OrdinalIgnoreCase))
+                                return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+
+        private Dictionary<string, string> ParseItemsForAffinityAndType(string itemsPath,
+    out Dictionary<string, string> itemWeaponTypes)
+        {
+            var itemAffinities = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            itemWeaponTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            var itemCreateRegex = new Regex(@"ITEMCREATE:\s*""([^""]+)""\s*,\s*""(Weapon)""\s*,\s*""([^""]+)""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var affinityRegex = new Regex(@"ITEMAFFINITY:\s*(\w+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+            string currentItemName = string.Empty;
+            bool isWeapon = false;
+
+            foreach (var line in File.ReadAllLines(itemsPath))
+            {
+                var createMatch = itemCreateRegex.Match(line);
+                if (createMatch.Success)
+                {
+                    currentItemName = createMatch.Groups[1].Value.Trim();
+                    string weaponCheck = createMatch.Groups[2].Value.Trim();
+                    string weaponType = createMatch.Groups[3].Value.Trim();
+
+                    if (weaponCheck.Equals("Weapon", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Store the weapon type for this item
+                        itemWeaponTypes[currentItemName] = weaponType;
+                        isWeapon = true;
+                    }
+                    else
+                    {
+                        isWeapon = false;
+                    }
+
+                    continue;
+                }
+
+                var affinityMatch = affinityRegex.Match(line);
+                if (affinityMatch.Success && !string.IsNullOrEmpty(currentItemName))
+                {
+                    string affinity = affinityMatch.Groups[1].Value.Trim();
+                    itemAffinities[currentItemName] = affinity;
+                    currentItemName = string.Empty; // Reset after capturing affinity
+                    isWeapon = false;
+                }
+            }
+
+            return itemAffinities;
+        }
+
+
+
+        // Enum for Gladiator Affinities
+        private enum GladiatorAffinity
+        {
+            None,
+            Dark,
+            Light,
+            Air,
+            Fire,
+            Earth,
+            Water
+        }
+
+        private Dictionary<int, string> DetermineItemsetAffinity(
+    string projectFolder,
+    Dictionary<int, List<string>> itemSets,
+    Dictionary<string, string> itemAffinities)
+        {
+            var itemsetAffinities = new Dictionary<int, string>();
+            var weaponRegex = new Regex(@"\[Weapon\]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var weaponNameRegex = new Regex(@"^\s*\d+\s+\d+\s+(.*?)\s+\[Weapon\]\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+            foreach (var kvp in itemSets)
+            {
+                int itemsetId = kvp.Key;
+                List<string> items = kvp.Value;
+                AppendRandomizerLog($"Debug: Checking Itemset {itemsetId} lines:", Color.Cyan);
+                foreach (var line in items)
+                {
+                    AppendRandomizerLog($"  '{line}' -> Contains [Weapon]? {line.Contains("[Weapon]")}", Color.Cyan);
+                }
+
+                // Now attempt to find the last weapon line again
+                string lastWeaponLine = items.LastOrDefault(item => item.Contains("[Weapon]"));
+                if (string.IsNullOrEmpty(lastWeaponLine))
+                {
+                    AppendRandomizerLog($"Itemset {itemsetId} has no weapons. Assigned Affinity: None", Color.Red);
+                    itemsetAffinities[itemsetId] = "None";
+                    continue;
+                }
+
+
+                // Extract weapon name
+                var weaponNameMatch = weaponNameRegex.Match(lastWeaponLine);
+                if (weaponNameMatch.Success)
+                {
+                    string weaponName = weaponNameMatch.Groups[1].Value.Trim();
+                    AppendRandomizerLog($"Itemset {itemsetId} extracted Weapon Name: '{weaponName}'", Color.Blue);
+
+                    if (itemAffinities.TryGetValue(weaponName, out string affinity))
+                    {
+                        itemsetAffinities[itemsetId] = affinity;
+                        AppendRandomizerLog($"Itemset {itemsetId} Weapon '{weaponName}' Affinity: {affinity}", Color.Green);
+                    }
+                    else
+                    {
+                        itemsetAffinities[itemsetId] = "None";
+                        AppendRandomizerLog($"Affinity for Weapon '{weaponName}' not found. Assigned 'None' to Itemset {itemsetId}", Color.Orange);
+                    }
+                }
+                else
+                {
+                    itemsetAffinities[itemsetId] = "None";
+                    AppendRandomizerLog($"Failed to extract weapon name from line: '{lastWeaponLine}'. Assigned 'None' to Itemset {itemsetId}", Color.Red);
+                }
+            }
+
+            return itemsetAffinities;
+        }
+
+        private bool HasFullWeaponCoverage(List<string> items)
+        {
+            // A set of all covered levels
+            HashSet<int> coveredLevels = new HashSet<int>();
+            // We'll assume an item line format like: "1 2 Pair of Daggers [Weapon]"
+            // where the first number is the first level and the second is the last level.
+            // We only care about lines that contain [Weapon].
+            foreach (var line in items)
+            {
+                if (line.Contains("[Weapon]"))
+                {
+                    // Parse the first two integers
+                    // Example line: "1 2 Pair of Daggers [Weapon]"
+                    var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 2 && int.TryParse(parts[0], out int firstLevel) && int.TryParse(parts[1], out int lastLevel))
+                    {
+                        // Add all levels in [firstLevel, lastLevel] to the coverage set,
+                        // but only if they are within 1 to 17.
+                        for (int level = firstLevel; level <= lastLevel; level++)
+                        {
+                            if (level >= 1 && level <= 17)
+                                coveredLevels.Add(level);
+                        }
+                    }
+                }
+            }
+
+            // Check if all levels from 1 to 17 are covered
+            for (int level = 1; level <= 17; level++)
+            {
+                if (!coveredLevels.Contains(level))
+                {
+                    return false; // Missing at least one level
+                }
+            }
+
+            return true; // All levels 1 through 17 covered
+        }
+
+        private Dictionary<int, string> FilterValidItemsets(Dictionary<int, string> itemsetAffinities, Dictionary<int, List<string>> itemSets)
+        {
+            var validItemsets = new Dictionary<int, string>();
+
+            foreach (var kvp in itemsetAffinities)
+            {
+                int itemsetId = kvp.Key;
+                string affinity = kvp.Value;
+
+                // Ensure the itemset exists in itemSets
+                if (!itemSets.ContainsKey(itemsetId))
+                    continue;
+
+                var items = itemSets[itemsetId];
+
+                // Check full weapon coverage
+                if (!HasFullWeaponCoverage(items))
+                {
+                    AppendRandomizerLog($"Itemset {itemsetId} does not have full weapon coverage (1-17). Skipping.", WarningColor);
+                    continue;
+                }
+
+                validItemsets.Add(itemsetId, affinity);
+            }
+
+            return validItemsets;
+        }
+
+        private Dictionary<string, List<int>> CreateAffinityPools(Dictionary<int, string> validItemsetAffinities)
+        {
+            var affinityPools = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Dark", new List<int>() },
+        { "Light", new List<int>() },
+        { "Air", new List<int>() },
+        { "Fire", new List<int>() },
+        { "Earth", new List<int>() },
+        { "Water", new List<int>() },
+        { "None", new List<int>() } // Optional: Not used since 'None' can equip any
+    };
+
+            foreach (var kvp in validItemsetAffinities)
+            {
+                int itemsetId = kvp.Key;
+                string affinity = kvp.Value;
+
+                if (affinityPools.ContainsKey(affinity))
+                {
+                    affinityPools[affinity].Add(itemsetId);
+                }
+                else
+                {
+                    // If affinity is unrecognized, log a warning and skip
+                    AppendRandomizerLog($"Unrecognized affinity '{affinity}' for ItemSet {itemsetId}. Skipping.", WarningColor);
+                }
+            }
+
+            return affinityPools;
+        }
+
+        private void SaveGladiators(string projectFolder, List<GladiatorEntry> gladiators)
+        {
+            string gladiatorsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "gladiators.txt");
+            List<string> lines = new List<string>();
+
+            foreach (var gladiator in gladiators)
+            {
+                lines.Add($"Name: {gladiator.Name}");
+                lines.Add($"Class: {gladiator.Class}");
+                lines.Add($"Outfit: {gladiator.Outfit}");
+                lines.Add($"Affinity: {gladiator.Affinity}");
+                lines.Add($"Tint set: {gladiator.TintSet}");
+                lines.Add($"Skill set: {gladiator.SkillSet}");
+                lines.Add($"Stat set: {gladiator.StatSet}");
+                lines.Add($"Item set: {gladiator.ItemSet}");
+                lines.Add($"School: {gladiator.School}");
+                lines.Add(""); // Blank line between entries
+            }
+
+            // Ensure LF line endings by joining with "\n"
+            string fileContent = string.Join("\n", lines);
+            File.WriteAllText(gladiatorsPath, fileContent);
+        }
 
         private void RemoveAllRecruits(string projectFolder, IProgress<int> progress, ConcurrentQueue<(string message, Color color)> logMessages)
         {
@@ -672,6 +1132,10 @@ namespace ModdingGUI
                     {
                         entry.Outfit = int.Parse(line.Split(": ")[1]);
                     }
+                    else if(line.StartsWith("Affinity: ") && entry != null)
+                    {
+                        entry.Affinity = line.Split(": ")[1];
+                    }
                     else if (line.StartsWith("Tint: ") && entry != null)
                     {
                         entry.TintSet = int.Parse(line.Split(": ")[1]);
@@ -687,6 +1151,10 @@ namespace ModdingGUI
                     else if (line.StartsWith("Item set: ") && entry != null)
                     {
                         entry.ItemSet = int.Parse(line.Split(": ")[1]);
+                    }
+                    else if (line.StartsWith("School: ") && entry != null)
+                    {
+                        entry.School = int.Parse(line.Split(": ")[1]);
                         entries.Add(entry);
                         entry = null;
                     }
@@ -795,6 +1263,46 @@ namespace ModdingGUI
 
             return itemSets;
         }
+
+        private Dictionary<int, List<string>> ParseItemSetsFull(string projectFolder)
+        {
+            string itemsetsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "itemsets.txt");
+            var itemSets = new Dictionary<int, List<string>>();
+            int currentItemsetId = -1; // No current itemset until we read one
+            var itemsetRegex = new Regex(@"^Itemset\s+(\d+):", RegexOptions.IgnoreCase);
+            var itemLineRegex = new Regex(@"^\d+\s+\d+\s+"); // Lines that start with two numbers
+
+            foreach (var line in File.ReadAllLines(itemsetsPath))
+            {
+                string trimmed = line.Trim();
+                if (string.IsNullOrEmpty(trimmed))
+                    continue;
+
+                // Check if this line defines a new itemset
+                var setMatch = itemsetRegex.Match(trimmed);
+                if (setMatch.Success)
+                {
+                    currentItemsetId = int.Parse(setMatch.Groups[1].Value);
+                    if (!itemSets.ContainsKey(currentItemsetId))
+                        itemSets[currentItemsetId] = new List<string>();
+                    continue;
+                }
+
+                // If we're inside an itemset and encounter an item line, store it
+                if (currentItemsetId >= 0 && itemLineRegex.IsMatch(trimmed))
+                {
+                    // Add the FULL LINE to retain [Weapon]
+                    itemSets[currentItemsetId].Add(trimmed);
+                }
+                else
+                {
+                    // Line is not recognized as an item line; ignore or log
+                }
+            }
+
+            return itemSets;
+        }
+
 
         private Dictionary<int, List<string>> ParseSkillSets(string projectFolder)
         {
@@ -951,6 +1459,18 @@ namespace ModdingGUI
                                     modifiedContent.AppendLine(line);
                                     continue;
                                 }
+                            }
+                            if (trimmedLine.StartsWith("URSULAEASE:", StringComparison.OrdinalIgnoreCase))
+                            {
+                                modifiedContent.AppendLine("URSULAEASE: 0");
+                                fileModified = true;
+                                continue;
+                            }
+                            else if (trimmedLine.StartsWith("VALENSEASE:", StringComparison.OrdinalIgnoreCase))
+                            {
+                                modifiedContent.AppendLine("VALENSEASE: 0");
+                                fileModified = true;
+                                continue;
                             }
                             // Modify UNITDB lines within TEAM: 0,X section
                             if (unitDbRegex.IsMatch(trimmedLine))
@@ -1629,10 +2149,12 @@ namespace ModdingGUI
     {
         public string Name { get; set; }
         public string Class { get; set; }
+        public string Affinity { get; set; }
         public int ItemSet { get; set; }
         public int SkillSet { get; set; }
         public int TintSet { get; set; }
         public int Outfit { get; set; }
         public int StatSet { get; set; }
+        public int School { get; set; }
     }
 }

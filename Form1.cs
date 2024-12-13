@@ -416,6 +416,65 @@ namespace ModdingGUI
                     AppendLog("In-game randomization applied successfully.", SuccessColor, rtbPackOutput);
                 }
 
+                // 7. Randomize Statsets if the corresponding checkbox is checked
+                if (chbRandomStatsets.Checked)
+                {
+                    lblRandomizeStatus.Text = "Randomizing statsets...";
+                    AppendLog("Starting statset randomization...", InfoColor, rtbPackOutput);
+
+                    // Initialize progress reporting
+                    pgbRandomizeStatus.Minimum = 0;
+                    pgbRandomizeStatus.Value = 0;
+
+                    // Parse gladiators to determine total work
+                    var gladiators = ParseGladiators(projectFolder);
+                    var totalGladiators = gladiators.Count;
+                    pgbRandomizeStatus.Maximum = totalGladiators;
+
+                    var statSets = ParseStatSets(projectFolder).Keys.ToList();
+                    if (statSets.Count == 0)
+                    {
+                        MessageBox.Show("No statsets available to randomize.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        AppendLog("No statsets available to randomize.", ErrorColor, rtbPackOutput);
+                    }
+                    else
+                    {
+                        var statsetProgress = new Progress<int>(value =>
+                        {
+                            pgbRandomizeStatus.Value = value;
+                        });
+
+                        await Task.Run(() => RandomizeStatsets(projectFolder, statsetProgress));
+                        AppendLog("Statsets randomized successfully.", SuccessColor, rtbPackOutput);
+                    }
+                }
+
+                // 8. Randomize Itemsets if the corresponding checkbox is checked
+                if (chbRandomItemsets.Checked)
+                {
+                    lblRandomizeStatus.Text = "Randomizing itemsets...";
+                    AppendLog("Starting itemset randomization...", InfoColor, rtbPackOutput);
+
+                    // Initialize progress reporting
+                    pgbRandomizeStatus.Minimum = 0;
+                    pgbRandomizeStatus.Value = 0;
+
+                    // Parse gladiators to determine total work
+                    var gladiatorsForItemset = ParseGladiators(projectFolder);
+                    var totalGladiatorsForItemset = gladiatorsForItemset.Count;
+                    pgbRandomizeStatus.Maximum = totalGladiatorsForItemset;
+
+                    // Execute itemset randomization asynchronously
+                    var itemsetProgress = new Progress<int>(value =>
+                    {
+                        pgbRandomizeStatus.Value = value;
+                    });
+
+                    await Task.Run(() => RandomizeItemsets(projectFolder, itemsetProgress));
+                    AppendLog("Itemsets randomized successfully.", SuccessColor, rtbPackOutput);
+                }
+
+
                 // If logging is enabled, process and display the collected log messages
                 if (randomizerLogsMenuItem.Checked)
                 {
@@ -742,6 +801,16 @@ namespace ModdingGUI
         private void tvwxdeltaFiles_NodeMouseHover(object sender, TreeNodeMouseHoverEventArgs e)
         {
             ttpInform.SetToolTip(tvwxdeltaFiles, "Double click a file to start the download!");
+        }
+
+        private void chbRandomStatsets_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandomStatsets, "Randomizes the statsets of all enemy units in the game. WARNING: this makes the game very unpredictable!!");
+        }
+
+        private void chbRandomItemsets_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandomItemsets, "Randomizes the itemsets of all enemy units in the game. WARNING: visual glitches may appear!");
         }
     }
 }

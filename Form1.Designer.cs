@@ -96,6 +96,8 @@
             lblRandomizeStatus = new Label();
             pgbRandomizeStatus = new ProgressBar();
             grpBaseOptions = new GroupBox();
+            chbRandomItemsets = new CheckBox();
+            chbRandomStatsets = new CheckBox();
             chbRandomizedEnemies = new CheckBox();
             chbRandomPermaDeath = new CheckBox();
             chbRandomNoRecruits = new CheckBox();
@@ -444,6 +446,7 @@
             // tvwxdeltaFiles
             // 
             tvwxdeltaFiles.Dock = DockStyle.Bottom;
+            tvwxdeltaFiles.Font = new Font("Segoe UI", 18F, FontStyle.Regular, GraphicsUnit.Point, 0);
             tvwxdeltaFiles.Location = new Point(0, 60);
             tvwxdeltaFiles.Name = "tvwxdeltaFiles";
             tvwxdeltaFiles.Size = new Size(605, 261);
@@ -878,6 +881,8 @@
             // 
             // grpBaseOptions
             // 
+            grpBaseOptions.Controls.Add(chbRandomItemsets);
+            grpBaseOptions.Controls.Add(chbRandomStatsets);
             grpBaseOptions.Controls.Add(chbRandomizedEnemies);
             grpBaseOptions.Controls.Add(chbRandomPermaDeath);
             grpBaseOptions.Controls.Add(chbRandomNoRecruits);
@@ -890,6 +895,28 @@
             grpBaseOptions.TabIndex = 5;
             grpBaseOptions.TabStop = false;
             grpBaseOptions.Text = "Randomized Options";
+            // 
+            // chbRandomItemsets
+            // 
+            chbRandomItemsets.AutoSize = true;
+            chbRandomItemsets.Location = new Point(6, 172);
+            chbRandomItemsets.Name = "chbRandomItemsets";
+            chbRandomItemsets.Size = new Size(156, 19);
+            chbRandomItemsets.TabIndex = 9;
+            chbRandomItemsets.Text = "Randomize enemy items";
+            chbRandomItemsets.UseVisualStyleBackColor = true;
+            chbRandomItemsets.MouseHover += chbRandomItemsets_MouseHover;
+            // 
+            // chbRandomStatsets
+            // 
+            chbRandomStatsets.AutoSize = true;
+            chbRandomStatsets.Location = new Point(6, 147);
+            chbRandomStatsets.Name = "chbRandomStatsets";
+            chbRandomStatsets.Size = new Size(152, 19);
+            chbRandomStatsets.TabIndex = 8;
+            chbRandomStatsets.Text = "Random enemy statsets";
+            chbRandomStatsets.UseVisualStyleBackColor = true;
+            chbRandomStatsets.MouseHover += chbRandomStatsets_MouseHover;
             // 
             // chbRandomizedEnemies
             // 
@@ -1718,5 +1745,7 @@
         private Button btnPatchingUpload;
         private TextBox txtPatchingDownloadHeader;
         private TreeView tvwxdeltaFiles;
+        private CheckBox chbRandomStatsets;
+        private CheckBox chbRandomItemsets;
     }
 }

@@ -193,7 +193,6 @@ namespace ModdingGUI
                 RedirectStandardError = true,
                 CreateNoWindow = true,
             };
-
             using (Process process = new Process())
             {
                 process.StartInfo = psi;
@@ -209,6 +208,7 @@ namespace ModdingGUI
                     throw new Exception("xdelta3 patching failed.");
                 }
             }
+            txtISOPath.Text = outputIsoPath;
         }
         private void btnPatchingCreationVanISOPath_Click(object sender, EventArgs e)
         {
