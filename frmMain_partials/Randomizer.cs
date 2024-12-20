@@ -1496,7 +1496,7 @@ namespace ModdingGUI
                                         if (string.IsNullOrEmpty(unitName))
                                         {
                                             // Randomize this enemy unit
-                                            string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", -2, 2, 1, 0, -1, \"Boss\", \"Prop\", \"DarkGod\", \"\", 0, 1, 0, 0, 0, 0, 25, 0, 0";
+                                            string newUnitDbLine = $"UNITDB:\t\"\", 99, \"{startPosition}\", -2, 2, 1, 0, -1, \"Boss\", \"Prop\", \"DarkGod\", \"AffinityBeastGreater\", 0, 1, 0, 0, 0, 0, 25, 0, 0";
                                             modifiedContent.AppendLine(newUnitDbLine);
                                             fileModified = true;
                                         }
