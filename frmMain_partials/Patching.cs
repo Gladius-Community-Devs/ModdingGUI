@@ -5,9 +5,11 @@ namespace ModdingGUI
 {
     public partial class frmMain : Form
     {
+        // Updated event handler for selecting the Patching Application ISO path
         private async void btnPatchingApplicationISOPath_Click(object sender, EventArgs e)
         {
             btnPatchingApplicationApply.Enabled = false;
+
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.Filter = "ISO files (*.iso;*.nkit.iso)|*.iso;*.nkit.iso|All files (*.*)|*.*";
@@ -19,9 +21,10 @@ namespace ModdingGUI
 
             string isoPath = txtPatchingApplicationISOPath.Text;
 
-            if (isoPath.Contains("(") || isoPath.Contains(")"))
+            // Check if the ISO filename contains parentheses
+            string fileName = Path.GetFileName(isoPath);
+            if (fileName.Contains('(') || fileName.Contains(')'))
             {
-                // Prompt the user for action
                 var result = MessageBox.Show(
                     "The selected ISO file name contains parentheses. Do you want to create a copy with parentheses replaced by spaces?",
                     "Filename Issue",
@@ -33,25 +36,18 @@ namespace ModdingGUI
                 {
                     try
                     {
-                        // Extract directory and filename
                         string directory = Path.GetDirectoryName(isoPath);
-                        string originalFilename = Path.GetFileName(isoPath);
-
-                        if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(originalFilename))
+                        if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(fileName))
                         {
                             MessageBox.Show("Invalid ISO path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return;
                         }
 
-                        // Create the new filename by replacing parentheses with spaces
-                        string newFilename = originalFilename.Replace("(", " ").Replace(")", "");
-
-                        // Optionally, you can trim extra spaces or handle multiple spaces if needed
-                        // newFilename = Regex.Replace(newFilename, @"\s+", " ").Trim();
-
+                        // Replace parentheses with spaces in the filename
+                        string newFilename = fileName.Replace("(", " ").Replace(")", "");
                         string newPath = Path.Combine(directory, newFilename);
 
-                        // Check if the new file already exists to avoid overwriting
+                        // Check if the new file already exists
                         if (File.Exists(newPath))
                         {
                             var overwriteResult = MessageBox.Show(
@@ -63,7 +59,6 @@ namespace ModdingGUI
 
                             if (overwriteResult != DialogResult.Yes)
                             {
-                                // If user chooses not to overwrite, abort the operation
                                 return;
                             }
                         }
@@ -86,39 +81,56 @@ namespace ModdingGUI
                     catch (UnauthorizedAccessException ex)
                     {
                         MessageBox.Show($"Access denied: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        AppendLog($"Access denied: {ex.Message}", ErrorColor, rtbPatchingApplicationOutput);
+                        return;
                     }
                     catch (PathTooLongException ex)
                     {
                         MessageBox.Show($"Path too long: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        AppendLog($"Path too long: {ex.Message}", ErrorColor, rtbPatchingApplicationOutput);
+                        return;
                     }
                     catch (IOException ex)
                     {
                         MessageBox.Show($"I/O error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        AppendLog($"I/O error: {ex.Message}", ErrorColor, rtbPatchingApplicationOutput);
+                        return;
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        AppendLog($"Unexpected error: {ex.Message}", ErrorColor, rtbPatchingApplicationOutput);
+                        return;
                     }
                 }
                 else
                 {
-                    // User selected "No", so abort the operation
-                    AppendLog("Please select a valid ISO file.", ErrorColor, rtbPatchingApplicationOutput);
+                    // User chose not to create a copy
+                    AppendLog("Please select a valid ISO file without parentheses.", ErrorColor, rtbPatchingApplicationOutput);
                     return;
                 }
             }
 
+            // Validate the entire file path for parentheses
+            if (!ValidateFilePathNoParentheses(isoPath))
+            {
+                AppendLog("The file path contains parentheses. Please rename your folders or move your ISO somewhere else.", ErrorColor, rtbPatchingApplicationOutput);
+                return;
+            }
+
+            // Proceed with MD5 verification
             AppendLog("Verifying ISO MD5 hash...", InfoColor, rtbPatchingApplicationOutput);
-            string md5Hash = await ComputeMD5Async(txtPatchingApplicationISOPath.Text);
+            string md5Hash = await ComputeMD5Async(isoPath);
             if (!string.Equals(md5Hash, "a78d6e1c9de69886ce827ad2a7507339", StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show("The selected ISO does not match the expected Vanilla ISO. Proceeding may cause unexpected results.");
+                MessageBox.Show("The selected ISO does not match the expected Vanilla ISO. Proceeding may cause unexpected results.", "MD5 Mismatch", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 AppendLog("MD5 hash does not match the expected Vanilla ISO hash.\nProceed if you know what you are doing.", ErrorColor, rtbPatchingApplicationOutput);
             }
             else
             {
                 AppendLog("Verified!", SuccessColor, rtbPatchingApplicationOutput);
             }
+
             btnPatchingApplicationApply.Enabled = true;
         }
 

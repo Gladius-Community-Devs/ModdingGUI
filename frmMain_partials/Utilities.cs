@@ -258,6 +258,17 @@ namespace ModdingGUI
             }
         }
 
+        // Helper function to validate that the file path contains no parentheses
+        private bool ValidateFilePathNoParentheses(string filepath)
+        {
+            if (filepath.Contains('(') || filepath.Contains(')'))
+            {
+                MessageBox.Show("File path cannot contain parentheses.", "Invalid Path", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+            return true;
+        }
+
         private bool IsProjectDirectory(string projectPath)
         {
             projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);

@@ -148,13 +148,15 @@ namespace ModdingGUI
         // Event handler for the 'Select ISO' button click event
         private void btnSelectISO_Click(object sender, EventArgs e)
         {
-            // Create and configure an OpenFileDialog
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*"; // Set the file filter
-                if (openFileDialog.ShowDialog() == DialogResult.OK) // Show the dialog and check if the user selected a file
+                openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*";
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    txtISOPath.Text = openFileDialog.FileName; // Set the ISO path text box to the selected file
+                    if (ValidateFilePathNoParentheses(openFileDialog.FileName))
+                    {
+                        txtISOPath.Text = openFileDialog.FileName;
+                    }
                 }
             }
         }
@@ -162,15 +164,18 @@ namespace ModdingGUI
         // Event handler for the 'Select Pack Path' button click event
         private void btnPackPath_Click(object sender, EventArgs e)
         {
-            // Create and configure a FolderBrowserDialog
             using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
             {
-                if (folderBrowserDialog.ShowDialog() == DialogResult.OK) // Show the dialog and check if the user selected a folder
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                 {
-                    txtPackPath.Text = folderBrowserDialog.SelectedPath; // Set the pack path text box to the selected folder
-                    txtRandomizerPath.Text = folderBrowserDialog.SelectedPath; // Set the randomizer path text box to the selected folder
-                    btnRandomize.Enabled = true; // Enable the randomize button
-                    btnPack.Enabled = true; // Enable the pack button   
+                    string selectedPath = folderBrowserDialog.SelectedPath;
+                    if (ValidateFilePathNoParentheses(selectedPath))
+                    {
+                        txtPackPath.Text = selectedPath;
+                        txtRandomizerPath.Text = selectedPath;
+                        btnRandomize.Enabled = true;
+                        btnPack.Enabled = true;
+                    }
                 }
             }
         }
