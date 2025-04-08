@@ -402,9 +402,18 @@ namespace ModdingGUI
                 // Generate a list of gladiator names with a "_random" suffix
                 List<string> gladiatorNames = gladiatorEntries.Select(g => g.Name + "_random").ToList();
 
-                if (gladiatorNames.Count < 14)
+                // Determine how many gladiators to generate based on whether 40 gladiators mode is enabled
+                int teamSize = chbRandom40Glads.Checked ? 34 : 14;
+                
+                // Log which mode we're using
+                if (chbRandom40Glads.Checked)
                 {
-                    AppendRandomizerLog("Not enough gladiator names available for team randomization.", ErrorColor);
+                    AppendRandomizerLog($"40 Gladiators mode enabled. Generating {teamSize} random team members.", InfoColor);
+                }
+
+                if (gladiatorNames.Count < teamSize)
+                {
+                    AppendRandomizerLog($"Not enough gladiator names available for team randomization. Need {teamSize} but only have {gladiatorNames.Count}.", ErrorColor);
                     return;
                 }
 
@@ -432,7 +441,7 @@ namespace ModdingGUI
                 List<string> teamNames = new List<string>();
                 List<string> assignedClasses = new List<string>();
 
-                for (int i = 0; i < 14; i++)
+                for (int i = 0; i < teamSize; i++)
                 {
                     string gladiatorName = gladiatorNames[i];
 
@@ -451,6 +460,7 @@ namespace ModdingGUI
                 AppendUnitsToFile(projectFolder, teamNames, assignedClasses, gladiatorEntries, statSets, itemSets, skillSets, "ursulanordagh.tok");
 
                 AppendRandomizerLog("Team randomized and saved.", SuccessColor);
+                AppendRandomizerLog(teamSize.ToString() + " Gladiators team successfully created!", SuccessColor);
             }
             catch (Exception ex)
             {
@@ -665,7 +675,7 @@ namespace ModdingGUI
                     int weaponIndex = Array.IndexOf(parts, "[Weapon]");
                     if (weaponIndex > 2)
                     {
-                        // Weapon name is everything from parts[2] to parts[weaponIndex - 1]
+                        // Weapon name is everything from parts[2] to parts[weaponIndex - 2]
                         string weaponName = string.Join(" ", parts.Skip(2).Take(weaponIndex - 2));
                         if (itemWeaponTypes.TryGetValue(weaponName, out string weaponType))
                         {
@@ -1029,12 +1039,22 @@ namespace ModdingGUI
         {
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "school", fileName);
-            List<string> outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 15000" };
-
+            
+            // Declare outputLines before using it.
+            List<string> outputLines;
+            if (chbRandom40Glads.Checked)
+            {
+                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 50000" };
+            }
+            else
+            {
+                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 15000" };
+            }
+            
             // Add CREATEUNIT blocks for each hero
             AppendUnitBlocks(outputLines, unitNames, unitClasses, gladiatorEntries, statSets, itemSets, skillSets);
-
-            // Write to file
+            
+            // Write to file and log
             File.WriteAllLines(filePath, outputLines);
             AppendRandomizerLog($"Randomized units written to {filePath}", SuccessColor);
         }

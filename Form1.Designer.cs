@@ -85,6 +85,7 @@
             btnPackPath = new Button();
             txtPackPath = new TextBox();
             tabRandomizer = new TabPage();
+            label15 = new Label();
             grpGameVersion = new GroupBox();
             rbnLeonarths = new RadioButton();
             rbnRagnaroks = new RadioButton();
@@ -96,6 +97,7 @@
             lblRandomizeStatus = new Label();
             pgbRandomizeStatus = new ProgressBar();
             grpBaseOptions = new GroupBox();
+            chbRandom40Glads = new CheckBox();
             chbRandomItemsets = new CheckBox();
             chbRandomStatsets = new CheckBox();
             chbRandomizedEnemies = new CheckBox();
@@ -639,6 +641,7 @@
             txtUnpackPath.Size = new Size(181, 23);
             txtUnpackPath.TabIndex = 2;
             txtUnpackPath.Text = "Enter project name here";
+            txtUnpackPath.Click += txtUnpackPath_Click;
             // 
             // btnSelectISO
             // 
@@ -715,7 +718,7 @@
             btnOpenPackLocation.Name = "btnOpenPackLocation";
             btnOpenPackLocation.Size = new Size(159, 23);
             btnOpenPackLocation.TabIndex = 5;
-            btnOpenPackLocation.Text = "Open containing folder";
+            btnOpenPackLocation.Text = "Open ISO location";
             btnOpenPackLocation.UseVisualStyleBackColor = true;
             btnOpenPackLocation.Click += btnOpenPackLocation_Click;
             // 
@@ -761,6 +764,7 @@
             // 
             // tabRandomizer
             // 
+            tabRandomizer.Controls.Add(label15);
             tabRandomizer.Controls.Add(grpGameVersion);
             tabRandomizer.Controls.Add(grpHeroSelection);
             tabRandomizer.Controls.Add(txtSeed);
@@ -776,6 +780,15 @@
             tabRandomizer.TabIndex = 2;
             tabRandomizer.Text = "Randomizer";
             tabRandomizer.UseVisualStyleBackColor = true;
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new Point(8, 393);
+            label15.Name = "label15";
+            label15.Size = new Size(717, 15);
+            label15.TabIndex = 12;
+            label15.Text = "To re-randomize with different options, you will need to unpack again. To randomize with the same options, just click randomize again!";
             // 
             // grpGameVersion
             // 
@@ -881,6 +894,7 @@
             // 
             // grpBaseOptions
             // 
+            grpBaseOptions.Controls.Add(chbRandom40Glads);
             grpBaseOptions.Controls.Add(chbRandomItemsets);
             grpBaseOptions.Controls.Add(chbRandomStatsets);
             grpBaseOptions.Controls.Add(chbRandomizedEnemies);
@@ -895,6 +909,18 @@
             grpBaseOptions.TabIndex = 5;
             grpBaseOptions.TabStop = false;
             grpBaseOptions.Text = "Randomized Options";
+            // 
+            // chbRandom40Glads
+            // 
+            chbRandom40Glads.AutoSize = true;
+            chbRandom40Glads.Location = new Point(6, 197);
+            chbRandom40Glads.Name = "chbRandom40Glads";
+            chbRandom40Glads.Size = new Size(112, 19);
+            chbRandom40Glads.TabIndex = 10;
+            chbRandom40Glads.Text = "40 random units";
+            chbRandom40Glads.UseVisualStyleBackColor = true;
+            chbRandom40Glads.CheckedChanged += chbRandom40Glads_CheckedChanged;
+            chbRandom40Glads.MouseHover += chbRandom40Glads_MouseHover;
             // 
             // chbRandomItemsets
             // 
@@ -1747,5 +1773,7 @@
         private TreeView tvwxdeltaFiles;
         private CheckBox chbRandomStatsets;
         private CheckBox chbRandomItemsets;
+        private CheckBox chbRandom40Glads;
+        private Label label15;
     }
 }

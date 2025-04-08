@@ -34,6 +34,13 @@ namespace ModdingGUI
             // Get the user input for the folder name, trim whitespace, and replace spaces with underscores
             string userInput = txtUnpackPath.Text.Trim().Replace(" ", "_");
 
+            // Added validation for empty userInput
+            if (string.IsNullOrEmpty(userInput))
+            {
+                MessageBox.Show("Please enter a valid folder name.");
+                return;
+            }
+
             // Validate that the ISO file exists and the user input is not empty
             if (!ValidateFilePath(isoPath, "ISO"))
             {
@@ -108,7 +115,8 @@ namespace ModdingGUI
                     if (!ValidateItemsets(selectedFolder))
                     {
                         valid = false; // Exit the method if validation fails
-                    };
+                    }
+                    ;
                     if (!ValidateGladiatorsFile(selectedFolder))
                     {
                         valid = false;
@@ -221,10 +229,9 @@ namespace ModdingGUI
                 LoadFileListAsync();
 
                 // Remove specific tabs on load
-                tabContainer.TabPages.Remove(tabRandomizer);
+                // tabContainer.TabPages.Remove(tabRandomizer);
                 tabContainer.TabPages.Remove(tabIngameRandom);
                 tabContainer.TabPages.Remove(tabTeamBuilder);
-                // tabContainer.TabPages.Remove(tabPatching);
 
                 // Load projects
                 LoadProjects();
@@ -270,26 +277,153 @@ namespace ModdingGUI
             }
         }
 
-        private void btnRandomizerPath_Click(object sender, EventArgs e)
+        private async void btnRandomizerPath_Click(object sender, EventArgs e)
         {
-            using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
-            {
-                if (folderBrowserDialog.ShowDialog() == DialogResult.OK) // Show the dialog and check if the user selected a folder
-                {
-                    string selectedPath = folderBrowserDialog.SelectedPath; // Get the selected folder path
-                    var directories = Directory.GetDirectories(selectedPath); // Get all directories inside the selected folder
+            // Check if a valid project path is already selected
+            string currentPath = txtRandomizerPath.Text.Trim();
+            bool hasValidProject = !string.IsNullOrEmpty(currentPath) &&
+                                  Directory.Exists(currentPath) &&
+                                  Directory.GetDirectories(currentPath)
+                                          .Any(d => d.Contains("_ISO")) &&
+                                  Directory.GetDirectories(currentPath)
+                                          .Any(d => d.Contains("_BEC"));
 
-                    // Check if there are exactly 2 folders and if one contains '_ISO' and the other contains '_BEC'
-                    if (directories.Length == 2 && directories.Any(d => d.Contains("_ISO")) && directories.Any(d => d.Contains("_BEC")))
+            if (!hasValidProject)
+            {
+                // No valid project selected, ask if user wants to select an ISO to randomize
+                var selectChoice = MessageBox.Show(
+                    "No valid project selected. Do you want to select an ISO file to randomize?",
+                    "Select ISO for Randomization",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (selectChoice == DialogResult.Yes) // User wants to select an ISO file
+                {
+                    // Open file dialog for ISO selection
+                    using (OpenFileDialog openFileDialog = new OpenFileDialog())
                     {
-                        txtRandomizerPath.Text = selectedPath; // Set the randomizer path text box to the selected folder
-                        btnRandomize.Enabled = true; // Enable the randomize button
-                        txtPackPath.Text = selectedPath; // Set the pack path text box to the selected folder
-                        btnPack.Enabled = true; // Enable the pack button 
+                        openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*";
+                        if (openFileDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            string isoPath = openFileDialog.FileName;
+
+                            if (ValidateFilePathNoParentheses(isoPath))
+                            {
+                                // Ask user for project name
+                                string projectName = Path.GetFileNameWithoutExtension(isoPath);
+                                string userInput = Microsoft.VisualBasic.Interaction.InputBox(
+                                    "Enter a name for the project folder:",
+                                    "Project Name",
+                                    projectName);
+
+                                if (string.IsNullOrEmpty(userInput))
+                                {
+                                    MessageBox.Show("Please enter a valid folder name.");
+                                    return;
+                                }
+
+                                // Replace spaces with underscores for consistency
+                                userInput = userInput.Trim().Replace(" ", "_");
+
+                                // Validate the ISO file exists
+                                if (!ValidateFilePath(isoPath, "ISO"))
+                                {
+                                    return;
+                                }
+
+                                // Store the current tab to return to later
+                                TabPage currentTab = tabContainer.SelectedTab;
+
+                                // Switch to the unpack tab to show progress
+                                tabContainer.SelectedTab = tabUnpacking;
+
+                                AppendLog("Starting unpack operation...", InfoColor);
+
+                                try
+                                {
+                                    // Populate the unpack tab fields to show what's being unpacked
+                                    txtISOPath.Text = isoPath;
+                                    txtUnpackPath.Text = userInput;
+
+                                    // Create the top-level folder based on the sanitized user input
+                                    string topLevelFolder = Path.Combine(Directory.GetCurrentDirectory(), userInput);
+
+                                    // Ensure the top-level folder exists
+                                    if (!Directory.Exists(topLevelFolder))
+                                    {
+                                        Directory.CreateDirectory(topLevelFolder);
+                                        AppendLog($"Top-level folder created: {topLevelFolder}", InfoColor);
+                                    }
+
+                                    // Normalize the path for batch file generation
+                                    string normalizedTopLevelFolder = NormalizePath(EnsureTrailingSeparator(topLevelFolder));
+
+                                    // Generate the batch file content for unpacking
+                                    string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
+
+                                    // Run the batch file asynchronously within the top-level folder
+                                    await RunBatchFileAsync(batchContent, topLevelFolder);
+
+                                    AppendLog("Unpacking completed successfully.", SuccessColor);
+
+                                    // Update the pack path text box to point to the created unpack folder
+                                    txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                                    txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                                    txtPatchingCreationModISOPath.Text = NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso");
+                                    txtPatchingCreationOutputPath.Text = NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta");
+                                    btnRandomize.Enabled = true;
+                                    btnPack.Enabled = true;
+                                    LoadProjects();
+
+                                    // Show a message that the ISO was successfully unpacked
+                                    MessageBox.Show("ISO unpacked successfully. You can now randomize the project.", "Unpacking Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                                    // Switch back to the randomizer tab
+                                    tabContainer.SelectedTab = tabRandomizer;
+                                }
+                                catch (Exception ex)
+                                {
+                                    AppendLog("Error during unpacking: " + ex.Message, ErrorColor);
+                                    MessageBox.Show($"Error during unpacking: {ex.Message}", "Unpacking Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                                    // Switch back to the randomizer tab even if there was an error
+                                    tabContainer.SelectedTab = tabRandomizer;
+                                }
+                            }
+                        }
                     }
-                    else
+                }
+                else
+                {
+                    // User doesn't want to select an ISO
+                    MessageBox.Show("Please select a project from the sidebar or unpack an ISO in the Unpack tab.");
+                }
+            }
+            else
+            {
+                // Project already selected, show folder browser to select a different project
+                using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
+                {
+                    if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                     {
-                        MessageBox.Show("Expected an unpacked project. Use the Unpack tab to create one, or ensure the selected folder contains _ISO and _BEC folders.");// Show an error message
+                        string selectedPath = folderBrowserDialog.SelectedPath;
+                        var directories = Directory.GetDirectories(selectedPath);
+
+                        // Check if there are folders containing '_ISO' and '_BEC'
+                        if (directories.Any(d => d.Contains("_ISO")) && directories.Any(d => d.Contains("_BEC")))
+                        {
+                            txtRandomizerPath.Text = selectedPath;
+                            btnRandomize.Enabled = true;
+                            txtPackPath.Text = selectedPath;
+                            btnPack.Enabled = true;
+
+                            // Try to load randomizer settings for the selected project
+                            LoadRandomizerSettings(selectedPath);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Expected an unpacked project. Use the Unpack tab to create one, or ensure the selected folder contains _ISO and _BEC folders.");
+                        }
                     }
                 }
             }
@@ -316,6 +450,9 @@ namespace ModdingGUI
                     AppendLog("Invalid project folder selected.", WarningColor, rtbPackOutput);
                     return;
                 }
+
+                // Save the current randomizer settings before proceeding
+                SaveRandomizerSettings(projectFolder);
 
                 // 1. Randomize Heroes if the corresponding checkbox is checked
                 if (chbRandomHeroes.Checked)
@@ -436,8 +573,9 @@ namespace ModdingGUI
                     var totalGladiators = gladiators.Count;
                     pgbRandomizeStatus.Maximum = totalGladiators;
 
-                    var statSets = ParseStatSets(projectFolder).Keys.ToList();
-                    if (statSets.Count == 0)
+                    var statSets = ParseStatSets(projectFolder)?.Keys.ToList();
+                    // Added null check here
+                    if (statSets == null || statSets.Count == 0)
                     {
                         MessageBox.Show("No statsets available to randomize.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         AppendLog("No statsets available to randomize.", ErrorColor, rtbPackOutput);
@@ -507,14 +645,35 @@ namespace ModdingGUI
                 // Re-enable the randomize button regardless of success or failure
                 btnRandomize.Enabled = true;
 
+                // Clear all message queues to prevent memory leaks
+                randomizerLogBuffer.Clear();
+
+                // Make sure any other concurrent queues used in the method are also cleared
+                // (Even though they may be local variables that would be garbage collected)
+
+                // Append completion log
+                AppendLog("Randomization completed. (That was snappy!)", SuccessColor, rtbPackOutput);
+
+                // Re-enable the randomize button regardless of success or failure
+                btnRandomize.Enabled = true;
+
+                // Clear all message queues to prevent memory leaks
+                randomizerLogBuffer.Clear();
+
+                // Make sure any other concurrent queues used in the method are also cleared
+                // (Even though they may be local variables that would be garbage collected)
+
                 // Append completion log
                 AppendLog("Randomization completed. (That was snappy!)", SuccessColor, rtbPackOutput);
 
                 // Switch to the packing tab
+                MessageBox.Show("Click the Pack button to build your ISO!", "Packing step", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 tabContainer.SelectedTab = tabPacking;
+
+                // Flash the Pack button to draw the user's attention to it
+                await FlashButtonAsync(btnPack, Color.LightGreen, 10, 300);
             }
         }
-
 
         private void txtUnpackPath_Click(object sender, EventArgs e)
         {
@@ -669,6 +828,9 @@ namespace ModdingGUI
                     txtUnpackPath.Text = projectName;
                     btnPack.Enabled = true;
                     btnRandomize.Enabled = true;
+
+                    // Try to load randomizer settings for the selected project
+                    LoadRandomizerSettings(projectPath);
                 }
                 else
                 {
@@ -816,6 +978,58 @@ namespace ModdingGUI
         private void chbRandomItemsets_MouseHover(object sender, EventArgs e)
         {
             ttpInform.SetToolTip(chbRandomItemsets, "Randomizes the itemsets of all enemy units in the game. WARNING: visual glitches may appear!");
+        }
+
+        private void chbRandom40Glads_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chbRandom40Glads.Checked)
+            {
+                var result = MessageBox.Show(
+                    "This feature requires the '40 Gladiators' Gecko code to be enabled.\n" +
+                    "Without this code, the game will crash.\n\n" +
+                    "Do you already have this Gecko code enabled?",
+                    "Gecko Code Required",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (result == DialogResult.No)
+                {
+                    chbRandom40Glads.Checked = false;
+                }
+            }
+        }
+
+        private void chbRandom40Glads_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandom40Glads, "Enables 40 gladiators. REQUIRES the '40 Gladiators' Gecko code to be enabled.\nWithout the code, the game will crash.");
+        }
+        // Add this method to the frmMain class to handle button flashing animation
+        private async Task FlashButtonAsync(Button button, Color flashColor, int flashCount = 3, int flashDuration = 300)
+        {
+            Color originalColor = button.BackColor;
+            bool originalUseVisualStyleBackColor = button.UseVisualStyleBackColor;
+
+            try
+            {
+                for (int i = 0; i < flashCount; i++)
+                {
+                    // Flash on
+                    button.UseVisualStyleBackColor = false;
+                    button.BackColor = flashColor;
+                    await Task.Delay(flashDuration);
+
+                    // Flash off
+                    button.UseVisualStyleBackColor = originalUseVisualStyleBackColor;
+                    button.BackColor = originalColor;
+                    await Task.Delay(flashDuration / 2);
+                }
+            }
+            finally
+            {
+                // Ensure the button returns to its original state
+                button.UseVisualStyleBackColor = originalUseVisualStyleBackColor;
+                button.BackColor = originalColor;
+            }
         }
     }
 }

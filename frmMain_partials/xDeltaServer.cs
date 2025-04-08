@@ -82,25 +82,36 @@ namespace ModdingGUI
                 }
                 else if (webViewAuth.Source.AbsoluteUri == "https://gladiuscommunity.com/")
                 {
-                   //  mainForm.AppendLog("Redirected to base URL after authentication. Verifying session...", InfoColor, mainForm.rtbPatchingApplicationOutput);
+                    //  mainForm.AppendLog("Redirected to base URL after authentication. Verifying session...", InfoColor, mainForm.rtbPatchingApplicationOutput);
 
                     // Extract cookies from WebView2 and sync with HttpClient
                     var cookies = await webViewAuth.CoreWebView2.CookieManager.GetCookiesAsync("https://gladiuscommunity.com/");
                     foreach (var cookie in cookies)
                     {
-                        // mainForm.AppendLog($"WebView2 Cookie: {cookie.Name} = {cookie.Value}", InfoColor, mainForm.rtbPatchingApplicationOutput);
+                        // Validate and enforce expected domain to prevent cookie injection
+                        string domain = string.IsNullOrEmpty(cookie.Domain) || !cookie.Domain.EndsWith("gladiuscommunity.com")
+                                            ? "gladiuscommunity.com"
+                                            : cookie.Domain.TrimStart('.');
 
-                        // Ensure domain and path are correctly set
-                        string domain = string.IsNullOrEmpty(cookie.Domain) ? "gladiuscommunity.com" : cookie.Domain.TrimStart('.');
                         string path = string.IsNullOrEmpty(cookie.Path) ? "/" : cookie.Path;
 
-                        handler.CookieContainer.Add(
-                            new Uri("https://gladiuscommunity.com/"),
-                            new Cookie(cookie.Name, cookie.Value, path, domain)
-                        );
+                        // Create a new Cookie preserving security attributes
+                        Cookie newCookie = new Cookie(cookie.Name, cookie.Value, path, domain);
+                        newCookie.Secure = cookie.IsSecure;         // Preserve Secure flag
+                        newCookie.HttpOnly = cookie.IsHttpOnly;      // Preserve HttpOnly flag
+                        if (cookie.Expires != default(DateTime))
+                        {
+                            newCookie.Expires = cookie.Expires;      // Preserve expiration, if set
+                        }
 
-                        // mainForm.AppendLog($"Synchronizing cookie: {cookie.Name} = {cookie.Value}", InfoColor, mainForm.rtbPatchingApplicationOutput);
+                        // Only add the cookie if its domain is as expected
+                        if (domain == "gladiuscommunity.com")
+                        {
+                            handler.CookieContainer.Add(new Uri("https://gladiuscommunity.com/"), newCookie);
+                        }
+                        // Else, do not add cookies from unexpected domains to avoid potential spoofing.
                     }
+
 
                     // Check if the session cookie exists
                     Uri uri = new Uri("https://gladiuscommunity.com/");
@@ -244,6 +255,17 @@ namespace ModdingGUI
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     string filePath = openFileDialog.FileName;
+
+                    // New: File size check to avoid resource exhaustion (e.g., DoS via huge file)
+                    FileInfo fileInfo = new FileInfo(filePath);
+                    const long maxFileSize = 15 * 1024 * 1024; // 15 MB limit
+                    if (fileInfo.Length > maxFileSize)
+                    {
+                        AppendLog("File is too large. Maximum allowed size is 15 MB.", ErrorColor, rtbPatchingApplicationOutput);
+                        MessageBox.Show("File exceeds the maximum allowed size of 15 MB.", "File Too Large", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
                     string fileName = Path.GetFileName(filePath);
 
                     try
