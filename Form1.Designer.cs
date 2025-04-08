@@ -156,6 +156,7 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
+            chbRandomMaxMoney = new CheckBox();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -894,6 +895,7 @@
             // 
             // grpBaseOptions
             // 
+            grpBaseOptions.Controls.Add(chbRandomMaxMoney);
             grpBaseOptions.Controls.Add(chbRandom40Glads);
             grpBaseOptions.Controls.Add(chbRandomItemsets);
             grpBaseOptions.Controls.Add(chbRandomStatsets);
@@ -1575,6 +1577,17 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
+            // chbRandomMaxMoney
+            // 
+            chbRandomMaxMoney.AutoSize = true;
+            chbRandomMaxMoney.Location = new Point(6, 222);
+            chbRandomMaxMoney.Name = "chbRandomMaxMoney";
+            chbRandomMaxMoney.Size = new Size(96, 19);
+            chbRandomMaxMoney.TabIndex = 11;
+            chbRandomMaxMoney.Text = "Get fat stacks";
+            chbRandomMaxMoney.UseVisualStyleBackColor = true;
+            chbRandomMaxMoney.MouseHover += chbRandomMaxMoney_MouseHover;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1775,5 +1788,6 @@
         private CheckBox chbRandomItemsets;
         private CheckBox chbRandom40Glads;
         private Label label15;
+        private CheckBox chbRandomMaxMoney;
     }
 }

@@ -1031,5 +1031,10 @@ namespace ModdingGUI
                 button.BackColor = originalColor;
             }
         }
+
+        private void chbRandomMaxMoney_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandomMaxMoney, "Start with the maximum amount of money");
+        }
     }
 }

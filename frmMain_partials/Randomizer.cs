@@ -1042,7 +1042,12 @@ namespace ModdingGUI
             
             // Declare outputLines before using it.
             List<string> outputLines;
-            if (chbRandom40Glads.Checked)
+            if (chbRandomMaxMoney.Checked)
+            {
+                // Set Gold to 999980999 if max money is checked
+                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 999980999" };
+            }
+            else if (chbRandom40Glads.Checked)
             {
                 outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 50000" };
             }

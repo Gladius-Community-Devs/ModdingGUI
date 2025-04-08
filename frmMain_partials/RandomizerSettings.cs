@@ -18,7 +18,8 @@ namespace ModdingGUI
             public bool RandomStatsets { get; set; }
             public bool RandomItemsets { get; set; }
             public bool Random40Glads { get; set; }
-            
+            public bool MaxMoney { get; set; }
+
             // Radio button selections
             public string HeroSelection { get; set; } // "Valens" or "Ursula"
             public string GameVersion { get; set; }   // "Vanilla", "Ragnaroks", or "Leonarths"
@@ -41,7 +42,8 @@ namespace ModdingGUI
                 this.RandomStatsets = form.chbRandomStatsets.Checked;
                 this.RandomItemsets = form.chbRandomItemsets.Checked;
                 this.Random40Glads = form.chbRandom40Glads.Checked;
-                
+                this.MaxMoney = form.chbRandomMaxMoney.Checked;
+
                 // Get hero selection
                 this.HeroSelection = form.rbnValens.Checked ? "Valens" : "Ursula";
                 
@@ -69,7 +71,8 @@ namespace ModdingGUI
                 form.chbRandomStatsets.Checked = this.RandomStatsets;
                 form.chbRandomItemsets.Checked = this.RandomItemsets;
                 form.chbRandom40Glads.Checked = this.Random40Glads;
-                
+                form.chbRandomMaxMoney.Checked = this.MaxMoney;
+
                 // Apply hero selection
                 if (this.HeroSelection == "Valens")
                     form.rbnValens.Checked = true;
