@@ -1003,7 +1003,6 @@ namespace ModdingGUI
         {
             ttpInform.SetToolTip(chbRandom40Glads, "Enables 40 gladiators. REQUIRES the '40 Gladiators' Gecko code to be enabled.\nWithout the code, the game will crash.");
         }
-        // Add this method to the frmMain class to handle button flashing animation
         private async Task FlashButtonAsync(Button button, Color flashColor, int flashCount = 3, int flashDuration = 300)
         {
             Color originalColor = button.BackColor;
@@ -1035,6 +1034,30 @@ namespace ModdingGUI
         private void chbRandomMaxMoney_MouseHover(object sender, EventArgs e)
         {
             ttpInform.SetToolTip(chbRandomMaxMoney, "Start with the maximum amount of money");
+        }
+
+        private void randomizerTestingMenuItem_Click(object sender, EventArgs e)
+        {
+            if (randomizerTestingMenuItem.Checked)
+            {
+                MessageBox.Show("Randomizer testing is already enabled. Please disable it to proceed.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                // Launch randomizer testing
+                HandleRandomizerTesting();
+                // Uncheck the menu item after testing is complete
+                randomizerTestingMenuItem.Checked = false;
+            }
+            else
+            {
+                // Check if the randomizer testing is already running
+                if (randomizerTestingMenuItem.Checked)
+                {
+                    MessageBox.Show("Randomizer testing is already running. Please disable it to proceed.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                // Enable the menu item and launch randomizer testing
+                randomizerTestingMenuItem.Checked = true;
+                HandleRandomizerTesting();
+            }
         }
     }
 }

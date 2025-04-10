@@ -267,7 +267,7 @@ namespace ModdingGUI
             btnRandomize.Enabled = false;
 
             // Clear the log buffer
-            randomizerLogBuffer.Clear();
+            // randomizerLogBuffer.Clear();
 
             try
             {
@@ -328,6 +328,10 @@ namespace ModdingGUI
                             assignedClasses.Add(candidateClass);
                             heroClassMap[heroName] = candidateClass;
                             classAssigned = true;
+                            
+                            // Log the class assignment with the expected format
+                            AppendRandomizerLog($"Assigned class '{candidateClass}' to hero '{heroName}'", InfoColor);
+                            
                             break;
                         }
                     }
@@ -386,7 +390,7 @@ namespace ModdingGUI
             btnRandomize.Enabled = false;
 
             // Clear the log buffer
-            randomizerLogBuffer.Clear();
+            // randomizerLogBuffer.Clear();
 
             try
             {
@@ -623,14 +627,6 @@ namespace ModdingGUI
                         }
 
                         AppendRandomizerLog($"Gladiator '{gladiator.Name}' Affinity '{gladiatorAffinity}' can use ItemSets: {string.Join(", ", possibleItemsets)}", InfoColor);
-                    }
-
-                    // **NEW REQUIREMENT:** If the gladiator is Archer or ArcherF, filter only sets that contain a Bow
-                    if (gladiator.Class.Equals("Archer", StringComparison.OrdinalIgnoreCase)
-                        || gladiator.Class.Equals("ArcherF", StringComparison.OrdinalIgnoreCase))
-                    {
-                        possibleItemsets = possibleItemsets.Where(id => ItemsetContainsBow(itemSets[id], itemWeaponTypes)).ToList();
-                        AppendRandomizerLog($"Gladiator '{gladiator.Name}' is an Archer-type. Valid Bow ItemSets: {string.Join(", ", possibleItemsets)}", InfoColor);
                     }
 
                     if (possibleItemsets.Count == 0)

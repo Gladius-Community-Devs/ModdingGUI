@@ -34,6 +34,7 @@
             optionsToolStripMenuItem = new ToolStripMenuItem();
             saveBatMenuItem = new ToolStripMenuItem();
             randomizerLogsMenuItem = new ToolStripMenuItem();
+            randomizerTestingMenuItem = new ToolStripMenuItem();
             funOptionsToolStripMenuItem = new ToolStripMenuItem();
             randomizerMenuItem = new ToolStripMenuItem();
             teamBuilderToolStripMenuItem = new ToolStripMenuItem();
@@ -97,6 +98,7 @@
             lblRandomizeStatus = new Label();
             pgbRandomizeStatus = new ProgressBar();
             grpBaseOptions = new GroupBox();
+            chbRandomMaxMoney = new CheckBox();
             chbRandom40Glads = new CheckBox();
             chbRandomItemsets = new CheckBox();
             chbRandomStatsets = new CheckBox();
@@ -156,7 +158,6 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            chbRandomMaxMoney = new CheckBox();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -207,7 +208,7 @@
             // 
             // optionsToolStripMenuItem
             // 
-            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { saveBatMenuItem, randomizerLogsMenuItem });
+            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { saveBatMenuItem, randomizerLogsMenuItem, randomizerTestingMenuItem });
             optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             optionsToolStripMenuItem.Size = new Size(99, 20);
             optionsToolStripMenuItem.Text = "Debug Options";
@@ -216,15 +217,22 @@
             // 
             saveBatMenuItem.CheckOnClick = true;
             saveBatMenuItem.Name = "saveBatMenuItem";
-            saveBatMenuItem.Size = new Size(165, 22);
+            saveBatMenuItem.Size = new Size(180, 22);
             saveBatMenuItem.Text = "Save BAT file";
             // 
             // randomizerLogsMenuItem
             // 
             randomizerLogsMenuItem.CheckOnClick = true;
             randomizerLogsMenuItem.Name = "randomizerLogsMenuItem";
-            randomizerLogsMenuItem.Size = new Size(165, 22);
+            randomizerLogsMenuItem.Size = new Size(180, 22);
             randomizerLogsMenuItem.Text = "Randomizer Logs";
+            // 
+            // randomizerTestingMenuItem
+            // 
+            randomizerTestingMenuItem.Name = "randomizerTestingMenuItem";
+            randomizerTestingMenuItem.Size = new Size(180, 22);
+            randomizerTestingMenuItem.Text = "Randomizer Testing";
+            randomizerTestingMenuItem.Click += randomizerTestingMenuItem_Click;
             // 
             // funOptionsToolStripMenuItem
             // 
@@ -912,6 +920,17 @@
             grpBaseOptions.TabStop = false;
             grpBaseOptions.Text = "Randomized Options";
             // 
+            // chbRandomMaxMoney
+            // 
+            chbRandomMaxMoney.AutoSize = true;
+            chbRandomMaxMoney.Location = new Point(6, 222);
+            chbRandomMaxMoney.Name = "chbRandomMaxMoney";
+            chbRandomMaxMoney.Size = new Size(96, 19);
+            chbRandomMaxMoney.TabIndex = 11;
+            chbRandomMaxMoney.Text = "Get fat stacks";
+            chbRandomMaxMoney.UseVisualStyleBackColor = true;
+            chbRandomMaxMoney.MouseHover += chbRandomMaxMoney_MouseHover;
+            // 
             // chbRandom40Glads
             // 
             chbRandom40Glads.AutoSize = true;
@@ -1577,17 +1596,6 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
-            // chbRandomMaxMoney
-            // 
-            chbRandomMaxMoney.AutoSize = true;
-            chbRandomMaxMoney.Location = new Point(6, 222);
-            chbRandomMaxMoney.Name = "chbRandomMaxMoney";
-            chbRandomMaxMoney.Size = new Size(96, 19);
-            chbRandomMaxMoney.TabIndex = 11;
-            chbRandomMaxMoney.Text = "Get fat stacks";
-            chbRandomMaxMoney.UseVisualStyleBackColor = true;
-            chbRandomMaxMoney.MouseHover += chbRandomMaxMoney_MouseHover;
-            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1789,5 +1797,6 @@
         private CheckBox chbRandom40Glads;
         private Label label15;
         private CheckBox chbRandomMaxMoney;
+        private ToolStripMenuItem randomizerTestingMenuItem;
     }
 }
