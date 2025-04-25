@@ -31,6 +31,8 @@
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             mnuMain = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            settingsMenuItem = new ToolStripMenuItem();
             optionsToolStripMenuItem = new ToolStripMenuItem();
             saveBatMenuItem = new ToolStripMenuItem();
             randomizerLogsMenuItem = new ToolStripMenuItem();
@@ -77,6 +79,7 @@
             btnSelectISO = new Button();
             txtISOPath = new TextBox();
             tabPacking = new TabPage();
+            chbAutoLaunchDolphin = new CheckBox();
             btnToPatching = new Button();
             pgbValidation = new ProgressBar();
             chbValidationSkip = new CheckBox();
@@ -86,6 +89,7 @@
             btnPackPath = new Button();
             txtPackPath = new TextBox();
             tabRandomizer = new TabPage();
+            txtRandomCustomCash = new TextBox();
             label15 = new Label();
             grpGameVersion = new GroupBox();
             rbnLeonarths = new RadioButton();
@@ -98,7 +102,7 @@
             lblRandomizeStatus = new Label();
             pgbRandomizeStatus = new ProgressBar();
             grpBaseOptions = new GroupBox();
-            chbRandomMaxMoney = new CheckBox();
+            chbRandomCustomCash = new CheckBox();
             chbRandom40Glads = new CheckBox();
             chbRandomItemsets = new CheckBox();
             chbRandomStatsets = new CheckBox();
@@ -158,6 +162,7 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
+            chbRandomWeighted = new CheckBox();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -199,12 +204,26 @@
             // 
             // mnuMain
             // 
-            mnuMain.Items.AddRange(new ToolStripItem[] { optionsToolStripMenuItem, funOptionsToolStripMenuItem });
+            mnuMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, optionsToolStripMenuItem, funOptionsToolStripMenuItem });
             mnuMain.Location = new Point(0, 0);
             mnuMain.Name = "mnuMain";
             mnuMain.Size = new Size(1489, 24);
             mnuMain.TabIndex = 1;
             mnuMain.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(37, 20);
+            fileToolStripMenuItem.Text = "File";
+            // 
+            // settingsMenuItem
+            // 
+            settingsMenuItem.Name = "settingsMenuItem";
+            settingsMenuItem.Size = new Size(116, 22);
+            settingsMenuItem.Text = "Settings";
+            settingsMenuItem.Click += settingsMenuItem_Click;
             // 
             // optionsToolStripMenuItem
             // 
@@ -217,20 +236,20 @@
             // 
             saveBatMenuItem.CheckOnClick = true;
             saveBatMenuItem.Name = "saveBatMenuItem";
-            saveBatMenuItem.Size = new Size(180, 22);
+            saveBatMenuItem.Size = new Size(177, 22);
             saveBatMenuItem.Text = "Save BAT file";
             // 
             // randomizerLogsMenuItem
             // 
             randomizerLogsMenuItem.CheckOnClick = true;
             randomizerLogsMenuItem.Name = "randomizerLogsMenuItem";
-            randomizerLogsMenuItem.Size = new Size(180, 22);
+            randomizerLogsMenuItem.Size = new Size(177, 22);
             randomizerLogsMenuItem.Text = "Randomizer Logs";
             // 
             // randomizerTestingMenuItem
             // 
             randomizerTestingMenuItem.Name = "randomizerTestingMenuItem";
-            randomizerTestingMenuItem.Size = new Size(180, 22);
+            randomizerTestingMenuItem.Size = new Size(177, 22);
             randomizerTestingMenuItem.Text = "Randomizer Testing";
             randomizerTestingMenuItem.Click += randomizerTestingMenuItem_Click;
             // 
@@ -673,6 +692,7 @@
             // 
             // tabPacking
             // 
+            tabPacking.Controls.Add(chbAutoLaunchDolphin);
             tabPacking.Controls.Add(btnToPatching);
             tabPacking.Controls.Add(pgbValidation);
             tabPacking.Controls.Add(chbValidationSkip);
@@ -688,6 +708,16 @@
             tabPacking.TabIndex = 1;
             tabPacking.Text = "Packing";
             tabPacking.UseVisualStyleBackColor = true;
+            // 
+            // chbAutoLaunchDolphin
+            // 
+            chbAutoLaunchDolphin.AutoSize = true;
+            chbAutoLaunchDolphin.Location = new Point(6, 35);
+            chbAutoLaunchDolphin.Name = "chbAutoLaunchDolphin";
+            chbAutoLaunchDolphin.Size = new Size(160, 19);
+            chbAutoLaunchDolphin.TabIndex = 9;
+            chbAutoLaunchDolphin.Text = "Auto launch into Dolphin";
+            chbAutoLaunchDolphin.UseVisualStyleBackColor = true;
             // 
             // btnToPatching
             // 
@@ -773,6 +803,7 @@
             // 
             // tabRandomizer
             // 
+            tabRandomizer.Controls.Add(txtRandomCustomCash);
             tabRandomizer.Controls.Add(label15);
             tabRandomizer.Controls.Add(grpGameVersion);
             tabRandomizer.Controls.Add(grpHeroSelection);
@@ -789,6 +820,16 @@
             tabRandomizer.TabIndex = 2;
             tabRandomizer.Text = "Randomizer";
             tabRandomizer.UseVisualStyleBackColor = true;
+            // 
+            // txtRandomCustomCash
+            // 
+            txtRandomCustomCash.Location = new Point(190, 256);
+            txtRandomCustomCash.Name = "txtRandomCustomCash";
+            txtRandomCustomCash.Size = new Size(141, 23);
+            txtRandomCustomCash.TabIndex = 13;
+            txtRandomCustomCash.Visible = false;
+            txtRandomCustomCash.KeyPress += txtRandomCustomCash_KeyPress;
+            txtRandomCustomCash.Validating += txtRandomCustomCash_Validating;
             // 
             // label15
             // 
@@ -903,7 +944,8 @@
             // 
             // grpBaseOptions
             // 
-            grpBaseOptions.Controls.Add(chbRandomMaxMoney);
+            grpBaseOptions.Controls.Add(chbRandomWeighted);
+            grpBaseOptions.Controls.Add(chbRandomCustomCash);
             grpBaseOptions.Controls.Add(chbRandom40Glads);
             grpBaseOptions.Controls.Add(chbRandomItemsets);
             grpBaseOptions.Controls.Add(chbRandomStatsets);
@@ -920,16 +962,17 @@
             grpBaseOptions.TabStop = false;
             grpBaseOptions.Text = "Randomized Options";
             // 
-            // chbRandomMaxMoney
+            // chbRandomCustomCash
             // 
-            chbRandomMaxMoney.AutoSize = true;
-            chbRandomMaxMoney.Location = new Point(6, 222);
-            chbRandomMaxMoney.Name = "chbRandomMaxMoney";
-            chbRandomMaxMoney.Size = new Size(96, 19);
-            chbRandomMaxMoney.TabIndex = 11;
-            chbRandomMaxMoney.Text = "Get fat stacks";
-            chbRandomMaxMoney.UseVisualStyleBackColor = true;
-            chbRandomMaxMoney.MouseHover += chbRandomMaxMoney_MouseHover;
+            chbRandomCustomCash.AutoSize = true;
+            chbRandomCustomCash.Location = new Point(6, 222);
+            chbRandomCustomCash.Name = "chbRandomCustomCash";
+            chbRandomCustomCash.Size = new Size(124, 19);
+            chbRandomCustomCash.TabIndex = 11;
+            chbRandomCustomCash.Text = "Custom Start Cash";
+            chbRandomCustomCash.UseVisualStyleBackColor = true;
+            chbRandomCustomCash.CheckedChanged += chbRandomCustomCash_CheckedChanged;
+            chbRandomCustomCash.MouseHover += chbRandomMaxMoney_MouseHover;
             // 
             // chbRandom40Glads
             // 
@@ -1596,6 +1639,16 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
+            // chbRandomWeighted
+            // 
+            chbRandomWeighted.AutoSize = true;
+            chbRandomWeighted.Location = new Point(6, 247);
+            chbRandomWeighted.Name = "chbRandomWeighted";
+            chbRandomWeighted.Size = new Size(161, 19);
+            chbRandomWeighted.TabIndex = 12;
+            chbRandomWeighted.Text = "Weighted vs Full Random";
+            chbRandomWeighted.UseVisualStyleBackColor = true;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1796,7 +1849,12 @@
         private CheckBox chbRandomItemsets;
         private CheckBox chbRandom40Glads;
         private Label label15;
-        private CheckBox chbRandomMaxMoney;
         private ToolStripMenuItem randomizerTestingMenuItem;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem settingsMenuItem;
+        private CheckBox chbAutoLaunchDolphin;
+        private CheckBox chbRandomCustomCash;
+        private TextBox txtRandomCustomCash;
+        private CheckBox chbRandomWeighted;
     }
 }

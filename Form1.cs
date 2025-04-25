@@ -144,6 +144,13 @@ namespace ModdingGUI
                 AppendLog("Packing completed successfully.", SuccessColor, rtbPackOutput); // Log successful completion
                 btnRandomize.Enabled = true;
                 btnToPatching.Enabled = true;
+                if (appSettings.AutoLaunchDolphin)
+                {
+                    // Launch the packed ISO with Dolphin
+                    string projectName = Path.GetFileName(selectedFolder);
+                    string isoPath = Path.Combine(selectedFolder, $"{projectName}.iso");
+                    LaunchGameWithDolphin(isoPath);
+                }
             }
             catch (Exception ex)
             {
@@ -204,6 +211,7 @@ namespace ModdingGUI
         {
             try
             {
+                LoadAppSettings(); // Apply application settings
                 // Retrieve the original executable directory using the helper method
                 string appDirectory = GetAppDirectory();
                 AppendLog($"App Directory: {appDirectory}", InfoColor);
@@ -235,6 +243,7 @@ namespace ModdingGUI
 
                 // Load projects
                 LoadProjects();
+                InitializeGameLauncher();
             }
             catch (Exception ex)
             {
@@ -684,7 +693,7 @@ namespace ModdingGUI
 
         private void chbValidationSkip_CheckedChanged(object sender, EventArgs e)
         {
-            if (!chbValidationSkip.Checked)
+            /*if (!chbValidationSkip.Checked)
             {
                 var result = MessageBox.Show("Are you sure you want to enable validation?\nThis is typically for Modders to double check their work!", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.No)
@@ -693,7 +702,7 @@ namespace ModdingGUI
                     return;
                 }
                 pgbValidation.Visible = true;
-            }
+            }*/
         }
 
         private void chbIngameRandom_CheckedChanged(object sender, EventArgs e)
@@ -1033,31 +1042,131 @@ namespace ModdingGUI
 
         private void chbRandomMaxMoney_MouseHover(object sender, EventArgs e)
         {
-            ttpInform.SetToolTip(chbRandomMaxMoney, "Start with the maximum amount of money");
+            ttpInform.SetToolTip(chbRandomCustomCash, "Customize your starting cash! Try: RANDOM\nDefault: 15000\nDefault 40 glads: 75000");
         }
 
         private void randomizerTestingMenuItem_Click(object sender, EventArgs e)
         {
+            // Check if randomizer testing is already running
             if (randomizerTestingMenuItem.Checked)
             {
-                MessageBox.Show("Randomizer testing is already enabled. Please disable it to proceed.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Randomizer testing is already running. Please wait for it to complete.",
+                    "Testing In Progress", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // Enable the menu item to indicate testing is in progress
+            randomizerTestingMenuItem.Checked = true;
+
+            try
+            {
+                // Configure progress bar for visibility
+                pgbRandomizeStatus.Visible = true;
+                pgbRandomizeStatus.Value = 0;
+                lblRandomizeStatus.Text = "Initializing randomizer testing...";
+
                 // Launch randomizer testing
                 HandleRandomizerTesting();
-                // Uncheck the menu item after testing is complete
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error during randomizer testing: {ex.Message}", ErrorColor, rtbPackOutput);
+                MessageBox.Show($"Error during randomizer testing: {ex.Message}", "Testing Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Uncheck the menu item after testing is complete or if it errors out
                 randomizerTestingMenuItem.Checked = false;
+                lblRandomizeStatus.Text = "Ready";
+                pgbRandomizeStatus.Value = 0;
+            }
+        }
+
+        private void chbRandomCustomCash_CheckedChanged(object sender, EventArgs e)
+        {
+            txtRandomCustomCash.Visible = chbRandomCustomCash.Checked;
+            if (chbRandomCustomCash.Checked)
+            {
+                // Set default value if empty
+                if (string.IsNullOrWhiteSpace(txtRandomCustomCash.Text))
+                {
+                    txtRandomCustomCash.Text = "15000";
+                }
+            }
+        }
+
+        // Add validation to only allow numeric input (0-9) or the word "RANDOM"
+        private void txtRandomCustomCash_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Allow control keys (backspace, delete, etc)
+            if (char.IsControl(e.KeyChar))
+                return;
+
+            // Check if we're typing "RANDOM"
+            string currentText = txtRandomCustomCash.Text;
+            string potentialText = currentText.Substring(0, txtRandomCustomCash.SelectionStart) + 
+                                   e.KeyChar + 
+                                   currentText.Substring(txtRandomCustomCash.SelectionStart + txtRandomCustomCash.SelectionLength);
+            
+            if (potentialText.Equals("RANDOM", StringComparison.OrdinalIgnoreCase) || 
+                "RANDOM".StartsWith(potentialText, StringComparison.OrdinalIgnoreCase))
+            {
+                // Allow typing "RANDOM"
+                return;
+            }
+            
+            // If we already have "RANDOM", only allow overwriting it completely
+            if (currentText.Equals("RANDOM", StringComparison.OrdinalIgnoreCase) && 
+                txtRandomCustomCash.SelectionLength < currentText.Length)
+            {
+                e.Handled = true;
+                return;
+            }
+            
+            // Otherwise only allow digits
+            if (!char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
             }
             else
             {
-                // Check if the randomizer testing is already running
-                if (randomizerTestingMenuItem.Checked)
+                // Check if adding this digit would exceed the max value
+                if (potentialText.Length > 0)
                 {
-                    MessageBox.Show("Randomizer testing is already running. Please disable it to proceed.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    if (long.TryParse(potentialText, out long value))
+                    {
+                        if (value > 999999999)
+                        {
+                            e.Handled = true;
+                        }
+                    }
                 }
-                // Enable the menu item and launch randomizer testing
-                randomizerTestingMenuItem.Checked = true;
-                HandleRandomizerTesting();
             }
+        }
+
+        private void txtRandomCustomCash_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            string text = txtRandomCustomCash.Text.Trim();
+            
+            // Allow "RANDOM" string
+            if (string.Equals(text, "RANDOM", StringComparison.OrdinalIgnoreCase))
+            {
+                // Normalize to uppercase
+                txtRandomCustomCash.Text = "RANDOM";
+                return;
+            }
+            
+            // Check for valid numeric value
+            if (string.IsNullOrEmpty(text) || !int.TryParse(text, out int value) || value < 0 || value > 999999999)
+            {
+                txtRandomCustomCash.Text = "15000"; // Default value
+            }
+        }
+
+        // Add tooltip for the chbRandomWeighted checkbox
+        private void chbRandomWeighted_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRandomWeighted, "When selected, team randomization will prioritize class diversity by adding new classes before creating duplicate units with the same class.");
         }
     }
 }

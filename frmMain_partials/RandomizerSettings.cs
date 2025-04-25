@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Text.Json;
 
 namespace ModdingGUI
@@ -18,7 +16,10 @@ namespace ModdingGUI
             public bool RandomStatsets { get; set; }
             public bool RandomItemsets { get; set; }
             public bool Random40Glads { get; set; }
-            public bool MaxMoney { get; set; }
+            public bool CustomCash { get; set; }
+            public int CustomCashAmount { get; set; } // Default cash amount if checked
+            public bool CustomCashRandom { get; set; } // Flag for random cash
+            public bool RandomWeighted { get; set; } // New property for class diversity weighting
 
             // Radio button selections
             public string HeroSelection { get; set; } // "Valens" or "Ursula"
@@ -42,7 +43,33 @@ namespace ModdingGUI
                 this.RandomStatsets = form.chbRandomStatsets.Checked;
                 this.RandomItemsets = form.chbRandomItemsets.Checked;
                 this.Random40Glads = form.chbRandom40Glads.Checked;
-                this.MaxMoney = form.chbRandomMaxMoney.Checked;
+                this.CustomCash = form.chbRandomCustomCash.Checked;
+                this.RandomWeighted = form.chbRandomWeighted.Checked;
+
+                // Parse custom cash amount
+                if (this.CustomCash)
+                {
+                    if (form.txtRandomCustomCash.Text.Equals("RANDOM", StringComparison.OrdinalIgnoreCase))
+                    {
+                        this.CustomCashAmount = -1; // Special flag for random
+                        this.CustomCashRandom = true;
+                    }
+                    else if (int.TryParse(form.txtRandomCustomCash.Text, out int cashAmount) && cashAmount >= 0 && cashAmount <= 999999999)
+                    {
+                        this.CustomCashAmount = cashAmount;
+                        this.CustomCashRandom = false;
+                    }
+                    else
+                    {
+                        this.CustomCashAmount = 15000; // Default if invalid
+                        this.CustomCashRandom = false;
+                    }
+                }
+                else
+                {
+                    this.CustomCashAmount = 15000; // Default
+                    this.CustomCashRandom = false;
+                }
 
                 // Get hero selection
                 this.HeroSelection = form.rbnValens.Checked ? "Valens" : "Ursula";
@@ -71,7 +98,26 @@ namespace ModdingGUI
                 form.chbRandomStatsets.Checked = this.RandomStatsets;
                 form.chbRandomItemsets.Checked = this.RandomItemsets;
                 form.chbRandom40Glads.Checked = this.Random40Glads;
-                form.chbRandomMaxMoney.Checked = this.MaxMoney;
+                form.chbRandomCustomCash.Checked = this.CustomCash;
+                form.chbRandomWeighted.Checked = this.RandomWeighted;
+
+                // Set custom cash TextBox value
+                if (this.CustomCash)
+                {
+                    form.txtRandomCustomCash.Visible = true;
+                    if (this.CustomCashRandom)
+                    {
+                        form.txtRandomCustomCash.Text = "RANDOM";
+                    }
+                    else
+                    {
+                        form.txtRandomCustomCash.Text = this.CustomCashAmount.ToString();
+                    }
+                }
+                else
+                {
+                    form.txtRandomCustomCash.Visible = false;
+                }
 
                 // Apply hero selection
                 if (this.HeroSelection == "Valens")
@@ -140,7 +186,24 @@ namespace ModdingGUI
                 
                 // Deserialize from JSON
                 var settings = JsonSerializer.Deserialize<RandomizerSettings>(jsonString);
-                
+
+                // Inside LoadRandomizerSettings after deserializing:
+                if (settings != null)
+                {
+                    // Check if this is a legacy settings file by seeing if MaxMoney property exists
+                    var jsonDoc = JsonDocument.Parse(jsonString);
+                    if (jsonDoc.RootElement.TryGetProperty("MaxMoney", out JsonElement maxMoneyElement))
+                    {
+                        // Convert legacy MaxMoney setting to new format
+                        settings.CustomCashAmount = maxMoneyElement.GetBoolean() ? 15000 : 15000;
+                    }
+
+                    settings.ApplyToForm(this);
+                    AppendLog($"Randomizer settings loaded from {RANDOMIZER_SETTINGS_FILENAME}", InfoColor, rtbPackOutput);
+                    return true;
+                }
+
+
                 if (settings != null)
                 {
                     // Apply settings to UI

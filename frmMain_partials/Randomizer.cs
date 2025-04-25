@@ -389,9 +389,6 @@ namespace ModdingGUI
             // Disable the randomize button
             btnRandomize.Enabled = false;
 
-            // Clear the log buffer
-            // randomizerLogBuffer.Clear();
-
             try
             {
                 // Initialize the random number generator
@@ -437,26 +434,74 @@ namespace ModdingGUI
                     return;
                 }
 
-                // **Shuffle classesWithGladiators to ensure randomness**
+                // Shuffle classesWithGladiators to ensure randomness
                 classesWithGladiators.Shuffle(random);
                 AppendRandomizerLog("Eligible classes shuffled.", InfoColor);
 
-                // Assign classes to team members allowing repeats
+                // Assign classes to team members
                 List<string> teamNames = new List<string>();
                 List<string> assignedClasses = new List<string>();
 
-                for (int i = 0; i < teamSize; i++)
+                if (chbRandomWeighted.Checked)
                 {
-                    string gladiatorName = gladiatorNames[i];
+                    // Prioritize adding new classes before duplicates when chbRandomWeighted is checked
+                    AppendRandomizerLog("Weighted randomization selected - prioritizing class diversity.", InfoColor);
+                    
+                    // Create a list of unique classes to use
+                    List<string> uniqueClassesToUse = new List<string>();
+                    
+                    // First, try to add one instance of each available class
+                    foreach (var className in classesWithGladiators)
+                    {
+                        uniqueClassesToUse.Add(className);
+                        if (uniqueClassesToUse.Count >= teamSize)
+                            break; // Break if we have enough unique classes
+                    }
+                    
+                    // If we don't have enough unique classes, add duplicates to reach the desired team size
+                    if (uniqueClassesToUse.Count < teamSize)
+                    {
+                        int remaining = teamSize - uniqueClassesToUse.Count;
+                        for (int i = 0; i < remaining; i++)
+                        {
+                            // Add a random class from the available classes
+                            uniqueClassesToUse.Add(classesWithGladiators[random.Next(classesWithGladiators.Count)]);
+                        }
+                    }
+                    
+                    // Shuffle the classes again to ensure randomness in assignment
+                    uniqueClassesToUse.Shuffle(random);
+                    
+                    // Assign the classes to team members
+                    for (int i = 0; i < teamSize; i++)
+                    {
+                        string gladiatorName = gladiatorNames[i];
+                        string candidateClass = uniqueClassesToUse[i];
 
-                    // **Randomly select a class with replacement**
-                    string candidateClass = classesWithGladiators[random.Next(classesWithGladiators.Count)];
+                        teamNames.Add(gladiatorName);
+                        assignedClasses.Add(candidateClass);
 
-                    // Assign the selected class to the gladiator
-                    teamNames.Add(gladiatorName);
-                    assignedClasses.Add(candidateClass);
+                        AppendRandomizerLog($"Assigned class '{candidateClass}' to team member '{gladiatorName}'.", InfoColor);
+                    }
+                }
+                else
+                {
+                    // Original implementation - completely random class assignment
+                    AppendRandomizerLog("Full randomization selected - classes may have duplicates.", InfoColor);
+                    
+                    for (int i = 0; i < teamSize; i++)
+                    {
+                        string gladiatorName = gladiatorNames[i];
 
-                    AppendRandomizerLog($"Assigned class '{candidateClass}' to team member '{gladiatorName}'.", InfoColor);
+                        // Randomly select a class with replacement
+                        string candidateClass = classesWithGladiators[random.Next(classesWithGladiators.Count)];
+
+                        // Assign the selected class to the gladiator
+                        teamNames.Add(gladiatorName);
+                        assignedClasses.Add(candidateClass);
+
+                        AppendRandomizerLog($"Assigned class '{candidateClass}' to team member '{gladiatorName}'.", InfoColor);
+                    }
                 }
 
                 // Append the team to the existing hero files
@@ -1036,16 +1081,27 @@ namespace ModdingGUI
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "school", fileName);
             
-            // Declare outputLines before using it.
             List<string> outputLines;
-            if (chbRandomMaxMoney.Checked)
+            if (chbRandomCustomCash.Checked)
             {
-                // Set Gold to 999980999 if max money is checked
-                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 999980999" };
+                int cashAmount = 15000; // Default value
+                
+                if (txtRandomCustomCash.Text.Equals("RANDOM", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Generate a random value between 0 and 999999999
+                    cashAmount = random.Next(0, 1000000000);
+                    AppendRandomizerLog($"Generated random cash amount: {cashAmount}", InfoColor);
+                }
+                else if (int.TryParse(txtRandomCustomCash.Text, out int parsedAmount) && parsedAmount >= 0 && parsedAmount <= 999999999)
+                {
+                    cashAmount = parsedAmount;
+                }
+                
+                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: {cashAmount}" };
             }
             else if (chbRandom40Glads.Checked)
             {
-                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 50000" };
+                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 75000" };
             }
             else
             {

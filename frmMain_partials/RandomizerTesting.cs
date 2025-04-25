@@ -1,12 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace ModdingGUI
 {
@@ -18,6 +10,9 @@ namespace ModdingGUI
         private const string TEST_FOLDER_NAME = "tests";
         private const string TEST_SEED_CONSTANT = "TestSeed123";
         private const string TEST_SEED_VARYING = "TestSeed";
+
+        // Cancellation support for testing
+        private CancellationTokenSource testingCancellationSource;
 
         private async void HandleRandomizerTesting()
         {
@@ -47,10 +42,22 @@ namespace ModdingGUI
                 return; // User clicked Cancel
             }
 
+            // Initialize cancellation token
+            testingCancellationSource = new CancellationTokenSource();
+            var cancellationToken = testingCancellationSource.Token;
 
             try
             {
                 btnRandomize.Enabled = false;
+
+                // Configure progress bar for the total number of tests
+                // We have 3 test phases (same seed, different seeds, randomness analysis)
+                // Each phase runs the specified number of iterations
+                int totalSteps = testIterations * 3;
+                pgbRandomizeStatus.Minimum = 0;
+                pgbRandomizeStatus.Maximum = totalSteps;
+                pgbRandomizeStatus.Value = 0;
+                int currentProgress = 0;
 
                 // Save current settings to restore afterwards
                 var currentSettings = new RandomizerSettings(this);
@@ -60,9 +67,34 @@ namespace ModdingGUI
                 randomizerLogsMenuItem.Checked = true;
 
                 // Run all tests
-                await RunSameSeedTest(projectFolder, testFolder);
-                await RunDifferentSeedsTest(projectFolder, testFolder);
-                await AnalyzeRandomnessTest(projectFolder, testFolder);
+                AppendLog($"Starting randomizer testing with {testIterations} iterations per test...", InfoColor, rtbPackOutput);
+
+                // Same seed test
+                lblRandomizeStatus.Text = $"Running Same Seed Test (0/{testIterations})...";
+                await RunSameSeedTest(projectFolder, testFolder, (iteration) =>
+                {
+                    currentProgress++;
+                    pgbRandomizeStatus.Value = currentProgress;
+                    lblRandomizeStatus.Text = $"Running Same Seed Test ({iteration}/{testIterations})...";
+                }, cancellationToken);
+
+                // Different seeds test
+                lblRandomizeStatus.Text = $"Running Different Seeds Test (0/{testIterations})...";
+                await RunDifferentSeedsTest(projectFolder, testFolder, (iteration) =>
+                {
+                    currentProgress++;
+                    pgbRandomizeStatus.Value = currentProgress;
+                    lblRandomizeStatus.Text = $"Running Different Seeds Test ({iteration}/{testIterations})...";
+                }, cancellationToken);
+
+                // Randomness analysis test
+                lblRandomizeStatus.Text = $"Running Randomness Analysis (0/{testIterations})...";
+                await AnalyzeRandomnessTest(projectFolder, testFolder, (iteration) =>
+                {
+                    currentProgress++;
+                    pgbRandomizeStatus.Value = currentProgress;
+                    lblRandomizeStatus.Text = $"Running Randomness Analysis ({iteration}/{testIterations})...";
+                }, cancellationToken);
 
                 // Restore original settings
                 currentSettings.ApplyToForm(this);
@@ -75,6 +107,11 @@ namespace ModdingGUI
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
+            catch (OperationCanceledException)
+            {
+                AppendLog("Randomizer testing was cancelled by the user.", WarningColor, rtbPackOutput);
+                MessageBox.Show("Randomizer testing was cancelled.", "Testing Cancelled", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
             catch (Exception ex)
             {
                 AppendLog($"Error during randomizer testing: {ex.Message}", ErrorColor, rtbPackOutput);
@@ -83,6 +120,8 @@ namespace ModdingGUI
             finally
             {
                 btnRandomize.Enabled = true;
+                testingCancellationSource?.Dispose();
+                testingCancellationSource = null;
             }
         }
 
@@ -92,8 +131,8 @@ namespace ModdingGUI
             Form inputForm = new Form
             {
                 Text = "Randomizer Testing Mode",
-                Width = 400,
-                Height = 250,
+                Width = 450,
+                Height = 300,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
                 MinimizeBox = false,
@@ -120,18 +159,29 @@ namespace ModdingGUI
             {
                 Minimum = 1,
                 Maximum = 1000,
-                Value = DEFAULT_TEST_ITERATIONS, // You can use a default like 10 or another constant.
+                Value = DEFAULT_TEST_ITERATIONS, // Use default value of 10
                 Location = new System.Drawing.Point(10, lblDescription.Bottom + 10),
                 Width = 100
             };
             inputForm.Controls.Add(numericInput);
+
+            // Add a label to explain performance impact
+            Label lblPerformance = new Label
+            {
+                Text = "Note: Each additional iteration increases test time proportionally.\n" +
+                       "The progress bar will show completion status during testing.",
+                ForeColor = Color.DarkBlue,
+                AutoSize = true,
+                Location = new System.Drawing.Point(10, numericInput.Bottom + 10)
+            };
+            inputForm.Controls.Add(lblPerformance);
 
             // Create an OK button that will close the dialog with DialogResult.OK.
             Button btnOK = new Button
             {
                 Text = "OK",
                 DialogResult = DialogResult.OK,
-                Location = new System.Drawing.Point(10, numericInput.Bottom + 20)
+                Location = new System.Drawing.Point(10, lblPerformance.Bottom + 20)
             };
             inputForm.Controls.Add(btnOK);
 
@@ -140,7 +190,7 @@ namespace ModdingGUI
             {
                 Text = "Cancel",
                 DialogResult = DialogResult.Cancel,
-                Location = new System.Drawing.Point(btnOK.Right + 10, numericInput.Bottom + 20)
+                Location = new System.Drawing.Point(btnOK.Right + 10, lblPerformance.Bottom + 20)
             };
             inputForm.Controls.Add(btnCancel);
 
@@ -164,8 +214,7 @@ namespace ModdingGUI
             return result;
         }
 
-
-        private async Task RunSameSeedTest(string projectFolder, string testFolder)
+        private async Task RunSameSeedTest(string projectFolder, string testFolder, Action<int> progressCallback, CancellationToken cancellationToken = default)
         {
             AppendLog("Starting Same Seed Test...", InfoColor, rtbPackOutput);
 
@@ -186,14 +235,20 @@ namespace ModdingGUI
             // Run the randomizer multiple times with the same seed
             for (int i = 0; i < testIterations; i++)
             {
+                // Check for cancellation
+                cancellationToken.ThrowIfCancellationRequested();
+
                 AppendLog($"Same Seed Test - Iteration {i + 1}", InfoColor, rtbPackOutput);
+
+                // Update progress
+                progressCallback?.Invoke(i + 1);
 
                 // Clear logs from previous iteration
                 randomizerLogBuffer.Clear();
 
                 // Run randomizer
-                await Task.Run(() => RandomizeHeroes(projectFolder));
-                await Task.Run(() => RandomizeTeam(projectFolder));
+                await Task.Run(() => RandomizeHeroes(projectFolder), cancellationToken);
+                await Task.Run(() => RandomizeTeam(projectFolder), cancellationToken);
 
                 // Save output to test file
                 string outputFile = Path.Combine(testSubFolder, $"same_seed_output_{i + 1}.txt");
@@ -232,7 +287,7 @@ namespace ModdingGUI
                 allIdentical ? SuccessColor : ErrorColor, rtbPackOutput);
         }
 
-        private async Task RunDifferentSeedsTest(string projectFolder, string testFolder)
+        private async Task RunDifferentSeedsTest(string projectFolder, string testFolder, Action<int> progressCallback, CancellationToken cancellationToken = default)
         {
             AppendLog("Starting Different Seeds Test...", InfoColor, rtbPackOutput);
 
@@ -248,6 +303,9 @@ namespace ModdingGUI
             // Run the randomizer with different seeds
             for (int i = 0; i < testIterations; i++)
             {
+                // Check for cancellation
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Generate a unique seed for each iteration
                 string seed = $"{TEST_SEED_VARYING}_{i + 1}_{DateTime.Now.Ticks}";
                 seeds.Add(seed);
@@ -255,12 +313,15 @@ namespace ModdingGUI
 
                 AppendLog($"Different Seeds Test - Iteration {i + 1} with seed: {seed}", InfoColor, rtbPackOutput);
 
+                // Update progress
+                progressCallback?.Invoke(i + 1);
+
                 // Clear logs from previous iteration
                 randomizerLogBuffer.Clear();
 
                 // Run randomizer
-                await Task.Run(() => RandomizeHeroes(projectFolder));
-                await Task.Run(() => RandomizeTeam(projectFolder));
+                await Task.Run(() => RandomizeHeroes(projectFolder), cancellationToken);
+                await Task.Run(() => RandomizeTeam(projectFolder), cancellationToken);
 
                 // Save output to test file
                 string outputFile = Path.Combine(testSubFolder, $"different_seed_output_{i + 1}.txt");
@@ -302,7 +363,7 @@ namespace ModdingGUI
                 allDifferent ? SuccessColor : ErrorColor, rtbPackOutput);
         }
 
-        private async Task AnalyzeRandomnessTest(string projectFolder, string testFolder)
+        private async Task AnalyzeRandomnessTest(string projectFolder, string testFolder, Action<int> progressCallback, CancellationToken cancellationToken = default)
         {
             AppendLog("Starting Randomness Analysis Test...", InfoColor, rtbPackOutput);
 
@@ -314,15 +375,21 @@ namespace ModdingGUI
             var classAssignments = new Dictionary<string, Dictionary<string, int>>();
             var statsetAssignments = new Dictionary<int, int>();
             var itemsetAssignments = new Dictionary<int, int>();
-            var teamAssignments = new Dictionary<string, int>();  // New dictionary for teamwide analysis
+            var teamAssignments = new Dictionary<string, int>();  // Dictionary for teamwide analysis
 
             for (int i = 0; i < testIterations; i++) // More iterations for better statistical data
             {
+                // Check for cancellation
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Generate a unique seed
                 string seed = $"RandomnessTest_{i + 1}_{DateTime.Now.Ticks}";
                 txtSeed.Text = seed;
 
                 AppendLog($"Randomness Analysis - Iteration {i + 1}", InfoColor, rtbPackOutput);
+
+                // Update progress
+                progressCallback?.Invoke(i + 1);
 
                 // Configure for maximum randomization
                 chbRandomHeroes.Checked = true;
@@ -334,8 +401,8 @@ namespace ModdingGUI
                 randomizerLogBuffer.Clear();
 
                 // Run randomizer
-                await Task.Run(() => RandomizeHeroes(projectFolder));
-                await Task.Run(() => RandomizeTeam(projectFolder));
+                await Task.Run(() => RandomizeHeroes(projectFolder), cancellationToken);
+                await Task.Run(() => RandomizeTeam(projectFolder), cancellationToken);
 
                 if (chbRandomStatsets.Checked)
                 {
@@ -344,7 +411,7 @@ namespace ModdingGUI
                         // Progress reporting handled elsewhere
                     });
 
-                    await Task.Run(() => RandomizeStatsets(projectFolder, statsetProgress));
+                    await Task.Run(() => RandomizeStatsets(projectFolder, statsetProgress), cancellationToken);
                 }
 
                 if (chbRandomItemsets.Checked)
@@ -354,7 +421,7 @@ namespace ModdingGUI
                         // Progress reporting handled elsewhere
                     });
 
-                    await Task.Run(() => RandomizeItemsets(projectFolder, itemsetProgress));
+                    await Task.Run(() => RandomizeItemsets(projectFolder, itemsetProgress), cancellationToken);
                 }
 
                 // Extract and collect data for analysis (now includes team assignments)
@@ -454,7 +521,7 @@ namespace ModdingGUI
             foreach (var log in logs)
             {
                 string message = log.message;
-                
+
                 // Extract hero class assignments
                 var heroClassMatch = System.Text.RegularExpressions.Regex.Match(
                     message, @"Assigned class '([^']+)' to hero '([^']+)'");
