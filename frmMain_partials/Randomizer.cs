@@ -213,6 +213,15 @@ namespace ModdingGUI
             "ValensCostumeA",
             "ValensCostumeB"
         };
+
+        // Add these regex patterns near the top of the class with other private fields
+        private static readonly Regex GenderVariantPattern = new Regex(@"^(.+)F$", RegexOptions.Compiled);
+        // new – will strip any of Imp|Nor|Ste|Exp, with or without a trailing F
+        private static readonly Regex RegionalVariantPattern = new Regex(@"^(.+?)(?:Imp|Nor|Ste|Exp|[AB])F?$", RegexOptions.Compiled);
+        // new – group only the fixed “UndeadMelee” prefix, then strip any Exp|Imp|Nor|Ste + A|B + optional F
+        private static readonly Regex UndeadVariantPattern = new Regex(@"^(UndeadMelee)(?:Exp|Imp|Nor|Ste)[AB]F?$", RegexOptions.Compiled);
+
+
         // Method to initialize Random with the seed from txtSeed
         private void InitializeRandom()
         {
@@ -405,12 +414,10 @@ namespace ModdingGUI
 
                 // Determine how many gladiators to generate based on whether 40 gladiators mode is enabled
                 int teamSize = chbRandom40Glads.Checked ? 34 : 14;
-                
+
                 // Log which mode we're using
                 if (chbRandom40Glads.Checked)
-                {
                     AppendRandomizerLog($"40 Gladiators mode enabled. Generating {teamSize} random team members.", InfoColor);
-                }
 
                 if (gladiatorNames.Count < teamSize)
                 {
@@ -444,72 +451,84 @@ namespace ModdingGUI
 
                 if (chbRandomWeighted.Checked)
                 {
-                    // Prioritize adding new classes before duplicates when chbRandomWeighted is checked
-                    AppendRandomizerLog("Weighted randomization selected - prioritizing class diversity.", InfoColor);
-                    
-                    // Create a list of unique classes to use
-                    List<string> uniqueClassesToUse = new List<string>();
-                    
-                    // First, try to add one instance of each available class
-                    foreach (var className in classesWithGladiators)
+                    AppendRandomizerLog("Weighted randomization selected - prioritizing class diversity with variant balancing.", InfoColor);
+
+                    // Strip off any regional (Imp|Nor|Ste|Exp), undead, or gender (F) variant
+                    string GetBaseClass(string cls)
                     {
-                        uniqueClassesToUse.Add(className);
-                        if (uniqueClassesToUse.Count >= teamSize)
-                            break; // Break if we have enough unique classes
+                        // 1) Collapse _all_ undead melee variants to “UndeadMelee”
+                        var undeadMatch = UndeadVariantPattern.Match(cls);
+                        if (undeadMatch.Success)
+                            return undeadMatch.Groups[1].Value;
+
+                        // 2) Regional Imp|Nor|Ste|Exp + optional F
+                        var regionalMatch = RegionalVariantPattern.Match(cls);
+                        if (regionalMatch.Success)
+                            return regionalMatch.Groups[1].Value;
+
+                        // 3) Pure gender F
+                        var genderMatch = GenderVariantPattern.Match(cls);
+                        if (genderMatch.Success)
+                            return genderMatch.Groups[1].Value;
+
+                        // 4) Otherwise it's already a base
+                        return cls;
                     }
-                    
-                    // If we don't have enough unique classes, add duplicates to reach the desired team size
-                    if (uniqueClassesToUse.Count < teamSize)
+
+                    // 1) Shuffle all variants
+                    var available = new List<string>(classesWithGladiators);
+                    available.Shuffle(random);
+
+                    // 2) First pass: pick *one* of each base
+                    var selected = new List<string>();
+                    foreach (var candidate in available)
                     {
-                        int remaining = teamSize - uniqueClassesToUse.Count;
-                        for (int i = 0; i < remaining; i++)
-                        {
-                            // Add a random class from the available classes
-                            uniqueClassesToUse.Add(classesWithGladiators[random.Next(classesWithGladiators.Count)]);
-                        }
+                        if (selected.Count >= teamSize)
+                            break;
+
+                        var baseName = GetBaseClass(candidate);
+                        if (!selected.Any(s => GetBaseClass(s) == baseName))
+                            selected.Add(candidate);
                     }
-                    
-                    // Shuffle the classes again to ensure randomness in assignment
-                    uniqueClassesToUse.Shuffle(random);
-                    
-                    // Assign the classes to team members
+
+                    // 3) If we still need more slots, duplicate *only* from already-selected
+                    int needed = teamSize - selected.Count;
+                    for (int i = 0; i < needed; i++)
+                        selected.Add(selected[random.Next(selected.Count)]);
+
+                    // 4) Shuffle so duplicates aren’t bunched
+                    selected.Shuffle(random);
+
+                    // 5) Assign them
                     for (int i = 0; i < teamSize; i++)
                     {
-                        string gladiatorName = gladiatorNames[i];
-                        string candidateClass = uniqueClassesToUse[i];
-
-                        teamNames.Add(gladiatorName);
-                        assignedClasses.Add(candidateClass);
-
-                        AppendRandomizerLog($"Assigned class '{candidateClass}' to team member '{gladiatorName}'.", InfoColor);
+                        teamNames.Add(gladiatorNames[i]);
+                        assignedClasses.Add(selected[i]);
+                        AppendRandomizerLog(
+                            $"Assigned class '{selected[i]}' to team member '{gladiatorNames[i]}'.",
+                            InfoColor
+                        );
                     }
                 }
                 else
                 {
-                    // Original implementation - completely random class assignment
+                    // Full random fallback
                     AppendRandomizerLog("Full randomization selected - classes may have duplicates.", InfoColor);
-                    
                     for (int i = 0; i < teamSize; i++)
                     {
-                        string gladiatorName = gladiatorNames[i];
-
-                        // Randomly select a class with replacement
-                        string candidateClass = classesWithGladiators[random.Next(classesWithGladiators.Count)];
-
-                        // Assign the selected class to the gladiator
-                        teamNames.Add(gladiatorName);
-                        assignedClasses.Add(candidateClass);
-
-                        AppendRandomizerLog($"Assigned class '{candidateClass}' to team member '{gladiatorName}'.", InfoColor);
+                        var choice = classesWithGladiators[random.Next(classesWithGladiators.Count)];
+                        teamNames.Add(gladiatorNames[i]);
+                        assignedClasses.Add(choice);
+                        AppendRandomizerLog($"Assigned class '{choice}' to team member '{gladiatorNames[i]}'.", InfoColor);
                     }
                 }
 
-                // Append the team to the existing hero files
+                // Write out the team
                 AppendUnitsToFile(projectFolder, teamNames, assignedClasses, gladiatorEntries, statSets, itemSets, skillSets, "valensimperia.tok");
                 AppendUnitsToFile(projectFolder, teamNames, assignedClasses, gladiatorEntries, statSets, itemSets, skillSets, "ursulanordagh.tok");
 
                 AppendRandomizerLog("Team randomized and saved.", SuccessColor);
-                AppendRandomizerLog(teamSize.ToString() + " Gladiators team successfully created!", SuccessColor);
+                AppendRandomizerLog($"{teamSize} Gladiators team successfully created!", SuccessColor);
             }
             catch (Exception ex)
             {
@@ -517,17 +536,11 @@ namespace ModdingGUI
             }
             finally
             {
-                // Output the collected logs if logging is enabled
                 if (randomizerLogsMenuItem.Checked)
-                {
                     foreach (var logEntry in randomizerLogBuffer)
-                    {
                         AppendLog(logEntry.message, logEntry.color, rtbPackOutput);
-                    }
-                }
             }
         }
-
         private void RandomizeStatsets(string projectFolder, IProgress<int> progress)
         {
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
