@@ -1247,14 +1247,32 @@ namespace ModdingGUI
         /// <param name="zipFilePath">Path to the downloaded zip file</param>
         /// <param name="version">Version being installed</param>
         /// <returns>True if installation succeeds, false otherwise</returns>
+        /// <summary>
+        /// Extracts and installs the update from the downloaded zip file
+        /// </summary>
+        /// <param name="zipFilePath">Path to the downloaded zip file</param>
+        /// <param name="version">Version being installed</param>
+        /// <returns>True if installation succeeds, false otherwise</returns>
         private async Task<bool> InstallUpdateAsync(string zipFilePath, string version)
         {
             string tempExtractPath = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Update-{Guid.NewGuid()}");
             string appDirectory = Application.StartupPath;
             string backupPath = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Backup-{DateTime.Now:yyyyMMdd_HHmmss}");
 
+            // Backup the current settings file before doing anything else
+            string settingsPath = Path.Combine(appDirectory, APP_SETTINGS_FILENAME);
+            string settingsBackupPath = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Settings-Backup-{Guid.NewGuid()}.json");
+            bool hasSettings = File.Exists(settingsPath);
+
             try
             {
+                // Backup current settings if they exist
+                if (hasSettings)
+                {
+                    File.Copy(settingsPath, settingsBackupPath, true);
+                    AppendLog($"Backed up settings to temporary location.", InfoColor);
+                }
+
                 // Create temp directory for extraction
                 AppendLog($"Extracting update to temporary location...", InfoColor);
                 Directory.CreateDirectory(tempExtractPath);
@@ -1262,15 +1280,24 @@ namespace ModdingGUI
                 // Extract the zip file
                 System.IO.Compression.ZipFile.ExtractToDirectory(zipFilePath, tempExtractPath, true);
 
-                // Create a backup (optional but recommended)
+                // Delete the settings.json from extracted files to prevent overwriting user settings
+                string extractedSettingsPath = Path.Combine(tempExtractPath, APP_SETTINGS_FILENAME);
+                if (File.Exists(extractedSettingsPath))
+                {
+                    File.Delete(extractedSettingsPath);
+                    AppendLog($"Removed default settings from update package to preserve user settings.", InfoColor);
+                }
+
+                // Create a backup of the current installation
                 AppendLog($"Creating backup of current installation...", InfoColor);
                 DirectoryCopy(appDirectory, backupPath, true, new[] { Path.GetFileName(zipFilePath) });
 
                 // Write a batch file that will:
                 // 1. Wait for our process to exit
                 // 2. Copy files from temp location to app directory
-                // 3. Delete the temp directory and zip file
-                // 4. Start the application again
+                // 3. Restore the settings file if it was backed up
+                // 4. Delete the temp directory and zip file
+                // 5. Start the application again
                 string batchFile = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Update-{Guid.NewGuid()}.bat");
 
                 using (StreamWriter writer = new StreamWriter(batchFile))
@@ -1297,6 +1324,15 @@ namespace ModdingGUI
 
                     // Copy files from temp location to app directory
                     writer.WriteLine($"xcopy \"{tempExtractPath}\\*\" \"{appDirectory}\" /E /H /C /I /Y");
+
+                    // After copying all files, restore settings from backup if it exists
+                    if (hasSettings)
+                    {
+                        writer.WriteLine($"echo Restoring user settings...");
+                        writer.WriteLine($"copy /Y \"{settingsBackupPath}\" \"{settingsPath}\"");
+                        writer.WriteLine($"del \"{settingsBackupPath}\"");
+                        writer.WriteLine($"echo Settings restored successfully.");
+                    }
 
                     // Delete the temp directory and zip file
                     writer.WriteLine($"rmdir /S /Q \"{tempExtractPath}\"");
@@ -1338,9 +1374,16 @@ namespace ModdingGUI
                     try { File.Delete(zipFilePath); } catch { /* Ignore cleanup errors */ }
                 }
 
+                // Delete the settings backup if something went wrong
+                if (File.Exists(settingsBackupPath))
+                {
+                    try { File.Delete(settingsBackupPath); } catch { /* Ignore cleanup errors */ }
+                }
+
                 return false;
             }
         }
+
 
         /// <summary>
         /// Copies a directory and its contents to a new location
