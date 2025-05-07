@@ -33,6 +33,7 @@
             mnuMain = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             settingsMenuItem = new ToolStripMenuItem();
+            infoMenuItem = new ToolStripMenuItem();
             optionsToolStripMenuItem = new ToolStripMenuItem();
             saveBatMenuItem = new ToolStripMenuItem();
             randomizerLogsMenuItem = new ToolStripMenuItem();
@@ -102,6 +103,7 @@
             lblRandomizeStatus = new Label();
             pgbRandomizeStatus = new ProgressBar();
             grpBaseOptions = new GroupBox();
+            chbRandomWeighted = new CheckBox();
             chbRandomCustomCash = new CheckBox();
             chbRandom40Glads = new CheckBox();
             chbRandomItemsets = new CheckBox();
@@ -162,7 +164,6 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            chbRandomWeighted = new CheckBox();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -213,7 +214,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsMenuItem, infoMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "File";
@@ -221,9 +222,16 @@
             // settingsMenuItem
             // 
             settingsMenuItem.Name = "settingsMenuItem";
-            settingsMenuItem.Size = new Size(116, 22);
+            settingsMenuItem.Size = new Size(180, 22);
             settingsMenuItem.Text = "Settings";
             settingsMenuItem.Click += settingsMenuItem_Click;
+            // 
+            // infoMenuItem
+            // 
+            infoMenuItem.Name = "infoMenuItem";
+            infoMenuItem.Size = new Size(180, 22);
+            infoMenuItem.Text = "Info";
+            infoMenuItem.Click += infoMenuItem_Click;
             // 
             // optionsToolStripMenuItem
             // 
@@ -962,6 +970,16 @@
             grpBaseOptions.TabStop = false;
             grpBaseOptions.Text = "Randomized Options";
             // 
+            // chbRandomWeighted
+            // 
+            chbRandomWeighted.AutoSize = true;
+            chbRandomWeighted.Location = new Point(6, 247);
+            chbRandomWeighted.Name = "chbRandomWeighted";
+            chbRandomWeighted.Size = new Size(161, 19);
+            chbRandomWeighted.TabIndex = 12;
+            chbRandomWeighted.Text = "Weighted vs Full Random";
+            chbRandomWeighted.UseVisualStyleBackColor = true;
+            // 
             // chbRandomCustomCash
             // 
             chbRandomCustomCash.AutoSize = true;
@@ -1639,16 +1657,6 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
-            // chbRandomWeighted
-            // 
-            chbRandomWeighted.AutoSize = true;
-            chbRandomWeighted.Location = new Point(6, 247);
-            chbRandomWeighted.Name = "chbRandomWeighted";
-            chbRandomWeighted.Size = new Size(161, 19);
-            chbRandomWeighted.TabIndex = 12;
-            chbRandomWeighted.Text = "Weighted vs Full Random";
-            chbRandomWeighted.UseVisualStyleBackColor = true;
-            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1856,5 +1864,6 @@
         private CheckBox chbRandomCustomCash;
         private TextBox txtRandomCustomCash;
         private CheckBox chbRandomWeighted;
+        private ToolStripMenuItem infoMenuItem;
     }
 }

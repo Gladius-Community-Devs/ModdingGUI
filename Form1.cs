@@ -1104,25 +1104,25 @@ namespace ModdingGUI
 
             // Check if we're typing "RANDOM"
             string currentText = txtRandomCustomCash.Text;
-            string potentialText = currentText.Substring(0, txtRandomCustomCash.SelectionStart) + 
-                                   e.KeyChar + 
+            string potentialText = currentText.Substring(0, txtRandomCustomCash.SelectionStart) +
+                                   e.KeyChar +
                                    currentText.Substring(txtRandomCustomCash.SelectionStart + txtRandomCustomCash.SelectionLength);
-            
-            if (potentialText.Equals("RANDOM", StringComparison.OrdinalIgnoreCase) || 
+
+            if (potentialText.Equals("RANDOM", StringComparison.OrdinalIgnoreCase) ||
                 "RANDOM".StartsWith(potentialText, StringComparison.OrdinalIgnoreCase))
             {
                 // Allow typing "RANDOM"
                 return;
             }
-            
+
             // If we already have "RANDOM", only allow overwriting it completely
-            if (currentText.Equals("RANDOM", StringComparison.OrdinalIgnoreCase) && 
+            if (currentText.Equals("RANDOM", StringComparison.OrdinalIgnoreCase) &&
                 txtRandomCustomCash.SelectionLength < currentText.Length)
             {
                 e.Handled = true;
                 return;
             }
-            
+
             // Otherwise only allow digits
             if (!char.IsDigit(e.KeyChar))
             {
@@ -1147,7 +1147,7 @@ namespace ModdingGUI
         private void txtRandomCustomCash_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
             string text = txtRandomCustomCash.Text.Trim();
-            
+
             // Allow "RANDOM" string
             if (string.Equals(text, "RANDOM", StringComparison.OrdinalIgnoreCase))
             {
@@ -1155,7 +1155,7 @@ namespace ModdingGUI
                 txtRandomCustomCash.Text = "RANDOM";
                 return;
             }
-            
+
             // Check for valid numeric value
             if (string.IsNullOrEmpty(text) || !int.TryParse(text, out int value) || value < 0 || value > 999999999)
             {
@@ -1167,6 +1167,14 @@ namespace ModdingGUI
         private void chbRandomWeighted_MouseHover(object sender, EventArgs e)
         {
             ttpInform.SetToolTip(chbRandomWeighted, "When selected, team randomization will prioritize class diversity by adding new classes before creating duplicate units with the same class.");
+        }
+
+        // Add to Form1.cs
+        private void infoMenuItem_Click(object sender, EventArgs e)
+        {
+            var programInfo = new Models.ProgramInfo();
+            var infoForm = new Forms.ProgramInfoForm(programInfo);
+            infoForm.ShowDialog();
         }
     }
 }
