@@ -1,4 +1,9 @@
 using System.Collections.Concurrent;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using ModdingGUI.Models;
 
 namespace ModdingGUI
 {
@@ -998,8 +1003,7 @@ namespace ModdingGUI
                     "Without this code, the game will crash.\n\n" +
                     "Do you already have this Gecko code enabled?",
                     "Gecko Code Required",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
                 if (result == DialogResult.No)
                 {
@@ -1175,6 +1179,215 @@ namespace ModdingGUI
             var programInfo = new Models.ProgramInfo();
             var infoForm = new Forms.ProgramInfoForm(programInfo);
             infoForm.ShowDialog();
+        }
+
+        private async void updateMenuItem_Click(object sender, EventArgs e)
+        {
+            ProgramInfo programInfo = new ProgramInfo();
+            string currentVersion = programInfo.Version;
+            string latestVersion = await programInfo.GetLatestVersionAsync();
+
+            if (latestVersion == null)
+            {
+                MessageBox.Show("Failed to fetch the latest version. Please check your internet connection.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (string.Compare(latestVersion, currentVersion) > 0)
+            {
+                DialogResult result = MessageBox.Show($"A new version ({latestVersion}) is available. Would you like to update?", "Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    string downloadUrl = $"https://github.com/Gladius-Community-Devs/ModdingGUI/releases/download/{latestVersion}/ModdingGUI-{latestVersion}.zip";
+                    string savePath = Path.Combine(Application.StartupPath, $"ModdingGUI-{latestVersion}.zip");
+
+                    using (HttpClient client = new HttpClient())
+                    {
+                        try
+                        {
+                            // Download the update
+                            AppendLog($"Downloading update from {downloadUrl}...", InfoColor);
+                            byte[] fileBytes = await client.GetByteArrayAsync(downloadUrl);
+                            await File.WriteAllBytesAsync(savePath, fileBytes);
+                            AppendLog($"Update downloaded successfully to {savePath}.", SuccessColor);
+
+                            // Extract and install the update
+                            if (await InstallUpdateAsync(savePath, latestVersion))
+                            {
+                                MessageBox.Show($"Update to version {latestVersion} has been installed. The application will now restart.", 
+                                    "Update Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                // Restart the application
+                                RestartApplication();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            AppendLog($"Update failed: {ex.Message}", ErrorColor);
+                            MessageBox.Show($"Failed to update: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            
+                            // Clean up failed download if it exists
+                            if (File.Exists(savePath))
+                            {
+                                try { File.Delete(savePath); } catch { /* Ignore cleanup errors */ }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("You are already using the latest version.", "No Update Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        /// <summary>
+        /// Extracts and installs the update from the downloaded zip file
+        /// </summary>
+        /// <param name="zipFilePath">Path to the downloaded zip file</param>
+        /// <param name="version">Version being installed</param>
+        /// <returns>True if installation succeeds, false otherwise</returns>
+        private async Task<bool> InstallUpdateAsync(string zipFilePath, string version)
+        {
+            string tempExtractPath = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Update-{Guid.NewGuid()}");
+            string appDirectory = Application.StartupPath;
+            string backupPath = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Backup-{DateTime.Now:yyyyMMdd_HHmmss}");
+            
+            try
+            {
+                // Create temp directory for extraction
+                AppendLog($"Extracting update to temporary location...", InfoColor);
+                Directory.CreateDirectory(tempExtractPath);
+                
+                // Extract the zip file
+                System.IO.Compression.ZipFile.ExtractToDirectory(zipFilePath, tempExtractPath, true);
+                
+                // Create a backup (optional but recommended)
+                AppendLog($"Creating backup of current installation...", InfoColor);
+                DirectoryCopy(appDirectory, backupPath, true, new[] { Path.GetFileName(zipFilePath) });
+                
+                // Write a batch file that will:
+                // 1. Wait for our process to exit
+                // 2. Copy files from temp location to app directory
+                // 3. Delete the temp directory and zip file
+                // 4. Start the application again
+                string batchFile = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Update-{Guid.NewGuid()}.bat");
+                
+                using (StreamWriter writer = new StreamWriter(batchFile))
+                {
+                    // Wait for our process to exit
+                    writer.WriteLine("@echo off");
+                    writer.WriteLine("echo Updating ModdingGUI, please wait...");
+                    writer.WriteLine($"timeout /t 2 /nobreak >nul");
+                    
+                    // Wait for process to fully exit
+                    writer.WriteLine($"set /a counter=0");
+                    writer.WriteLine(":wait_loop");
+                    writer.WriteLine($"tasklist | find \"{System.Diagnostics.Process.GetCurrentProcess().ProcessName}\" >nul");
+                    writer.WriteLine("if %errorlevel% equ 0 (");
+                    writer.WriteLine("    set /a counter+=1");
+                    writer.WriteLine("    if %counter% gtr 10 (");
+                    writer.WriteLine("        echo Update failed: Application is still running after 10 seconds.");
+                    writer.WriteLine("        pause");
+                    writer.WriteLine("        exit /b 1");
+                    writer.WriteLine("    )");
+                    writer.WriteLine("    timeout /t 1 /nobreak >nul");
+                    writer.WriteLine("    goto wait_loop");
+                    writer.WriteLine(")");
+                    
+                    // Copy files from temp location to app directory
+                    writer.WriteLine($"xcopy \"{tempExtractPath}\\*\" \"{appDirectory}\" /E /H /C /I /Y");
+                    
+                    // Delete the temp directory and zip file
+                    writer.WriteLine($"rmdir /S /Q \"{tempExtractPath}\"");
+                    writer.WriteLine($"del \"{zipFilePath}\"");
+                    
+                    // Start the application again
+                    writer.WriteLine($"start \"\" \"{Path.Combine(appDirectory, "ModdingGUI.exe")}\"");
+                    
+                    // Delete this batch file
+                    writer.WriteLine("del \"%~f0\"");
+                }
+                
+                AppendLog($"Update ready for installation.", SuccessColor);
+                
+                // Execute the batch file
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = batchFile,
+                    CreateNoWindow = false,
+                    UseShellExecute = true,
+                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                });
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Failed to install update: {ex.Message}", ErrorColor);
+                
+                // Clean up if extraction failed
+                if (Directory.Exists(tempExtractPath))
+                {
+                    try { Directory.Delete(tempExtractPath, true); } catch { /* Ignore cleanup errors */ }
+                }
+                
+                // Delete the zip file
+                if (File.Exists(zipFilePath))
+                {
+                    try { File.Delete(zipFilePath); } catch { /* Ignore cleanup errors */ }
+                }
+                
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Copies a directory and its contents to a new location
+        /// </summary>
+        private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs, string[] excludeFiles = null)
+        {
+            // Get the subdirectories for the specified directory
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException($"Source directory does not exist or could not be found: {sourceDirName}");
+            }
+
+            // Create the destination directory if it doesn't exist
+            Directory.CreateDirectory(destDirName);
+
+            // Get the files in the directory and copy them to the new location
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                // Skip excluded files
+                if (excludeFiles != null && excludeFiles.Contains(file.Name))
+                    continue;
+                    
+                string tempPath = Path.Combine(destDirName, file.Name);
+                file.CopyTo(tempPath, true);
+            }
+
+            // If copying subdirectories, copy them and their contents
+            if (copySubDirs)
+            {
+                DirectoryInfo[] subDirs = dir.GetDirectories();
+                foreach (DirectoryInfo subDir in subDirs)
+                {
+                    string tempPath = Path.Combine(destDirName, subDir.Name);
+                    DirectoryCopy(subDir.FullName, tempPath, copySubDirs, excludeFiles);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Restarts the application
+        /// </summary>
+        private void RestartApplication()
+        {
+            Application.Exit();
         }
     }
 }

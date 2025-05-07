@@ -164,6 +164,7 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
+            updateMenuItem = new ToolStripMenuItem();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -214,7 +215,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsMenuItem, infoMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsMenuItem, infoMenuItem, updateMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "File";
@@ -1657,6 +1658,13 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
+            // updateMenuItem
+            // 
+            updateMenuItem.Name = "updateMenuItem";
+            updateMenuItem.Size = new Size(180, 22);
+            updateMenuItem.Text = "Check for Updates...";
+            updateMenuItem.Click += updateMenuItem_Click;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1865,5 +1873,6 @@
         private TextBox txtRandomCustomCash;
         private CheckBox chbRandomWeighted;
         private ToolStripMenuItem infoMenuItem;
+        private ToolStripMenuItem updateMenuItem;
     }
 }
