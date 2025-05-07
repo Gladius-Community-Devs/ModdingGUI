@@ -34,6 +34,7 @@
             fileToolStripMenuItem = new ToolStripMenuItem();
             settingsMenuItem = new ToolStripMenuItem();
             infoMenuItem = new ToolStripMenuItem();
+            updateMenuItem = new ToolStripMenuItem();
             optionsToolStripMenuItem = new ToolStripMenuItem();
             saveBatMenuItem = new ToolStripMenuItem();
             randomizerLogsMenuItem = new ToolStripMenuItem();
@@ -164,7 +165,8 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            updateMenuItem = new ToolStripMenuItem();
+            txtRandomCustomSchoolName = new TextBox();
+            label16 = new Label();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -233,6 +235,13 @@
             infoMenuItem.Size = new Size(180, 22);
             infoMenuItem.Text = "Info";
             infoMenuItem.Click += infoMenuItem_Click;
+            // 
+            // updateMenuItem
+            // 
+            updateMenuItem.Name = "updateMenuItem";
+            updateMenuItem.Size = new Size(180, 22);
+            updateMenuItem.Text = "Check for Updates...";
+            updateMenuItem.Click += updateMenuItem_Click;
             // 
             // optionsToolStripMenuItem
             // 
@@ -812,6 +821,8 @@
             // 
             // tabRandomizer
             // 
+            tabRandomizer.Controls.Add(label16);
+            tabRandomizer.Controls.Add(txtRandomCustomSchoolName);
             tabRandomizer.Controls.Add(txtRandomCustomCash);
             tabRandomizer.Controls.Add(label15);
             tabRandomizer.Controls.Add(grpGameVersion);
@@ -980,6 +991,7 @@
             chbRandomWeighted.TabIndex = 12;
             chbRandomWeighted.Text = "Weighted vs Full Random";
             chbRandomWeighted.UseVisualStyleBackColor = true;
+            chbRandomWeighted.MouseHover += chbRandomWeighted_MouseHover;
             // 
             // chbRandomCustomCash
             // 
@@ -1658,12 +1670,21 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
-            // updateMenuItem
+            // txtRandomCustomSchoolName
             // 
-            updateMenuItem.Name = "updateMenuItem";
-            updateMenuItem.Size = new Size(180, 22);
-            updateMenuItem.Text = "Check for Updates...";
-            updateMenuItem.Click += updateMenuItem_Click;
+            txtRandomCustomSchoolName.Location = new Point(337, 56);
+            txtRandomCustomSchoolName.Name = "txtRandomCustomSchoolName";
+            txtRandomCustomSchoolName.Size = new Size(141, 23);
+            txtRandomCustomSchoolName.TabIndex = 14;
+            // 
+            // label16
+            // 
+            label16.AutoSize = true;
+            label16.Location = new Point(337, 38);
+            label16.Name = "label16";
+            label16.Size = new Size(126, 15);
+            label16.TabIndex = 15;
+            label16.Text = "Custom School Name:";
             // 
             // frmMain
             // 
@@ -1874,5 +1895,7 @@
         private CheckBox chbRandomWeighted;
         private ToolStripMenuItem infoMenuItem;
         private ToolStripMenuItem updateMenuItem;
+        private TextBox txtRandomCustomSchoolName;
+        private Label label16;
     }
 }

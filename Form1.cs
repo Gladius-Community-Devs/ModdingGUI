@@ -1215,7 +1215,7 @@ namespace ModdingGUI
                             // Extract and install the update
                             if (await InstallUpdateAsync(savePath, latestVersion))
                             {
-                                MessageBox.Show($"Update to version {latestVersion} has been installed. The application will now restart.", 
+                                MessageBox.Show($"Update to version {latestVersion} has been installed. The application will now restart.",
                                     "Update Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
                                 // Restart the application
                                 RestartApplication();
@@ -1225,7 +1225,7 @@ namespace ModdingGUI
                         {
                             AppendLog($"Update failed: {ex.Message}", ErrorColor);
                             MessageBox.Show($"Failed to update: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            
+
                             // Clean up failed download if it exists
                             if (File.Exists(savePath))
                             {
@@ -1252,34 +1252,34 @@ namespace ModdingGUI
             string tempExtractPath = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Update-{Guid.NewGuid()}");
             string appDirectory = Application.StartupPath;
             string backupPath = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Backup-{DateTime.Now:yyyyMMdd_HHmmss}");
-            
+
             try
             {
                 // Create temp directory for extraction
                 AppendLog($"Extracting update to temporary location...", InfoColor);
                 Directory.CreateDirectory(tempExtractPath);
-                
+
                 // Extract the zip file
                 System.IO.Compression.ZipFile.ExtractToDirectory(zipFilePath, tempExtractPath, true);
-                
+
                 // Create a backup (optional but recommended)
                 AppendLog($"Creating backup of current installation...", InfoColor);
                 DirectoryCopy(appDirectory, backupPath, true, new[] { Path.GetFileName(zipFilePath) });
-                
+
                 // Write a batch file that will:
                 // 1. Wait for our process to exit
                 // 2. Copy files from temp location to app directory
                 // 3. Delete the temp directory and zip file
                 // 4. Start the application again
                 string batchFile = Path.Combine(Path.GetTempPath(), $"ModdingGUI-Update-{Guid.NewGuid()}.bat");
-                
+
                 using (StreamWriter writer = new StreamWriter(batchFile))
                 {
                     // Wait for our process to exit
                     writer.WriteLine("@echo off");
                     writer.WriteLine("echo Updating ModdingGUI, please wait...");
                     writer.WriteLine($"timeout /t 2 /nobreak >nul");
-                    
+
                     // Wait for process to fully exit
                     writer.WriteLine($"set /a counter=0");
                     writer.WriteLine(":wait_loop");
@@ -1294,23 +1294,23 @@ namespace ModdingGUI
                     writer.WriteLine("    timeout /t 1 /nobreak >nul");
                     writer.WriteLine("    goto wait_loop");
                     writer.WriteLine(")");
-                    
+
                     // Copy files from temp location to app directory
                     writer.WriteLine($"xcopy \"{tempExtractPath}\\*\" \"{appDirectory}\" /E /H /C /I /Y");
-                    
+
                     // Delete the temp directory and zip file
                     writer.WriteLine($"rmdir /S /Q \"{tempExtractPath}\"");
                     writer.WriteLine($"del \"{zipFilePath}\"");
-                    
+
                     // Start the application again
                     writer.WriteLine($"start \"\" \"{Path.Combine(appDirectory, "ModdingGUI.exe")}\"");
-                    
+
                     // Delete this batch file
                     writer.WriteLine("del \"%~f0\"");
                 }
-                
+
                 AppendLog($"Update ready for installation.", SuccessColor);
-                
+
                 // Execute the batch file
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
@@ -1319,25 +1319,25 @@ namespace ModdingGUI
                     UseShellExecute = true,
                     WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
                 });
-                
+
                 return true;
             }
             catch (Exception ex)
             {
                 AppendLog($"Failed to install update: {ex.Message}", ErrorColor);
-                
+
                 // Clean up if extraction failed
                 if (Directory.Exists(tempExtractPath))
                 {
                     try { Directory.Delete(tempExtractPath, true); } catch { /* Ignore cleanup errors */ }
                 }
-                
+
                 // Delete the zip file
                 if (File.Exists(zipFilePath))
                 {
                     try { File.Delete(zipFilePath); } catch { /* Ignore cleanup errors */ }
                 }
-                
+
                 return false;
             }
         }
@@ -1365,7 +1365,7 @@ namespace ModdingGUI
                 // Skip excluded files
                 if (excludeFiles != null && excludeFiles.Contains(file.Name))
                     continue;
-                    
+
                 string tempPath = Path.Combine(destDirName, file.Name);
                 file.CopyTo(tempPath, true);
             }

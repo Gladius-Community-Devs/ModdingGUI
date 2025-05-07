@@ -1094,6 +1094,11 @@ namespace ModdingGUI
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "school", fileName);
             
+            // Get school name: use custom name if provided, otherwise use default
+            string schoolName = !string.IsNullOrWhiteSpace(txtRandomCustomSchoolName.Text) 
+                ? txtRandomCustomSchoolName.Text 
+                : "Random's School";
+            
             List<string> outputLines;
             if (chbRandomCustomCash.Checked)
             {
@@ -1110,15 +1115,15 @@ namespace ModdingGUI
                     cashAmount = parsedAmount;
                 }
                 
-                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: {cashAmount}" };
+                outputLines = new List<string> { $"NAME: \"{schoolName}\"\nHERO: \"{heroName}\"\nGOLD: {cashAmount}" };
             }
             else if (chbRandom40Glads.Checked)
             {
-                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 75000" };
+                outputLines = new List<string> { $"NAME: \"{schoolName}\"\nHERO: \"{heroName}\"\nGOLD: 75000" };
             }
             else
             {
-                outputLines = new List<string> { $"NAME: \"Random's School\"\nHERO: \"{heroName}\"\nGOLD: 15000" };
+                outputLines = new List<string> { $"NAME: \"{schoolName}\"\nHERO: \"{heroName}\"\nGOLD: 15000" };
             }
             
             // Add CREATEUNIT blocks for each hero
