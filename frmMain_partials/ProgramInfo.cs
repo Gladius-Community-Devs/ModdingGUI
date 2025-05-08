@@ -40,5 +40,25 @@ namespace ModdingGUI.Models
                 }
             }
         }
+
+        public async Task<(bool updateAvailable, string latestVersion)> CheckForUpdateAsync(bool silent = false)
+        {
+            string latestVersion = await GetLatestVersionAsync();
+            if (latestVersion == null)
+            {
+                if (!silent)
+                {
+                    System.Windows.Forms.MessageBox.Show(
+                        "Failed to fetch the latest version. Please check your internet connection.", 
+                        "Error", 
+                        System.Windows.Forms.MessageBoxButtons.OK, 
+                        System.Windows.Forms.MessageBoxIcon.Error);
+                }
+                return (false, null);
+            }
+
+            bool updateAvailable = string.Compare(latestVersion, Version) > 0;
+            return (updateAvailable, latestVersion);
+        }
     }
 }

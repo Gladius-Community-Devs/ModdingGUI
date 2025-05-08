@@ -217,6 +217,10 @@ namespace ModdingGUI
             try
             {
                 LoadAppSettings(); // Apply application settings
+                
+                // Check for updates at startup
+                _ = CheckForUpdatesAtStartupAsync(); // Fire and forget async call
+
                 // Retrieve the original executable directory using the helper method
                 string appDirectory = GetAppDirectory();
                 AppendLog($"App Directory: {appDirectory}", InfoColor);
@@ -256,6 +260,72 @@ namespace ModdingGUI
                 AppendLog($"Error during application load: {ex.Message}", ErrorColor);
                 MessageBox.Show($"An unexpected error occurred:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(0); // Exit the application
+            }
+        }
+
+        private async Task CheckForUpdatesAtStartupAsync()
+        {
+            if (!appSettings.AutoCheckUpdates) return;
+
+            try
+            {
+                ProgramInfo programInfo = new ProgramInfo();
+                var (updateAvailable, latestVersion) = await programInfo.CheckForUpdateAsync(silent: true);
+
+                if (updateAvailable)
+                {
+                    DialogResult result = MessageBox.Show(
+                        $"A new version ({latestVersion}) is available. Would you like to update now?",
+                        "Update Available",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        await PerformUpdateAsync(latestVersion);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error checking for updates: {ex.Message}", ErrorColor);
+            }
+        }
+
+        private async Task PerformUpdateAsync(string latestVersion)
+        {
+            string downloadUrl = $"https://github.com/Gladius-Community-Devs/ModdingGUI/releases/download/{latestVersion}/ModdingGUI-{latestVersion}.zip";
+            string savePath = Path.Combine(Application.StartupPath, $"ModdingGUI-{latestVersion}.zip");
+
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    AppendLog($"Downloading update from {downloadUrl}...", InfoColor);
+                    byte[] fileBytes = await client.GetByteArrayAsync(downloadUrl);
+                    await File.WriteAllBytesAsync(savePath, fileBytes);
+                    AppendLog($"Update downloaded successfully to {savePath}.", SuccessColor);
+
+                    if (await InstallUpdateAsync(savePath, latestVersion))
+                    {
+                        MessageBox.Show(
+                            $"Update to version {latestVersion} has been installed. The application will now close. Restart it to use the new features!",
+                            "Update Complete",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        RestartApplication();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AppendLog($"Update failed: {ex.Message}", ErrorColor);
+                    MessageBox.Show($"Failed to update: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    if (File.Exists(savePath))
+                    {
+                        try { File.Delete(savePath); } catch { /* Ignore cleanup errors */ }
+                    }
+                }
             }
         }
 
@@ -1193,60 +1263,27 @@ namespace ModdingGUI
         private async void updateMenuItem_Click(object sender, EventArgs e)
         {
             ProgramInfo programInfo = new ProgramInfo();
-            string currentVersion = programInfo.Version;
-            string latestVersion = await programInfo.GetLatestVersionAsync();
+            var (updateAvailable, latestVersion) = await programInfo.CheckForUpdateAsync();
 
-            if (latestVersion == null)
+            if (updateAvailable)
             {
-                MessageBox.Show("Failed to fetch the latest version. Please check your internet connection.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            if (string.Compare(latestVersion, currentVersion) > 0)
-            {
-                DialogResult result = MessageBox.Show($"A new version ({latestVersion}) is available. Would you like to update?", "Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
+                DialogResult result = MessageBox.Show(
+                    $"A new version ({latestVersion}) is available. Would you like to update?",
+                    "Update Available",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
                 if (result == DialogResult.Yes)
                 {
-                    string downloadUrl = $"https://github.com/Gladius-Community-Devs/ModdingGUI/releases/download/{latestVersion}/ModdingGUI-{latestVersion}.zip";
-                    string savePath = Path.Combine(Application.StartupPath, $"ModdingGUI-{latestVersion}.zip");
-
-                    using (HttpClient client = new HttpClient())
-                    {
-                        try
-                        {
-                            // Download the update
-                            AppendLog($"Downloading update from {downloadUrl}...", InfoColor);
-                            byte[] fileBytes = await client.GetByteArrayAsync(downloadUrl);
-                            await File.WriteAllBytesAsync(savePath, fileBytes);
-                            AppendLog($"Update downloaded successfully to {savePath}.", SuccessColor);
-
-                            // Extract and install the update
-                            if (await InstallUpdateAsync(savePath, latestVersion))
-                            {
-                                MessageBox.Show($"Update to version {latestVersion} has been installed. The application will now restart.",
-                                    "Update Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                // Restart the application
-                                RestartApplication();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            AppendLog($"Update failed: {ex.Message}", ErrorColor);
-                            MessageBox.Show($"Failed to update: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                            // Clean up failed download if it exists
-                            if (File.Exists(savePath))
-                            {
-                                try { File.Delete(savePath); } catch { /* Ignore cleanup errors */ }
-                            }
-                        }
-                    }
+                    await PerformUpdateAsync(latestVersion);
                 }
             }
-            else
+            else if (latestVersion != null)
             {
-                MessageBox.Show("You are already using the latest version.", "No Update Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    "You are already using the latest version.",
+                    "No Update Available",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
         }
 
@@ -1348,7 +1385,7 @@ namespace ModdingGUI
                     writer.WriteLine($"del \"{zipFilePath}\"");
 
                     // Start the application again
-                    writer.WriteLine($"start \"\" \"{Path.Combine(appDirectory, "ModdingGUI.exe")}\"");
+                    // writer.WriteLine($"start \"\" \"{Path.Combine(appDirectory, "ModdingGUI.exe")}\"");
 
                     // Delete this batch file
                     writer.WriteLine("del \"%~f0\"");
