@@ -280,6 +280,7 @@ namespace ModdingGUI
                 {
                     tabContainer.TabPages.Add(tabTeamBuilder);
                     LoadClassesIntoDropdown();
+                    InitializeTeamBuilderUI(); // Initialize the UI settings
                 }
             }
             else
@@ -922,7 +923,15 @@ namespace ModdingGUI
         {
             if (rbnTeamCampaign.Checked)
             {
+                // Set team level to 1 for campaign mode
                 txtTeamLevel.Text = "1";
+                txtTeamLevel.Enabled = false;
+
+                // Update equipment rules visibility
+                UpdateEquipmentRulesVisibility(false);
+
+                // Update unit count and button states
+                UpdateUnitCountAndButtons();
             }
         }
 

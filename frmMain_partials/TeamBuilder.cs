@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 namespace ModdingGUI
 {
@@ -205,10 +205,10 @@ namespace ModdingGUI
             public string Style { get; set; }
         }
 
-            /// <summary>
-            /// Represents a gladiator entry parsed from gladiators.txt.
-            /// </summary>
-            public class GladiatorEntry
+        /// <summary>
+        /// Represents a gladiator entry parsed from gladiators.txt.
+        /// </summary>
+        public class GladiatorEntry
         {
             public string Name { get; set; }
             public string Class { get; set; }
@@ -1115,7 +1115,8 @@ namespace ModdingGUI
                 AppendLog("Selected node: " + e.Node.Text, Color.Blue, rtbPackOutput);
                 // Update other UI elements if necessary
                 UpdateUnitCountAndButtons();
-            }else if(tabContainer.SelectedTab == tabTeamGearSelection)
+            }
+            else if (tabContainer.SelectedTab == tabTeamGearSelection)
             {
 
             }
@@ -1239,6 +1240,81 @@ namespace ModdingGUI
         private void ClearPreviewStats()
         {
             txtPreviewStats.Clear();
+        }
+
+        #endregion
+
+        #region Team Builder UI Initialization
+
+        /// <summary>
+        /// Handles UI initialization when opening the Team Builder tab.
+        /// </summary>
+        private void InitializeTeamBuilderUI()
+        {
+            // Set Campaign mode as default
+            rbnTeamCampaign.Checked = true;
+            
+            // Disable PVP radio button since it's not ready yet
+            rbnTeamPVP.Enabled = false;
+            
+            // Set team level text and enable/disable based on mode
+            txtTeamLevel.Text = "1";
+            
+            // Hide PVP-only controls
+            UpdateEquipmentRulesVisibility(false);
+            
+            // Hide gear and skill selection tabs initially
+            if (tabTeamBuilderMaster.TabPages.Contains(tabTeamGearSelection))
+                tabTeamBuilderMaster.TabPages.Remove(tabTeamGearSelection);
+            
+            if (tabTeamBuilderMaster.TabPages.Contains(tabTeamSkillSelection))
+                tabTeamBuilderMaster.TabPages.Remove(tabTeamSkillSelection);
+        }
+
+        /// <summary>
+        /// Handles the CheckedChanged event of rbnTeamPVP radio button.
+        /// </summary>
+        private void rbnTeamPVP_CheckedChanged(object sender, EventArgs e)
+        {
+            bool isPvpMode = rbnTeamPVP.Checked;
+            
+            // Enable/disable team level input based on mode
+            txtTeamLevel.Enabled = isPvpMode;
+            
+            // Show/hide equipment rules
+            UpdateEquipmentRulesVisibility(isPvpMode);
+            
+            // Show/hide gear and skill selection tabs
+            if (isPvpMode)
+            {
+                if (!tabTeamBuilderMaster.TabPages.Contains(tabTeamGearSelection))
+                    tabTeamBuilderMaster.TabPages.Add(tabTeamGearSelection);
+                    
+                if (!tabTeamBuilderMaster.TabPages.Contains(tabTeamSkillSelection))
+                    tabTeamBuilderMaster.TabPages.Add(tabTeamSkillSelection);
+            }
+            else
+            {
+                if (tabTeamBuilderMaster.TabPages.Contains(tabTeamGearSelection))
+                    tabTeamBuilderMaster.TabPages.Remove(tabTeamGearSelection);
+                    
+                if (tabTeamBuilderMaster.TabPages.Contains(tabTeamSkillSelection))
+                    tabTeamBuilderMaster.TabPages.Remove(tabTeamSkillSelection);
+            }
+            
+            // Update unit count and button states
+            UpdateUnitCountAndButtons();
+        }
+
+        /// <summary>
+        /// Updates the visibility of equipment rules controls.
+        /// </summary>
+        /// <param name="visible">Whether the controls should be visible.</param>
+        private void UpdateEquipmentRulesVisibility(bool visible)
+        {
+            lblEquipmentRules.Visible = visible;
+            chbTeamEquipRestrict.Visible = visible;
+            label6.Visible = visible;
         }
 
         #endregion

@@ -91,6 +91,8 @@
             btnPackPath = new Button();
             txtPackPath = new TextBox();
             tabRandomizer = new TabPage();
+            label16 = new Label();
+            txtRandomCustomSchoolName = new TextBox();
             txtRandomCustomCash = new TextBox();
             label15 = new Label();
             grpGameVersion = new GroupBox();
@@ -165,8 +167,6 @@
             txtTeamHeader = new TextBox();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            txtRandomCustomSchoolName = new TextBox();
-            label16 = new Label();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -283,15 +283,16 @@
             // 
             randomizerMenuItem.CheckOnClick = true;
             randomizerMenuItem.Name = "randomizerMenuItem";
-            randomizerMenuItem.Size = new Size(142, 22);
+            randomizerMenuItem.Size = new Size(180, 22);
             randomizerMenuItem.Text = "Randomizer";
+            randomizerMenuItem.Visible = false;
             randomizerMenuItem.Click += randomizerMenuItem_Click;
             // 
             // teamBuilderToolStripMenuItem
             // 
             teamBuilderToolStripMenuItem.CheckOnClick = true;
             teamBuilderToolStripMenuItem.Name = "teamBuilderToolStripMenuItem";
-            teamBuilderToolStripMenuItem.Size = new Size(142, 22);
+            teamBuilderToolStripMenuItem.Size = new Size(180, 22);
             teamBuilderToolStripMenuItem.Text = "Team Builder";
             teamBuilderToolStripMenuItem.Click += teamBuilderToolStripMenuItem_Click;
             // 
@@ -841,6 +842,22 @@
             tabRandomizer.Text = "Randomizer";
             tabRandomizer.UseVisualStyleBackColor = true;
             // 
+            // label16
+            // 
+            label16.AutoSize = true;
+            label16.Location = new Point(337, 38);
+            label16.Name = "label16";
+            label16.Size = new Size(126, 15);
+            label16.TabIndex = 15;
+            label16.Text = "Custom School Name:";
+            // 
+            // txtRandomCustomSchoolName
+            // 
+            txtRandomCustomSchoolName.Location = new Point(337, 56);
+            txtRandomCustomSchoolName.Name = "txtRandomCustomSchoolName";
+            txtRandomCustomSchoolName.Size = new Size(141, 23);
+            txtRandomCustomSchoolName.TabIndex = 14;
+            // 
             // txtRandomCustomCash
             // 
             txtRandomCustomCash.Location = new Point(190, 256);
@@ -1224,6 +1241,7 @@
             // chbTeamEquipRestrict
             // 
             chbTeamEquipRestrict.AutoSize = true;
+            chbTeamEquipRestrict.Enabled = false;
             chbTeamEquipRestrict.Location = new Point(190, 114);
             chbTeamEquipRestrict.Name = "chbTeamEquipRestrict";
             chbTeamEquipRestrict.Size = new Size(133, 19);
@@ -1266,6 +1284,7 @@
             // rbnTeamCampaign
             // 
             rbnTeamCampaign.AutoSize = true;
+            rbnTeamCampaign.Checked = true;
             rbnTeamCampaign.Location = new Point(57, 19);
             rbnTeamCampaign.Name = "rbnTeamCampaign";
             rbnTeamCampaign.Size = new Size(80, 19);
@@ -1278,12 +1297,11 @@
             // rbnTeamPVP
             // 
             rbnTeamPVP.AutoSize = true;
-            rbnTeamPVP.Checked = true;
+            rbnTeamPVP.Enabled = false;
             rbnTeamPVP.Location = new Point(6, 19);
             rbnTeamPVP.Name = "rbnTeamPVP";
             rbnTeamPVP.Size = new Size(45, 19);
             rbnTeamPVP.TabIndex = 0;
-            rbnTeamPVP.TabStop = true;
             rbnTeamPVP.Text = "PvP";
             rbnTeamPVP.UseVisualStyleBackColor = true;
             // 
@@ -1298,6 +1316,7 @@
             // 
             // txtTeamLevel
             // 
+            txtTeamLevel.Enabled = false;
             txtTeamLevel.Location = new Point(307, 82);
             txtTeamLevel.Name = "txtTeamLevel";
             txtTeamLevel.Size = new Size(100, 23);
@@ -1669,22 +1688,6 @@
             tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
-            // 
-            // txtRandomCustomSchoolName
-            // 
-            txtRandomCustomSchoolName.Location = new Point(337, 56);
-            txtRandomCustomSchoolName.Name = "txtRandomCustomSchoolName";
-            txtRandomCustomSchoolName.Size = new Size(141, 23);
-            txtRandomCustomSchoolName.TabIndex = 14;
-            // 
-            // label16
-            // 
-            label16.AutoSize = true;
-            label16.Location = new Point(337, 38);
-            label16.Name = "label16";
-            label16.Size = new Size(126, 15);
-            label16.TabIndex = 15;
-            label16.Text = "Custom School Name:";
             // 
             // frmMain
             // 
