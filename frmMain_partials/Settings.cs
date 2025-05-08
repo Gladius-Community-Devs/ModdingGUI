@@ -18,7 +18,8 @@ namespace ModdingGUI
             try
             {
                 string settingsPath = Path.Combine(GetAppDirectory(), APP_SETTINGS_FILENAME);
-                
+                AppendLog($"App Directory: {settingsPath}", InfoColor);
+
                 // If settings file doesn't exist, create default settings
                 if (!File.Exists(settingsPath))
                 {

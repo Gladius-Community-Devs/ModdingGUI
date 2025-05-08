@@ -67,10 +67,10 @@ namespace ModdingGUI
         public static string GetAppDirectory()
         {
             // Retrieve the full path to the executable
-            string executablePath = Process.GetCurrentProcess().MainModule.FileName;
+            return AppDomain.CurrentDomain.BaseDirectory;
 
             // Extract and return the directory path
-            return Path.GetDirectoryName(executablePath) ?? throw new InvalidOperationException("Unable to determine the application directory.");
+            //return Path.GetDirectoryName(executablePath) ?? throw new InvalidOperationException("Unable to determine the application directory.");
         }
 
         // Method to enclose a file path in quotes if it's not already quoted
