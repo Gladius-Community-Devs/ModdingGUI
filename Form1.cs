@@ -923,6 +923,8 @@ namespace ModdingGUI
                 {
                     txtPackPath.Text = string.Empty;
                 }
+                if (tabContainer.TabPages.Contains(tabTeamBuilder))
+                    LoadClassesIntoDropdown();
             }
             else
             {
