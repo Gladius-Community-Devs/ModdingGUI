@@ -925,6 +925,7 @@ namespace ModdingGUI
                 }
                 if (tabContainer.TabPages.Contains(tabTeamBuilder))
                     LoadClassesIntoDropdown();
+                    InitializeTeamBuilderUI();
             }
             else
             {
