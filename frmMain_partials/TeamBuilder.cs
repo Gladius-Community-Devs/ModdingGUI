@@ -1000,7 +1000,7 @@ namespace ModdingGUI
 
             // Log the addition
             AppendLog($"Added unit '{unitName}' with class '{selectedClassName}' at level {unitLevel}.", Color.Green, rtbPackOutput);
-            int maxUnits = rbnTeamPVP.Checked ? 20 : rbnTeamCampaign.Checked ? 14 : 20;
+            int maxUnits = (rbnTeamCampaign.Checked && chbTeam40Glads.Checked) ? 34 : rbnTeamPVP.Checked ? 20 : rbnTeamCampaign.Checked ? 14 : 20;
             btnTeamAddUnit.Enabled = teamUnits.Count < maxUnits;
             txtTeamHeader.Text = $"Current Team: ({teamUnits.Count}/{maxUnits})";
 
@@ -1189,7 +1189,7 @@ namespace ModdingGUI
         private void UpdateUnitCountAndButtons()
         {
             // Determine the maximum number of units based on the selected mode
-            int maxUnits = rbnTeamPVP.Checked ? 20 : rbnTeamCampaign.Checked ? 14 : 20;
+            int maxUnits = (rbnTeamCampaign.Checked && chbTeam40Glads.Checked) ? 34 : rbnTeamPVP.Checked ? 20 : rbnTeamCampaign.Checked ? 14 : 20;
 
             // Update the team count display (assuming txtTeamHeader is a Label)
             txtTeamHeader.Text = $"Current Team: ({teamUnits.Count}/{maxUnits})";
@@ -1317,6 +1317,315 @@ namespace ModdingGUI
             label6.Visible = visible;
         }
 
+        /// <summary>
+        /// Handles the CheckedChanged event of chbTeam40Glads to prompt about the 40 glads gecko code.
+        /// </summary>
+        private void chbTeam40Glads_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chbTeam40Glads.Checked)
+            {
+                var confirmResult = MessageBox.Show(
+                    "This option requires the 40 glads gecko code to be enabled in Dolphin.\n\n" +
+                    "Do you have this code enabled?",
+                    "40 Glads Gecko Code Required",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (confirmResult != DialogResult.Yes)
+                {
+                    // User doesn't have the code enabled, uncheck the box
+                    chbTeam40Glads.Checked = false;
+                    AppendLog("40 glads option was unchecked because the gecko code is not enabled.", Color.Orange);
+                }
+                else
+                {
+                    AppendLog("40 glads option enabled.", Color.Green);
+                }
+            }
+        }
+
         #endregion
+
+        #region Team Export to School Files
+        /// <summary>
+        /// Appends all units from the team TreeView to an existing school file.
+        /// </summary>
+        /// <param name="projectFolder">The root project folder path.</param>
+        /// <param name="fileName">The name of the school file (e.g. "valens_school.txt" or "ursula_school.txt").</param>
+        private void AppendTeamUnitsToFile(string projectFolder, string fileName)
+        {
+            // Validate parameters
+            if (string.IsNullOrEmpty(projectFolder) || !Directory.Exists(projectFolder))
+            {
+                AppendLog("Invalid project folder path.", Color.Red);
+                return;
+            }
+
+            try
+            {
+                // Step 1: Properly normalize and construct the file path
+                projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string projectFolderName = Path.GetFileName(projectFolder);
+                string dataFolder = Path.Combine(projectFolder, $"{projectFolderName}_BEC", "data");
+                string schoolFolder = Path.Combine(dataFolder, "school");
+                string filePath = Path.Combine(schoolFolder, fileName);
+                
+                // Log the path being used for better troubleshooting
+                AppendLog($"Target school file path: {filePath}", Color.Blue);
+
+                // Step 2: Ensure directories exist
+                if (!Directory.Exists(dataFolder))
+                {
+                    AppendLog($"Data folder not found: {dataFolder}", Color.Red);
+                    MessageBox.Show($"The data folder could not be found at:\n{dataFolder}\n\nPlease ensure the project is correctly unpacked.", 
+                        "Directory Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Create school folder if it doesn't exist
+                if (!Directory.Exists(schoolFolder))
+                {
+                    AppendLog($"School folder not found: {schoolFolder}. Creating it now.", Color.Orange);
+                    Directory.CreateDirectory(schoolFolder);
+                }
+
+                // Step 3: Check and load existing file content
+                List<string> outputLines = new List<string>();
+                
+                // Read existing file content
+                AppendLog($"Reading existing school file: {filePath}", Color.Blue);
+                outputLines.AddRange(File.ReadAllLines(filePath));
+
+                // Step 4: Append team units with detailed logging
+                AppendLog($"Adding {tvwTeam.Nodes.Count} units to {fileName}...", Color.Blue);
+                int initialLineCount = outputLines.Count;
+                AppendTeamUnitBlocks(outputLines);
+                
+                if (outputLines.Count <= initialLineCount)
+                {
+                    AppendLog("Warning: No unit data was added to the output lines.", Color.Orange);
+                }
+
+                // Step 5: Write back to file with validation
+                File.WriteAllLines(filePath, outputLines);
+                
+                // Verify file was created/updated
+                if (File.Exists(filePath))
+                {
+                    int unitCount = tvwTeam.Nodes.Count;
+                    string statusMessage = $"{unitCount} team units added to existing file {filePath}";
+                    
+                    AppendLog(statusMessage, Color.Green);
+                }
+                else
+                {
+                    throw new IOException($"Failed to verify the existence of the output file after writing: {filePath}");
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                string message = $"Access denied while writing to school file. Try running the application as administrator: {ex.Message}";
+                AppendLog(message, Color.Red);
+                MessageBox.Show(message, "Access Denied", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (IOException ex)
+            {
+                string message = $"I/O error while writing school file: {ex.Message}";
+                AppendLog(message, Color.Red);
+                MessageBox.Show(message, "File Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                string message = $"Error appending team to file: {ex.Message}";
+                AppendLog(message, Color.Red);
+                MessageBox.Show(message, "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Appends CREATEUNIT blocks for all units in the team TreeView to the specified output lines.
+        /// </summary>
+        /// <param name="outputLines">The list of output lines to append to.</param>
+        private void AppendTeamUnitBlocks(List<string> outputLines)
+        {
+            if (tvwTeam.Nodes.Count == 0)
+            {
+                AppendLog("No units found in the team to export.", Color.Orange);
+                return;
+            }
+
+            // Get project path for parsing item sets if needed
+            string projectPath = txtPackPath.Text.Trim();
+            if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
+            {
+                AppendLog("Warning: Valid project path not found, default items may not be assigned correctly.", Color.Orange);
+            }
+
+            // Parse item sets from the project if possible
+            Dictionary<int, List<string>> itemSets = null;
+            try
+            {
+                if (!string.IsNullOrEmpty(projectPath) && Directory.Exists(projectPath))
+                {
+                    itemSets = ParseItemSets(projectPath);
+                    AppendLog($"Loaded {itemSets.Count} item sets for class-based equipment assignment.", Color.Blue);
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error loading item sets: {ex.Message}. Default items will not be assigned.", Color.Orange);
+            }
+
+            foreach (TreeNode unitNode in tvwTeam.Nodes)
+            {
+                // Get the Unit object from the node's Tag
+                if (unitNode.Tag is Unit unit)
+                {
+                    // Add CREATEUNIT block
+                    outputLines.Add($"CREATEUNIT: \"{unit.UnitName}\", \"{unit.Class.ClassName}\"    // Name, class");
+                    outputLines.Add($"\tLEVEL: {unit.Level}");
+                    outputLines.Add("\tEXPERIENCE: 0");
+                    outputLines.Add("\tJOBPOINTS: 8");
+                    outputLines.Add("\tCUSTOMIZE: 0, \"\"");
+
+                    // Get the unit's stats
+                    var stats = unit.BaseStats;
+                    outputLines.Add("\t//            CON, PWR, ACC, DEF, INT, MOV");
+                    outputLines.Add($"\tCORESTATSCOMP2: {stats.CON}, {stats.PWR}, {stats.ACC}, {stats.DEF}, {stats.INI}, {stats.MOV}");
+
+                    // Add equipped items - first check the unit's equipped gear, then fall back to class-based defaults
+                    outputLines.Add("\t//	weapon,	armor,	shield,	helmet,	accessory");
+
+                    // First, check if the unit has any equpped gear
+                    string weapon = GetItemNameByType(unit.EquippedGear, GearType.Weapon);
+                    string armor = GetItemNameByType(unit.EquippedGear, GearType.Armor);
+                    string shield = GetItemNameByType(unit.EquippedGear, GearType.Shield);
+                    string helmet = GetItemNameByType(unit.EquippedGear, GearType.Helmet);
+                    string accessory = GetItemNameByType(unit.EquippedGear, GearType.Accessory);
+
+                    // If we're missing any equipment and have gladiator entries, try to assign class-based defaults
+                    if ((string.IsNullOrEmpty(weapon) || string.IsNullOrEmpty(armor) || string.IsNullOrEmpty(shield) || 
+                        string.IsNullOrEmpty(helmet) || string.IsNullOrEmpty(accessory)) && 
+                        gladiatorEntries != null && gladiatorEntries.Count > 0 && itemSets != null && itemSets.Count > 0)
+                    {
+                        // Find a matching gladiator entry for this class
+                        var matchingGladiators = gladiatorEntries.Where(g => g.Class.Equals(unit.Class.ClassName, StringComparison.OrdinalIgnoreCase)).ToList();
+                        if (matchingGladiators.Count > 0)
+                        {
+                            // Use the first matching gladiator's item set
+                            var gladiator = matchingGladiators[0];
+                            var defaultItems = itemSets.GetValueOrDefault(gladiator.ItemSet, new List<string> { "", "", "", "", "" });
+
+                            // Assign default items only for empty slots
+                            if (defaultItems.Count >= 5)
+                            {
+                                if (string.IsNullOrEmpty(weapon)) weapon = defaultItems[0];
+                                if (string.IsNullOrEmpty(armor)) armor = defaultItems[1];
+                                if (string.IsNullOrEmpty(shield)) shield = defaultItems[2];
+                                if (string.IsNullOrEmpty(helmet)) helmet = defaultItems[3];
+                                if (string.IsNullOrEmpty(accessory)) accessory = defaultItems[4];
+                                
+                                AppendLog($"Applied default equipment from ItemSet {gladiator.ItemSet} for unit '{unit.UnitName}' with class '{unit.Class.ClassName}'", Color.Blue);
+                            }
+                        }
+                    }
+
+                    // Ensure we have a value (empty string if nothing else) for each slot
+                    weapon = weapon ?? "";
+                    armor = armor ?? "";
+                    shield = shield ?? "";
+                    helmet = helmet ?? "";
+                    accessory = accessory ?? "";
+
+                    outputLines.Add($"\tITEMSCOMP: \"{weapon}\", \"{armor}\", \"{shield}\", \"{helmet}\", \"{accessory}\"");
+
+                    // Add learned skills (if any)
+                    if (unit.LearnedSkills.Count > 0)
+                    {
+                        outputLines.Add("\t// basic skills");
+                        foreach (var skill in unit.LearnedSkills)
+                        {
+                            outputLines.Add($"\tSKILL: \"{skill.InternalName}\"");
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the name of an item of a specific type from the equipped gear list.
+        /// </summary>
+        /// <param name="equippedGear">The list of equipped gear.</param>
+        /// <param name="type">The type of gear to find.</param>
+        /// <returns>The item name or empty string if not found.</returns>
+        private string GetItemNameByType(List<Gear> equippedGear, GearType type)
+        {
+            var item = equippedGear.FirstOrDefault(g => g.GearType == type);
+            return item?.InternalName ?? "";
+        }
+
+        /// <summary>
+        /// Exports the current team to both Valens and Ursula school files.
+        /// </summary>
+        /// <param name="projectFolder">The root project folder path.</param>
+        /// <param name="writeToValens">Flag indicating whether to write to Valens school file.</param>
+        /// <param name="writeToUrsula">Flag indicating whether to write to Ursula school file.</param>
+        /// <param name="appendToExisting">Flag indicating whether to append to existing files or create new ones.</param>
+        #endregion
+
+
+        /// <summary>
+        /// Handles the Click event of btnTeamAddToFile to export the team to both school files.
+        /// </summary>
+        private void btnTeamAddToFile_Click(object sender, EventArgs e)
+        {
+            // Verify project path
+            string projectPath = txtPackPath.Text.Trim();
+            if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
+            {
+                MessageBox.Show("Please select a valid project folder first.", "Project Not Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppendLog("Attempted to export team without selecting a valid project.", Color.Red);
+                return;
+            }
+
+            // Check if team has units
+            if (tvwTeam.Nodes.Count == 0)
+            {
+                MessageBox.Show("Your team is empty. Please add units before exporting.", "Empty Team", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                // Confirm with the user before proceeding
+                DialogResult confirmResult = MessageBox.Show(
+                    "This will append your team units to both Valens and Ursula school files.\n\n" +
+                    "Do you want to continue?",
+                    "Confirm Team Export",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (confirmResult != DialogResult.Yes)
+                {
+                    AppendLog("Team export canceled by user.", Color.Orange);
+                    return;
+                }
+
+                // Always append to existing files
+                AppendTeamUnitsToFile(projectPath, "valensimperia.tok");
+                AppendTeamUnitsToFile(projectPath, "ursulanordagh.tok");
+
+                MessageBox.Show("Team units have been successfully added to both school files!",
+                    "Export Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                AppendLog("Team units successfully added to both school files.", Color.Green);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while exporting the team: {ex.Message}",
+                    "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppendLog($"Team export error: {ex.Message}", Color.Red);
+            }
+        }
     }
 }

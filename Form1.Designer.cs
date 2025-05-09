@@ -126,6 +126,7 @@
             tabTeamBuilderMaster = new TabControl();
             tabTeamRulesSelection = new TabPage();
             grpRules = new GroupBox();
+            chbTeam40Glads = new CheckBox();
             chbTeamEquipRestrict = new CheckBox();
             label6 = new Label();
             lblEquipmentRules = new Label();
@@ -136,6 +137,7 @@
             txtTeamLevel = new TextBox();
             lblTeamUnitCreator = new Label();
             tabTeamUnitSelection = new TabPage();
+            btnTeamAddToFile = new Button();
             btnTeamRemoveUnit = new Button();
             grpPreview = new GroupBox();
             tableLayoutPanel1 = new TableLayoutPanel();
@@ -283,7 +285,7 @@
             // 
             randomizerMenuItem.CheckOnClick = true;
             randomizerMenuItem.Name = "randomizerMenuItem";
-            randomizerMenuItem.Size = new Size(180, 22);
+            randomizerMenuItem.Size = new Size(142, 22);
             randomizerMenuItem.Text = "Randomizer";
             randomizerMenuItem.Visible = false;
             randomizerMenuItem.Click += randomizerMenuItem_Click;
@@ -292,7 +294,7 @@
             // 
             teamBuilderToolStripMenuItem.CheckOnClick = true;
             teamBuilderToolStripMenuItem.Name = "teamBuilderToolStripMenuItem";
-            teamBuilderToolStripMenuItem.Size = new Size(180, 22);
+            teamBuilderToolStripMenuItem.Size = new Size(142, 22);
             teamBuilderToolStripMenuItem.Text = "Team Builder";
             teamBuilderToolStripMenuItem.Click += teamBuilderToolStripMenuItem_Click;
             // 
@@ -1225,6 +1227,7 @@
             // 
             // grpRules
             // 
+            grpRules.Controls.Add(chbTeam40Glads);
             grpRules.Controls.Add(chbTeamEquipRestrict);
             grpRules.Controls.Add(label6);
             grpRules.Controls.Add(lblEquipmentRules);
@@ -1238,11 +1241,22 @@
             grpRules.TabStop = false;
             grpRules.Text = "First, let's start with some rules:";
             // 
+            // chbTeam40Glads
+            // 
+            chbTeam40Glads.AutoSize = true;
+            chbTeam40Glads.Location = new Point(5, 72);
+            chbTeam40Glads.Name = "chbTeam40Glads";
+            chbTeam40Glads.Size = new Size(166, 19);
+            chbTeam40Glads.TabIndex = 11;
+            chbTeam40Glads.Text = "Enable 40 Gladiators mode";
+            chbTeam40Glads.UseVisualStyleBackColor = true;
+            chbTeam40Glads.CheckedChanged += chbTeam40Glads_CheckedChanged;
+            // 
             // chbTeamEquipRestrict
             // 
             chbTeamEquipRestrict.AutoSize = true;
             chbTeamEquipRestrict.Enabled = false;
-            chbTeamEquipRestrict.Location = new Point(190, 114);
+            chbTeamEquipRestrict.Location = new Point(186, 116);
             chbTeamEquipRestrict.Name = "chbTeamEquipRestrict";
             chbTeamEquipRestrict.Size = new Size(133, 19);
             chbTeamEquipRestrict.TabIndex = 2;
@@ -1255,7 +1269,7 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.Red;
-            label6.Location = new Point(6, 130);
+            label6.Location = new Point(2, 132);
             label6.Name = "label6";
             label6.Size = new Size(409, 13);
             label6.TabIndex = 10;
@@ -1264,7 +1278,7 @@
             // lblEquipmentRules
             // 
             lblEquipmentRules.AutoSize = true;
-            lblEquipmentRules.Location = new Point(6, 115);
+            lblEquipmentRules.Location = new Point(2, 117);
             lblEquipmentRules.Name = "lblEquipmentRules";
             lblEquipmentRules.Size = new Size(178, 15);
             lblEquipmentRules.TabIndex = 9;
@@ -1308,7 +1322,7 @@
             // lblTeamLevel
             // 
             lblTeamLevel.AutoSize = true;
-            lblTeamLevel.Location = new Point(6, 85);
+            lblTeamLevel.Location = new Point(6, 90);
             lblTeamLevel.Name = "lblTeamLevel";
             lblTeamLevel.Size = new Size(295, 15);
             lblTeamLevel.TabIndex = 7;
@@ -1317,7 +1331,7 @@
             // txtTeamLevel
             // 
             txtTeamLevel.Enabled = false;
-            txtTeamLevel.Location = new Point(307, 82);
+            txtTeamLevel.Location = new Point(307, 87);
             txtTeamLevel.Name = "txtTeamLevel";
             txtTeamLevel.Size = new Size(100, 23);
             txtTeamLevel.TabIndex = 6;
@@ -1339,6 +1353,7 @@
             // 
             // tabTeamUnitSelection
             // 
+            tabTeamUnitSelection.Controls.Add(btnTeamAddToFile);
             tabTeamUnitSelection.Controls.Add(btnTeamRemoveUnit);
             tabTeamUnitSelection.Controls.Add(grpPreview);
             tabTeamUnitSelection.Controls.Add(label2);
@@ -1353,6 +1368,16 @@
             tabTeamUnitSelection.TabIndex = 0;
             tabTeamUnitSelection.Text = "Unit Selection";
             tabTeamUnitSelection.UseVisualStyleBackColor = true;
+            // 
+            // btnTeamAddToFile
+            // 
+            btnTeamAddToFile.Location = new Point(9, 149);
+            btnTeamAddToFile.Name = "btnTeamAddToFile";
+            btnTeamAddToFile.Size = new Size(124, 23);
+            btnTeamAddToFile.TabIndex = 8;
+            btnTeamAddToFile.Text = "Add all to team";
+            btnTeamAddToFile.UseVisualStyleBackColor = true;
+            btnTeamAddToFile.Click += btnTeamAddToFile_Click;
             // 
             // btnTeamRemoveUnit
             // 
@@ -1900,5 +1925,7 @@
         private ToolStripMenuItem updateMenuItem;
         private TextBox txtRandomCustomSchoolName;
         private Label label16;
+        private Button btnTeamAddToFile;
+        private CheckBox chbTeam40Glads;
     }
 }

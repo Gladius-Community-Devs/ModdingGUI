@@ -97,6 +97,7 @@ namespace ModdingGUI
         // Event handler for the Pack button click event
         private async void btnPack_Click(object sender, EventArgs e)
         {
+            btnPack.Enabled = false; // Disable the button to prevent multiple clicks
             // Get the selected folder path from the text box and ensure it ends with a directory separator
             string selectedFolder = txtPackPath.Text;
             selectedFolder = NormalizePath(EnsureTrailingSeparator(selectedFolder));
@@ -149,6 +150,7 @@ namespace ModdingGUI
                 AppendLog("Packing completed successfully.", SuccessColor, rtbPackOutput); // Log successful completion
                 btnRandomize.Enabled = true;
                 btnToPatching.Enabled = true;
+                btnPack.Enabled = true;
                 if (appSettings.AutoLaunchDolphin)
                 {
                     // Launch the packed ISO with Dolphin
@@ -217,7 +219,7 @@ namespace ModdingGUI
             try
             {
                 LoadAppSettings(); // Apply application settings
-                
+
                 // Check for updates at startup
                 _ = CheckForUpdatesAtStartupAsync(); // Fire and forget async call
 
@@ -248,7 +250,7 @@ namespace ModdingGUI
                 // Remove specific tabs on load
                 // tabContainer.TabPages.Remove(tabRandomizer);
                 tabContainer.TabPages.Remove(tabIngameRandom);
-                tabContainer.TabPages.Remove(tabTeamBuilder);
+                // tabContainer.TabPages.Remove(tabTeamBuilder);
 
                 // Load projects
                 LoadProjects();
@@ -1478,5 +1480,6 @@ namespace ModdingGUI
         {
             Application.Exit();
         }
+
     }
 }
