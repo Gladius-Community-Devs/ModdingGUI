@@ -14,7 +14,7 @@ namespace ModdingGUI.Models
         public ProgramInfo()
         {
             // Default values
-            Version = "3.0.2";
+            Version = "3.0.0";
             Author = "BigBuda";
             GitHubUrl = "https://github.com/Gladius-Community-Devs/ModdingGUI/releases";
         }

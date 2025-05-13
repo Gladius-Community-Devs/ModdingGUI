@@ -925,7 +925,7 @@ namespace ModdingGUI
                 }
                 if (tabContainer.TabPages.Contains(tabTeamBuilder))
                     LoadClassesIntoDropdown();
-                    InitializeTeamBuilderUI();
+                InitializeTeamBuilderUI();
             }
             else
             {
@@ -1483,6 +1483,5 @@ namespace ModdingGUI
         {
             Application.Exit();
         }
-
     }
 }

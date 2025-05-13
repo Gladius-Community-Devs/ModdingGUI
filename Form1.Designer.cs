@@ -167,8 +167,20 @@
             tabTeamSkillSelection = new TabPage();
             tvwTeam = new TreeView();
             txtTeamHeader = new TextBox();
+            tabEditors = new TabPage();
+            tabControlEditor = new TabControl();
+            tabEditorItems = new TabPage();
+            grpItemEditorOrig = new GroupBox();
+            txtItemEditorOriginalDescription = new TextBox();
+            txtItemEditorOriginalName = new TextBox();
+            ddlItemEditorAllItems = new ComboBox();
+            tabEditorSkills = new TabPage();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
+            grpItemEditorNewData = new GroupBox();
+            txtItemEditorOriginalDetails = new TextBox();
+            txtItemEditorNewName = new TextBox();
+            txtItemEditorNewDescription = new TextBox();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -206,6 +218,11 @@
             tabTeamGearSelection.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvGear).BeginInit();
             groupBox1.SuspendLayout();
+            tabEditors.SuspendLayout();
+            tabControlEditor.SuspendLayout();
+            tabEditorItems.SuspendLayout();
+            grpItemEditorOrig.SuspendLayout();
+            grpItemEditorNewData.SuspendLayout();
             SuspendLayout();
             // 
             // mnuMain
@@ -326,6 +343,7 @@
             tabContainer.Controls.Add(tabRandomizer);
             tabContainer.Controls.Add(tabIngameRandom);
             tabContainer.Controls.Add(tabTeamBuilder);
+            tabContainer.Controls.Add(tabEditors);
             tabContainer.Dock = DockStyle.Fill;
             tabContainer.Location = new Point(0, 0);
             tabContainer.Name = "tabContainer";
@@ -496,7 +514,7 @@
             // 
             // tvwxdeltaFiles
             // 
-            tvwxdeltaFiles.Dock = DockStyle.Bottom;
+            tvwxdeltaFiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwxdeltaFiles.Font = new Font("Segoe UI", 18F, FontStyle.Regular, GraphicsUnit.Point, 0);
             tvwxdeltaFiles.Location = new Point(0, 60);
             tvwxdeltaFiles.Name = "tvwxdeltaFiles";
@@ -1692,6 +1710,89 @@
             txtTeamHeader.TabIndex = 0;
             txtTeamHeader.Text = "Current Team:";
             // 
+            // tabEditors
+            // 
+            tabEditors.Controls.Add(tabControlEditor);
+            tabEditors.Location = new Point(4, 24);
+            tabEditors.Name = "tabEditors";
+            tabEditors.Padding = new Padding(3);
+            tabEditors.Size = new Size(1221, 722);
+            tabEditors.TabIndex = 6;
+            tabEditors.Text = "Editors";
+            tabEditors.UseVisualStyleBackColor = true;
+            // 
+            // tabControlEditor
+            // 
+            tabControlEditor.Controls.Add(tabEditorItems);
+            tabControlEditor.Controls.Add(tabEditorSkills);
+            tabControlEditor.Dock = DockStyle.Fill;
+            tabControlEditor.Location = new Point(3, 3);
+            tabControlEditor.Name = "tabControlEditor";
+            tabControlEditor.SelectedIndex = 0;
+            tabControlEditor.Size = new Size(1215, 716);
+            tabControlEditor.TabIndex = 0;
+            // 
+            // tabEditorItems
+            // 
+            tabEditorItems.Controls.Add(grpItemEditorNewData);
+            tabEditorItems.Controls.Add(grpItemEditorOrig);
+            tabEditorItems.Controls.Add(ddlItemEditorAllItems);
+            tabEditorItems.Location = new Point(4, 24);
+            tabEditorItems.Name = "tabEditorItems";
+            tabEditorItems.Padding = new Padding(3);
+            tabEditorItems.Size = new Size(1207, 688);
+            tabEditorItems.TabIndex = 0;
+            tabEditorItems.Text = "Item Editor";
+            tabEditorItems.UseVisualStyleBackColor = true;
+            // 
+            // grpItemEditorOrig
+            // 
+            grpItemEditorOrig.Controls.Add(txtItemEditorOriginalDetails);
+            grpItemEditorOrig.Controls.Add(txtItemEditorOriginalName);
+            grpItemEditorOrig.Controls.Add(txtItemEditorOriginalDescription);
+            grpItemEditorOrig.Location = new Point(6, 35);
+            grpItemEditorOrig.Name = "grpItemEditorOrig";
+            grpItemEditorOrig.Size = new Size(533, 647);
+            grpItemEditorOrig.TabIndex = 3;
+            grpItemEditorOrig.TabStop = false;
+            grpItemEditorOrig.Text = "Original Item Details";
+            // 
+            // txtItemEditorOriginalDescription
+            // 
+            txtItemEditorOriginalDescription.Enabled = false;
+            txtItemEditorOriginalDescription.Location = new Point(6, 78);
+            txtItemEditorOriginalDescription.Multiline = true;
+            txtItemEditorOriginalDescription.Name = "txtItemEditorOriginalDescription";
+            txtItemEditorOriginalDescription.Size = new Size(521, 123);
+            txtItemEditorOriginalDescription.TabIndex = 2;
+            // 
+            // txtItemEditorOriginalName
+            // 
+            txtItemEditorOriginalName.Enabled = false;
+            txtItemEditorOriginalName.Location = new Point(6, 22);
+            txtItemEditorOriginalName.Multiline = true;
+            txtItemEditorOriginalName.Name = "txtItemEditorOriginalName";
+            txtItemEditorOriginalName.Size = new Size(521, 50);
+            txtItemEditorOriginalName.TabIndex = 1;
+            // 
+            // ddlItemEditorAllItems
+            // 
+            ddlItemEditorAllItems.FormattingEnabled = true;
+            ddlItemEditorAllItems.Location = new Point(6, 6);
+            ddlItemEditorAllItems.Name = "ddlItemEditorAllItems";
+            ddlItemEditorAllItems.Size = new Size(239, 23);
+            ddlItemEditorAllItems.TabIndex = 0;
+            // 
+            // tabEditorSkills
+            // 
+            tabEditorSkills.Location = new Point(4, 24);
+            tabEditorSkills.Name = "tabEditorSkills";
+            tabEditorSkills.Padding = new Padding(3);
+            tabEditorSkills.Size = new Size(1207, 688);
+            tabEditorSkills.TabIndex = 1;
+            tabEditorSkills.Text = "Skill Editor (WIP)";
+            tabEditorSkills.UseVisualStyleBackColor = true;
+            // 
             // txtFileHeader
             // 
             txtFileHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -1713,6 +1814,42 @@
             tvwProjects.NodeMouseHover += tvwProjects_NodeMouseHover;
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
+            // 
+            // grpItemEditorNewData
+            // 
+            grpItemEditorNewData.Controls.Add(txtItemEditorNewDescription);
+            grpItemEditorNewData.Controls.Add(txtItemEditorNewName);
+            grpItemEditorNewData.Location = new Point(545, 35);
+            grpItemEditorNewData.Name = "grpItemEditorNewData";
+            grpItemEditorNewData.Size = new Size(541, 647);
+            grpItemEditorNewData.TabIndex = 4;
+            grpItemEditorNewData.TabStop = false;
+            grpItemEditorNewData.Text = "New Item Details";
+            // 
+            // txtItemEditorOriginalDetails
+            // 
+            txtItemEditorOriginalDetails.Enabled = false;
+            txtItemEditorOriginalDetails.Location = new Point(6, 207);
+            txtItemEditorOriginalDetails.Multiline = true;
+            txtItemEditorOriginalDetails.Name = "txtItemEditorOriginalDetails";
+            txtItemEditorOriginalDetails.Size = new Size(521, 434);
+            txtItemEditorOriginalDetails.TabIndex = 3;
+            // 
+            // txtItemEditorNewName
+            // 
+            txtItemEditorNewName.Location = new Point(6, 22);
+            txtItemEditorNewName.Multiline = true;
+            txtItemEditorNewName.Name = "txtItemEditorNewName";
+            txtItemEditorNewName.Size = new Size(529, 50);
+            txtItemEditorNewName.TabIndex = 0;
+            // 
+            // txtItemEditorNewDescription
+            // 
+            txtItemEditorNewDescription.Location = new Point(6, 78);
+            txtItemEditorNewDescription.Multiline = true;
+            txtItemEditorNewDescription.Name = "txtItemEditorNewDescription";
+            txtItemEditorNewDescription.Size = new Size(529, 123);
+            txtItemEditorNewDescription.TabIndex = 1;
             // 
             // frmMain
             // 
@@ -1783,6 +1920,13 @@
             ((System.ComponentModel.ISupportInitialize)dgvGear).EndInit();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
+            tabEditors.ResumeLayout(false);
+            tabControlEditor.ResumeLayout(false);
+            tabEditorItems.ResumeLayout(false);
+            grpItemEditorOrig.ResumeLayout(false);
+            grpItemEditorOrig.PerformLayout();
+            grpItemEditorNewData.ResumeLayout(false);
+            grpItemEditorNewData.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1927,5 +2071,17 @@
         private Label label16;
         private Button btnTeamAddToFile;
         private CheckBox chbTeam40Glads;
+        private TabPage tabEditors;
+        private TabControl tabControlEditor;
+        private TabPage tabEditorItems;
+        private TabPage tabEditorSkills;
+        private ComboBox ddlItemEditorAllItems;
+        private TextBox txtItemEditorOriginalName;
+        private GroupBox grpItemEditorOrig;
+        private TextBox txtItemEditorOriginalDescription;
+        private GroupBox grpItemEditorNewData;
+        private TextBox txtItemEditorNewName;
+        private TextBox txtItemEditorOriginalDetails;
+        private TextBox txtItemEditorNewDescription;
     }
 }
