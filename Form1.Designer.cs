@@ -170,17 +170,31 @@
             tabEditors = new TabPage();
             tabControlEditor = new TabControl();
             tabEditorItems = new TabPage();
+            grpItemEditorNewData = new GroupBox();
+            txtItemEditorNewDescription = new TextBox();
+            txtItemEditorNewName = new TextBox();
             grpItemEditorOrig = new GroupBox();
-            txtItemEditorOriginalDescription = new TextBox();
+            txtItemEditorOriginalDetails = new TextBox();
             txtItemEditorOriginalName = new TextBox();
+            txtItemEditorOriginalDescription = new TextBox();
             ddlItemEditorAllItems = new ComboBox();
             tabEditorSkills = new TabPage();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            grpItemEditorNewData = new GroupBox();
-            txtItemEditorOriginalDetails = new TextBox();
-            txtItemEditorNewName = new TextBox();
-            txtItemEditorNewDescription = new TextBox();
+            txtItemEditorNewCost = new TextBox();
+            label17 = new Label();
+            txtItemEditorNewLevel = new TextBox();
+            label18 = new Label();
+            txtItemEditorNewMesh = new TextBox();
+            label19 = new Label();
+            txtItemEditorNewAffinity = new TextBox();
+            ddlItemEditorNewAffinity = new ComboBox();
+            label20 = new Label();
+            ddlItemEditorNewSkill1 = new ComboBox();
+            ddlItemEditorNewSkill2 = new ComboBox();
+            label21 = new Label();
+            btnItemEditorMoreStats = new Button();
+            label22 = new Label();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -221,8 +235,8 @@
             tabEditors.SuspendLayout();
             tabControlEditor.SuspendLayout();
             tabEditorItems.SuspendLayout();
-            grpItemEditorOrig.SuspendLayout();
             grpItemEditorNewData.SuspendLayout();
+            grpItemEditorOrig.SuspendLayout();
             SuspendLayout();
             // 
             // mnuMain
@@ -1745,6 +1759,47 @@
             tabEditorItems.Text = "Item Editor";
             tabEditorItems.UseVisualStyleBackColor = true;
             // 
+            // grpItemEditorNewData
+            // 
+            grpItemEditorNewData.Controls.Add(label22);
+            grpItemEditorNewData.Controls.Add(btnItemEditorMoreStats);
+            grpItemEditorNewData.Controls.Add(label21);
+            grpItemEditorNewData.Controls.Add(ddlItemEditorNewSkill2);
+            grpItemEditorNewData.Controls.Add(ddlItemEditorNewSkill1);
+            grpItemEditorNewData.Controls.Add(label20);
+            grpItemEditorNewData.Controls.Add(ddlItemEditorNewAffinity);
+            grpItemEditorNewData.Controls.Add(txtItemEditorNewAffinity);
+            grpItemEditorNewData.Controls.Add(label19);
+            grpItemEditorNewData.Controls.Add(txtItemEditorNewMesh);
+            grpItemEditorNewData.Controls.Add(label18);
+            grpItemEditorNewData.Controls.Add(txtItemEditorNewLevel);
+            grpItemEditorNewData.Controls.Add(label17);
+            grpItemEditorNewData.Controls.Add(txtItemEditorNewCost);
+            grpItemEditorNewData.Controls.Add(txtItemEditorNewDescription);
+            grpItemEditorNewData.Controls.Add(txtItemEditorNewName);
+            grpItemEditorNewData.Location = new Point(545, 35);
+            grpItemEditorNewData.Name = "grpItemEditorNewData";
+            grpItemEditorNewData.Size = new Size(541, 647);
+            grpItemEditorNewData.TabIndex = 4;
+            grpItemEditorNewData.TabStop = false;
+            grpItemEditorNewData.Text = "New Item Details";
+            // 
+            // txtItemEditorNewDescription
+            // 
+            txtItemEditorNewDescription.Location = new Point(6, 78);
+            txtItemEditorNewDescription.Multiline = true;
+            txtItemEditorNewDescription.Name = "txtItemEditorNewDescription";
+            txtItemEditorNewDescription.Size = new Size(529, 123);
+            txtItemEditorNewDescription.TabIndex = 1;
+            // 
+            // txtItemEditorNewName
+            // 
+            txtItemEditorNewName.Location = new Point(6, 22);
+            txtItemEditorNewName.Multiline = true;
+            txtItemEditorNewName.Name = "txtItemEditorNewName";
+            txtItemEditorNewName.Size = new Size(529, 50);
+            txtItemEditorNewName.TabIndex = 0;
+            // 
             // grpItemEditorOrig
             // 
             grpItemEditorOrig.Controls.Add(txtItemEditorOriginalDetails);
@@ -1757,14 +1812,14 @@
             grpItemEditorOrig.TabStop = false;
             grpItemEditorOrig.Text = "Original Item Details";
             // 
-            // txtItemEditorOriginalDescription
+            // txtItemEditorOriginalDetails
             // 
-            txtItemEditorOriginalDescription.Enabled = false;
-            txtItemEditorOriginalDescription.Location = new Point(6, 78);
-            txtItemEditorOriginalDescription.Multiline = true;
-            txtItemEditorOriginalDescription.Name = "txtItemEditorOriginalDescription";
-            txtItemEditorOriginalDescription.Size = new Size(521, 123);
-            txtItemEditorOriginalDescription.TabIndex = 2;
+            txtItemEditorOriginalDetails.Enabled = false;
+            txtItemEditorOriginalDetails.Location = new Point(6, 207);
+            txtItemEditorOriginalDetails.Multiline = true;
+            txtItemEditorOriginalDetails.Name = "txtItemEditorOriginalDetails";
+            txtItemEditorOriginalDetails.Size = new Size(521, 434);
+            txtItemEditorOriginalDetails.TabIndex = 3;
             // 
             // txtItemEditorOriginalName
             // 
@@ -1774,6 +1829,15 @@
             txtItemEditorOriginalName.Name = "txtItemEditorOriginalName";
             txtItemEditorOriginalName.Size = new Size(521, 50);
             txtItemEditorOriginalName.TabIndex = 1;
+            // 
+            // txtItemEditorOriginalDescription
+            // 
+            txtItemEditorOriginalDescription.Enabled = false;
+            txtItemEditorOriginalDescription.Location = new Point(6, 78);
+            txtItemEditorOriginalDescription.Multiline = true;
+            txtItemEditorOriginalDescription.Name = "txtItemEditorOriginalDescription";
+            txtItemEditorOriginalDescription.Size = new Size(521, 123);
+            txtItemEditorOriginalDescription.TabIndex = 2;
             // 
             // ddlItemEditorAllItems
             // 
@@ -1815,41 +1879,120 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
-            // grpItemEditorNewData
+            // txtItemEditorNewCost
             // 
-            grpItemEditorNewData.Controls.Add(txtItemEditorNewDescription);
-            grpItemEditorNewData.Controls.Add(txtItemEditorNewName);
-            grpItemEditorNewData.Location = new Point(545, 35);
-            grpItemEditorNewData.Name = "grpItemEditorNewData";
-            grpItemEditorNewData.Size = new Size(541, 647);
-            grpItemEditorNewData.TabIndex = 4;
-            grpItemEditorNewData.TabStop = false;
-            grpItemEditorNewData.Text = "New Item Details";
+            txtItemEditorNewCost.Location = new Point(73, 207);
+            txtItemEditorNewCost.Name = "txtItemEditorNewCost";
+            txtItemEditorNewCost.Size = new Size(462, 23);
+            txtItemEditorNewCost.TabIndex = 2;
             // 
-            // txtItemEditorOriginalDetails
+            // label17
             // 
-            txtItemEditorOriginalDetails.Enabled = false;
-            txtItemEditorOriginalDetails.Location = new Point(6, 207);
-            txtItemEditorOriginalDetails.Multiline = true;
-            txtItemEditorOriginalDetails.Name = "txtItemEditorOriginalDetails";
-            txtItemEditorOriginalDetails.Size = new Size(521, 434);
-            txtItemEditorOriginalDetails.TabIndex = 3;
+            label17.AutoSize = true;
+            label17.Location = new Point(6, 210);
+            label17.Name = "label17";
+            label17.Size = new Size(61, 15);
+            label17.TabIndex = 3;
+            label17.Text = "Item Cost:";
             // 
-            // txtItemEditorNewName
+            // txtItemEditorNewLevel
             // 
-            txtItemEditorNewName.Location = new Point(6, 22);
-            txtItemEditorNewName.Multiline = true;
-            txtItemEditorNewName.Name = "txtItemEditorNewName";
-            txtItemEditorNewName.Size = new Size(529, 50);
-            txtItemEditorNewName.TabIndex = 0;
+            txtItemEditorNewLevel.Location = new Point(73, 236);
+            txtItemEditorNewLevel.Name = "txtItemEditorNewLevel";
+            txtItemEditorNewLevel.Size = new Size(462, 23);
+            txtItemEditorNewLevel.TabIndex = 4;
             // 
-            // txtItemEditorNewDescription
+            // label18
             // 
-            txtItemEditorNewDescription.Location = new Point(6, 78);
-            txtItemEditorNewDescription.Multiline = true;
-            txtItemEditorNewDescription.Name = "txtItemEditorNewDescription";
-            txtItemEditorNewDescription.Size = new Size(529, 123);
-            txtItemEditorNewDescription.TabIndex = 1;
+            label18.AutoSize = true;
+            label18.Location = new Point(6, 239);
+            label18.Name = "label18";
+            label18.Size = new Size(64, 15);
+            label18.TabIndex = 5;
+            label18.Text = "Item Level:";
+            // 
+            // txtItemEditorNewMesh
+            // 
+            txtItemEditorNewMesh.Location = new Point(73, 265);
+            txtItemEditorNewMesh.Name = "txtItemEditorNewMesh";
+            txtItemEditorNewMesh.Size = new Size(462, 23);
+            txtItemEditorNewMesh.TabIndex = 6;
+            // 
+            // label19
+            // 
+            label19.AutoSize = true;
+            label19.Location = new Point(6, 268);
+            label19.Name = "label19";
+            label19.Size = new Size(66, 15);
+            label19.TabIndex = 7;
+            label19.Text = "Item Mesh:";
+            // 
+            // txtItemEditorNewAffinity
+            // 
+            txtItemEditorNewAffinity.Location = new Point(298, 294);
+            txtItemEditorNewAffinity.Name = "txtItemEditorNewAffinity";
+            txtItemEditorNewAffinity.Size = new Size(237, 23);
+            txtItemEditorNewAffinity.TabIndex = 8;
+            // 
+            // ddlItemEditorNewAffinity
+            // 
+            ddlItemEditorNewAffinity.FormattingEnabled = true;
+            ddlItemEditorNewAffinity.Location = new Point(88, 294);
+            ddlItemEditorNewAffinity.Name = "ddlItemEditorNewAffinity";
+            ddlItemEditorNewAffinity.Size = new Size(204, 23);
+            ddlItemEditorNewAffinity.TabIndex = 9;
+            // 
+            // label20
+            // 
+            label20.AutoSize = true;
+            label20.Location = new Point(6, 297);
+            label20.Name = "label20";
+            label20.Size = new Size(76, 15);
+            label20.TabIndex = 10;
+            label20.Text = "Item Affinity:";
+            // 
+            // ddlItemEditorNewSkill1
+            // 
+            ddlItemEditorNewSkill1.FormattingEnabled = true;
+            ddlItemEditorNewSkill1.Location = new Point(88, 323);
+            ddlItemEditorNewSkill1.Name = "ddlItemEditorNewSkill1";
+            ddlItemEditorNewSkill1.Size = new Size(447, 23);
+            ddlItemEditorNewSkill1.TabIndex = 11;
+            // 
+            // ddlItemEditorNewSkill2
+            // 
+            ddlItemEditorNewSkill2.FormattingEnabled = true;
+            ddlItemEditorNewSkill2.Location = new Point(88, 352);
+            ddlItemEditorNewSkill2.Name = "ddlItemEditorNewSkill2";
+            ddlItemEditorNewSkill2.Size = new Size(447, 23);
+            ddlItemEditorNewSkill2.TabIndex = 12;
+            // 
+            // label21
+            // 
+            label21.AutoSize = true;
+            label21.Location = new Point(6, 326);
+            label21.Name = "label21";
+            label21.Size = new Size(63, 15);
+            label21.TabIndex = 13;
+            label21.Text = "Item Skills:";
+            // 
+            // btnItemEditorMoreStats
+            // 
+            btnItemEditorMoreStats.Location = new Point(102, 381);
+            btnItemEditorMoreStats.Name = "btnItemEditorMoreStats";
+            btnItemEditorMoreStats.Size = new Size(433, 23);
+            btnItemEditorMoreStats.TabIndex = 14;
+            btnItemEditorMoreStats.Text = "Add another stat mod";
+            btnItemEditorMoreStats.UseVisualStyleBackColor = true;
+            // 
+            // label22
+            // 
+            label22.AutoSize = true;
+            label22.Location = new Point(6, 385);
+            label22.Name = "label22";
+            label22.Size = new Size(90, 15);
+            label22.TabIndex = 15;
+            label22.Text = "Item Stat Mods:";
             // 
             // frmMain
             // 
@@ -1923,10 +2066,10 @@
             tabEditors.ResumeLayout(false);
             tabControlEditor.ResumeLayout(false);
             tabEditorItems.ResumeLayout(false);
-            grpItemEditorOrig.ResumeLayout(false);
-            grpItemEditorOrig.PerformLayout();
             grpItemEditorNewData.ResumeLayout(false);
             grpItemEditorNewData.PerformLayout();
+            grpItemEditorOrig.ResumeLayout(false);
+            grpItemEditorOrig.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -2083,5 +2226,19 @@
         private TextBox txtItemEditorNewName;
         private TextBox txtItemEditorOriginalDetails;
         private TextBox txtItemEditorNewDescription;
+        private ComboBox ddlItemEditorNewAffinity;
+        private TextBox txtItemEditorNewAffinity;
+        private Label label19;
+        private TextBox txtItemEditorNewMesh;
+        private Label label18;
+        private TextBox txtItemEditorNewLevel;
+        private Label label17;
+        private TextBox txtItemEditorNewCost;
+        private Label label20;
+        private Label label21;
+        private ComboBox ddlItemEditorNewSkill2;
+        private ComboBox ddlItemEditorNewSkill1;
+        private Label label22;
+        private Button btnItemEditorMoreStats;
     }
 }
