@@ -27,6 +27,7 @@ namespace ModdingGUI
         // Event handler for the Unpack button click event
         private async void btnUnpack_Click(object sender, EventArgs e)
         {
+            btnUnpack.Enabled = false; // Disable the button to prevent multiple clicks
             string isoPath = txtISOPath.Text; // Get the ISO path from the text box
 
             // Check if the ISO path contains parentheses
@@ -84,6 +85,7 @@ namespace ModdingGUI
                 txtPatchingCreationOutputPath.Text = NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta");
                 btnRandomize.Enabled = true;
                 btnPack.Enabled = true;
+                btnUnpack.Enabled = true; // Re-enable the unpack button
                 LoadProjects();
             }
             catch (Exception ex)
@@ -918,6 +920,7 @@ namespace ModdingGUI
 
                     // Try to load randomizer settings for the selected project
                     LoadRandomizerSettings(projectPath);
+                    InitialiseItemEditor(projectPath);
                 }
                 else
                 {

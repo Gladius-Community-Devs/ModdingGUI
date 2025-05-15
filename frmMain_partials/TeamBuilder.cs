@@ -5,7 +5,7 @@ namespace ModdingGUI
     /// <summary>
     /// Partial class containing all Team Builder related functionalities.
     /// </summary>
-    public partial class frmMain : Form
+    public partial class frmMain
     {
         #region Data Models
 
