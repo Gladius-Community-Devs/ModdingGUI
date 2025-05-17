@@ -1106,11 +1106,11 @@ namespace ModdingGUI
                 
                 if (txtRandomCustomCash.Text.Equals("RANDOM", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Generate a random value between 0 and 999999999
-                    cashAmount = random.Next(0, 1000000000);
+                    // Generate a random value between 0 and 999999
+                    cashAmount = random.Next(0, 999999);
                     AppendRandomizerLog($"Generated random cash amount: {cashAmount}", InfoColor);
                 }
-                else if (int.TryParse(txtRandomCustomCash.Text, out int parsedAmount) && parsedAmount >= 0 && parsedAmount <= 999999999)
+                else if (int.TryParse(txtRandomCustomCash.Text, out int parsedAmount) && parsedAmount >= 0 && parsedAmount <= 999999)
                 {
                     cashAmount = parsedAmount;
                 }
