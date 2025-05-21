@@ -10,6 +10,9 @@ namespace ModdingGUI
     // Partial class definition for the main form of the application
     public partial class frmMain : Form
     {
+        // Grid-builder painter embedded in the tab
+        private readonly GridBuilderView _gridBuilderView;
+
         // Constructor for the main form
         public frmMain()
         {
@@ -22,6 +25,8 @@ namespace ModdingGUI
                 MessageBox.Show("Python is either not installed or not in PATH. Please fix this to use the program!\nhttps://www.python.org/downloads/ \nDuring install, check the box labelled 'Add python.exe to PATH'");
                 Environment.Exit(0); // Exit the application
             }
+            _gridBuilderView = new GridBuilderView();
+            tabGridBuilder.Controls.Add(_gridBuilderView);
         }
 
         // Event handler for the Unpack button click event
@@ -87,6 +92,7 @@ namespace ModdingGUI
                 btnPack.Enabled = true;
                 btnUnpack.Enabled = true; // Re-enable the unpack button
                 LoadProjects();
+                _gridBuilderView.SetProjectRoot(normalizedTopLevelFolder);
             }
             catch (Exception ex)
             {
@@ -917,6 +923,7 @@ namespace ModdingGUI
                     txtUnpackPath.Text = projectName;
                     btnPack.Enabled = true;
                     btnRandomize.Enabled = true;
+                    _gridBuilderView.SetProjectRoot(projectPath);
 
                     // Try to load randomizer settings for the selected project
                     LoadRandomizerSettings(projectPath);
@@ -926,8 +933,7 @@ namespace ModdingGUI
                 {
                     txtPackPath.Text = string.Empty;
                 }
-                if (tabContainer.TabPages.Contains(tabTeamBuilder))
-                    LoadClassesIntoDropdown();
+                LoadClassesIntoDropdown();
                 InitializeTeamBuilderUI();
             }
             else

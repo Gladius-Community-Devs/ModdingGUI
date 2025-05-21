@@ -171,6 +171,7 @@
             tabControlEditor = new TabControl();
             tabEditorItems = new TabPage();
             grpItemEditorNewData = new GroupBox();
+            txtItemEditorNewMesh2 = new TextBox();
             btnItemEditorNewSave = new Button();
             grpItemEditorStatMods = new GroupBox();
             flpStatMods = new FlowLayoutPanel();
@@ -200,7 +201,7 @@
             tabEditorSkills = new TabPage();
             txtFileHeader = new TextBox();
             tvwProjects = new TreeView();
-            txtItemEditorNewMesh2 = new TextBox();
+            tabGridBuilder = new TabPage();
             mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -365,6 +366,7 @@
             tabContainer.Controls.Add(tabIngameRandom);
             tabContainer.Controls.Add(tabTeamBuilder);
             tabContainer.Controls.Add(tabEditors);
+            tabContainer.Controls.Add(tabGridBuilder);
             tabContainer.Dock = DockStyle.Fill;
             tabContainer.Location = new Point(0, 0);
             tabContainer.Name = "tabContainer";
@@ -1794,6 +1796,14 @@
             grpItemEditorNewData.TabStop = false;
             grpItemEditorNewData.Text = "New Item Details";
             // 
+            // txtItemEditorNewMesh2
+            // 
+            txtItemEditorNewMesh2.Enabled = false;
+            txtItemEditorNewMesh2.Location = new Point(298, 265);
+            txtItemEditorNewMesh2.Name = "txtItemEditorNewMesh2";
+            txtItemEditorNewMesh2.Size = new Size(237, 23);
+            txtItemEditorNewMesh2.TabIndex = 21;
+            // 
             // btnItemEditorNewSave
             // 
             btnItemEditorNewSave.Location = new Point(288, 612);
@@ -2050,13 +2060,15 @@
             tvwProjects.AfterSelect += tvwProjects_AfterSelect;
             tvwProjects.NodeMouseDoubleClick += tvwProjects_NodeMouseDoubleClick;
             // 
-            // txtItemEditorNewMesh2
+            // tabGridBuilder
             // 
-            txtItemEditorNewMesh2.Enabled = false;
-            txtItemEditorNewMesh2.Location = new Point(298, 265);
-            txtItemEditorNewMesh2.Name = "txtItemEditorNewMesh2";
-            txtItemEditorNewMesh2.Size = new Size(237, 23);
-            txtItemEditorNewMesh2.TabIndex = 21;
+            tabGridBuilder.Location = new Point(4, 24);
+            tabGridBuilder.Name = "tabGridBuilder";
+            tabGridBuilder.Padding = new Padding(3);
+            tabGridBuilder.Size = new Size(1221, 722);
+            tabGridBuilder.TabIndex = 7;
+            tabGridBuilder.Text = "Grid Builder";
+            tabGridBuilder.UseVisualStyleBackColor = true;
             // 
             // frmMain
             // 
@@ -2311,5 +2323,6 @@
         private FlowLayoutPanel flpStatMods;
         private Button btnItemEditorNewSave;
         private TextBox txtItemEditorNewMesh2;
+        private TabPage tabGridBuilder;
     }
 }

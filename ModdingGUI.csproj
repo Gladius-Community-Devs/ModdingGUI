@@ -30,4 +30,8 @@
     <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="maps\" />
+  </ItemGroup>
+
 </Project>
