@@ -68,18 +68,21 @@ namespace ModdingGUI
                 Bitmap? imageToProcess = null;
                 try
                 {
+                    // Create a new bitmap to draw the original image onto, allowing for rotation without modifying the source image directly
                     imageToProcess = new Bitmap(originalMapImage.Width, originalMapImage.Height, PixelFormat.Format32bppArgb);
                     using (Graphics tempGraphics = Graphics.FromImage(imageToProcess))
                     {
-                        tempGraphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        tempGraphics.InterpolationMode = InterpolationMode.HighQualityBicubic; // Ensure quality for this operation too
                         tempGraphics.DrawImage(originalMapImage, 0, 0, originalMapImage.Width, originalMapImage.Height);
                     }
 
+                    // Apply rotation if needed
                     if (rotation != RotateFlipType.RotateNoneFlipNone)
                     {
                         imageToProcess.RotateFlip(rotation);
                     }
 
+                    // Calculate scaled dimensions based on the (potentially rotated) imageToProcess
                     float scaledWidth = imageToProcess.Width * scale;
                     float scaledHeight = imageToProcess.Height * scale;
 
@@ -88,8 +91,10 @@ namespace ModdingGUI
                 }
                 catch (Exception ex)
                 {
+                    // Log or handle the exception appropriately
                     Console.WriteLine($"Error processing map image for drawing: {ex.Message}");
-                    g.Clear(Color.FromArgb(240, 240, 240));
+                    // Optionally, draw an error message on the panel
+                    g.Clear(Color.FromArgb(240, 240, 240)); // A light background for the error message
                     using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                     {
                         g.DrawString("Map Error", Font, Brushes.Red, ClientRectangle, sf);
@@ -97,11 +102,12 @@ namespace ModdingGUI
                 }
                 finally
                 {
-                    imageToProcess?.Dispose();
+                    imageToProcess?.Dispose(); // Dispose the temporary bitmap
                 }
             }
             else
             {
+                // If no map image, clear with a default background (e.g., white)
                 g.Clear(Color.White);
             }
 
@@ -112,12 +118,13 @@ namespace ModdingGUI
                 {
                     int cellPixelX = x * CellSize;
                     int cellPixelY = y * CellSize;
-                    Color cellColor = _ctx.CurrentGrid.GetColor(x, y);
-                    if (cellColor != Color.White)
+                    Color cellColor = _ctx.CurrentGrid.GetColor(x, y); // Assuming GetColor handles 0 value as white or transparent
+                    if (cellColor != Color.White) // Optimization: only draw if not default background
                     {
                         using var brush = new SolidBrush(cellColor);
                         g.FillRectangle(brush, cellPixelX + 1, cellPixelY + 1, CellSize - 1, CellSize - 1);
                     }
+                    // Draw cell border
                     g.DrawRectangle(Pens.Black, cellPixelX, cellPixelY, CellSize, CellSize);
                 }
             }
@@ -134,16 +141,18 @@ namespace ModdingGUI
         {
             if (_ctx?.CurrentGrid == null) return;
 
+            // Handle left and right mouse buttons for painting/erasing
             if (e.Button is MouseButtons.Left or MouseButtons.Right)
             {
                 _drag = true;
+                // Erase mode if Right button OR (Left button AND Ctrl key is pressed)
                 _eraseMode = (e.Button == MouseButtons.Right) ||
                              ((e.Button == MouseButtons.Left) && (ModifierKeys & Keys.Control) == Keys.Control);
 
                 _dragStart = e.Location;
-                _dragEnd = e.Location;
+                _dragEnd = e.Location; // Initialize dragEnd to start, in case it's just a click
                 // No Invalidate() here; OnMouseUp will handle the final paint.
-                // If visual feedback is needed on click before drag, Invalidate() could be called.
+                // If visual feedback is needed on click *before* drag, Invalidate() could be called.
             }
         }
 
@@ -170,51 +179,50 @@ namespace ModdingGUI
         {
             if (!_drag || _ctx?.CurrentGrid == null) return;
 
-            _dragEnd = e.Location;
-            _drag = false;
+            _dragEnd = e.Location; // Finalize drag end position
+            _drag = false; // Drag operation finished
 
             Rectangle dragRectPixels = GetDragRectangle();
 
+            // Convert pixel coordinates to grid cell coordinates
+            // Ensure values are within grid bounds
             int startCellX = Math.Max(0, dragRectPixels.Left / CellSize);
             int startCellY = Math.Max(0, dragRectPixels.Top / CellSize);
             int endCellX = Math.Min(GridFile.ArenaSize - 1, dragRectPixels.Right / CellSize);
             int endCellY = Math.Min(GridFile.ArenaSize - 1, dragRectPixels.Bottom / CellSize);
 
-            int valueToPaint;
-            if (_eraseMode)
-            {
-                valueToPaint = 0;
-            }
-            else
-            {
-                valueToPaint = _ctx.CurrentDrawMask;
-            }
-
+            // Loop through all cells in the drag-selected rectangle
             for (int x = startCellX; x <= endCellX; x++)
             {
                 for (int y = startCellY; y <= endCellY; y++)
                 {
+                    // Double-check bounds, though covered by Math.Min/Max above
                     if (x >= 0 && x < GridFile.ArenaSize && y >= 0 && y < GridFile.ArenaSize)
                     {
                         int currentValue = _ctx.CurrentGrid.GetValue(x, y);
                         int newValue;
 
-                        if (_eraseMode)
+                        if (_eraseMode) // Erase Mode (Right Click or Ctrl+Left Click)
                         {
-                            newValue = 0;
+                            newValue = 0; // Set cell value to 0 (clear all tags)
                         }
-                        else
+                        else // Paint Mode (Left Click)
                         {
-                            if ((ModifierKeys & Keys.Shift) == Keys.Shift)
+                            if ((ModifierKeys & Keys.Shift) == Keys.Shift) // Shift + Left Click
                             {
+                                // Toggle the specific bit selected in the paint slot box
                                 newValue = currentValue ^ _ctx.CurrentDrawMask;
                             }
-                            else
+                            else // Normal Left Click
                             {
-                                newValue = _ctx.CurrentDrawMask;
+                                // MODIFIED BEHAVIOR:
+                                // Add the specific bit selected in the paint slot box to the current value (Bitwise OR)
+                                // This allows "painting over" to add multiple tags.
+                                newValue = currentValue | _ctx.CurrentDrawMask;
                             }
                         }
 
+                        // Only update and mark as dirty if the value actually changed
                         if (currentValue != newValue)
                         {
                             _ctx.CurrentGrid.SetValue(x, y, newValue);
@@ -222,12 +230,13 @@ namespace ModdingGUI
                     }
                 }
             }
-            _eraseMode = false;
-            Invalidate();
+            _eraseMode = false; // Reset erase mode after operation
+            Invalidate(); // Redraw the panel to reflect changes
         }
 
         private Rectangle GetDragRectangle()
         {
+            // Calculate the rectangle based on drag start and end points
             int x0 = Math.Min(_dragStart.X, _dragEnd.X);
             int y0 = Math.Min(_dragStart.Y, _dragEnd.Y);
             int x1 = Math.Max(_dragStart.X, _dragEnd.X);

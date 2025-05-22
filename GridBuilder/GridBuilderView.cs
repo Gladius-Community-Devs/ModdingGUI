@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Drawing2D; // Required for InterpolationMode and RotateFlipType
+using System.Collections.Generic; // For Dictionary
 
 namespace ModdingGUI
 {
@@ -16,7 +17,7 @@ namespace ModdingGUI
         // Map Display Properties to be passed to GridPanel via IGridContext
         public Point MapDisplayOffset { get; private set; } = Point.Empty;
         public float MapDisplayScale { get; private set; } = 1.0f;
-        public Image? CurrentMapArenaImage => _currentArenaMapImage; // This remains the source for GridPanel
+        public Image? CurrentMapArenaImage => _currentArenaMapImage;
         public RotateFlipType MapDisplayRotation { get; private set; } = RotateFlipType.RotateNoneFlipNone;
 
 
@@ -44,20 +45,16 @@ namespace ModdingGUI
         private readonly ToolStripComboBox _arenaBox = new ToolStripComboBox();
         private readonly ToolStripLabel _hoverLbl = new ToolStripLabel();
         private readonly ToolStripButton _btnSave = new ToolStripButton("Save");
-        private ToolStripButton _btnToggleMap; // Button to show/hide map
+        private ToolStripButton _btnToggleMap;
 
-        // Changed from ToolStripCheckBox to CheckBox
         private CheckBox _chkVerboseLoggingRegular;
-        private ToolStripControlHost _chkVerboseLoggingHost; // Host for the regular CheckBox
+        private ToolStripControlHost _chkVerboseLoggingHost;
 
-
-        // UI Controls for map manipulation
         private NumericUpDown _mapOffsetXNumeric = new NumericUpDown();
         private NumericUpDown _mapOffsetYNumeric = new NumericUpDown();
         private NumericUpDown _mapScaleNumeric = new NumericUpDown();
-        private ToolStripComboBox _mapRotationBox = new ToolStripComboBox(); // For rotation
+        private ToolStripComboBox _mapRotationBox = new ToolStripComboBox();
 
-        // References to ToolStripControlHosts and Labels for map manipulation controls visibility
         private ToolStripControlHost _mapOffsetXHost;
         private ToolStripControlHost _mapOffsetYHost;
         private ToolStripControlHost _mapScaleHost;
@@ -67,30 +64,60 @@ namespace ModdingGUI
         private ToolStripLabel _mapRotLabel;
         private ToolStripSeparator _mapControlsSeparator;
 
-
         /* ───── Internal Logging Control ─────────────────────────────── */
         private RichTextBox _internalLogRtb = new RichTextBox();
         private SplitContainer _mainSplitContainer = new SplitContainer();
 
+        /* ───── NEW: Controls for Commands/Help Display ──────────────── */
+        private RichTextBox _commandsHelpRtb;
+        private SplitContainer _lowerSplitContainer; // To host commands and log
 
         /* ───── state ────────────────────────────────────────────────── */
         private string? _projectRoot;
         private string? _currentArenaPath;
-        private Image? _currentArenaMapImage = null; // Holds the actual loaded image for display
-        private string? _currentMapImagePath = null; // Stores the path to the map image for on-demand loading
+        private Image? _currentArenaMapImage = null;
+        private string? _currentMapImagePath = null;
+
+        private struct MapTransformDefaults
+        {
+            public int OffsetX { get; set; }
+            public int OffsetY { get; set; }
+            public decimal Scale { get; set; }
+            public int RotationIndex { get; set; }
+        }
+
+        private readonly Dictionary<string, MapTransformDefaults> _mapDefaultTransforms = new Dictionary<string, MapTransformDefaults>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "expansedunes", new MapTransformDefaults { OffsetX = 0, OffsetY = 0, Scale = 2.5M, RotationIndex = 0 } },
+            { "pirgosarena", new MapTransformDefaults { OffsetX = 50, OffsetY = -75, Scale = 2.5M, RotationIndex = 2 } },
+            { "expanseoasis", new MapTransformDefaults { OffsetX = 0, OffsetY = 0, Scale = 2.5M, RotationIndex = 0 } },
+            { "expanseshore", new MapTransformDefaults { OffsetX = 0, OffsetY = -300, Scale = 2.5M, RotationIndex = 0 } },
+            { "offeringplate", new MapTransformDefaults { OffsetX = 150, OffsetY = -125, Scale = 2.4M, RotationIndex = 0 } },
+            { "palaceibliis", new MapTransformDefaults { OffsetX = 40, OffsetY = 0, Scale = 2.5M, RotationIndex = 0 } },
+            { "scorchedoasis", new MapTransformDefaults { OffsetX = 125, OffsetY = 25, Scale = 2.4M, RotationIndex = 2 } },
+            { "belfortarena", new MapTransformDefaults { OffsetX = 75, OffsetY = -100, Scale = 2.6M, RotationIndex = 2 } },
+            { "bloodyhalo", new MapTransformDefaults { OffsetX = 75, OffsetY = -75, Scale = 2.5M, RotationIndex = 2 } },
+            { "caltharena", new MapTransformDefaults { OffsetX = 75, OffsetY = 37, Scale = 2.4M, RotationIndex = 2 } },
+        };
+
 
         public GridBuilderView()
         {
             InitializeComponent();
             BuildUi();
             UpdatePaintSlotBox();
+            AppendLog($"MapDefaultTransforms dictionary contains {_mapDefaultTransforms.Count} entries.", "DimGray", isDetail: true);
+            if (_chkVerboseLoggingRegular.Checked)
+            {
+                foreach (var kvp in _mapDefaultTransforms)
+                {
+                    AppendLog($"  - Key: '{kvp.Key}', OffsetX: {kvp.Value.OffsetX}, OffsetY: {kvp.Value.OffsetY}, Scale: {kvp.Value.Scale}, RotIdx: {kvp.Value.RotationIndex}", "DimGray", isDetail: true);
+                }
+            }
         }
 
-        // Updated AppendLog to include isDetail parameter
         private void AppendLog(string message, string colorName, bool isDetail = true)
         {
-            // If the message is detailed and verbose logging is not checked, skip logging.
-            // Access Checked property via the hosted control
             if (isDetail && (_chkVerboseLoggingRegular == null || !_chkVerboseLoggingRegular.Checked))
             {
                 return;
@@ -105,11 +132,11 @@ namespace ModdingGUI
 
                 Color messageColor;
                 try { messageColor = Color.FromName(colorName); }
-                catch (Exception) { messageColor = Color.Black; } // Fallback color
+                catch (Exception) { messageColor = Color.Black; }
 
                 _internalLogRtb.SelectionColor = messageColor;
                 _internalLogRtb.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
-                _internalLogRtb.SelectionColor = _internalLogRtb.ForeColor; // Reset to default
+                _internalLogRtb.SelectionColor = _internalLogRtb.ForeColor;
                 _internalLogRtb.ScrollToCaret();
             });
         }
@@ -157,17 +184,14 @@ namespace ModdingGUI
             _hoverLbl.Text = ""; _hoverLbl.AutoSize = false; _hoverLbl.Width = 350;
             bar.Items.Add(_hoverLbl);
 
-            // Toggle Map Button
             bar.Items.Add(new ToolStripSeparator());
             _btnToggleMap = new ToolStripButton("Show Map");
             _btnToggleMap.Click += ToggleMap_Click;
             bar.Items.Add(_btnToggleMap);
 
-            // Separator for map controls (will be shown/hidden with controls)
             _mapControlsSeparator = new ToolStripSeparator();
             bar.Items.Add(_mapControlsSeparator);
 
-            // Map Manipulation Controls - store references to labels and hosts
             _mapXLabel = new ToolStripLabel("Map X:");
             bar.Items.Add(_mapXLabel);
             _mapOffsetXNumeric.Minimum = -2000; _mapOffsetXNumeric.Maximum = 2000; _mapOffsetXNumeric.Value = 0; _mapOffsetXNumeric.Width = 60;
@@ -193,28 +217,28 @@ namespace ModdingGUI
             bar.Items.Add(_mapRotLabel);
             _mapRotationBox.DropDownStyle = ComboBoxStyle.DropDownList;
             _mapRotationBox.Items.AddRange(new object[] { "None", "90°", "180°", "270°" });
-            _mapRotationBox.SelectedIndex = 0; // Default to None
+            _mapRotationBox.SelectedIndex = 0;
             _mapRotationBox.Width = 70;
             _mapRotationBox.SelectedIndexChanged += MapTransformControls_ValueChanged;
-            bar.Items.Add(_mapRotationBox); // Add ToolStripComboBox directly
+            bar.Items.Add(_mapRotationBox);
 
-            // Verbose Logging Checkbox (using regular CheckBox hosted in ToolStripControlHost)
             bar.Items.Add(new ToolStripSeparator());
-            _chkVerboseLoggingRegular = new CheckBox // Instantiate regular CheckBox
+            _chkVerboseLoggingRegular = new CheckBox
             {
                 Text = "Verbose Logging",
-                Checked = false // Default to not verbose
+                Checked = false
             };
-            _chkVerboseLoggingHost = new ToolStripControlHost(_chkVerboseLoggingRegular); // Host it
-            bar.Items.Add(_chkVerboseLoggingHost); // Add the host to the ToolStrip
+            _chkVerboseLoggingHost = new ToolStripControlHost(_chkVerboseLoggingRegular);
+            bar.Items.Add(_chkVerboseLoggingHost);
 
             bar.Dock = DockStyle.Top;
 
-            // GridPanel setup
+            // Initialize GridPanel
             _panel.Initialise(this);
-            _panel.MouseMove += Panel_MouseMove; // Ensure this is connected
+            _panel.MouseMove += Panel_MouseMove;
+            // _panel.Dock = DockStyle.Fill; // This will be handled by SplitContainer
 
-            // Internal RichTextBox for logging setup
+            // Initialize Internal Log RichTextBox
             _internalLogRtb.Dock = DockStyle.Fill;
             _internalLogRtb.ReadOnly = true;
             _internalLogRtb.WordWrap = true;
@@ -222,19 +246,52 @@ namespace ModdingGUI
             _internalLogRtb.BackColor = Color.FromArgb(240, 240, 240);
             _internalLogRtb.Font = new Font("Consolas", 9f);
 
-            // SplitContainer setup
+            // NEW: Initialize Commands Help RichTextBox
+            _commandsHelpRtb = new RichTextBox
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                WordWrap = true,
+                ScrollBars = RichTextBoxScrollBars.None, // Keep it short
+                Text = "Mouse Controls (Grid Editor):\n" +
+                       "• Left Click: Add selected tag to cell(s).\n" +
+                       "• Shift + Left Click: Toggle selected tag in cell(s).\n" +
+                       "• Ctrl + Left Click or Right Click: Erase all tags in cell(s).\n" +
+                       "• Drag Mouse: Apply current action to a rectangular area.",
+                Font = new Font("Segoe UI", 9f), // A standard UI font
+                BackColor = SystemColors.Info, // A distinct background
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            // Optional: Add some padding inside the RichTextBox
+            _commandsHelpRtb.SelectAll();
+            _commandsHelpRtb.SelectionIndent += 5; // Indent text by 5 pixels
+            _commandsHelpRtb.DeselectAll();
+
+
+            // NEW: Initialize Lower SplitContainer (for Commands and Log)
+            _lowerSplitContainer = new SplitContainer
+            {
+                Dock = DockStyle.Fill,
+                Orientation = Orientation.Vertical,
+                FixedPanel = FixedPanel.Panel1, // Command panel height is fixed during resize
+                SplitterWidth = 4 // Standard splitter width
+            };
+            _lowerSplitContainer.Panel1.Controls.Add(_commandsHelpRtb);
+            _lowerSplitContainer.Panel2.Controls.Add(_internalLogRtb);
+            _lowerSplitContainer.SplitterDistance = 90; // Height of the commands panel in pixels
+
+            // Initialize Main SplitContainer (for Grid and Lower Area)
             _mainSplitContainer.Dock = DockStyle.Fill;
-            _mainSplitContainer.Orientation = Orientation.Vertical;
+            _mainSplitContainer.Orientation = Orientation.Vertical; // Grid on top, commands/log below
             _mainSplitContainer.Panel1.Controls.Add(_panel);
-            _mainSplitContainer.Panel2.Controls.Add(_internalLogRtb);
-            _mainSplitContainer.SplitterDistance = (int)(this.Height * 0.75);
+            _mainSplitContainer.Panel2.Controls.Add(_lowerSplitContainer); // Add the container for commands & log
+            _mainSplitContainer.SplitterDistance = (int)(this.Height * 0.65); // Grid panel gets 65% of height
 
             Controls.Add(_mainSplitContainer);
             Controls.Add(bar);
 
             Dock = DockStyle.Fill;
 
-            // Initially hide map controls and set button text
             SetMapControlsVisibility(false);
             _btnToggleMap.Text = "Show Map";
         }
@@ -254,7 +311,7 @@ namespace ModdingGUI
 
         private void ToggleMap_Click(object? sender, EventArgs e)
         {
-            if (_currentArenaMapImage == null) // Map is currently hidden, try to show it
+            if (_currentArenaMapImage == null)
             {
                 if (!string.IsNullOrEmpty(_currentMapImagePath) && File.Exists(_currentMapImagePath))
                 {
@@ -284,7 +341,7 @@ namespace ModdingGUI
                     SetMapControlsVisibility(false);
                 }
             }
-            else // Map is currently shown, hide it
+            else
             {
                 _currentArenaMapImage?.Dispose();
                 _currentArenaMapImage = null;
@@ -350,6 +407,7 @@ namespace ModdingGUI
 
         private void ResetMapState()
         {
+            AppendLog("ResetMapState called.", "CornflowerBlue", isDetail: true);
             _currentArenaMapImage?.Dispose();
             _currentArenaMapImage = null;
             _currentMapImagePath = null;
@@ -361,7 +419,7 @@ namespace ModdingGUI
 
             if (_btnToggleMap != null) _btnToggleMap.Text = "Show Map";
             SetMapControlsVisibility(false);
-            _panel.Invalidate();
+            AppendLog("ResetMapState finished. UI controls set to neutral.", "CornflowerBlue", isDetail: true);
         }
 
         private void PopulateArenas()
@@ -371,6 +429,8 @@ namespace ModdingGUI
             _btnSave.Enabled = false;
 
             ResetMapState();
+            MapTransformControls_ValueChanged(null, EventArgs.Empty);
+
 
             if (string.IsNullOrWhiteSpace(_projectRoot))
             {
@@ -416,9 +476,15 @@ namespace ModdingGUI
             else LoadSelectedArena();
         }
 
+
         private void LoadSelectedArena()
         {
+            AppendLog("LoadSelectedArena called.", "Teal", isDetail: false);
             ResetMapState();
+
+            string? rawGrdDirectoryName = null;
+            string? processedGrdKey = null;
+            bool autoShowMap = false;
 
             if (_arenaBox.SelectedItem is not ComboItem ci)
             {
@@ -426,46 +492,102 @@ namespace ModdingGUI
                 _currentArenaPath = null;
                 _btnSave.Enabled = false;
                 AppendLog("No arena selected or list empty, loaded default grid.", "Black", isDetail: false);
+                _currentMapImagePath = null;
             }
             else
             {
-                AppendLog($"Loading arena: {ci.Display} from {ci.FullPath}", "Blue", isDetail: false);
+                AppendLog($"Loading arena: '{ci.Display}' from path: '{ci.FullPath}'", "Blue", isDetail: false);
                 try
                 {
                     CurrentGrid = GridFile.Load(ci.FullPath);
                     _currentArenaPath = ci.FullPath;
                     _btnSave.Enabled = true;
+                    AppendLog($"Successfully loaded GridFile: '{ci.FullPath}'", "DarkGreen", isDetail: true);
 
-                    string? grdFileDirectoryName = Path.GetFileName(Path.GetDirectoryName(ci.FullPath));
-                    AppendLog($"GRD File Directory Name: {grdFileDirectoryName ?? "N/A"}", "DarkGray", isDetail: true);
+                    var directoryOfGrd = Path.GetDirectoryName(ci.FullPath);
+                    AppendLog($"Path.GetDirectoryName(ci.FullPath) result: '{directoryOfGrd}'", "DarkGray", isDetail: true);
 
-                    if (!string.IsNullOrEmpty(grdFileDirectoryName))
+                    if (!string.IsNullOrEmpty(directoryOfGrd))
                     {
-                        string mapImageFileName = $"map_{grdFileDirectoryName}.png";
-                        string appDir = GetAppDirectory();
-                        string mapDir = Path.Combine(appDir, "maps");
-                        string potentialMapPath = Path.Combine(mapDir, mapImageFileName);
+                        rawGrdDirectoryName = Path.GetFileName(directoryOfGrd);
+                        AppendLog($"Raw GRD File's Parent Directory Name (from Path.GetFileName): '{rawGrdDirectoryName}'", "DarkGray", isDetail: false);
 
-                        AppendLog($"App Directory: {appDir}", "DarkGray", isDetail: true);
-                        AppendLog($"Map Directory Base: {mapDir}", "DarkGray", isDetail: true);
-                        AppendLog($"Derived Map Image File Name: {mapImageFileName}", "DarkGray", isDetail: true);
-                        AppendLog($"Potential map image path: {potentialMapPath}", "Black", isDetail: true);
-
-                        if (File.Exists(potentialMapPath))
+                        processedGrdKey = rawGrdDirectoryName?.Trim();
+                        if (!string.IsNullOrEmpty(processedGrdKey))
                         {
-                            _currentMapImagePath = potentialMapPath;
-                            AppendLog($"Map image path found and stored: {_currentMapImagePath}", "Green", isDetail: true);
+                            AppendLog($"Processed GRD Key for lookup (after Trim): '{processedGrdKey}'", "DarkBlue", isDetail: false);
+
+                            string mapImageFileName = $"map_{processedGrdKey}.png";
+                            string appDir = GetAppDirectory();
+                            string mapDir = Path.Combine(appDir, "maps");
+                            string potentialMapPath = Path.Combine(mapDir, mapImageFileName);
+                            AppendLog($"Attempting to find map image at: '{potentialMapPath}'", "Black", isDetail: true);
+                            if (File.Exists(potentialMapPath))
+                            {
+                                _currentMapImagePath = potentialMapPath;
+                                AppendLog($"Map image path found and stored: '{_currentMapImagePath}'", "Green", isDetail: true);
+                            }
+                            else
+                            {
+                                _currentMapImagePath = null;
+                                AppendLog($"Map image file NOT FOUND at '{potentialMapPath}'.", "OrangeRed", isDetail: false);
+                            }
                         }
                         else
                         {
                             _currentMapImagePath = null;
-                            AppendLog("Map image file not found at derived path.", "OrangeRed", isDetail: false);
+                            AppendLog("Processed GRD key is NULL or EMPTY after trim. Cannot derive map image or lookup defaults.", "OrangeRed", isDetail: false);
                         }
                     }
                     else
                     {
                         _currentMapImagePath = null;
-                        AppendLog("Could not determine GRD file directory name to derive map image name.", "OrangeRed", isDetail: false);
+                        AppendLog("Path.GetDirectoryName for the GRD file returned NULL or EMPTY. Cannot derive map image or lookup defaults.", "OrangeRed", isDetail: false);
+                    }
+
+                    AppendLog($"Checking for default transforms with key: '{processedGrdKey ?? "NULL_KEY"}'", "Magenta", isDetail: false);
+                    if (!string.IsNullOrEmpty(processedGrdKey))
+                    {
+                        bool keyFound = _mapDefaultTransforms.TryGetValue(processedGrdKey, out var defaults);
+                        AppendLog($"_mapDefaultTransforms.TryGetValue result for key '{processedGrdKey}': {keyFound}", "Magenta", isDetail: false);
+
+                        if (keyFound)
+                        {
+                            AppendLog($"SUCCESS: Default transforms FOUND for key '{processedGrdKey}'. Applying values: X={defaults.OffsetX}, Y={defaults.OffsetY}, Scale={defaults.Scale}, RotIdx={defaults.RotationIndex}", "Purple", isDetail: false);
+                            _mapOffsetXNumeric.Value = Math.Max(_mapOffsetXNumeric.Minimum, Math.Min(_mapOffsetXNumeric.Maximum, defaults.OffsetX));
+                            _mapOffsetYNumeric.Value = Math.Max(_mapOffsetYNumeric.Minimum, Math.Min(_mapOffsetYNumeric.Maximum, defaults.OffsetY));
+                            _mapScaleNumeric.Value = Math.Max(_mapScaleNumeric.Minimum, Math.Min(_mapScaleNumeric.Maximum, defaults.Scale));
+
+                            if (defaults.RotationIndex >= 0 && defaults.RotationIndex < _mapRotationBox.Items.Count)
+                            {
+                                _mapRotationBox.SelectedIndex = defaults.RotationIndex;
+                                AppendLog($"Applied RotationIndex: {defaults.RotationIndex} to ComboBox.", "Purple", isDetail: true);
+                            }
+                            else
+                            {
+                                AppendLog($"Warning: Default RotationIndex {defaults.RotationIndex} for map key '{processedGrdKey}' is out of bounds for rotation ComboBox (item count: {_mapRotationBox.Items.Count}). Defaulting to 0 (None).", "Orange", isDetail: false);
+                                _mapRotationBox.SelectedIndex = 0;
+                            }
+                            AppendLog($"Transform UI controls updated. OffsetX: {_mapOffsetXNumeric.Value}, OffsetY: {_mapOffsetYNumeric.Value}, Scale: {_mapScaleNumeric.Value}, Rotation: {_mapRotationBox.SelectedItem}", "Purple", isDetail: true);
+
+                            if (!string.IsNullOrEmpty(_currentMapImagePath))
+                            {
+                                autoShowMap = true;
+                                AppendLog($"Default transforms applied and map image exists. Flagging for auto-show.", "DarkViolet", isDetail: true);
+                            }
+                            else
+                            {
+                                AppendLog($"Default transforms applied BUT no map image path exists ('{_currentMapImagePath ?? "null"}'). Map will not auto-show.", "DarkViolet", isDetail: true);
+                            }
+                        }
+                        else
+                        {
+                            AppendLog($"INFO: No default transforms found in dictionary for key '{processedGrdKey}'. UI controls will retain neutral values from ResetMapState.", "Gray", isDetail: false);
+                        }
+                    }
+                    else
+                    {
+                        AppendLog("INFO: Processed GRD key for default transform lookup was NULL or EMPTY. Using neutral transform values.", "Gray", isDetail: false);
                     }
                 }
                 catch (Exception ex)
@@ -473,15 +595,54 @@ namespace ModdingGUI
                     MessageBox.Show(
                         $"Failed to load arena '{ci.Display}':\n{ex.Message}",
                         "Grid Builder", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    AppendLog($"Failed to load arena '{ci.Display}': {ex.Message}", "Red", isDetail: false);
+                    AppendLog($"ERROR during LoadSelectedArena for '{ci.Display}': {ex.Message}\nStackTrace: {ex.StackTrace}", "Red", isDetail: false);
                     CurrentGrid = new GridFile();
                     _currentArenaPath = null;
                     _btnSave.Enabled = false;
                     _currentMapImagePath = null;
+                    processedGrdKey = null;
                 }
             }
+
+            if (autoShowMap)
+            {
+                AppendLog("Attempting to auto-show map...", "DarkViolet", isDetail: false);
+                if (!string.IsNullOrEmpty(_currentMapImagePath) && File.Exists(_currentMapImagePath))
+                {
+                    try
+                    {
+                        _currentArenaMapImage?.Dispose();
+                        using (FileStream fs = new FileStream(_currentMapImagePath, FileMode.Open, FileAccess.Read))
+                        {
+                            _currentArenaMapImage = Image.FromStream(fs);
+                        }
+                        AppendLog($"Map image auto-loaded: {_currentMapImagePath}", "Green", isDetail: true);
+                        _btnToggleMap.Text = "Hide Map";
+                        SetMapControlsVisibility(true);
+                    }
+                    catch (Exception imgEx)
+                    {
+                        AppendLog($"Error auto-loading map image from {_currentMapImagePath}: {imgEx.Message}", "Red", isDetail: false);
+                        _currentArenaMapImage = null;
+                        _btnToggleMap.Text = "Show Map";
+                        SetMapControlsVisibility(false);
+                    }
+                }
+                else
+                {
+                    AppendLog($"Auto-show map skipped: Map image path ('{_currentMapImagePath ?? "null"}') not valid or file does not exist.", "OrangeRed", isDetail: false);
+                    _btnToggleMap.Text = "Show Map";
+                    SetMapControlsVisibility(false);
+                }
+            }
+
+            AppendLog("Calling MapTransformControls_ValueChanged to update IGridContext and invalidate panel.", "Teal", isDetail: true);
+            MapTransformControls_ValueChanged(null, EventArgs.Empty);
+            AppendLog("Calling UpdatePaintSlotBox.", "Teal", isDetail: true);
             UpdatePaintSlotBox();
+            AppendLog("LoadSelectedArena finished.", "Teal", isDetail: false);
         }
+
 
         private void SaveArena()
         {
@@ -489,8 +650,6 @@ namespace ModdingGUI
             try
             {
                 CurrentGrid.Save(_currentArenaPath);
-                //MessageBox.Show("Arena saved.", "Grid Builder",
-                //                MessageBoxButtons.OK, MessageBoxIcon.Information);
                 AppendLog($"Arena saved: {_currentArenaPath}", "Green", isDetail: false);
             }
             catch (Exception ex)
@@ -533,10 +692,23 @@ namespace ModdingGUI
             {
                 _currentArenaMapImage?.Dispose();
                 _currentArenaMapImage = null;
+
+                // Components added to Controls collections are typically disposed by their parent.
+                // However, explicit disposal here for owned components is safer if their lifecycle is complex.
                 _internalLogRtb?.Dispose();
+                _commandsHelpRtb?.Dispose(); // Dispose new RichTextBox
+                _lowerSplitContainer?.Dispose(); // Dispose new SplitContainer
                 _mainSplitContainer?.Dispose();
-                // Dispose the host if it's not null
                 _chkVerboseLoggingHost?.Dispose();
+
+                // Other ToolStrip items are components and should be handled by ToolStrip disposal
+                _paintSlotBox?.Dispose();
+                _arenaBox?.Dispose();
+                _mapOffsetXHost?.Dispose();
+                _mapOffsetYHost?.Dispose();
+                _mapScaleHost?.Dispose();
+                _mapRotationBox?.Dispose();
+
             }
             base.Dispose(disposing);
         }
