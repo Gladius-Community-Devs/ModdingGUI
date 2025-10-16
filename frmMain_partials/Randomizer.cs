@@ -13,206 +13,58 @@ namespace ModdingGUI
         // Log buffer to collect log messages
         private List<(string message, Color color)> randomizerLogBuffer = new List<(string, Color)>();
 
-        // Blacklisted Vanilla classes
-        string[] blacklistedVanillaClasses = new string[]
+        // Common blacklisted classes across all variants
+        private static readonly HashSet<string> CommonBlacklist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "BeastAir",
-            "BeastDarkAir",
-            "BeastDarkEarth",
-            "BeastDarkFire",
-            "BeastDarkWater",
-            "BeastEarth",
-            "BeastFire",
-            "BeastWater",
-            "BeastAirGreater",
-            "BeastDarkAirGreater",
-            "BeastDarkEarthGreater",
-            "BeastDarkFireGreater",
-            "BeastDarkWaterGreater",
-            "BeastEarthGreater",
-            "BeastFireGreater",
-            "BeastWaterGreater",
-            "BearGreater",
-            "BerserkerEnraged",
-            "BerserkerEnragedF",
-            "Boss",
-            "CatGreater",
-            "CitizenExp",
-            "CitizenExpF",
-            "CitizenImp",
-            "CitizenImpF",
-            "CitizenNor",
-            "CitizenNorF",
-            "CitizenSte",
-            "CitizenSteF",
-            "CyclopsGreater",
-            "DarkGod",
-            "DarkGodDragon",
-            "DarkGodDragon1",
-            "DarkGodDragon2",
-            "DarkGodDragon3",
-            "DarkGodFace",
-            "DarkGodKnight",
-            "DarkGodShiva",
-            "Mutuus",
-            "MutuusDark",
-            "MutuusSenate",
-            "Orin",
-            "PropBarrel",
-            "PropPracticePost",
-            "PropStatue",
-            "PropTombstone",
-            "TitanAir",
-            "TitanEarth",
-            "TitanFire",
-            "TitanWater",
-            "Usus",
-            "WolfGreater",
-            "UrsulaCostumeA",
-            "UrsulaCostumeB",
-            "ValensCostumeA",
-            "ValensCostumeB",
-            "Nephilia"
-        };
-        //blacklisted classes from Leonarth's mod
-        string[] blacklistedLeonarthClasses = new string[]
-        {
-            "BeastAirGreater",
-            "BeastDarkAirGreater",
-            "BeastDarkEarthGreater",
-            "BeastDarkFireGreater",
-            "BeastDarkWaterGreater",
-            "BeastEarthGreater",
-            "BeastFireGreater",
-            "BeastWaterGreater",
-            "BerserkerEnraged",
-            "BerserkerEnragedF",
-            "Boss",
-            "CitizenExp",
-            "CitizenExpF",
-            "CitizenImp",
-            "CitizenImpF",
-            "CitizenNor",
-            "CitizenNorF",
-            "CitizenSte",
-            "CitizenSteF",
-            "CyclopsGreater",
-            "DarkGod",
-            "DarkGodDragon",
-            "DarkGodDragon1",
-            "DarkGodDragon2",
-            "DarkGodDragon3",
-            "DarkGodFace",
-            "DarkGodKnight",
-            "MutuusSenate",
-            "Orin",
-            "PropBarrel",
-            "PropPracticePost",
-            "PropStatue",
-            "PropTombstone",
-            "TitanAir",
-            "TitanEarth",
-            "TitanFire",
-            "TitanWater",
-            "Usus"
+            "BeastAirGreater", "BeastDarkAirGreater", "BeastDarkEarthGreater", "BeastDarkFireGreater",
+            "BeastDarkWaterGreater", "BeastEarthGreater", "BeastFireGreater", "BeastWaterGreater",
+            "BerserkerEnraged", "BerserkerEnragedF", "Boss",
+            "CitizenExp", "CitizenExpF", "CitizenImp", "CitizenImpF", "CitizenNor", "CitizenNorF", "CitizenSte", "CitizenSteF",
+            "CyclopsGreater", "DarkGod", "DarkGodDragon", "DarkGodDragon1", "DarkGodDragon2", "DarkGodDragon3",
+            "DarkGodFace", "DarkGodKnight", "PropBarrel", "PropPracticePost", "PropStatue", "PropTombstone",
+            "TitanAir", "TitanEarth", "TitanFire", "TitanWater"
         };
 
-
-        // Blacklisted Ragnarok classes
-        string[] blacklistedRagnarokClasses = new string[]
+        // Additional blacklisted classes specific to each variant
+        private static readonly Dictionary<string, HashSet<string>> VariantBlacklists = new Dictionary<string, HashSet<string>>
         {
+            ["Vanilla"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "BeastAir", "BeastDarkAir", "BeastDarkEarth", "BeastDarkFire", "BeastDarkWater",
+                "BeastEarth", "BeastFire", "BeastWater", "BearGreater", "CatGreater",
+                "DarkGodShiva", "Mutuus", "MutuusDark", "MutuusSenate", "Orin", "Usus", "WolfGreater",
+                "UrsulaCostumeA", "UrsulaCostumeB", "ValensCostumeA", "ValensCostumeB", "Nephilia"
+            },
+            ["Leonarth"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "MutuusSenate", "Orin", "Usus"
+            },
+            ["Ragnarok"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "DarkGodShiva", "MutuusDark", "Jötunn",
+                "UrsulaCostumeA", "UrsulaCostumeB", "ValensCostumeA", "ValensCostumeB"
+            },
+            ["Opened"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "CatGreater", "DarkGodShiva", "Mutuus", "MutuusDark",
+                "UrsulaCostumeA", "UrsulaCostumeB", "ValensCostumeA", "ValensCostumeB"
+            }
+        };
+
+        // Helper method to get blacklisted classes for the current variant
+        private HashSet<string> GetBlacklistedClasses()
+        {
+            var blacklist = new HashSet<string>(CommonBlacklist, StringComparer.OrdinalIgnoreCase);
             
-            "BeastAirGreater",
-            "BeastDarkAirGreater",
-            "BeastDarkEarthGreater",
-            "BeastDarkFireGreater",
-            "BeastDarkWaterGreater",
-            "BeastEarthGreater",
-            "BeastFireGreater",
-            "BeastWaterGreater",
-            "BerserkerEnraged",
-            "BerserkerEnragedF",
-            "Boss",
-            "CitizenExp",
-            "CitizenExpF",
-            "CitizenImp",
-            "CitizenImpF",
-            "CitizenNor",
-            "CitizenNorF",
-            "CitizenSte",
-            "CitizenSteF",
-            "CyclopsGreater",
-            "DarkGod",
-            "DarkGodDragon",
-            "DarkGodDragon1",
-            "DarkGodDragon2",
-            "DarkGodDragon3",
-            "DarkGodFace",
-            "DarkGodKnight",
-            "DarkGodShiva",
-            "MutuusDark",
-            "PropBarrel",
-            "PropPracticePost",
-            "PropStatue",
-            "PropTombstone",
-            "TitanAir",
-            "TitanEarth",
-            "TitanFire",
-            "TitanWater",
-            "Jötunn",
-            "UrsulaCostumeA",
-            "UrsulaCostumeB",
-            "ValensCostumeA",
-            "ValensCostumeB"
-        };
-
-        string[] blacklistedOpenedClasses = new string[]
-        {
-
-            "BeastAirGreater",
-            "BeastDarkAirGreater",
-            "BeastDarkEarthGreater",
-            "BeastDarkFireGreater",
-            "BeastDarkWaterGreater",
-            "BeastEarthGreater",
-            "BeastFireGreater",
-            "BeastWaterGreater",
-            "BerserkerEnraged",
-            "BerserkerEnragedF",
-            "Boss",
-            "CatGreater",
-            "CitizenExp",
-            "CitizenExpF",
-            "CitizenImp",
-            "CitizenImpF",
-            "CitizenNor",
-            "CitizenNorF",
-            "CitizenSte",
-            "CitizenSteF",
-            "CyclopsGreater",
-            "DarkGod",
-            "DarkGodDragon",
-            "DarkGodDragon1",
-            "DarkGodDragon2",
-            "DarkGodDragon3",
-            "DarkGodFace",
-            "DarkGodKnight",
-            "DarkGodShiva",
-            "Mutuus",
-            "MutuusDark",
-            "PropBarrel",
-            "PropPracticePost",
-            "PropStatue",
-            "PropTombstone",
-            "TitanAir",
-            "TitanEarth",
-            "TitanFire",
-            "TitanWater",
-            "UrsulaCostumeA",
-            "UrsulaCostumeB",
-            "ValensCostumeA",
-            "ValensCostumeB"
-        };
+            if (rbnVanilla.Checked && VariantBlacklists.TryGetValue("Vanilla", out var vanillaBlacklist))
+                blacklist.UnionWith(vanillaBlacklist);
+            else if (rbnLeonarths.Checked && VariantBlacklists.TryGetValue("Leonarth", out var leonarthBlacklist))
+                blacklist.UnionWith(leonarthBlacklist);
+            else if (rbnRagnaroks.Checked && VariantBlacklists.TryGetValue("Ragnarok", out var ragnarokBlacklist))
+                blacklist.UnionWith(ragnarokBlacklist);
+            
+            return blacklist;
+        }
 
         // Add these regex patterns near the top of the class with other private fields
         private static readonly Regex GenderVariantPattern = new Regex(@"^(.+)F$", RegexOptions.Compiled);
@@ -220,6 +72,41 @@ namespace ModdingGUI
         private static readonly Regex RegionalVariantPattern = new Regex(@"^(.+?)(?:Imp|Nor|Ste|Exp|[AB])F?$", RegexOptions.Compiled);
         // new – group only the fixed “UndeadMelee” prefix, then strip any Exp|Imp|Nor|Ste + A|B + optional F
         private static readonly Regex UndeadVariantPattern = new Regex(@"^(UndeadMelee)(?:Exp|Imp|Nor|Ste)[AB]F?$", RegexOptions.Compiled);
+
+        // Helper methods for common file path operations
+        private string NormalizeProjectFolder(string projectFolder)
+        {
+            return projectFolder?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) ?? string.Empty;
+        }
+
+        private string GetBecPath(string projectFolder, params string[] pathParts)
+        {
+            string normalizedFolder = NormalizeProjectFolder(projectFolder);
+            string becFolder = $"{Path.GetFileName(normalizedFolder)}_BEC";
+            var allParts = new[] { normalizedFolder, becFolder }.Concat(pathParts).ToArray();
+            return Path.Combine(allParts);
+        }
+
+        private string GetGladiatorsPath(string projectFolder) => 
+            GetBecPath(projectFolder, "data", "units", "gladiators.txt");
+
+        private string GetStatsetsPath(string projectFolder) => 
+            GetBecPath(projectFolder, "data", "units", "statsets.txt");
+
+        private string GetItemsetsPath(string projectFolder) => 
+            GetBecPath(projectFolder, "data", "units", "itemsets.txt");
+
+        private string GetSkillsetsPath(string projectFolder) => 
+            GetBecPath(projectFolder, "data", "units", "skillsets.txt");
+
+        private string GetItemsPath(string projectFolder) => 
+            GetBecPath(projectFolder, "data", "config", "items.tok");
+
+        private string GetClassDefsPath(string projectFolder) => 
+            GetBecPath(projectFolder, "data", "config", "classdefs.tok");
+
+        private string GetSchoolPath(string projectFolder, string fileName) => 
+            GetBecPath(projectFolder, "data", "school", fileName);
 
 
         // Method to initialize Random with the seed from txtSeed
@@ -271,7 +158,7 @@ namespace ModdingGUI
 
         private async void RandomizeHeroes(string projectFolder)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            projectFolder = NormalizeProjectFolder(projectFolder);
             // Disable the randomize button
             btnRandomize.Enabled = false;
 
@@ -394,7 +281,7 @@ namespace ModdingGUI
 
         private async void RandomizeTeam(string projectFolder)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            projectFolder = NormalizeProjectFolder(projectFolder);
             // Disable the randomize button
             btnRandomize.Enabled = false;
 
@@ -543,9 +430,9 @@ namespace ModdingGUI
         }
         private void RandomizeStatsets(string projectFolder, IProgress<int> progress)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string gladiatorsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "gladiators.txt");
-            string statsetsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "statsets.txt");
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string gladiatorsPath = GetGladiatorsPath(projectFolder);
+            string statsetsPath = GetStatsetsPath(projectFolder);
 
             if (!File.Exists(gladiatorsPath))
             {
@@ -600,10 +487,10 @@ namespace ModdingGUI
 
         private void RandomizeItemsets(string projectFolder, IProgress<int> progress)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string gladiatorsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "gladiators.txt");
-            string itemsetsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "itemsets.txt");
-            string itemsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "items.tok");
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string gladiatorsPath = GetGladiatorsPath(projectFolder);
+            string itemsetsPath = GetItemsetsPath(projectFolder);
+            string itemsPath = GetItemsPath(projectFolder);
 
             if (!File.Exists(gladiatorsPath))
             {
@@ -964,7 +851,7 @@ namespace ModdingGUI
 
         private void SaveGladiators(string projectFolder, List<GladiatorEntry> gladiators)
         {
-            string gladiatorsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "gladiators.txt");
+            string gladiatorsPath = GetGladiatorsPath(projectFolder);
             List<string> lines = new List<string>();
 
             foreach (var gladiator in gladiators)
@@ -988,8 +875,8 @@ namespace ModdingGUI
 
         private void RemoveAllRecruits(string projectFolder, IProgress<int> progress, ConcurrentQueue<(string message, Color color)> logMessages)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string leaguesPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "towns", "leagues");
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string leaguesPath = GetBecPath(projectFolder, "data", "towns", "leagues");
             var tokFiles = Directory.GetFiles(leaguesPath, "*.tok", SearchOption.AllDirectories);
 
             int filesProcessed = 0;
@@ -1038,41 +925,22 @@ namespace ModdingGUI
         }
         private List<string> GetEligibleClasses(string projectFolder)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string classDefsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "classdefs.tok");
-            List<string> eligibleClasses = new List<string>();
-            string[] blacklistedClasses = null;
-            if (rbnLeonarths.Checked)
-            {
-                blacklistedClasses = blacklistedLeonarthClasses;
-            }
-            if(rbnRagnaroks.Checked)
-            {
-                blacklistedClasses = blacklistedRagnarokClasses;
-            }
-            if (rbnVanilla.Checked)
-            {
-                blacklistedClasses = blacklistedVanillaClasses;
-            }
-            foreach (string line in File.ReadLines(classDefsPath))
-            {
-                if (line.StartsWith("CREATECLASS:"))
-                {
-                    string className = line.Split(':')[1].Trim();
-                    if (!blacklistedClasses.Contains(className))
-                    {
-                        eligibleClasses.Add(className);
-                    }
-                }
-            }
-            return eligibleClasses;
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string classDefsPath = GetClassDefsPath(projectFolder);
+            var blacklistedClasses = GetBlacklistedClasses();
+            
+            return File.ReadLines(classDefsPath)
+                .Where(line => line.StartsWith("CREATECLASS:"))
+                .Select(line => line.Split(':')[1].Trim())
+                .Where(className => !blacklistedClasses.Contains(className))
+                .ToList();
         }
 
         // Method to add CHARACTER entries to worldmap.tok for specified heroes
         private void UpdateWorldmapWithCharacter(string projectFolder, string heroName, string assignedClass)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string worldmapPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "worldmap.tok");
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string worldmapPath = GetBecPath(projectFolder, "data", "config", "worldmap.tok");
 
             // Check if worldmap.tok exists; if not, create it
             List<string> worldmapLines = File.Exists(worldmapPath) ? File.ReadAllLines(worldmapPath).ToList() : new List<string>();
@@ -1091,8 +959,8 @@ namespace ModdingGUI
 
         private void WriteUnitsToFile(string projectFolder, List<string> unitNames, List<string> unitClasses, List<GladiatorEntry> gladiatorEntries, Dictionary<int, List<int>> statSets, Dictionary<int, List<string>> itemSets, Dictionary<int, List<string>> skillSets, string fileName, string heroName)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "school", fileName);
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string filePath = GetSchoolPath(projectFolder, fileName);
             
             // Get school name: use custom name if provided, otherwise use default
             string schoolName = !string.IsNullOrWhiteSpace(txtRandomCustomSchoolName.Text) 
@@ -1136,7 +1004,7 @@ namespace ModdingGUI
 
         private void AppendUnitsToFile(string projectFolder, List<string> unitNames, List<string> unitClasses, List<GladiatorEntry> gladiatorEntries, Dictionary<int, List<int>> statSets, Dictionary<int, List<string>> itemSets, Dictionary<int, List<string>> skillSets, string fileName)
         {
-            string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "school", fileName);
+            string filePath = GetSchoolPath(projectFolder, fileName);
             List<string> outputLines = new List<string>();
 
             // Load existing content to avoid overwriting
@@ -1204,8 +1072,8 @@ namespace ModdingGUI
 
         private List<GladiatorEntry> ParseGladiators(string projectFolder)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "gladiators.txt");
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string filePath = GetGladiatorsPath(projectFolder);
             List<GladiatorEntry> entries = new List<GladiatorEntry>();
 
             if (File.Exists(filePath))
@@ -1260,8 +1128,8 @@ namespace ModdingGUI
 
         private Dictionary<int, List<int>> ParseStatSets(string projectFolder)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "statsets.txt");
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string filePath = GetStatsetsPath(projectFolder);
             Dictionary<int, List<int>> statSets = new Dictionary<int, List<int>>();
 
             if (File.Exists(filePath))
@@ -1288,8 +1156,8 @@ namespace ModdingGUI
 
         private Dictionary<int, List<string>> ParseItemSets(string projectFolder)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "itemsets.txt");
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string filePath = GetItemsetsPath(projectFolder);
             Dictionary<int, List<string>> itemSets = new Dictionary<int, List<string>>();
 
             if (!File.Exists(filePath))
@@ -1361,7 +1229,7 @@ namespace ModdingGUI
 
         private Dictionary<int, List<string>> ParseItemSetsFull(string projectFolder)
         {
-            string itemsetsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "itemsets.txt");
+            string itemsetsPath = GetItemsetsPath(projectFolder);
             var itemSets = new Dictionary<int, List<string>>();
             int currentItemsetId = -1; // No current itemset until we read one
             var itemsetRegex = new Regex(@"^Itemset\s+(\d+):", RegexOptions.IgnoreCase);
@@ -1401,8 +1269,8 @@ namespace ModdingGUI
 
         private Dictionary<int, List<string>> ParseSkillSets(string projectFolder)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "skillsets.txt");
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string filePath = GetSkillsetsPath(projectFolder);
             Dictionary<int, List<string>> skillSets = new Dictionary<int, List<string>>();
 
             if (File.Exists(filePath))
@@ -1443,8 +1311,8 @@ namespace ModdingGUI
         {
             try
             {
-                projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                string encountersPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "encounters");
+                projectFolder = NormalizeProjectFolder(projectFolder);
+                string encountersPath = GetBecPath(projectFolder, "data", "encounters");
                 var encFiles = Directory.GetFiles(encountersPath, "*.enc", SearchOption.AllDirectories);
 
                 int totalFiles = encFiles.Length;
@@ -1671,8 +1539,8 @@ namespace ModdingGUI
 
         private async Task EditScpFilesAndCompileAsync(string projectFolder)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string scriptFolder = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "script");
+            projectFolder = NormalizeProjectFolder(projectFolder);
+            string scriptFolder = GetBecPath(projectFolder, "data", "script");
             string binFolder = Path.Combine(scriptFolder, "bin");
 
             // Ensure the bin directory exists
@@ -2004,10 +1872,10 @@ namespace ModdingGUI
             try
             {
                 // Remove any trailing directory separators from the project folder path
-                projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                projectFolder = NormalizeProjectFolder(projectFolder);
 
                 // Define the path to the script folder within the project
-                string scriptFolder = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "script");
+                string scriptFolder = GetBecPath(projectFolder, "data", "script");
 
                 // Define the path to the bin folder within the script directory
                 string binFolder = Path.Combine(scriptFolder, "bin");
