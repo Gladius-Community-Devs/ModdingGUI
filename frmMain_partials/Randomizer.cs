@@ -108,6 +108,28 @@ namespace ModdingGUI
         private string GetSchoolPath(string projectFolder, string fileName) => 
             GetBecPath(projectFolder, "data", "school", fileName);
 
+        // Helper method to get base class name by stripping regional/gender/undead variants
+        private string GetBaseClass(string className)
+        {
+            // 1) Collapse _all_ undead melee variants to "UndeadMelee"
+            var undeadMatch = UndeadVariantPattern.Match(className);
+            if (undeadMatch.Success)
+                return undeadMatch.Groups[1].Value;
+
+            // 2) Regional Imp|Nor|Ste|Exp + optional F
+            var regionalMatch = RegionalVariantPattern.Match(className);
+            if (regionalMatch.Success)
+                return regionalMatch.Groups[1].Value;
+
+            // 3) Pure gender F
+            var genderMatch = GenderVariantPattern.Match(className);
+            if (genderMatch.Success)
+                return genderMatch.Groups[1].Value;
+
+            // 4) Otherwise it's already a base
+            return className;
+        }
+
 
         // Method to initialize Random with the seed from txtSeed
         private void InitializeRandom()
@@ -340,27 +362,6 @@ namespace ModdingGUI
                 {
                     AppendRandomizerLog("Weighted randomization selected - prioritizing class diversity with variant balancing.", InfoColor);
 
-                    // Strip off any regional (Imp|Nor|Ste|Exp), undead, or gender (F) variant
-                    string GetBaseClass(string cls)
-                    {
-                        // 1) Collapse _all_ undead melee variants to “UndeadMelee”
-                        var undeadMatch = UndeadVariantPattern.Match(cls);
-                        if (undeadMatch.Success)
-                            return undeadMatch.Groups[1].Value;
-
-                        // 2) Regional Imp|Nor|Ste|Exp + optional F
-                        var regionalMatch = RegionalVariantPattern.Match(cls);
-                        if (regionalMatch.Success)
-                            return regionalMatch.Groups[1].Value;
-
-                        // 3) Pure gender F
-                        var genderMatch = GenderVariantPattern.Match(cls);
-                        if (genderMatch.Success)
-                            return genderMatch.Groups[1].Value;
-
-                        // 4) Otherwise it's already a base
-                        return cls;
-                    }
 
                     // 1) Shuffle all variants
                     var available = new List<string>(classesWithGladiators);
@@ -1154,6 +1155,11 @@ namespace ModdingGUI
             return statSets;
         }
 
+        /// <summary>
+        /// Parses itemsets and returns a dictionary where each itemset contains
+        /// item names organized by equipment slot (weapon, armor, shield, helmet, accessory).
+        /// Used for unit generation where we need individual item names per slot.
+        /// </summary>
         private Dictionary<int, List<string>> ParseItemSets(string projectFolder)
         {
             projectFolder = NormalizeProjectFolder(projectFolder);
@@ -1227,6 +1233,11 @@ namespace ModdingGUI
             return itemSets;
         }
 
+        /// <summary>
+        /// Parses itemsets and returns a dictionary where each itemset contains
+        /// the full raw item lines with level ranges and type markers.
+        /// Used for affinity checking and validation where we need complete item data.
+        /// </summary>
         private Dictionary<int, List<string>> ParseItemSetsFull(string projectFolder)
         {
             string itemsetsPath = GetItemsetsPath(projectFolder);
