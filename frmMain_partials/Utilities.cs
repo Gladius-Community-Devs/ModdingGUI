@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ModdingGUI
@@ -339,7 +340,120 @@ namespace ModdingGUI
             // Write the updated lines back to the file
             File.WriteAllLines(menuFilePath, lines);
         }
+        // Replaces the previous version: now reports determinate progress via pgbValidation
+        private async Task RecompileAllScpAsync(string projectFolder)
+        {
+            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string scriptFolder = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "script");
+            string binFolder = Path.Combine(scriptFolder, "bin");
 
+            if (!Directory.Exists(scriptFolder))
+            {
+                AppendLog($"Script folder not found: {scriptFolder}", ErrorColor, rtbPackOutput);
+                return;
+            }
 
+            if (!Directory.Exists(binFolder))
+            {
+                try
+                {
+                    Directory.CreateDirectory(binFolder);
+                    AppendLog($"Created bin folder: {binFolder}", InfoColor, rtbPackOutput);
+                }
+                catch (Exception ex)
+                {
+                    AppendLog($"Failed to create bin folder: {ex.Message}", ErrorColor, rtbPackOutput);
+                    return;
+                }
+            }
+
+            string toolsPath = NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
+            string compilerPath = Path.Combine(toolsPath, "DOGCodeCompiler.exe");
+            if (!File.Exists(compilerPath))
+            {
+                AppendLog($"Compiler not found at: {compilerPath}\nPlease use the tools folder from the latest release!", ErrorColor, rtbPackOutput);
+                return;
+            }
+
+            var scpFiles = Directory.GetFiles(scriptFolder, "*.scp", SearchOption.TopDirectoryOnly)
+                                    .OrderBy(p => p, StringComparer.OrdinalIgnoreCase)
+                                    .ToList();
+            if (scpFiles.Count == 0)
+            {
+                AppendLog("No .scp files found to compile.", WarningColor, rtbPackOutput);
+                return;
+            }
+
+            // If validation is skipped, the bar is usually idle. We’ll light it up for compile work,
+            // then hide it again after we’re done so behavior stays familiar.
+            bool showBarTemporarily = chbValidationSkip.Checked;
+
+            void ShowAndResetProgressForCompile()
+            {
+                if (pgbValidation.InvokeRequired)
+                {
+                    pgbValidation.Invoke(new Action(ShowAndResetProgressForCompile));
+                    return;
+                }
+                if (showBarTemporarily)
+                {
+                    pgbValidation.Visible = true;
+                    pgbValidation.Minimum = 0;
+                    pgbValidation.Value = 0;
+                    pgbValidation.Maximum = 0;
+                }
+                // Add our compile workload onto any existing maximum (if validation already ran).
+                pgbValidation.Maximum += scpFiles.Count;
+                // Ensure Value doesn’t exceed Maximum
+                if (pgbValidation.Value > pgbValidation.Maximum)
+                    pgbValidation.Value = pgbValidation.Maximum;
+            }
+
+            void HideProgressIfTemporary()
+            {
+                if (pgbValidation.InvokeRequired)
+                {
+                    pgbValidation.Invoke(new Action(HideProgressIfTemporary));
+                    return;
+                }
+                if (showBarTemporarily)
+                {
+                    // Return the bar to its usual “hidden when validation is skipped” state
+                    pgbValidation.Visible = false;
+                    pgbValidation.Value = 0;
+                    pgbValidation.Maximum = 0;
+                }
+            }
+
+            ShowAndResetProgressForCompile();
+
+            AppendLog("Starting full script recompilation...", InfoColor, rtbPackOutput);
+
+            // Run each file sequentially so we can advance progress deterministically per file
+            foreach (var scpPath in scpFiles)
+            {
+                string scbPath = Path.Combine(binFolder, Path.GetFileNameWithoutExtension(scpPath) + ".scb");
+                string oneLineBatch = $"\"{compilerPath}\" \"{scpPath}\" \"{scbPath}\"";
+
+                try
+                {
+                    await RunBatchFileAsync(oneLineBatch, scriptFolder, rtbPackOutput);
+                }
+                catch (Exception ex)
+                {
+                    AppendLog($"Failed compiling {Path.GetFileName(scpPath)}: {ex.Message}", ErrorColor, rtbPackOutput);
+                    // Continue to next file so progress still advances and user gets a full report
+                }
+                finally
+                {
+                    // Advance progress for each attempted file
+                    IncrementProgressBar();
+                }
+            }
+
+            AppendLog("Finished recompiling .scp files.", SuccessColor, rtbPackOutput);
+
+            HideProgressIfTemporary();
+        }
     }
 }

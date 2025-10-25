@@ -1,8 +1,9 @@
-using System;
-using System.IO;
-using System.Text.Json;
 using ModdingGUI.Forms;
 using ModdingGUI.Models;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text.Json;
 
 namespace ModdingGUI
 {
@@ -114,17 +115,6 @@ namespace ModdingGUI
             }
         }
         
-        // Event handler for the auto launch Dolphin checkbox
-        private void chbAutoLaunchDolphin_CheckedChanged(object sender, EventArgs e)
-        {
-            // Update the setting in the AppSettings object
-            if (appSettings != null)
-            {
-                appSettings.AutoLaunchDolphin = chbAutoLaunchDolphin.Checked;
-                SaveAppSettings();
-            }
-        }
-        
         // Event handler for the Settings menu item
         private void settingsMenuItem_Click(object sender, EventArgs e)
         {
@@ -168,67 +158,50 @@ namespace ModdingGUI
         // Method to launch a game with Dolphin
         private void LaunchGameWithDolphin(string isoPath)
         {
-            if (!IsDolphinPathValid())
-            {
-                MessageBox.Show(
-                    "Dolphin Emulator path is not set or invalid. Please set it in Settings.",
-                    "Invalid Dolphin Path",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (!File.Exists(isoPath))
-            {
-                MessageBox.Show(
-                    "The ISO file does not exist.",
-                    "Invalid ISO Path",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Check if auto-launch is enabled (use the setting or default to true if not set)
-            bool autoLaunch = appSettings?.AutoLaunchDolphin ?? true;
-            
-            // If auto-launch is disabled, ask for confirmation
-            if (!autoLaunch)
-            {
-                DialogResult result = MessageBox.Show(
-                    $"Would you like to launch {Path.GetFileName(isoPath)} with Dolphin Emulator?",
-                    "Launch Game",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-                
-                if (result != DialogResult.Yes)
-                {
-                    return; // User decided not to launch
-                }
-            }
-
             try
             {
-                AppendLog($"Launching game: {Path.GetFileName(isoPath)} with Dolphin...", InfoColor, rtbPackOutput);
-                
-                // Create process to launch Dolphin with the ISO
-                System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo
+                // 1) Require a valid Dolphin executable path
+                var dolphinExePath = appSettings?.DolphinExecutablePath;
+                if (string.IsNullOrWhiteSpace(dolphinExePath) || !File.Exists(dolphinExePath))
                 {
-                    FileName = appSettings.DolphinExecutablePath,
+                    AppendLog("Dolphin auto-launch skipped — no valid Dolphin executable path is configured.", WarningColor, rtbPackOutput);
+                    return;
+                }
+
+                // 2) Respect the user's preference (default to false)
+                bool autoLaunch = appSettings?.AutoLaunchDolphin == true;
+                if (!autoLaunch)
+                {
+                    AppendLog("Dolphin auto-launch is disabled in settings. Skipping launch.", WarningColor, rtbPackOutput);
+                    return;
+                }
+
+                // 3) Verify ISO exists
+                if (string.IsNullOrWhiteSpace(isoPath) || !File.Exists(isoPath))
+                {
+                    AppendLog($"ISO not found at path: {isoPath}", ErrorColor, rtbPackOutput);
+                    return;
+                }
+
+                // 4) Launch Dolphin with the ISO
+                AppendLog($"Launching Dolphin with ISO: {isoPath}", InfoColor, rtbPackOutput);
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = dolphinExePath,
                     Arguments = $"\"{isoPath}\"",
-                    UseShellExecute = true
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(dolphinExePath)
                 };
 
-                System.Diagnostics.Process.Start(psi);
-                AppendLog("Game launched successfully.", SuccessColor, rtbPackOutput);
+                Process.Start(psi);
+
+                AppendLog("Dolphin launched successfully.", SuccessColor, rtbPackOutput);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to launch game: {ex.Message}",
-                    "Launch Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                AppendLog($"Error launching game: {ex.Message}", ErrorColor, rtbPackOutput);
+                AppendLog($"Failed to launch Dolphin: {ex.Message}", ErrorColor, rtbPackOutput);
             }
         }
     }

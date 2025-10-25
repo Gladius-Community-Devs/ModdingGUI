@@ -149,6 +149,11 @@ namespace ModdingGUI
                 {
                     AppendLog("Validation skipped.", InfoColor, rtbPackOutput);
                 }
+                if (chbRecompileScripts.Checked)
+                {
+                    AppendLog("Recompiling all .scp files before packing...", InfoColor, rtbPackOutput);
+                    await RecompileAllScpAsync(selectedFolder);
+                }
                 // Generate the batch file content for packing
                 string batchContent = GeneratePackBatchFileContent(selectedFolder);
 
@@ -1086,6 +1091,10 @@ namespace ModdingGUI
         {
             ttpInform.SetToolTip(chbRandomItemsets, "Randomizes the itemsets of all enemy units in the game. WARNING: visual glitches may appear!");
         }
+        private void chbRecompileScripts_MouseHover(object sender, EventArgs e)
+        {
+            ttpInform.SetToolTip(chbRecompileScripts, "Recompiles all modified .scp files to ensure changes take effect.");
+        }
 
         private void chbRandom40Glads_CheckedChanged(object sender, EventArgs e)
         {
@@ -1491,6 +1500,26 @@ namespace ModdingGUI
         private void RestartApplication()
         {
             Application.Exit();
+        }
+
+        private void chbAutoLaunchDolphin_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                // Update the setting immediately to match the checkbox
+                appSettings.AutoLaunchDolphin = chbAutoLaunchDolphin.Checked;
+
+                // Persist to disk using your existing save routine
+                SaveAppSettings();
+
+                // Log the change for clarity
+                string state = chbAutoLaunchDolphin.Checked ? "enabled" : "disabled";
+                AppendLog($"Auto-launch Dolphin {state}.", InfoColor, rtbPackOutput);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Failed to update Dolphin auto-launch setting: {ex.Message}", ErrorColor, rtbPackOutput);
+            }
         }
     }
 }
