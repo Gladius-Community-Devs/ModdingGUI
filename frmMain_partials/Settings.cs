@@ -169,10 +169,14 @@ namespace ModdingGUI
                 }
 
                 // 2) Respect the user's preference (default to false)
-                bool autoLaunch = appSettings?.AutoLaunchDolphin == true;
+                bool autoLaunch =
+                    (chbAutoLaunchDolphin != null && chbAutoLaunchDolphin.Visible)
+                        ? chbAutoLaunchDolphin.Checked
+                        : (appSettings?.AutoLaunchDolphin == true);
+
                 if (!autoLaunch)
                 {
-                    AppendLog("Dolphin auto-launch is disabled in settings. Skipping launch.", WarningColor, rtbPackOutput);
+                    AppendLog("Dolphin auto-launch is disabled. Skipping launch.", WarningColor, rtbPackOutput);
                     return;
                 }
 
@@ -183,7 +187,51 @@ namespace ModdingGUI
                     return;
                 }
 
-                // 4) Launch Dolphin with the ISO
+                // 4) Close any existing Dolphin instance from the same executable
+                string exeName = Path.GetFileNameWithoutExtension(dolphinExePath);
+                var existing = Process.GetProcessesByName(exeName);
+                foreach (var p in existing)
+                {
+                    bool sameBinary = false;
+                    try
+                    {
+                        string procPath = p.MainModule?.FileName;
+                        if (!string.IsNullOrEmpty(procPath))
+                            sameBinary = string.Equals(procPath, dolphinExePath, StringComparison.OrdinalIgnoreCase);
+                    }
+                    catch
+                    {
+                        sameBinary = true; // fallback to name match
+                    }
+
+                    if (!sameBinary || p.HasExited) continue;
+
+                    AppendLog("Closing existing Dolphin instance…", InfoColor, rtbPackOutput);
+                    try
+                    {
+                        if (p.CloseMainWindow())
+                        {
+                            if (p.WaitForExit(2000))
+                            {
+                                AppendLog("Existing Dolphin closed gracefully.", SuccessColor, rtbPackOutput);
+                                continue;
+                            }
+                        }
+
+                        if (!p.HasExited)
+                        {
+                            p.Kill(true);
+                            p.WaitForExit(2000);
+                            AppendLog("Existing Dolphin was force-terminated.", WarningColor, rtbPackOutput);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendLog($"Failed to terminate existing Dolphin: {ex.Message}", ErrorColor, rtbPackOutput);
+                    }
+                }
+
+                // 5) Launch Dolphin with the ISO
                 AppendLog($"Launching Dolphin with ISO: {isoPath}", InfoColor, rtbPackOutput);
 
                 var psi = new ProcessStartInfo
@@ -196,7 +244,6 @@ namespace ModdingGUI
                 };
 
                 Process.Start(psi);
-
                 AppendLog("Dolphin launched successfully.", SuccessColor, rtbPackOutput);
             }
             catch (Exception ex)

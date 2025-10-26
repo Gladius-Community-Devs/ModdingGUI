@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using ModdingGUI.Models;
+using System.Diagnostics;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace ModdingGUI
@@ -341,10 +342,13 @@ namespace ModdingGUI
             File.WriteAllLines(menuFilePath, lines);
         }
         // Replaces the previous version: now reports determinate progress via pgbValidation
+        // Incremental recompilation with progress + settings.json timestamp persistence
+        // Incremental recompilation with progress + per-project settings beside the EXE
         private async Task RecompileAllScpAsync(string projectFolder)
         {
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string scriptFolder = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "script");
+            string projectName = Path.GetFileName(projectFolder);
+            string scriptFolder = Path.Combine(projectFolder, $"{projectName}_BEC", "data", "script");
             string binFolder = Path.Combine(scriptFolder, "bin");
 
             if (!Directory.Exists(scriptFolder))
@@ -367,7 +371,8 @@ namespace ModdingGUI
                 }
             }
 
-            string toolsPath = NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
+            // Tools path from EXE root (not CWD)
+            string toolsPath = Path.Combine(GetAppDirectory(), "tools");
             string compilerPath = Path.Combine(toolsPath, "DOGCodeCompiler.exe");
             if (!File.Exists(compilerPath))
             {
@@ -375,24 +380,42 @@ namespace ModdingGUI
                 return;
             }
 
+            // Gather all .scp files and their timestamps
             var scpFiles = Directory.GetFiles(scriptFolder, "*.scp", SearchOption.TopDirectoryOnly)
-                                    .OrderBy(p => p, StringComparer.OrdinalIgnoreCase)
+                                    .Select(p => new { Path = p, MtimeUtc = File.GetLastWriteTimeUtc(p) })
+                                    .OrderBy(p => p.Path, StringComparer.OrdinalIgnoreCase)
                                     .ToList();
+
             if (scpFiles.Count == 0)
             {
                 AppendLog("No .scp files found to compile.", WarningColor, rtbPackOutput);
                 return;
             }
 
-            // If validation is skipped, the bar is usually idle. We’ll light it up for compile work,
-            // then hide it again after we’re done so behavior stays familiar.
+            // Load per-project cutoff from <EXE ROOT>\<ProjectName>\settings.json
+            var projectSettings = LoadProjectSettings(projectFolder);
+            DateTime cutoffUtc = projectSettings.LastScpRecompileUtc ?? DateTime.MinValue;
+
+            // Snapshot latest modified time across all scripts (saved after run)
+            DateTime latestScpWriteUtc = scpFiles.Max(f => f.MtimeUtc);
+
+            // Only compile files edited after cutoff
+            var changed = scpFiles.Where(f => f.MtimeUtc > cutoffUtc).ToList();
+
+            if (changed.Count == 0)
+            {
+                AppendLog("Scripts are up-to-date. No changes since the last compile.", SuccessColor, rtbPackOutput);
+                return;
+            }
+
+            // Progress bar: show during compile even if validation is skipped; then restore
             bool showBarTemporarily = chbValidationSkip.Checked;
 
-            void ShowAndResetProgressForCompile()
+            void ShowAndPrepProgress()
             {
                 if (pgbValidation.InvokeRequired)
                 {
-                    pgbValidation.Invoke(new Action(ShowAndResetProgressForCompile));
+                    pgbValidation.Invoke(new Action(ShowAndPrepProgress));
                     return;
                 }
                 if (showBarTemporarily)
@@ -402,9 +425,7 @@ namespace ModdingGUI
                     pgbValidation.Value = 0;
                     pgbValidation.Maximum = 0;
                 }
-                // Add our compile workload onto any existing maximum (if validation already ran).
-                pgbValidation.Maximum += scpFiles.Count;
-                // Ensure Value doesn’t exceed Maximum
+                pgbValidation.Maximum += changed.Count;
                 if (pgbValidation.Value > pgbValidation.Maximum)
                     pgbValidation.Value = pgbValidation.Maximum;
             }
@@ -418,42 +439,106 @@ namespace ModdingGUI
                 }
                 if (showBarTemporarily)
                 {
-                    // Return the bar to its usual “hidden when validation is skipped” state
                     pgbValidation.Visible = false;
                     pgbValidation.Value = 0;
                     pgbValidation.Maximum = 0;
                 }
             }
 
-            ShowAndResetProgressForCompile();
+            ShowAndPrepProgress();
 
-            AppendLog("Starting full script recompilation...", InfoColor, rtbPackOutput);
+            AppendLog($"Starting incremental script recompilation... ({changed.Count} changed file(s))", InfoColor, rtbPackOutput);
 
-            // Run each file sequentially so we can advance progress deterministically per file
-            foreach (var scpPath in scpFiles)
+            int ok = 0, fail = 0;
+
+            // Compile only changed files, one-by-one (deterministic progress)
+            foreach (var f in changed)
             {
-                string scbPath = Path.Combine(binFolder, Path.GetFileNameWithoutExtension(scpPath) + ".scb");
-                string oneLineBatch = $"\"{compilerPath}\" \"{scpPath}\" \"{scbPath}\"";
+                string scbPath = Path.Combine(binFolder, System.IO.Path.GetFileNameWithoutExtension(f.Path) + ".scb");
+                string oneLineBatch = $"\"{compilerPath}\" \"{f.Path}\" \"{scbPath}\"";
 
                 try
                 {
                     await RunBatchFileAsync(oneLineBatch, scriptFolder, rtbPackOutput);
+                    ok++;
                 }
                 catch (Exception ex)
                 {
-                    AppendLog($"Failed compiling {Path.GetFileName(scpPath)}: {ex.Message}", ErrorColor, rtbPackOutput);
-                    // Continue to next file so progress still advances and user gets a full report
+                    fail++;
+                    AppendLog($"Failed compiling {System.IO.Path.GetFileName(f.Path)}: {ex.Message}", ErrorColor, rtbPackOutput);
                 }
                 finally
                 {
-                    // Advance progress for each attempted file
                     IncrementProgressBar();
                 }
             }
 
-            AppendLog("Finished recompiling .scp files.", SuccessColor, rtbPackOutput);
+            // Persist new cutoff = latest script mtime at compile start
+            try
+            {
+                projectSettings.LastScpRecompileUtc = latestScpWriteUtc;
+                SaveProjectSettings(projectFolder, projectSettings);
+                AppendLog($"Updated per-project compile cutoff to {latestScpWriteUtc:O} (UTC).", InfoColor, rtbPackOutput);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Warning: failed saving per-project compile timestamp: {ex.Message}", WarningColor, rtbPackOutput);
+            }
+
+            AppendLog($"Recompile finished. Succeeded: {ok}, Failed: {fail}.", (fail == 0 ? SuccessColor : WarningColor), rtbPackOutput);
 
             HideProgressIfTemporary();
         }
+
+        // Per-project settings path helpers
+        private string GetProjectSettingsDir(string projectFolder)
+        {
+            string exeRoot = GetAppDirectory(); // already in Utilities.cs
+            string projectName = Path.GetFileName(projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            return Path.Combine(exeRoot, projectName);
+        }
+        private string GetProjectSettingsPath(string projectFolder)
+        {
+            return Path.Combine(GetProjectSettingsDir(projectFolder), "settings.json");
+        }
+
+        private ProjectSettings LoadProjectSettings(string projectFolder)
+        {
+            try
+            {
+                string dir = GetProjectSettingsDir(projectFolder);
+                Directory.CreateDirectory(dir); // ensure <EXE ROOT>\<ProjectName> exists
+                string path = GetProjectSettingsPath(projectFolder);
+
+                if (!File.Exists(path)) return new ProjectSettings();
+
+                string json = File.ReadAllText(path);
+                if (string.IsNullOrWhiteSpace(json)) return new ProjectSettings();
+
+                return JsonSerializer.Deserialize<ProjectSettings>(json) ?? new ProjectSettings();
+            }
+            catch
+            {
+                return new ProjectSettings();
+            }
+        }
+
+        private void SaveProjectSettings(string projectFolder, ProjectSettings settings)
+        {
+            try
+            {
+                string dir = GetProjectSettingsDir(projectFolder);
+                Directory.CreateDirectory(dir);
+                string path = GetProjectSettingsPath(projectFolder);
+
+                string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(path, json);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Warning: failed saving per-project settings: {ex.Message}", WarningColor, rtbPackOutput);
+            }
+        }
+
     }
 }

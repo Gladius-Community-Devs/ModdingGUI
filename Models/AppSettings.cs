@@ -25,6 +25,8 @@ namespace ModdingGUI.Models
 
         // UI settings
         public bool ShowAdvancedOptions { get; set; } = false;
+        public DateTime? LastScpRecompileUtc { get; set; }
+
 
         // Default constructor for deserialization
         public AppSettings() { }
@@ -43,5 +45,9 @@ namespace ModdingGUI.Models
             LastUsedPatchServer = source.LastUsedPatchServer;
             ShowAdvancedOptions = source.ShowAdvancedOptions;
         }
+    }
+    public class ProjectSettings
+    {
+        public DateTime? LastScpRecompileUtc { get; set; }
     }
 }
