@@ -160,7 +160,7 @@ namespace ModdingGUI
         {
             try
             {
-                // 1) Require a valid Dolphin executable path
+                // Require a valid Dolphin executable path
                 var dolphinExePath = appSettings?.DolphinExecutablePath;
                 if (string.IsNullOrWhiteSpace(dolphinExePath) || !File.Exists(dolphinExePath))
                 {
@@ -168,26 +168,25 @@ namespace ModdingGUI
                     return;
                 }
 
-                // 2) Respect the user's preference (default to false)
+                // Respect live user preference (checkbox when visible; fallback to saved setting)
                 bool autoLaunch =
                     (chbAutoLaunchDolphin != null && chbAutoLaunchDolphin.Visible)
                         ? chbAutoLaunchDolphin.Checked
                         : (appSettings?.AutoLaunchDolphin == true);
-
                 if (!autoLaunch)
                 {
                     AppendLog("Dolphin auto-launch is disabled. Skipping launch.", WarningColor, rtbPackOutput);
                     return;
                 }
 
-                // 3) Verify ISO exists
+                // Verify ISO exists
                 if (string.IsNullOrWhiteSpace(isoPath) || !File.Exists(isoPath))
                 {
                     AppendLog($"ISO not found at path: {isoPath}", ErrorColor, rtbPackOutput);
                     return;
                 }
 
-                // 4) Close any existing Dolphin instance from the same executable
+                // Close any existing Dolphin instance (same executable) to ensure a clean start
                 string exeName = Path.GetFileNameWithoutExtension(dolphinExePath);
                 var existing = Process.GetProcessesByName(exeName);
                 foreach (var p in existing)
@@ -201,12 +200,98 @@ namespace ModdingGUI
                     }
                     catch
                     {
-                        sameBinary = true; // fallback to name match
+                        sameBinary = true; // fallback by name
                     }
 
                     if (!sameBinary || p.HasExited) continue;
 
                     AppendLog("Closing existing Dolphin instance…", InfoColor, rtbPackOutput);
+                    try
+                    {
+                        if (p.CloseMainWindow())
+                        {
+                            if (p.WaitForExit(2000))
+                            {
+                                AppendLog("Existing Dolphin closed gracefully.", SuccessColor, rtbPackOutput);
+                                continue;
+                            }
+                        }
+                        if (!p.HasExited)
+                        {
+                            p.Kill(true);
+                            p.WaitForExit(2000);
+                            AppendLog("Existing Dolphin was force-terminated.", WarningColor, rtbPackOutput);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendLog($"Failed to terminate existing Dolphin: {ex.Message}", ErrorColor, rtbPackOutput);
+                    }
+                }
+
+                // Launch Dolphin with the ISO
+                AppendLog($"Launching Dolphin with ISO: {isoPath}", InfoColor, rtbPackOutput);
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = dolphinExePath,
+                    Arguments = $"\"{isoPath}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(dolphinExePath)
+                };
+
+                Process.Start(psi);
+                AppendLog("Dolphin launched successfully.", SuccessColor, rtbPackOutput);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Failed to launch Dolphin: {ex.Message}", ErrorColor, rtbPackOutput);
+            }
+        }
+        // Call this BEFORE packing to avoid "file in use" errors.
+        // Returns true if it's safe to proceed; false if we aborted due to locks/errors.
+        private bool EnsureDolphinClosedForPack(string isoPath)
+        {
+            try
+            {
+                var dolphinExePath = appSettings?.DolphinExecutablePath;
+                string exeName = !string.IsNullOrWhiteSpace(dolphinExePath)
+                    ? Path.GetFileNameWithoutExtension(dolphinExePath)
+                    : "Dolphin"; // fallback if path not set
+
+                var procs = Process.GetProcessesByName(exeName);
+                if (procs.Length == 0)
+                    return true;
+
+                // Check if ISO appears locked (when path exists). If we can't tell, we still close Dolphin to be safe.
+                bool isoExists = !string.IsNullOrWhiteSpace(isoPath) && File.Exists(isoPath);
+                bool isoLocked = isoExists && !CanOpenExclusively(isoPath);
+
+                AppendLog(isoLocked
+                    ? "Dolphin appears to be using the ISO. Closing it before packing…"
+                    : "Dolphin is running. Closing it before packing to avoid file locks…",
+                    InfoColor, rtbPackOutput);
+
+                foreach (var p in procs)
+                {
+                    bool sameBinary = false;
+                    try
+                    {
+                        // Prefer exact binary match when configured
+                        string procPath = p.MainModule?.FileName;
+                        if (!string.IsNullOrEmpty(procPath) && !string.IsNullOrWhiteSpace(dolphinExePath))
+                            sameBinary = string.Equals(procPath, dolphinExePath, StringComparison.OrdinalIgnoreCase);
+                        else
+                            sameBinary = true; // no reliable path; proceed by name
+                    }
+                    catch
+                    {
+                        sameBinary = true; // access denied; proceed by name
+                    }
+
+                    if (!sameBinary || p.HasExited) continue;
+
                     try
                     {
                         if (p.CloseMainWindow())
@@ -228,28 +313,39 @@ namespace ModdingGUI
                     catch (Exception ex)
                     {
                         AppendLog($"Failed to terminate existing Dolphin: {ex.Message}", ErrorColor, rtbPackOutput);
+                        return false;
                     }
                 }
 
-                // 5) Launch Dolphin with the ISO
-                AppendLog($"Launching Dolphin with ISO: {isoPath}", InfoColor, rtbPackOutput);
-
-                var psi = new ProcessStartInfo
+                // Re-check ISO lock if applicable
+                if (isoExists && !CanOpenExclusively(isoPath))
                 {
-                    FileName = dolphinExePath,
-                    Arguments = $"\"{isoPath}\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WorkingDirectory = Path.GetDirectoryName(dolphinExePath)
-                };
+                    AppendLog("The ISO is still locked by another process. Aborting pack.", ErrorColor, rtbPackOutput);
+                    return false;
+                }
 
-                Process.Start(psi);
-                AppendLog("Dolphin launched successfully.", SuccessColor, rtbPackOutput);
+                return true;
             }
             catch (Exception ex)
             {
-                AppendLog($"Failed to launch Dolphin: {ex.Message}", ErrorColor, rtbPackOutput);
+                AppendLog($"Error while preparing for pack: {ex.Message}", ErrorColor, rtbPackOutput);
+                return false;
             }
         }
+
+        // Helper: try exclusive open to detect locks
+        private bool CanOpenExclusively(string path)
+        {
+            try
+            {
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
 }

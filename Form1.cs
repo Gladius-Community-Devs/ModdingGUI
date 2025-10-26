@@ -110,14 +110,18 @@ namespace ModdingGUI
             string selectedFolder = txtPackPath.Text;
             selectedFolder = NormalizePath(EnsureTrailingSeparator(selectedFolder));
             selectedFolder = selectedFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-
+            string projectName = Path.GetFileName(selectedFolder);
+            string isoPath = Path.Combine(selectedFolder, $"{projectName}.iso");
             // Validate that the selected folder exists
             if (!Directory.Exists(selectedFolder))
             {
                 MessageBox.Show("Please select a valid folder."); // Show an error message
                 return; // Exit the method
             }
-
+            if (!EnsureDolphinClosedForPack(isoPath))
+            {
+                return;
+            }
             AppendLog("Starting pack operation...", InfoColor, rtbPackOutput); // Log the start of the pack operation
 
             try
@@ -167,8 +171,6 @@ namespace ModdingGUI
                 if (appSettings.AutoLaunchDolphin)
                 {
                     // Launch the packed ISO with Dolphin
-                    string projectName = Path.GetFileName(selectedFolder);
-                    string isoPath = Path.Combine(selectedFolder, $"{projectName}.iso");
                     LaunchGameWithDolphin(isoPath);
                 }
             }
