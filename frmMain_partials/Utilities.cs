@@ -1,7 +1,6 @@
 ﻿using ModdingGUI.Models;
 using System.Diagnostics;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace ModdingGUI
 {
@@ -75,58 +74,13 @@ namespace ModdingGUI
             return Path.GetDirectoryName(executablePath) ?? throw new InvalidOperationException("Unable to determine the application directory.");
         }
 
-        // Method to enclose a file path in quotes if it's not already quoted
-        private string QuotePath(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                return "\"\"";
-            }
-
-            // Escape special characters used in batch files
-            string escapedPath = path
-                .Replace("^", "^^")   // Escape caret
-                .Replace("&", "^&")   // Escape ampersand
-                .Replace("<", "^<")   // Escape less than
-                .Replace(">", "^>")   // Escape greater than
-                .Replace("|", "^|")   // Escape pipe
-                .Replace("(", "^(")   // Escape opening parenthesis
-                .Replace(")", "^)")   // Escape closing parenthesis
-                .Replace("%", "%%")   // Escape percent sign
-                .Replace("\"", "\"\""); // Escape double quotes
-
-            // Enclose the path in double quotes
-            return $"\"{escapedPath}\"";
-        }
-
-
-        // Method to ensure a path ends with a directory separator character
-        private string EnsureTrailingSeparator(string path)
-        {
-            // Trim any existing trailing separators
-            path = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            // Add the directory separator
-            path += Path.DirectorySeparatorChar;
-            return path;
-        }
-
-        // Method to normalize a file path by replacing backslashes with forward slashes
-        private string NormalizePath(string path)
-        {
-            // Replace backslashes with forward slashes
-            path = path.Replace("\\", "/");
-            // Replace multiple forward slashes with a single slash
-            path = Regex.Replace(path, "/{2,}", "/");
-            return path;
-        }
-
         // Method to open a folder location in Windows Explorer
         private void OpenLocation(string path)
         {
             AppendLog($"Opening location: {path}", InfoColor, rtbPackOutput); // Log the opening of the location
             if (Directory.Exists(path)) // Check if the directory exists
             {
-                Process.Start("explorer.exe", QuotePath(path)); // Open the folder in Explorer
+                Process.Start("explorer.exe", PathHelper.QuotePath(path)); // Open the folder in Explorer
             }
             else
             {

@@ -203,15 +203,6 @@ namespace ModdingGUI
                     return true;
                 }
 
-
-                if (settings != null)
-                {
-                    // Apply settings to UI
-                    settings.ApplyToForm(this);
-                    AppendLog($"Randomizer settings loaded from {RANDOMIZER_SETTINGS_FILENAME}", InfoColor, rtbPackOutput);
-                    return true;
-                }
-                
                 return false;
             }
             catch (Exception ex)

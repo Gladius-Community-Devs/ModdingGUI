@@ -214,21 +214,23 @@ namespace ModdingGUI
             "ValensCostumeB"
         };
 
-        // Add these regex patterns near the top of the class with other private fields
         private static readonly Regex GenderVariantPattern = new Regex(@"^(.+)F$", RegexOptions.Compiled);
-        // new – will strip any of Imp|Nor|Ste|Exp, with or without a trailing F
         private static readonly Regex RegionalVariantPattern = new Regex(@"^(.+?)(?:Imp|Nor|Ste|Exp|[AB])F?$", RegexOptions.Compiled);
-        // new – group only the fixed “UndeadMelee” prefix, then strip any Exp|Imp|Nor|Ste + A|B + optional F
         private static readonly Regex UndeadVariantPattern = new Regex(@"^(UndeadMelee)(?:Exp|Imp|Nor|Ste)[AB]F?$", RegexOptions.Compiled);
+        private static readonly Regex ItemsetHeaderRegex = new Regex(@"^Itemset\s+(\d+):", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex ItemsetItemLineRegex = new Regex(@"^\d+\s+\d+\s+", RegexOptions.Compiled);
+        private static readonly Regex WeaponTagRegex = new Regex(@"\[Weapon\]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex WeaponNameRegex = new Regex(@"^\s*\d+\s+\d+\s+(.*?)\s+\[Weapon\]\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 
-        // Method to initialize Random with the seed from txtSeed
-        private void InitializeRandom()
+        // Method to initialize Random with the seed from txtSeed (UI-thread version)
+        private void InitializeRandom() => InitializeRandom(txtSeed.Text);
+
+        // Method to initialize Random from a captured seed value (safe for background threads)
+        private void InitializeRandom(string seedInput)
         {
-            string seedInput = txtSeed.Text;
             if (string.IsNullOrEmpty(seedInput) || seedInput.Equals("Enter a seed here!"))
             {
-                // If no seed is entered, use a default seed
                 int defaultSeed = Environment.TickCount;
                 random = new Random(defaultSeed);
                 AppendRandomizerLog("No seed entered. Using system tick count as seed.", InfoColor);
@@ -236,11 +238,49 @@ namespace ModdingGUI
             }
             else
             {
-                // Convert the alphanumeric seed into an integer seed using a hash function
                 int seed = GetDeterministicHashCode(seedInput);
                 random = new Random(seed);
                 AppendRandomizerLog($"Using seed: \"{seedInput}\" (hash code: {seed})", InfoColor);
             }
+        }
+
+        // Reads all randomizer-relevant UI control values on the UI thread, safe to capture before Task.Run
+        private RandomizerContext ReadRandomizerUIContext()
+        {
+            var ctx = new RandomizerContext
+            {
+                GameVersion = rbnVanilla.Checked ? "Vanilla" : rbnRagnaroks.Checked ? "Ragnaroks" : "Leonarths",
+                ValensSelected = rbnValens.Checked,
+                SchoolName = !string.IsNullOrWhiteSpace(txtRandomCustomSchoolName.Text)
+                    ? txtRandomCustomSchoolName.Text : "Random's School",
+                CustomCash = chbRandomCustomCash.Checked,
+                Random40Glads = chbRandom40Glads.Checked,
+                RandomWeighted = chbRandomWeighted.Checked,
+                SeedText = txtSeed.Text,
+                CashAmount = 15000,
+                RandomCash = false
+            };
+            if (ctx.CustomCash)
+            {
+                if (txtRandomCustomCash.Text.Equals("RANDOM", StringComparison.OrdinalIgnoreCase))
+                    ctx.RandomCash = true;
+                else if (int.TryParse(txtRandomCustomCash.Text, out int parsed) && parsed >= 0 && parsed <= 999999)
+                    ctx.CashAmount = parsed;
+            }
+            return ctx;
+        }
+
+        private struct RandomizerContext
+        {
+            public string GameVersion;
+            public bool ValensSelected;
+            public string SchoolName;
+            public bool CustomCash;
+            public int CashAmount;
+            public bool RandomCash;
+            public bool Random40Glads;
+            public bool RandomWeighted;
+            public string SeedText;
         }
 
         // Method to generate a deterministic hash code from a string
@@ -269,39 +309,28 @@ namespace ModdingGUI
         }
 
 
-        private async void RandomizeHeroes(string projectFolder)
+        private void RandomizeHeroes(string projectFolder, RandomizerContext ctx,
+            List<GladiatorEntry> gladiatorEntries, Dictionary<int, List<int>> statSets,
+            Dictionary<int, List<string>> itemSets, Dictionary<int, List<string>> skillSets)
         {
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            // Disable the randomize button
-            btnRandomize.Enabled = false;
-
-            // Clear the log buffer
-            // randomizerLogBuffer.Clear();
 
             try
             {
-                // Initialize the random number generator
-                InitializeRandom();
+                InitializeRandom(ctx.SeedText);
 
-                // Array of main hero names
                 string[] heroNames = new string[]
                 {
-            "Valens",
-            "Ursula",
-            "Ludo",
-            "Urlan",
-            "Eiji",
-            "Gwazi"
+                    "Valens",
+                    "Ursula",
+                    "Ludo",
+                    "Urlan",
+                    "Eiji",
+                    "Gwazi"
                 };
 
-                // Load gladiators, stat sets, item sets, and skill sets
-                var gladiatorEntries = ParseGladiators(projectFolder);
-                var statSets = ParseStatSets(projectFolder);
-                var itemSets = ParseItemSets(projectFolder);
-                var skillSets = ParseSkillSets(projectFolder);
-
                 // Load eligible classes from classdefs.tok
-                var eligibleClasses = GetEligibleClasses(projectFolder);
+                var eligibleClasses = GetEligibleClasses(projectFolder, ctx.GameVersion);
 
                 // Filter eligible classes to those that have corresponding gladiator entries
                 var classesWithGladiators = eligibleClasses.Where(c => gladiatorEntries.Any(g => g.Class == c)).ToList();
@@ -353,70 +382,42 @@ namespace ModdingGUI
                 }
 
                 // Write heroes to the files
-                WriteUnitsToFile(projectFolder, heroNames.ToList(), assignedClasses, gladiatorEntries, statSets, itemSets, skillSets, "valensimperia.tok", "Valens");
-                WriteUnitsToFile(projectFolder, heroNames.ToList(), assignedClasses, gladiatorEntries, statSets, itemSets, skillSets, "ursulanordagh.tok", "Ursula");
+                WriteUnitsToFile(projectFolder, heroNames.ToList(), assignedClasses, gladiatorEntries, statSets, itemSets, skillSets, "valensimperia.tok", "Valens", ctx);
+                WriteUnitsToFile(projectFolder, heroNames.ToList(), assignedClasses, gladiatorEntries, statSets, itemSets, skillSets, "ursulanordagh.tok", "Ursula", ctx);
 
                 AppendRandomizerLog("Heroes randomized and saved.", SuccessColor);
-                // Add entries for Valens and Ursula to worldmap.tok based on their assigned classes
-                if (rbnValens.Checked)
+                if (ctx.ValensSelected)
                 {
                     if (heroClassMap.TryGetValue("Valens", out string valensClass))
-                    {
-                        //UpdateWorldmapWithCharacter(projectFolder, "Valens", valensClass);
                         AppendRandomizerLog("Valens entry added to worldmap.tok.", SuccessColor);
-                    }
                 }
                 else
                 {
                     if (heroClassMap.TryGetValue("Ursula", out string ursulaClass))
-                    {
-                        //UpdateWorldmapWithCharacter(projectFolder, "Ursula", ursulaClass);
                         AppendRandomizerLog("Ursula entry added to worldmap.tok.", SuccessColor);
-                    }
                 }
-                
             }
-            finally
+            catch (Exception ex)
             {
-                // Output the collected logs if logging is enabled
-                if (randomizerLogsMenuItem.Checked)
-                {
-                    foreach (var logEntry in randomizerLogBuffer)
-                    {
-                        AppendLog(logEntry.message, logEntry.color, rtbPackOutput);
-                    }
-                }
-
-                // Re-enable the randomize button
-                //btnRandomize.Enabled = true;
+                AppendRandomizerLog($"Error during hero randomization: {ex.Message}", ErrorColor);
             }
         }
 
-        private async void RandomizeTeam(string projectFolder)
+        private void RandomizeTeam(string projectFolder, RandomizerContext ctx,
+            List<GladiatorEntry> gladiatorEntries, Dictionary<int, List<int>> statSets,
+            Dictionary<int, List<string>> itemSets, Dictionary<int, List<string>> skillSets)
         {
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            // Disable the randomize button
-            btnRandomize.Enabled = false;
 
             try
             {
-                // Initialize the random number generator
-                InitializeRandom();
+                InitializeRandom(ctx.SeedText);
 
-                // Load gladiators, stat sets, item sets, and skill sets
-                var gladiatorEntries = ParseGladiators(projectFolder);
-                var statSets = ParseStatSets(projectFolder);
-                var itemSets = ParseItemSets(projectFolder);
-                var skillSets = ParseSkillSets(projectFolder);
-
-                // Generate a list of gladiator names with a "_random" suffix
                 List<string> gladiatorNames = gladiatorEntries.Select(g => g.Name + "_random").ToList();
 
-                // Determine how many gladiators to generate based on whether 40 gladiators mode is enabled
-                int teamSize = chbRandom40Glads.Checked ? 34 : 14;
+                int teamSize = ctx.Random40Glads ? 34 : 14;
 
-                // Log which mode we're using
-                if (chbRandom40Glads.Checked)
+                if (ctx.Random40Glads)
                     AppendRandomizerLog($"40 Gladiators mode enabled. Generating {teamSize} random team members.", InfoColor);
 
                 if (gladiatorNames.Count < teamSize)
@@ -429,10 +430,7 @@ namespace ModdingGUI
                 gladiatorNames.Shuffle(random);
                 AppendRandomizerLog("Gladiator names shuffled.", InfoColor);
 
-                // Load eligible classes from classdefs.tok
-                var eligibleClasses = GetEligibleClasses(projectFolder);
-
-                // Filter eligible classes to those that have corresponding gladiator entries
+                var eligibleClasses = GetEligibleClasses(projectFolder, ctx.GameVersion);
                 var classesWithGladiators = eligibleClasses.Where(c => gladiatorEntries.Any(g => g.Class == c)).ToList();
 
                 if (classesWithGladiators.Count < 1)
@@ -441,22 +439,20 @@ namespace ModdingGUI
                     return;
                 }
 
-                // Shuffle classesWithGladiators to ensure randomness
                 classesWithGladiators.Shuffle(random);
                 AppendRandomizerLog("Eligible classes shuffled.", InfoColor);
 
-                // Assign classes to team members
                 List<string> teamNames = new List<string>();
                 List<string> assignedClasses = new List<string>();
 
-                if (chbRandomWeighted.Checked)
+                if (ctx.RandomWeighted)
                 {
                     AppendRandomizerLog("Weighted randomization selected - prioritizing class diversity with variant balancing.", InfoColor);
 
                     // Strip off any regional (Imp|Nor|Ste|Exp), undead, or gender (F) variant
                     string GetBaseClass(string cls)
                     {
-                        // 1) Collapse _all_ undead melee variants to “UndeadMelee”
+                        // 1) Collapse _all_ undead melee variants to "UndeadMelee"
                         var undeadMatch = UndeadVariantPattern.Match(cls);
                         if (undeadMatch.Success)
                             return undeadMatch.Groups[1].Value;
@@ -534,12 +530,6 @@ namespace ModdingGUI
             {
                 AppendRandomizerLog($"Error during team randomization: {ex.Message}", ErrorColor);
             }
-            finally
-            {
-                if (randomizerLogsMenuItem.Checked)
-                    foreach (var logEntry in randomizerLogBuffer)
-                        AppendLog(logEntry.message, logEntry.color, rtbPackOutput);
-            }
         }
         private void RandomizeStatsets(string projectFolder, IProgress<int> progress)
         {
@@ -601,9 +591,10 @@ namespace ModdingGUI
         private void RandomizeItemsets(string projectFolder, IProgress<int> progress)
         {
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string gladiatorsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "gladiators.txt");
-            string itemsetsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "itemsets.txt");
-            string itemsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "items.tok");
+            string becFolder = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC");
+            string gladiatorsPath = Path.Combine(becFolder, "data", "units", "gladiators.txt");
+            string itemsetsPath = Path.Combine(becFolder, "data", "units", "itemsets.txt");
+            string itemsPath = Path.Combine(becFolder, "data", "config", "items.tok");
 
             if (!File.Exists(gladiatorsPath))
             {
@@ -627,7 +618,7 @@ namespace ModdingGUI
             {
                 var gladiators = ParseGladiators(projectFolder);
                 var itemSets = ParseItemSetsFull(projectFolder);
-                var itemAffinities = ParseItemsForAffinityAndType(itemsPath, out Dictionary<string, string> itemWeaponTypes);
+                var itemAffinities = ParseItemsForAffinityAndType(becFolder, out Dictionary<string, string> itemWeaponTypes);
 
                 if (itemSets.Count == 0)
                 {
@@ -744,49 +735,21 @@ namespace ModdingGUI
         }
 
 
-        private Dictionary<string, string> ParseItemsForAffinityAndType(string itemsPath,
+        private Dictionary<string, string> ParseItemsForAffinityAndType(string becFolder,
     out Dictionary<string, string> itemWeaponTypes)
         {
             var itemAffinities = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             itemWeaponTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            var itemCreateRegex = new Regex(@"ITEMCREATE:\s*""([^""]+)""\s*,\s*""(Weapon)""\s*,\s*""([^""]+)""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            var affinityRegex = new Regex(@"ITEMAFFINITY:\s*(\w+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-            string currentItemName = string.Empty;
-            bool isWeapon = false;
-
-            foreach (var line in File.ReadAllLines(itemsPath))
+            var dtos = _itemsApi.GetAll(becFolder);
+            foreach (var dto in dtos)
             {
-                var createMatch = itemCreateRegex.Match(line);
-                if (createMatch.Success)
-                {
-                    currentItemName = createMatch.Groups[1].Value.Trim();
-                    string weaponCheck = createMatch.Groups[2].Value.Trim();
-                    string weaponType = createMatch.Groups[3].Value.Trim();
-
-                    if (weaponCheck.Equals("Weapon", StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Store the weapon type for this item
-                        itemWeaponTypes[currentItemName] = weaponType;
-                        isWeapon = true;
-                    }
-                    else
-                    {
-                        isWeapon = false;
-                    }
-
+                if (!string.Equals(dto.Type, "Weapon", StringComparison.OrdinalIgnoreCase))
                     continue;
-                }
 
-                var affinityMatch = affinityRegex.Match(line);
-                if (affinityMatch.Success && !string.IsNullOrEmpty(currentItemName))
-                {
-                    string affinity = affinityMatch.Groups[1].Value.Trim();
-                    itemAffinities[currentItemName] = affinity;
-                    currentItemName = string.Empty; // Reset after capturing affinity
-                    isWeapon = false;
-                }
+                itemWeaponTypes[dto.Name] = dto.SubType ?? string.Empty;
+                if (dto.Affinity.HasValue)
+                    itemAffinities[dto.Name] = dto.Affinity.Value.Element;
             }
 
             return itemAffinities;
@@ -794,26 +757,12 @@ namespace ModdingGUI
 
 
 
-        // Enum for Gladiator Affinities
-        private enum GladiatorAffinity
-        {
-            None,
-            Dark,
-            Light,
-            Air,
-            Fire,
-            Earth,
-            Water
-        }
-
         private Dictionary<int, string> DetermineItemsetAffinity(
     string projectFolder,
     Dictionary<int, List<string>> itemSets,
     Dictionary<string, string> itemAffinities)
         {
             var itemsetAffinities = new Dictionary<int, string>();
-            var weaponRegex = new Regex(@"\[Weapon\]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            var weaponNameRegex = new Regex(@"^\s*\d+\s+\d+\s+(.*?)\s+\[Weapon\]\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             foreach (var kvp in itemSets)
             {
@@ -835,8 +784,7 @@ namespace ModdingGUI
                 }
 
 
-                // Extract weapon name
-                var weaponNameMatch = weaponNameRegex.Match(lastWeaponLine);
+                var weaponNameMatch = WeaponNameRegex.Match(lastWeaponLine);
                 if (weaponNameMatch.Success)
                 {
                     string weaponName = weaponNameMatch.Groups[1].Value.Trim();
@@ -1036,33 +984,24 @@ namespace ModdingGUI
 
             // All processing is done; any final actions can be handled after Task.Run completes
         }
-        private List<string> GetEligibleClasses(string projectFolder)
+        private List<string> GetEligibleClasses(string projectFolder, string gameVersion)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string classDefsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "config", "classdefs.tok");
+            string classDefsPath = ProjectPaths.ClassDefsFile(projectFolder);
             List<string> eligibleClasses = new List<string>();
-            string[] blacklistedClasses = null;
-            if (rbnLeonarths.Checked)
-            {
+            // Default to vanilla list as safe fallback (#8 fix: was null, would crash if no match)
+            string[] blacklistedClasses = blacklistedVanillaClasses;
+            if (gameVersion == "Leonarths")
                 blacklistedClasses = blacklistedLeonarthClasses;
-            }
-            if(rbnRagnaroks.Checked)
-            {
+            else if (gameVersion == "Ragnaroks")
                 blacklistedClasses = blacklistedRagnarokClasses;
-            }
-            if (rbnVanilla.Checked)
-            {
-                blacklistedClasses = blacklistedVanillaClasses;
-            }
+
             foreach (string line in File.ReadLines(classDefsPath))
             {
                 if (line.StartsWith("CREATECLASS:"))
                 {
                     string className = line.Split(':')[1].Trim();
                     if (!blacklistedClasses.Contains(className))
-                    {
                         eligibleClasses.Add(className);
-                    }
                 }
             }
             return eligibleClasses;
@@ -1089,41 +1028,31 @@ namespace ModdingGUI
             AppendRandomizerLog($"Added CHARACTER entry for {heroName} with class {assignedClass} to worldmap.tok.", InfoColor);
         }
 
-        private void WriteUnitsToFile(string projectFolder, List<string> unitNames, List<string> unitClasses, List<GladiatorEntry> gladiatorEntries, Dictionary<int, List<int>> statSets, Dictionary<int, List<string>> itemSets, Dictionary<int, List<string>> skillSets, string fileName, string heroName)
+        private void WriteUnitsToFile(string projectFolder, List<string> unitNames, List<string> unitClasses,
+            List<GladiatorEntry> gladiatorEntries, Dictionary<int, List<int>> statSets,
+            Dictionary<int, List<string>> itemSets, Dictionary<int, List<string>> skillSets,
+            string fileName, string heroName, RandomizerContext ctx)
         {
-            projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string filePath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "school", fileName);
-            
-            // Get school name: use custom name if provided, otherwise use default
-            string schoolName = !string.IsNullOrWhiteSpace(txtRandomCustomSchoolName.Text) 
-                ? txtRandomCustomSchoolName.Text 
-                : "Random's School";
-            
+            string filePath = ProjectPaths.SchoolFile(projectFolder, fileName);
+
             List<string> outputLines;
-            if (chbRandomCustomCash.Checked)
+            if (ctx.CustomCash)
             {
-                int cashAmount = 15000; // Default value
-                
-                if (txtRandomCustomCash.Text.Equals("RANDOM", StringComparison.OrdinalIgnoreCase))
+                int cashAmount = ctx.CashAmount;
+                if (ctx.RandomCash)
                 {
-                    // Generate a random value between 0 and 999999
                     cashAmount = random.Next(0, 999999);
                     AppendRandomizerLog($"Generated random cash amount: {cashAmount}", InfoColor);
                 }
-                else if (int.TryParse(txtRandomCustomCash.Text, out int parsedAmount) && parsedAmount >= 0 && parsedAmount <= 999999)
-                {
-                    cashAmount = parsedAmount;
-                }
-                
-                outputLines = new List<string> { $"NAME: \"{schoolName}\"\nHERO: \"{heroName}\"\nGOLD: {cashAmount}" };
+                outputLines = new List<string> { $"NAME: \"{ctx.SchoolName}\"\nHERO: \"{heroName}\"\nGOLD: {cashAmount}" };
             }
-            else if (chbRandom40Glads.Checked)
+            else if (ctx.Random40Glads)
             {
-                outputLines = new List<string> { $"NAME: \"{schoolName}\"\nHERO: \"{heroName}\"\nGOLD: 75000" };
+                outputLines = new List<string> { $"NAME: \"{ctx.SchoolName}\"\nHERO: \"{heroName}\"\nGOLD: 75000" };
             }
             else
             {
-                outputLines = new List<string> { $"NAME: \"{schoolName}\"\nHERO: \"{heroName}\"\nGOLD: 15000" };
+                outputLines = new List<string> { $"NAME: \"{ctx.SchoolName}\"\nHERO: \"{heroName}\"\nGOLD: 15000" };
             }
             
             // Add CREATEUNIT blocks for each hero
@@ -1362,10 +1291,10 @@ namespace ModdingGUI
         private Dictionary<int, List<string>> ParseItemSetsFull(string projectFolder)
         {
             string itemsetsPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "units", "itemsets.txt");
+            // ParseItemSetsFull returns all raw item lines per itemset (vs ParseItemSets which returns
+            // only the selected item name per slot). Used by affinity-determination logic.
             var itemSets = new Dictionary<int, List<string>>();
-            int currentItemsetId = -1; // No current itemset until we read one
-            var itemsetRegex = new Regex(@"^Itemset\s+(\d+):", RegexOptions.IgnoreCase);
-            var itemLineRegex = new Regex(@"^\d+\s+\d+\s+"); // Lines that start with two numbers
+            int currentItemsetId = -1;
 
             foreach (var line in File.ReadAllLines(itemsetsPath))
             {
@@ -1373,8 +1302,7 @@ namespace ModdingGUI
                 if (string.IsNullOrEmpty(trimmed))
                     continue;
 
-                // Check if this line defines a new itemset
-                var setMatch = itemsetRegex.Match(trimmed);
+                var setMatch = ItemsetHeaderRegex.Match(trimmed);
                 if (setMatch.Success)
                 {
                     currentItemsetId = int.Parse(setMatch.Groups[1].Value);
@@ -1383,8 +1311,7 @@ namespace ModdingGUI
                     continue;
                 }
 
-                // If we're inside an itemset and encounter an item line, store it
-                if (currentItemsetId >= 0 && itemLineRegex.IsMatch(trimmed))
+                if (currentItemsetId >= 0 && ItemsetItemLineRegex.IsMatch(trimmed))
                 {
                     // Add the FULL LINE to retain [Weapon]
                     itemSets[currentItemsetId].Add(trimmed);
@@ -1669,7 +1596,7 @@ namespace ModdingGUI
             public string Replacement { get; set; }
         }
 
-        private async Task EditScpFilesAndCompileAsync(string projectFolder)
+        private async Task EditScpFilesAndCompileAsync(string projectFolder, bool valensSelected)
         {
             projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string scriptFolder = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "script");
@@ -1784,11 +1711,7 @@ namespace ModdingGUI
         )
     };
 
-            // Conditionally add leaguefjordfallen.scp modifications if rbnValens is checked
-            // Adjust the property access based on your UI framework (WinForms or WPF)
-            // For WinForms: rbnValens.Checked
-            // For WPF: rbnValens.IsChecked == true
-            if (rbnValens.Checked) // Replace with (rbnValens.IsChecked == true) if using WPF
+            if (valensSelected)
             {
                 scpFiles.Add((
                     "leaguefjordfallen.scp",
@@ -1842,7 +1765,7 @@ namespace ModdingGUI
             }
 
             // Path to the compiler executable
-            string toolsPath = NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
+            string toolsPath = PathHelper.NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
             string compilerPath = Path.Combine(toolsPath, "DOGCodeCompiler.exe");
 
             if (!File.Exists(compilerPath))
@@ -2070,7 +1993,7 @@ namespace ModdingGUI
                 };
 
                 // Define the path to the compiler executable
-                string toolsPath = NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
+                string toolsPath = PathHelper.NormalizePath(Path.Combine(Directory.GetCurrentDirectory(), "tools"));
                 string compilerPath = Path.Combine(toolsPath, "DOGCodeCompiler.exe");
 
                 // Check if the compiler exists
@@ -2239,17 +2162,4 @@ namespace ModdingGUI
         }
     }
 
-    // GladiatorEntry class definition
-    public class GladiatorEntry
-    {
-        public string Name { get; set; }
-        public string Class { get; set; }
-        public string Affinity { get; set; }
-        public int ItemSet { get; set; }
-        public int SkillSet { get; set; }
-        public int TintSet { get; set; }
-        public int Outfit { get; set; }
-        public int StatSet { get; set; }
-        public int School { get; set; }
-    }
 }

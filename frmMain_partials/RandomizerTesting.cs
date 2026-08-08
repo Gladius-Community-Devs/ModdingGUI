@@ -246,9 +246,16 @@ namespace ModdingGUI
                 // Clear logs from previous iteration
                 randomizerLogBuffer.Clear();
 
+                // Capture UI context and parse data on UI thread before background calls
+                var ctx = ReadRandomizerUIContext();
+                var gladiators = ParseGladiators(projectFolder);
+                var statSets = ParseStatSets(projectFolder);
+                var itemSets = ParseItemSets(projectFolder);
+                var skillSets = ParseSkillSets(projectFolder);
+
                 // Run randomizer
-                await Task.Run(() => RandomizeHeroes(projectFolder), cancellationToken);
-                await Task.Run(() => RandomizeTeam(projectFolder), cancellationToken);
+                await Task.Run(() => RandomizeHeroes(projectFolder, ctx, gladiators, statSets, itemSets, skillSets), cancellationToken);
+                await Task.Run(() => RandomizeTeam(projectFolder, ctx, gladiators, statSets, itemSets, skillSets), cancellationToken);
 
                 // Save output to test file
                 string outputFile = Path.Combine(testSubFolder, $"same_seed_output_{i + 1}.txt");
@@ -319,9 +326,15 @@ namespace ModdingGUI
                 // Clear logs from previous iteration
                 randomizerLogBuffer.Clear();
 
+                var ctx = ReadRandomizerUIContext();
+                var gladiators = ParseGladiators(projectFolder);
+                var statSets = ParseStatSets(projectFolder);
+                var itemSets = ParseItemSets(projectFolder);
+                var skillSets = ParseSkillSets(projectFolder);
+
                 // Run randomizer
-                await Task.Run(() => RandomizeHeroes(projectFolder), cancellationToken);
-                await Task.Run(() => RandomizeTeam(projectFolder), cancellationToken);
+                await Task.Run(() => RandomizeHeroes(projectFolder, ctx, gladiators, statSets, itemSets, skillSets), cancellationToken);
+                await Task.Run(() => RandomizeTeam(projectFolder, ctx, gladiators, statSets, itemSets, skillSets), cancellationToken);
 
                 // Save output to test file
                 string outputFile = Path.Combine(testSubFolder, $"different_seed_output_{i + 1}.txt");
@@ -400,9 +413,15 @@ namespace ModdingGUI
                 // Clear logs from previous iteration
                 randomizerLogBuffer.Clear();
 
+                var ctx = ReadRandomizerUIContext();
+                var gladiators = ParseGladiators(projectFolder);
+                var statSets = ParseStatSets(projectFolder);
+                var itemSets = ParseItemSets(projectFolder);
+                var skillSets = ParseSkillSets(projectFolder);
+
                 // Run randomizer
-                await Task.Run(() => RandomizeHeroes(projectFolder), cancellationToken);
-                await Task.Run(() => RandomizeTeam(projectFolder), cancellationToken);
+                await Task.Run(() => RandomizeHeroes(projectFolder, ctx, gladiators, statSets, itemSets, skillSets), cancellationToken);
+                await Task.Run(() => RandomizeTeam(projectFolder, ctx, gladiators, statSets, itemSets, skillSets), cancellationToken);
 
                 if (chbRandomStatsets.Checked)
                 {

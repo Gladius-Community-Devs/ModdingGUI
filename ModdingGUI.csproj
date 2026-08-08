@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -17,17 +17,42 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ModdingGUI.Tests\**" />
+    <None Remove="ModdingGUI.Tests\**" />
+    <Content Remove="ModdingGUI.Tests\**" />
+    <EmbeddedResource Remove="ModdingGUI.Tests\**" />
+
+    <Compile Remove="ModdingGUI.Core\**" />
+    <None Remove="ModdingGUI.Core\**" />
+    <Content Remove="ModdingGUI.Core\**" />
+    <EmbeddedResource Remove="ModdingGUI.Core\**" />
+
+    <Compile Remove="ModdingGUI.Mcp\**" />
+    <None Remove="ModdingGUI.Mcp\**" />
+    <Content Remove="ModdingGUI.Mcp\**" />
+    <EmbeddedResource Remove="ModdingGUI.Mcp\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="ludo.ico" />
+    <Content Include="..\skills\skills_catalog.json">
+      <Link>skills\skills_catalog.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>ModdingGUI.Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
+    <ProjectReference Include="ModdingGUI.Core\ModdingGUI.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

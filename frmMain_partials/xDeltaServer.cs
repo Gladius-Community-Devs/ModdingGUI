@@ -1,8 +1,8 @@
 ﻿// frmMain.AuthAndDownload.cs
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
-using Newtonsoft.Json;
 using System.Net;
+using System.Text.Json;
 
 namespace ModdingGUI
 {
@@ -53,37 +53,24 @@ namespace ModdingGUI
                 webViewAuth.Source = new Uri("https://gladiuscommunity.com/auth/discord");
             }
 
-            // Logging navigation events
-            private void WebViewAuth_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
-            {
-                // mainForm.AppendLog($"Starting Authentication", InfoColor, mainForm.rtbPatchingApplicationOutput);
-            }
+            private void WebViewAuth_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e) { }
 
             private void WebViewAuth_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
             {
-                if (e.IsSuccess)
+                if (!e.IsSuccess)
                 {
-                    // mainForm.AppendLog("WebView2 initialized successfully.", SuccessColor, mainForm.rtbPatchingApplicationOutput);
-                }
-                else
-                {
-                    // mainForm.AppendLog($"WebView2 initialization failed: {e.InitializationException.Message}", ErrorColor, mainForm.rtbPatchingApplicationOutput);
+                    mainForm.AppendLog($"WebView2 initialization failed: {e.InitializationException.Message}", ErrorColor, mainForm.rtbPatchingApplicationOutput);
                 }
             }
 
             private async void WebViewAuth_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
             {
-                // mainForm.AppendLog($"Navigation completed: {webViewAuth.Source}", SuccessColor, mainForm.rtbPatchingApplicationOutput);
-
                 if (webViewAuth.Source.AbsoluteUri.StartsWith("https://gladiuscommunity.com/auth/discord/callback"))
                 {
-                    // mainForm.AppendLog("Authentication callback detected. Awaiting final redirect...", InfoColor, mainForm.rtbPatchingApplicationOutput);
                     // Do not attempt to extract cookies here; wait for the final redirect
                 }
                 else if (webViewAuth.Source.AbsoluteUri == "https://gladiuscommunity.com/")
                 {
-                    //  mainForm.AppendLog("Redirected to base URL after authentication. Verifying session...", InfoColor, mainForm.rtbPatchingApplicationOutput);
-
                     // Extract cookies from WebView2 and sync with HttpClient
                     var cookies = await webViewAuth.CoreWebView2.CookieManager.GetCookiesAsync("https://gladiuscommunity.com/");
                     foreach (var cookie in cookies)
@@ -113,13 +100,8 @@ namespace ModdingGUI
                     }
 
 
-                    // Check if the session cookie exists
                     Uri uri = new Uri("https://gladiuscommunity.com/");
                     CookieCollection httpClientCookies = handler.CookieContainer.GetCookies(uri);
-                    foreach (Cookie c in httpClientCookies)
-                    {
-                        // mainForm.AppendLog($"HttpClient Cookie: {c.Name} = {c.Value}", InfoColor, mainForm.rtbPatchingApplicationOutput);
-                    }
 
                     if (httpClientCookies["connect.sid"] != null)
                     {
@@ -152,7 +134,7 @@ namespace ModdingGUI
                     string json = await response.Content.ReadAsStringAsync();
                     AppendLog("Successfully received file list JSON.", SuccessColor, rtbPatchingApplicationOutput);
 
-                    List<XDeltaFile> files = JsonConvert.DeserializeObject<List<XDeltaFile>>(json);
+                    List<XDeltaFile> files = JsonSerializer.Deserialize<List<XDeltaFile>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                     if (files == null || !files.Any())
                     {
@@ -214,12 +196,6 @@ namespace ModdingGUI
             Uri uri = new Uri("https://gladiuscommunity.com/");
             CookieCollection cookies = handler.CookieContainer.GetCookies(uri);
             bool isAuthenticated = cookies["connect.sid"] != null;
-
-            // Log all HttpClient cookies (optional)
-            foreach (Cookie c in handler.CookieContainer.GetCookies(uri))
-            {
-                // AppendLog($"HttpClient Cookie: {c.Name} = {c.Value}", InfoColor, rtbPatchingApplicationOutput);
-            }
 
             if (!isAuthenticated)
             {

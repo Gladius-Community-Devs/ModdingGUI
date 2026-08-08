@@ -13,6 +13,9 @@ namespace ModdingGUI
         // Grid-builder painter embedded in the tab
         private readonly GridBuilderView _gridBuilderView;
 
+        // Skills editor embedded in the Skill Editor tab
+        private readonly SkillEditorView _skillEditorView;
+
         // Constructor for the main form
         public frmMain()
         {
@@ -27,6 +30,11 @@ namespace ModdingGUI
             }
             _gridBuilderView = new GridBuilderView();
             tabGridBuilder.Controls.Add(_gridBuilderView);
+
+            _skillEditorView = new SkillEditorView();
+            tabEditorSkills.Controls.Add(_skillEditorView);
+
+            tabContainer.SelectedIndexChanged += TabContainer_SelectedIndexChanged;
         }
 
         // Event handler for the Unpack button click event
@@ -49,12 +57,14 @@ namespace ModdingGUI
             if (string.IsNullOrEmpty(userInput))
             {
                 MessageBox.Show("Please enter a valid folder name.");
+                btnUnpack.Enabled = true; // Re-enable the button to allow the user to correct their input
                 return;
             }
 
             // Validate that the ISO file exists and the user input is not empty
             if (!ValidateFilePath(isoPath, "ISO"))
             {
+                btnUnpack.Enabled = true; // Re-enable the button to allow the user to correct their input
                 return;
             }
 
@@ -73,7 +83,7 @@ namespace ModdingGUI
                 }
 
                 // Normalize the path for batch file generation
-                string normalizedTopLevelFolder = NormalizePath(EnsureTrailingSeparator(topLevelFolder));
+                string normalizedTopLevelFolder = PathHelper.NormalizePath(PathHelper.EnsureTrailingSeparator(topLevelFolder));
 
                 // Generate the batch file content for unpacking
                 string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
@@ -86,8 +96,8 @@ namespace ModdingGUI
                 // Update the pack path text box to point to the created unpack folder
                 txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                txtPatchingCreationModISOPath.Text = NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso");
-                txtPatchingCreationOutputPath.Text = NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta");
+                txtPatchingCreationModISOPath.Text = PathHelper.NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso");
+                txtPatchingCreationOutputPath.Text = PathHelper.NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta");
                 btnRandomize.Enabled = true;
                 btnPack.Enabled = true;
                 btnUnpack.Enabled = true; // Re-enable the unpack button
@@ -108,7 +118,7 @@ namespace ModdingGUI
             btnPack.Enabled = false; // Disable the button to prevent multiple clicks
             // Get the selected folder path from the text box and ensure it ends with a directory separator
             string selectedFolder = txtPackPath.Text;
-            selectedFolder = NormalizePath(EnsureTrailingSeparator(selectedFolder));
+            selectedFolder = PathHelper.NormalizePath(PathHelper.EnsureTrailingSeparator(selectedFolder));
             selectedFolder = selectedFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string projectName = Path.GetFileName(selectedFolder);
             string isoPath = Path.Combine(selectedFolder, $"{projectName}.iso");
@@ -458,7 +468,7 @@ namespace ModdingGUI
                                     }
 
                                     // Normalize the path for batch file generation
-                                    string normalizedTopLevelFolder = NormalizePath(EnsureTrailingSeparator(topLevelFolder));
+                                    string normalizedTopLevelFolder = PathHelper.NormalizePath(PathHelper.EnsureTrailingSeparator(topLevelFolder));
 
                                     // Generate the batch file content for unpacking
                                     string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
@@ -471,8 +481,8 @@ namespace ModdingGUI
                                     // Update the pack path text box to point to the created unpack folder
                                     txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                                     txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                                    txtPatchingCreationModISOPath.Text = NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso");
-                                    txtPatchingCreationOutputPath.Text = NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta");
+                                    txtPatchingCreationModISOPath.Text = PathHelper.NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso");
+                                    txtPatchingCreationOutputPath.Text = PathHelper.NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta");
                                     btnRandomize.Enabled = true;
                                     btnPack.Enabled = true;
                                     LoadProjects();
@@ -556,12 +566,21 @@ namespace ModdingGUI
                 // Save the current randomizer settings before proceeding
                 SaveRandomizerSettings(projectFolder);
 
+                // Capture all UI values on the UI thread before any background work
+                var ctx = ReadRandomizerUIContext();
+
+                // Parse shared data files once (used by both heroes and team randomization)
+                var gladiatorEntries = ParseGladiators(projectFolder);
+                var statSets = ParseStatSets(projectFolder);
+                var itemSets = ParseItemSets(projectFolder);
+                var skillSets = ParseSkillSets(projectFolder);
+
                 // 1. Randomize Heroes if the corresponding checkbox is checked
                 if (chbRandomHeroes.Checked)
                 {
                     lblRandomizeStatus.Text = "Randomizing heroes...";
                     AppendLog("Starting hero randomization...", InfoColor, rtbPackOutput);
-                    await Task.Run(() => RandomizeHeroes(projectFolder));
+                    await Task.Run(() => RandomizeHeroes(projectFolder, ctx, gladiatorEntries, statSets, itemSets, skillSets));
                     AppendLog("Heroes randomized successfully.", SuccessColor, rtbPackOutput);
                 }
 
@@ -570,7 +589,7 @@ namespace ModdingGUI
                 {
                     lblRandomizeStatus.Text = "Randomizing team...";
                     AppendLog("Starting team randomization...", InfoColor, rtbPackOutput);
-                    await Task.Run(() => RandomizeTeam(projectFolder));
+                    await Task.Run(() => RandomizeTeam(projectFolder, ctx, gladiatorEntries, statSets, itemSets, skillSets));
                     AppendLog("Team randomized successfully.", SuccessColor, rtbPackOutput);
                 }
 
@@ -649,7 +668,7 @@ namespace ModdingGUI
                 // 5. Edit and Compile .scp Files
                 AppendLog("Starting .scp files editing and compilation...", InfoColor, rtbPackOutput);
                 AppendLog("Editing and compiling .scp files...", InfoColor, rtbPackOutput);
-                await Task.Run(() => EditScpFilesAndCompileAsync(projectFolder));
+                await Task.Run(() => EditScpFilesAndCompileAsync(projectFolder, ctx.ValensSelected));
                 AppendLog(".scp files edited and compiled successfully.", SuccessColor, rtbPackOutput);
 
                 // 6. Apply In-Game Randomization if the checkbox is checked
@@ -666,18 +685,12 @@ namespace ModdingGUI
                     lblRandomizeStatus.Text = "Randomizing statsets...";
                     AppendLog("Starting statset randomization...", InfoColor, rtbPackOutput);
 
-                    // Initialize progress reporting
                     pgbRandomizeStatus.Minimum = 0;
                     pgbRandomizeStatus.Value = 0;
+                    pgbRandomizeStatus.Maximum = gladiatorEntries.Count;
 
-                    // Parse gladiators to determine total work
-                    var gladiators = ParseGladiators(projectFolder);
-                    var totalGladiators = gladiators.Count;
-                    pgbRandomizeStatus.Maximum = totalGladiators;
-
-                    var statSets = ParseStatSets(projectFolder)?.Keys.ToList();
-                    // Added null check here
-                    if (statSets == null || statSets.Count == 0)
+                    var statSetKeys = statSets?.Keys.ToList();
+                    if (statSetKeys == null || statSetKeys.Count == 0)
                     {
                         MessageBox.Show("No statsets available to randomize.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         AppendLog("No statsets available to randomize.", ErrorColor, rtbPackOutput);
@@ -700,14 +713,9 @@ namespace ModdingGUI
                     lblRandomizeStatus.Text = "Randomizing itemsets...";
                     AppendLog("Starting itemset randomization...", InfoColor, rtbPackOutput);
 
-                    // Initialize progress reporting
                     pgbRandomizeStatus.Minimum = 0;
                     pgbRandomizeStatus.Value = 0;
-
-                    // Parse gladiators to determine total work
-                    var gladiatorsForItemset = ParseGladiators(projectFolder);
-                    var totalGladiatorsForItemset = gladiatorsForItemset.Count;
-                    pgbRandomizeStatus.Maximum = totalGladiatorsForItemset;
+                    pgbRandomizeStatus.Maximum = gladiatorEntries.Count;
 
                     // Execute itemset randomization asynchronously
                     var itemsetProgress = new Progress<int>(value =>
@@ -744,35 +752,11 @@ namespace ModdingGUI
             }
             finally
             {
-                // Re-enable the randomize button regardless of success or failure
                 btnRandomize.Enabled = true;
-
-                // Clear all message queues to prevent memory leaks
                 randomizerLogBuffer.Clear();
-
-                // Make sure any other concurrent queues used in the method are also cleared
-                // (Even though they may be local variables that would be garbage collected)
-
-                // Append completion log
                 AppendLog("Randomization completed. (That was snappy!)", SuccessColor, rtbPackOutput);
-
-                // Re-enable the randomize button regardless of success or failure
-                btnRandomize.Enabled = true;
-
-                // Clear all message queues to prevent memory leaks
-                randomizerLogBuffer.Clear();
-
-                // Make sure any other concurrent queues used in the method are also cleared
-                // (Even though they may be local variables that would be garbage collected)
-
-                // Append completion log
-                AppendLog("Randomization completed. (That was snappy!)", SuccessColor, rtbPackOutput);
-
-                // Switch to the packing tab
                 MessageBox.Show("Click the Pack button to build your ISO!", "Packing step", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 tabContainer.SelectedTab = tabPacking;
-
-                // Flash the Pack button to draw the user's attention to it
                 await FlashButtonAsync(btnPack, Color.LightGreen, 10, 300);
             }
         }
@@ -921,7 +905,7 @@ namespace ModdingGUI
                 string projectPath = selectedNode.Tag as string;
                 if (!string.IsNullOrEmpty(projectPath) && Directory.Exists(projectPath))
                 {
-                    projectPath = NormalizePath(projectPath);
+                    projectPath = PathHelper.NormalizePath(projectPath);
                     string projectName = Path.GetFileName(projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
                     txtPackPath.Text = projectPath;
                     txtRandomizerPath.Text = projectPath;
@@ -935,6 +919,7 @@ namespace ModdingGUI
                     // Try to load randomizer settings for the selected project
                     LoadRandomizerSettings(projectPath);
                     InitialiseItemEditor(projectPath);
+                    _skillEditorView.InitializeEditor(projectPath);
                 }
                 else
                 {
@@ -1522,6 +1507,99 @@ namespace ModdingGUI
             {
                 AppendLog($"Failed to update Dolphin auto-launch setting: {ex.Message}", ErrorColor, rtbPackOutput);
             }
+        }
+
+        // ── Editors tab — no-project guard ───────────────────────────────────
+
+        private void TabContainer_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (tabContainer.SelectedTab == tabEditors && tvwProjects.SelectedNode == null)
+                PromptProjectPicker();
+        }
+
+        /// <summary>
+        /// Shows a dialog listing every loaded project so the user can click one
+        /// and make it the active project without having to find the sidebar.
+        /// </summary>
+        private void PromptProjectPicker()
+        {
+            var projectNodes = tvwProjects.Nodes
+                .Cast<TreeNode>()
+                .Where(n => n.Parent == null)
+                .ToList();
+
+            if (projectNodes.Count == 0)
+            {
+                MessageBox.Show(
+                    "No projects found. Use the Unpack tab to create one.",
+                    "No Projects",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            // Build a compact picker dialog inline.
+            using var dlg = new Form
+            {
+                Text            = "Select a Project",
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition   = FormStartPosition.CenterParent,
+                MinimizeBox     = false,
+                MaximizeBox     = false,
+                Width           = 340,
+                Height          = 260,
+            };
+
+            var lbl = new Label
+            {
+                Text     = "Choose the project to work on:",
+                Left     = 12,
+                Top      = 12,
+                Width    = 300,
+                AutoSize = true,
+            };
+
+            var lst = new ListBox
+            {
+                Left   = 12,
+                Top    = 36,
+                Width  = 300,
+                Height = 130,
+                SelectionMode = SelectionMode.One,
+            };
+            foreach (var node in projectNodes)
+                lst.Items.Add(node.Text);
+            if (lst.Items.Count > 0) lst.SelectedIndex = 0;
+
+            var btnOk = new Button
+            {
+                Text         = "Select",
+                DialogResult = DialogResult.OK,
+                Left         = 144,
+                Top          = 178,
+                Width        = 80,
+            };
+            var btnCancel = new Button
+            {
+                Text         = "Cancel",
+                DialogResult = DialogResult.Cancel,
+                Left         = 232,
+                Top          = 178,
+                Width        = 80,
+            };
+
+            dlg.AcceptButton = btnOk;
+            dlg.CancelButton = btnCancel;
+            dlg.Controls.AddRange(new Control[] { lbl, lst, btnOk, btnCancel });
+
+            // Double-click also confirms.
+            lst.DoubleClick += (_, _) => dlg.DialogResult = DialogResult.OK;
+
+            if (dlg.ShowDialog(this) != DialogResult.OK) return;
+            if (lst.SelectedIndex < 0) return;
+
+            var chosen = projectNodes[lst.SelectedIndex];
+            tvwProjects.SelectedNode = chosen;
         }
     }
 }

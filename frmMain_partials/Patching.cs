@@ -199,7 +199,7 @@ namespace ModdingGUI
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = xdeltaExePath,
-                Arguments = $"-d -f -s {QuotePath(isoPath)} {QuotePath(xdeltaPath)} {QuotePath(outputIsoPath)}",
+                Arguments = $"-d -f -s {PathHelper.QuotePath(isoPath)} {PathHelper.QuotePath(xdeltaPath)} {PathHelper.QuotePath(outputIsoPath)}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -263,7 +263,7 @@ namespace ModdingGUI
             string vanIsoPath = txtPatchingCreationVanISOPath.Text;
             string modIsoPath = txtPatchingCreationModISOPath.Text;
             string outputPatchPath = txtPatchingCreationOutputPath.Text;
-            vanIsoPath = NormalizePath(vanIsoPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            vanIsoPath = PathHelper.NormalizePath(vanIsoPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
             if (!File.Exists(vanIsoPath) || !File.Exists(modIsoPath))
             {
@@ -303,7 +303,7 @@ namespace ModdingGUI
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = xdeltaExePath,
-                Arguments = $"-e -f -s {QuotePath(vanIsoPath)} {QuotePath(modIsoPath)} {QuotePath(outputPatchPath)}",
+                Arguments = $"-e -f -s {PathHelper.QuotePath(vanIsoPath)} {PathHelper.QuotePath(modIsoPath)} {PathHelper.QuotePath(outputPatchPath)}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

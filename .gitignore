@@ -17,10 +17,6 @@ TestResults/
 *.trx
 *.coverage
 
-# Package directories
-packages/
-node_modules/
-
 # Log and Cache files
 *.log
 *.cache
@@ -32,3 +28,5 @@ publish/
 *.pubxml
 
 devnotes.txt
+CLAUDE.md
+*.nupkg / *.snupkg

@@ -1,373 +1,173 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using ModdingGUI.Core.Api;
 
 namespace ModdingGUI
 {
-    public class ParsedItemFile
-    {
-        public List<string> HeaderLines { get; }
-        public IReadOnlyList<Item> Items { get; }
-
-        public ParsedItemFile(List<string> headerLines, IReadOnlyList<Item> items)
-        {
-            HeaderLines = headerLines ?? new List<string>();
-            Items = items ?? new List<Item>();
-        }
-    }
-
-    public class Item
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string SubType { get; set; } = string.Empty;
-        public string Style { get; set; } = string.Empty;
-        public int StarRating { get; set; }
-        public string DisplayName { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int? DisplayNameId { get; set; }
-        public int? DescriptionId { get; set; }
-        public int Cost { get; set; }
-        public int MinLevel { get; set; }
-        public List<string> Attributes { get; } = new List<string>();
-        public string? Mesh { get; private set; }
-        public string? Mesh2 { get; private set; }
-        public string? Material { get; private set; }
-        public List<string> HideSets { get; } = new();
-        public List<string> ShowSets { get; } = new();
-        public Dictionary<string, int> Affinities { get; } = new(StringComparer.OrdinalIgnoreCase);
-        public Dictionary<string, int> StatMods { get; } = new(StringComparer.OrdinalIgnoreCase);
-        public List<string> Skills { get; } = new();
-        public string RawText { get; internal set; } = string.Empty;
-
-        internal void SetMesh(string v) => Mesh = v;
-        internal void SetMesh2(string v) => Mesh2 = v;
-        internal void SetMaterial(string v) => Material = v;
-
-        public string ToTokFormatString()
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine($"ITEMCREATE: \"{Name}\", \"{Type}\", \"{SubType}\", \"{Style}\", {StarRating}");
-
-            if (DescriptionId.HasValue) sb.AppendLine($"\tITEMDESCRIPTIONID: {DescriptionId.Value}");
-            if (DisplayNameId.HasValue) sb.AppendLine($"\tITEMDISPLAYNAMEID: {DisplayNameId.Value}");
-            if (Cost > 0 || Type == "Gold") sb.AppendLine($"\tITEMCOST: {Cost}");
-            if (MinLevel > 0) sb.AppendLine($"\tITEMMINLEVEL: {MinLevel}");
-
-            foreach (var attr in Attributes.Where(a => !string.IsNullOrEmpty(a))) sb.AppendLine($"\tITEMATTRIBUTE: \"{attr}\"");
-            if (!string.IsNullOrEmpty(Mesh)) sb.AppendLine($"\tITEMMESH: \"{Mesh}\"");
-            if (!string.IsNullOrEmpty(Mesh2)) sb.AppendLine($"\tITEMMESH2: \"{Mesh2}\"");
-            if (!string.IsNullOrEmpty(Material)) sb.AppendLine($"\tITEMMATERIAL: \"{Material}\"");
-            foreach (var hs in HideSets) sb.AppendLine($"\tITEMHIDESET: \"{hs}\"");
-            foreach (var ss in ShowSets) sb.AppendLine($"\tITEMSHOWSET: \"{ss}\"");
-            foreach (var aff in Affinities) sb.AppendLine($"\tITEMAFFINITY: {aff.Key} , {aff.Value}");
-            foreach (var sk in Skills.Where(s => !string.IsNullOrEmpty(s))) sb.AppendLine($"\tITEMSKILL: \"{sk}\"");
-            foreach (var sm in StatMods) sb.AppendLine($"\tITEMSTATMOD: {sm.Key}, {sm.Value}");
-
-            return sb.ToString().TrimEnd('\r', '\n');
-        }
-    }
-
-    public class SkillInfo
-    {
-        public string InternalName { get; init; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
-        public bool IsItemSkill => InternalName.StartsWith("Item ", StringComparison.Ordinal);
-        public override string ToString() => DisplayName;
-    }
-
-    public static class ItemParser
-    {
-        private static readonly Regex _itemHeaderRegex = new(@"ITEMCREATE:\s*""(?<name>[^""]+)""\s*,\s*""(?<type>[^""]+)""\s*,\s*""(?<subtype>[^""]*)""\s*,\s*""(?<style>[^""]*)""\s*,\s*(?<stars>\d+)", RegexOptions.Compiled);
-        private static readonly Regex _quotedRegex = new("\"(?<text>[^\"]+)\"", RegexOptions.Compiled);
-
-        public static ParsedItemFile ParseItemsTok(string itemsTokPath, string lookupTextPath, Action<string, Color?> logAction)
-        {
-            var header = new List<string>();
-            var itemsList = new List<Item>();
-            var lookup = LookupHelper.LoadLookupTable(lookupTextPath);
-
-            if (!File.Exists(itemsTokPath))
-            {
-                logAction?.Invoke($"Item file not found: {itemsTokPath}. Creating default header.", Color.Red);
-                header.AddRange(new[] { "// Items.tok", $"// Saved by ModdingGUI", string.Empty, "NUMENTRIES: 0" });
-                return new ParsedItemFile(header, itemsList);
-            }
-
-            var allFileLines = File.ReadAllLines(itemsTokPath).ToList();
-            int firstItemLineIndex = allFileLines.FindIndex(line => line.TrimStart().StartsWith("ITEMCREATE:", StringComparison.Ordinal));
-
-            if (firstItemLineIndex == -1) header.AddRange(allFileLines);
-            else header.AddRange(allFileLines.Take(firstItemLineIndex));
-
-            var itemContentLines = (firstItemLineIndex != -1) ? allFileLines.Skip(firstItemLineIndex).ToList() : new List<string>();
-            Item? current = null;
-            var rawBlockBuilder = new StringBuilder();
-
-            foreach (var rawLineOriginal in itemContentLines)
-            {
-                var line = rawLineOriginal.TrimEnd();
-                if (string.IsNullOrWhiteSpace(rawLineOriginal))
-                {
-                    if (current != null)
-                    {
-                        current.RawText = rawBlockBuilder.ToString().TrimEnd('\r', '\n');
-                        itemsList.Add(current);
-                        current = null;
-                        rawBlockBuilder.Clear();
-                    }
-                    continue;
-                }
-
-                string trimmedLine = line.TrimStart();
-                if (trimmedLine.StartsWith("ITEMCREATE:", StringComparison.Ordinal))
-                {
-                    if (current != null)
-                    {
-                        current.RawText = rawBlockBuilder.ToString().TrimEnd('\r', '\n');
-                        itemsList.Add(current);
-                        rawBlockBuilder.Clear();
-                    }
-                    var m = _itemHeaderRegex.Match(trimmedLine);
-                    if (!m.Success) { logAction?.Invoke($"Invalid ITEMCREATE line: {line}", Color.Red); current = null; continue; }
-                    current = new Item
-                    {
-                        Name = m.Groups["name"].Value,
-                        Type = m.Groups["type"].Value,
-                        SubType = m.Groups["subtype"].Value,
-                        Style = m.Groups["style"].Value,
-                        StarRating = int.Parse(m.Groups["stars"].Value)
-                    };
-                    current.DisplayName = current.Name; // Default DisplayName
-                    current.Description = string.Empty; // Default Description
-                }
-
-                if (current == null) continue;
-
-                rawBlockBuilder.AppendLine(rawLineOriginal);
-                if (trimmedLine.StartsWith("ITEMCREATE:", StringComparison.Ordinal)) continue;
-
-                string tag = GetTag(trimmedLine);
-                string value = GetValue(trimmedLine);
-                string textValue = ExtractText(trimmedLine);
-
-                switch (tag)
-                {
-                    case "ITEMDESCRIPTIONID": current.Description = LookupHelper.ResolveLookupValue(trimmedLine, lookup, out int? descId); current.DescriptionId = descId; break;
-                    case "ITEMDISPLAYNAMEID": current.DisplayName = LookupHelper.ResolveLookupValue(trimmedLine, lookup, out int? dispId, current.Name); current.DisplayNameId = dispId; break;
-                    case "ITEMCOST": if (int.TryParse(value, out int cost)) current.Cost = cost; break;
-                    case "ITEMMINLEVEL": if (int.TryParse(value, out int lvl)) current.MinLevel = lvl; break;
-                    case "ITEMATTRIBUTE": current.Attributes.Add(textValue); break;
-                    case "ITEMMESH": current.SetMesh(textValue); break;
-                    case "ITEMMESH2": current.SetMesh2(textValue); break;
-                    case "ITEMMATERIAL": current.SetMaterial(textValue); break;
-                    case "ITEMHIDESET": current.HideSets.Add(textValue); break;
-                    case "ITEMSHOWSET": current.ShowSets.Add(textValue); break;
-                    case "ITEMAFFINITY": ParseAffinity(trimmedLine, current); break;
-                    case "ITEMSTATMOD": ParseStatMod(trimmedLine, current); break;
-                    case "ITEMSKILL": current.Skills.Add(textValue); break;
-                }
-            }
-            if (current != null)
-            {
-                current.RawText = rawBlockBuilder.ToString().TrimEnd('\r', '\n');
-                itemsList.Add(current);
-            }
-            logAction?.Invoke($"Item parsing complete. Header lines: {header.Count}, Items loaded: {itemsList.Count}", Color.Green);
-            return new ParsedItemFile(header, itemsList);
-        }
-
-        public static void WriteAllItemsToTok(string itemsTokPath, List<string> headerLines, IEnumerable<Item> items)
-        {
-            var allOutputText = new StringBuilder();
-            for (int i = 0; i < headerLines.Count; i++)
-            {
-                allOutputText.AppendLine(headerLines[i].TrimStart().StartsWith("NUMENTRIES:", StringComparison.OrdinalIgnoreCase)
-                    ? $"NUMENTRIES: {items.Count()}"
-                    : headerLines[i]);
-            }
-            foreach (var item in items)
-            {
-                allOutputText.AppendLine(item.ToTokFormatString());
-                allOutputText.AppendLine();
-            }
-            string output = allOutputText.ToString().TrimEnd('\r', '\n') + Environment.NewLine;
-            File.WriteAllText(itemsTokPath, output);
-        }
-
-        private static void ParseAffinity(string line, Item item)
-        {
-            var p = GetValue(line).Split(new[] { ',' }, 2, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray();
-            if (p.Length == 2 && int.TryParse(p[1], out var val)) item.Affinities[p[0]] = val;
-        }
-        private static void ParseStatMod(string line, Item item)
-        {
-            var p = GetValue(line).Split(new[] { ',' }, 2, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray();
-            if (p.Length == 2 && int.TryParse(p[1], out var val)) item.StatMods[p[0]] = val;
-        }
-        private static string GetTag(string l) => l.Split(':')[0].Trim();
-        private static string GetValue(string l) => l.Contains(':') ? l.Substring(l.IndexOf(':') + 1).Trim() : string.Empty;
-        private static string ExtractText(string l) => _quotedRegex.Match(l) is { Success: true } m ? m.Groups["text"].Value : GetValue(l);
-    }
-
-    public static class SkillParser
-    {
-        private static readonly Regex _skillCreateRegex = new(@"SKILLCREATE:\s*""(?<name>[^""]+)""", RegexOptions.Compiled);
-        public static IReadOnlyList<SkillInfo> ParseSkillsTok(string skillsTokPath, string lookupTextPath, Action<string, Color?> logAction)
-        {
-            if (!File.Exists(skillsTokPath))
-            {
-                logAction?.Invoke($"Skills.tok file not found at: {skillsTokPath}", Color.Red);
-                return new List<SkillInfo>();
-            }
-            var lookup = LookupHelper.LoadLookupTable(lookupTextPath);
-            var list = new List<SkillInfo>();
-            SkillInfo? current = null;
-
-            foreach (var line in File.ReadLines(skillsTokPath).Select(raw => raw.TrimEnd()))
-            {
-                if (string.IsNullOrWhiteSpace(line)) { if (current != null) { list.Add(current); current = null; } continue; }
-                if (line.StartsWith("SKILLCREATE:", StringComparison.Ordinal))
-                {
-                    if (current != null) list.Add(current);
-                    var m = _skillCreateRegex.Match(line);
-                    if (!m.Success) { logAction?.Invoke($"Invalid SKILLCREATE line: {line}", Color.Orange); current = null; continue; }
-                    current = new SkillInfo { InternalName = m.Groups["name"].Value };
-                    current.DisplayName = current.InternalName; // Default
-                    continue;
-                }
-                if (current == null) continue;
-                if (line.StartsWith("SKILLDISPLAYNAMEID:", StringComparison.Ordinal))
-                {
-                    current.DisplayName = LookupHelper.ResolveLookupValue(line, lookup, out _, current.InternalName);
-                }
-            }
-            if (current != null) list.Add(current);
-            logAction?.Invoke($"Skill Parsing complete. {list.Count} skills loaded.", Color.Green);
-            return list;
-        }
-    }
-
-    internal static class LookupHelper
-    {
-        public static Dictionary<int, string> LoadLookupTable(string path)
-        {
-            var d = new Dictionary<int, string>();
-            if (!File.Exists(path)) return d;
-            foreach (var ln in File.ReadLines(path))
-            {
-                var parts = ln.Split('^', 2);
-                if (parts.Length == 2 && int.TryParse(parts[0], out var id))
-                {
-                    d[id] = parts[1].Split('^').FirstOrDefault()?.Trim() ?? string.Empty;
-                }
-            }
-            return d;
-        }
-
-        public static string ResolveLookupValue(string line, Dictionary<int, string> lookup, out int? foundId, string fallback = "")
-        {
-            foundId = null;
-            var valuePart = line.Split(new[] { ':' }, 2);
-            if (valuePart.Length < 2) return fallback;
-            if (int.TryParse(valuePart[1].Trim(), out var id))
-            {
-                foundId = id;
-                return lookup.TryGetValue(id, out var txt) ? txt : fallback;
-            }
-            return fallback;
-        }
-
-        public static bool UpdateLookupEntry(string lookupTextPath, int idToUpdate, string newText)
-        {
-            if (!File.Exists(lookupTextPath)) return false;
-            var lines = File.ReadAllLines(lookupTextPath).ToList();
-            bool updated = false;
-            for (int i = 0; i < lines.Count; i++)
-            {
-                var parts = lines[i].Split('^');
-                if (parts.Length > 0 && int.TryParse(parts[0], out var currentId) && currentId == idToUpdate)
-                {
-                    var newParts = new List<string> { parts[0], newText };
-                    if (parts.Length > 2) newParts.AddRange(parts.Skip(2));
-                    lines[i] = string.Join("^", newParts);
-                    updated = true;
-                    break;
-                }
-            }
-            if (updated) File.WriteAllLines(lookupTextPath, lines);
-            return updated;
-        }
-
-        public static int GetNextAvailableLookupId(Dictionary<int, string> lookupTable)
-        {
-            if (lookupTable == null || !lookupTable.Any()) return 1;
-            return lookupTable.Keys.Max() + 1;
-        }
-
-        public static int? AddNewLookupEntry(string lookupTextPath, string newText, Dictionary<int, string> lookupTable, Action<string, Color?>? logAction = null)
-        {
-            if (string.IsNullOrWhiteSpace(newText))
-            {
-                logAction?.Invoke("Cannot add empty text to lookup.", Color.Orange);
-                return null;
-            }
-            try
-            {
-                int newId = GetNextAvailableLookupId(lookupTable);
-                string newLine = $"{newId}^{newText}";
-                File.AppendAllText(lookupTextPath, newLine + Environment.NewLine);
-                lookupTable[newId] = newText;
-                logAction?.Invoke($"Added new lookup entry: ID {newId}, Text: \"{newText}\"", Color.Green);
-                return newId;
-            }
-            catch (Exception ex)
-            {
-                logAction?.Invoke($"Error adding new lookup entry: {ex.Message}", Color.Red);
-                return null;
-            }
-        }
-    }
-
+    /// <summary>
+    /// items.tok editor. Reads and writes exclusively through
+    /// <see cref="IItemsApi"/>; every save goes through the Core API, which
+    /// locks the project, writes a timestamped backup into
+    /// <c>&lt;project&gt;/.mod-history/</c>, and rewrites the file byte-for-byte
+    /// via the schema layer (no more legacy <c>ToTokFormatString</c>).
+    /// </summary>
+    /// <remarks>
+    /// The lookup-text side (<c>lookuptext_eng.txt</c>) is a plain txt file and
+    /// is updated through <see cref="ILookupTextApi"/> so Item Editor saves
+    /// still get Core locking and timestamped backups.
+    /// </remarks>
     public partial class frmMain : Form
     {
-        private List<Item> _items = new List<Item>();
-        private BindingList<Item> _bindingListOfItems = new BindingList<Item>();
-        private List<SkillInfo> _skills = new List<SkillInfo>();
+        /// <summary>
+        /// Lightweight row model for the item dropdown. Carries the stable id
+        /// (<see cref="Name"/>, used for API lookups) and a resolved
+        /// <see cref="DisplayName"/> for the combobox label.
+        /// </summary>
+        private sealed class ItemRow
+        {
+            public string Name { get; init; } = string.Empty;
+            public string DisplayName { get; set; } = string.Empty;
+        }
+
+        // Core API singleton for this editor. Stateless; every call opens
+        // items.tok fresh, mutates, and writes back with backup.
+        private readonly IItemsApi _itemsApi = new ItemsApi();
+        private readonly ILookupTextApi _lookupTextApi = new LookupTextApi();
+
+        private Button? _btnItemEditorAdd;
+        private Button? _btnItemEditorRename;
+        private Button? _btnItemEditorRemove;
+
+        // All items in the current project, sorted by display name.
+        private BindingList<ItemRow> _bindingListOfItems = new BindingList<ItemRow>();
+
+        // DTO cache: populated by GetAll on project load and after every reload.
+        // Eliminates per-selection file reads — SelectedIndexChanged hits this
+        // dictionary instead of re-reading items.tok from disk.
+        private Dictionary<string, ItemDto> _itemDtoCache = new Dictionary<string, ItemDto>(StringComparer.Ordinal);
+
+        // Item-equippable skills — populated in background during project load.
         private List<SkillInfo> _itemOnlySkills = new List<SkillInfo>();
-        private List<string> _currentItemFileHeaderLines = new List<string>();
+
         private readonly List<string> _affinityTypes = new List<string> { "NONE", "fire", "earth", "water", "air", "dark", "light" };
         private readonly List<string> _validStatModTypes = new List<string> { "initiative", "defense", "accuracy" };
         private const int MaxStatModRows = 3;
-        private class StatModUIRow { public ComboBox StatTypeComboBox { get; set; } = new ComboBox(); public TextBox StatValueTextBox { get; set; } = new TextBox(); }
+
+        private sealed class StatModUIRow
+        {
+            public ComboBox StatTypeComboBox { get; set; } = new ComboBox();
+            public TextBox StatValueTextBox { get; set; } = new TextBox();
+        }
         private List<StatModUIRow> _dynamicStatModControls = new List<StatModUIRow>();
-        private string _itemsTokPath = string.Empty;
-        private string _lookupTextPath = string.Empty;
+
+        // Paths for the active project. The Core API's "projectPath" is the
+        // BEC folder (i.e. the one that contains data/config/items.tok);
+        // history/backup files land under <becFolder>/.mod-history/.
+        private string _becFolder = string.Empty;
         private Dictionary<int, string> _lookupTable = new Dictionary<int, string>();
-        private string _currentProjectPath = string.Empty;
+
+        // Currently selected item's full DTO, cached so Save can diff against it.
+        private ItemDto? _currentDto;
 
         private void NumericOnlyTextBox_KeyPress(object? sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true;
         }
 
+        /// <summary>
+        /// Entry point called by <c>tvwProjects_AfterSelect</c>. Fires the async
+        /// load immediately and returns so the UI thread is never blocked.
+        /// </summary>
         public void InitialiseItemEditor(string projectPath)
         {
-            _currentProjectPath = projectPath;
+            _ = InitialiseItemEditorAsync(projectPath);
+        }
+
+        private async Task InitialiseItemEditorAsync(string projectPath)
+        {
+            // ---- Path setup (no I/O) ----------------------------------------
+            projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            _becFolder = Path.Combine(projectPath, $"{Path.GetFileName(projectPath)}_BEC");
+            var cfg = Path.Combine(_becFolder, "data", "config");
+            string skillsTokPath = Path.Combine(cfg, "skills.tok");
+
+            // Capture for lambdas (fields may change if user switches project quickly)
+            string becFolder = _becFolder;
+
+            // ---- Disable editor while loading --------------------------------
+            ddlItemEditorAllItems.Enabled = false;
+            ddlItemEditorAllItems.DataSource = null;
+            btnItemEditorNewSave.Enabled = false;
             AppendLog("Initializing Item Editor...", Color.DarkGreen);
-            LoadDataForEditor(projectPath);
-            _bindingListOfItems = new BindingList<Item>(_items.OrderBy(i => i.DisplayName).ToList());
+
+            // ---- Background I/O: two parallel tasks --------------------------
+            //   Task A: load lookuptext_eng.txt, then parse skills.tok
+            //   Task B: load items.tok once via GetAll
+            // Task A and B read different files so they run in true parallel.
+            Dictionary<int, string> lookupTable;
+            IReadOnlyList<ItemDto> allDtos;
+            List<SkillInfo> itemSkills;
+
+            try
+            {
+                var lookupAndSkillsTask = Task.Run(() =>
+                {
+                    var lt = new Dictionary<int, string>(_lookupTextApi.Load(becFolder));
+                    // Pass pre-loaded lookup — no second read of lookuptext_eng.txt.
+                    // Pass null logAction — safe to call from background thread.
+                    var sk = SkillParser.ParseSkillsTok(skillsTokPath, lt, null)
+                        .Where(s => s.IsItemSkill)
+                        .OrderBy(s => s.DisplayName)
+                        .ToList();
+                    return (lt, sk);
+                });
+
+                var itemsTask = Task.Run(() => _itemsApi.GetAll(becFolder));
+
+                await Task.WhenAll(lookupAndSkillsTask, itemsTask);
+
+                (lookupTable, itemSkills) = lookupAndSkillsTask.Result;
+                allDtos = itemsTask.Result;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Failed to initialize Item Editor: {ex.Message}", Color.Red);
+                ddlItemEditorAllItems.Enabled = true;
+                btnItemEditorNewSave.Enabled = true;
+                return;
+            }
+
+            // ---- UI thread: update all state from loaded data ----------------
+            _lookupTable = lookupTable;
+            _itemOnlySkills = itemSkills;
+
+            // Build DTO cache and dropdown rows in one pass.
+            _itemDtoCache = new Dictionary<string, ItemDto>(allDtos.Count, StringComparer.Ordinal);
+            var rows = new List<ItemRow>(allDtos.Count);
+            foreach (var dto in allDtos)
+            {
+                _itemDtoCache[dto.Name] = dto;
+                rows.Add(new ItemRow { Name = dto.Name, DisplayName = ResolveDisplayName(dto) });
+            }
+            rows.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase));
+            _bindingListOfItems = new BindingList<ItemRow>(rows);
+
+            AppendLog($"Loaded {allDtos.Count} items, {itemSkills.Count} item skills.", Color.DarkGreen);
+
             BindItemControls();
             BindAffinityDropdown();
 
+            txtItemEditorNewAffinity.KeyPress -= NumericOnlyTextBox_KeyPress;
             txtItemEditorNewAffinity.KeyPress += NumericOnlyTextBox_KeyPress;
+            txtItemEditorNewCost.KeyPress -= NumericOnlyTextBox_KeyPress;
             txtItemEditorNewCost.KeyPress += NumericOnlyTextBox_KeyPress;
+            txtItemEditorNewLevel.KeyPress -= NumericOnlyTextBox_KeyPress;
             txtItemEditorNewLevel.KeyPress += NumericOnlyTextBox_KeyPress;
 
             if (flpStatMods != null) ClearAndRepopulateStatModControls(null);
@@ -377,27 +177,57 @@ namespace ModdingGUI
             this.btnItemEditorMoreStats.Click += btnItemEditorMoreStats_Click;
             this.btnItemEditorNewSave.Click -= btnItemEditorNewSave_Click;
             this.btnItemEditorNewSave.Click += btnItemEditorNewSave_Click;
+            EnsureItemCrudButtons();
+
+            ddlItemEditorAllItems.Enabled = true;
+            btnItemEditorNewSave.Enabled = true;
 
             if (ddlItemEditorAllItems.Items.Count > 0) ddlItemEditorAllItems.SelectedIndex = 0;
             else { AppendLog("Initialized. No items loaded.", Color.Orange); ClearEditorFields(); }
         }
 
-        private void LoadDataForEditor(string projectPath)
+        /// <summary>
+        /// Reload all items via a single <see cref="IItemsApi.GetAll"/> call and
+        /// rebuild both the DTO cache and the dropdown binding list.
+        /// Called after a successful save to refresh display names.
+        /// </summary>
+        private void LoadItemsFromApi()
         {
-            projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var becFolder = Path.Combine(projectPath, $"{Path.GetFileName(projectPath)}_BEC");
-            var cfg = Path.Combine(becFolder, "data", "config");
-            _itemsTokPath = Path.Combine(cfg, "items.tok");
-            _lookupTextPath = Path.Combine(cfg, "lookuptext_eng.txt");
-            string skillsTokPath = Path.Combine(cfg, "skills.tok");
+            var dtos = _itemsApi.GetAll(_becFolder);
+            _itemDtoCache = new Dictionary<string, ItemDto>(dtos.Count, StringComparer.Ordinal);
+            var rows = new List<ItemRow>(dtos.Count);
+            foreach (var dto in dtos)
+            {
+                _itemDtoCache[dto.Name] = dto;
+                rows.Add(new ItemRow { Name = dto.Name, DisplayName = ResolveDisplayName(dto) });
+            }
+            rows.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase));
+            _bindingListOfItems = new BindingList<ItemRow>(rows);
+        }
 
-            _lookupTable = LookupHelper.LoadLookupTable(_lookupTextPath);
-            Action<string, Color?> logAction = (msg, col) => AppendLog(msg, col);
-            ParsedItemFile parsedFile = ItemParser.ParseItemsTok(_itemsTokPath, _lookupTextPath, logAction);
-            _items = parsedFile.Items.ToList();
-            _currentItemFileHeaderLines = parsedFile.HeaderLines;
-            _skills = SkillParser.ParseSkillsTok(skillsTokPath, _lookupTextPath, logAction).ToList();
-            _itemOnlySkills = _skills.Where(s => s.IsItemSkill).OrderBy(s => s.DisplayName).ToList();
+        /// <summary>
+        /// Resolve a display name for an item: lookup-table text if
+        /// DisplayNameId is set, else fall back to the stable id.
+        /// </summary>
+        private string ResolveDisplayName(ItemDto dto)
+        {
+            if (dto.DisplayNameId.HasValue
+                && _lookupTable.TryGetValue((int)dto.DisplayNameId.Value, out var text)
+                && !string.IsNullOrWhiteSpace(text))
+            {
+                return text;
+            }
+            return dto.Name;
+        }
+
+        private string ResolveDescription(ItemDto dto)
+        {
+            if (dto.DescriptionId.HasValue
+                && _lookupTable.TryGetValue((int)dto.DescriptionId.Value, out var text))
+            {
+                return text ?? string.Empty;
+            }
+            return string.Empty;
         }
 
         private void ClearEditorFields()
@@ -405,7 +235,7 @@ namespace ModdingGUI
             txtItemEditorOriginalName.Text = txtItemEditorOriginalDescription.Text = txtItemEditorOriginalDetails.Text = string.Empty;
             txtItemEditorNewName.Text = txtItemEditorNewDescription.Text = txtItemEditorNewCost.Text = txtItemEditorNewLevel.Text = string.Empty;
             txtItemEditorNewMesh.Text = txtItemEditorNewMesh2.Text = txtItemEditorNewMaterial.Text = string.Empty;
-            txtItemEditorNewName.Enabled = txtItemEditorNewDescription.Enabled = false; // Will be re-enabled in SelectedIndexChanged
+            txtItemEditorNewName.Enabled = txtItemEditorNewDescription.Enabled = false;
             txtItemEditorNewMesh.ReadOnly = txtItemEditorNewMesh2.ReadOnly = txtItemEditorNewMaterial.ReadOnly = true;
 
             var noneSkillList = new List<SkillInfo> { new SkillInfo { InternalName = string.Empty, DisplayName = "NONE" } };
@@ -414,13 +244,14 @@ namespace ModdingGUI
             if (ddlItemEditorNewAffinity.Items.Count > 0) ddlItemEditorNewAffinity.SelectedIndex = 0;
             txtItemEditorNewAffinity.Text = string.Empty; txtItemEditorNewAffinity.Enabled = false;
             ClearAndRepopulateStatModControls(null);
+            _currentDto = null;
         }
 
         private void BindItemControls()
         {
             ddlItemEditorAllItems.DataSource = null;
-            ddlItemEditorAllItems.DisplayMember = nameof(Item.DisplayName);
-            ddlItemEditorAllItems.ValueMember = nameof(Item.Name);
+            ddlItemEditorAllItems.DisplayMember = nameof(ItemRow.DisplayName);
+            ddlItemEditorAllItems.ValueMember = nameof(ItemRow.Name);
             ddlItemEditorAllItems.DataSource = _bindingListOfItems;
             ddlItemEditorAllItems.SelectedIndexChanged -= ddlItemEditorAllItems_SelectedIndexChanged;
             ddlItemEditorAllItems.SelectedIndexChanged += ddlItemEditorAllItems_SelectedIndexChanged;
@@ -437,10 +268,20 @@ namespace ModdingGUI
 
         private void ddlItemEditorNewAffinity_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            if (ddlItemEditorAllItems.SelectedItem is not Item currentItem) return;
+            if (_currentDto is null) return;
             string selAffType = ddlItemEditorNewAffinity.SelectedItem as string ?? "NONE";
             txtItemEditorNewAffinity.Enabled = selAffType != "NONE";
-            txtItemEditorNewAffinity.Text = (selAffType != "NONE" && currentItem.Affinities.TryGetValue(selAffType, out int val)) ? val.ToString() : string.Empty;
+
+            if (selAffType != "NONE"
+                && _currentDto.Affinity.HasValue
+                && string.Equals(_currentDto.Affinity.Value.Element, selAffType, StringComparison.OrdinalIgnoreCase))
+            {
+                txtItemEditorNewAffinity.Text = _currentDto.Affinity.Value.Amount.ToString();
+            }
+            else
+            {
+                txtItemEditorNewAffinity.Text = string.Empty;
+            }
         }
 
         private void AddStatModRow(string statName = "", int statValue = 0)
@@ -482,7 +323,7 @@ namespace ModdingGUI
             currentComboBox.Tag = selectedStat;
         }
 
-        private void ClearAndRepopulateStatModControls(Item? itm)
+        private void ClearAndRepopulateStatModControls(ItemDto? dto)
         {
             if (flpStatMods == null) return;
             foreach (var uiRow in _dynamicStatModControls)
@@ -491,12 +332,15 @@ namespace ModdingGUI
                 uiRow.StatValueTextBox.KeyPress -= NumericOnlyTextBox_KeyPress; uiRow.StatValueTextBox.Dispose();
             }
             _dynamicStatModControls.Clear();
-            flpStatMods.Controls.Clear(); // Simpler than disposing children one by one if recreating panel
+            flpStatMods.Controls.Clear();
             if (btnItemEditorMoreStats != null) btnItemEditorMoreStats.Enabled = true;
 
-            if (itm?.StatMods.Any() == true)
+            if (dto?.StatMods.Count > 0)
             {
-                foreach (var statModPair in itm.StatMods.Take(MaxStatModRows)) AddStatModRow(statModPair.Key, statModPair.Value);
+                foreach (var sm in dto.StatMods.Take(MaxStatModRows))
+                {
+                    AddStatModRow(sm.Stat, (int)sm.Value);
+                }
             }
             if (_dynamicStatModControls.Count == 0 && MaxStatModRows > 0) AddStatModRow();
             if (btnItemEditorMoreStats != null) btnItemEditorMoreStats.Enabled = _dynamicStatModControls.Count < MaxStatModRows;
@@ -512,179 +356,598 @@ namespace ModdingGUI
 
         private void ddlItemEditorAllItems_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            if (ddlItemEditorAllItems.SelectedItem is not Item itm) { ClearEditorFields(); return; }
+            if (ddlItemEditorAllItems.SelectedItem is not ItemRow row) { ClearEditorFields(); return; }
 
-            txtItemEditorOriginalName.Text = $"{itm.Name} / {itm.DisplayName}";
-            txtItemEditorOriginalDescription.Text = itm.Description;
-            txtItemEditorOriginalDetails.Text = itm.RawText;
+            // Use the DTO cache — avoids re-reading items.tok on every selection.
+            // Falls back to the API only on a cache miss (e.g. post-rename race).
+            if (!_itemDtoCache.TryGetValue(row.Name, out var dto))
+                dto = _itemsApi.Get(_becFolder, row.Name);
 
-            txtItemEditorNewName.Text = itm.DisplayName;
-            txtItemEditorNewName.Enabled = itm.DisplayNameId.HasValue;
-            txtItemEditorNewDescription.Text = itm.Description;
-            txtItemEditorNewDescription.Enabled = true; // Always allow editing description
+            if (dto is null) { ClearEditorFields(); return; }
+            _currentDto = dto;
 
-            txtItemEditorNewCost.Text = itm.Cost.ToString();
-            txtItemEditorNewLevel.Text = itm.MinLevel.ToString();
-            txtItemEditorNewMesh.Text = itm.Mesh ?? string.Empty;
-            txtItemEditorNewMesh2.Text = itm.Mesh2 ?? string.Empty;
-            txtItemEditorNewMaterial.Text = itm.Material ?? string.Empty;
+            string displayName = ResolveDisplayName(dto);
+            string description = ResolveDescription(dto);
 
-            UpdateSkillDropDowns(itm);
+            txtItemEditorOriginalName.Text = $"{dto.Name} / {displayName}";
+            txtItemEditorOriginalDescription.Text = description;
+            txtItemEditorOriginalDetails.Text = BuildPreviewText(dto);
+
+            txtItemEditorNewName.Text = displayName;
+            txtItemEditorNewName.Enabled = dto.DisplayNameId.HasValue;
+            txtItemEditorNewDescription.Text = description;
+            txtItemEditorNewDescription.Enabled = true;
+
+            txtItemEditorNewCost.Text = (dto.Cost ?? 0).ToString();
+            txtItemEditorNewLevel.Text = (dto.MinLevel ?? 0).ToString();
+            txtItemEditorNewMesh.Text = dto.Mesh ?? string.Empty;
+            txtItemEditorNewMesh2.Text = dto.Mesh2 ?? string.Empty;
+            txtItemEditorNewMaterial.Text = dto.Material ?? string.Empty;
+            txtItemEditorNewMesh.ReadOnly = true;
+            txtItemEditorNewMesh2.ReadOnly = true;
+            txtItemEditorNewMaterial.ReadOnly = true;
+
+            UpdateSkillDropDowns(dto);
 
             if (ddlItemEditorNewAffinity.Items.Count > 0)
             {
-                var firstAff = itm.Affinities.FirstOrDefault();
-                ddlItemEditorNewAffinity.SelectedItem = !string.IsNullOrEmpty(firstAff.Key) ? _affinityTypes.FirstOrDefault(at => at.Equals(firstAff.Key, StringComparison.OrdinalIgnoreCase)) ?? "NONE" : "NONE";
+                string target = "NONE";
+                if (dto.Affinity.HasValue)
+                {
+                    target = _affinityTypes.FirstOrDefault(at => at.Equals(dto.Affinity.Value.Element, StringComparison.OrdinalIgnoreCase)) ?? "NONE";
+                }
+                ddlItemEditorNewAffinity.SelectedItem = target;
                 ddlItemEditorNewAffinity_SelectedIndexChanged(ddlItemEditorNewAffinity, EventArgs.Empty);
             }
-            ClearAndRepopulateStatModControls(itm);
+            ClearAndRepopulateStatModControls(dto);
         }
 
-        private void UpdateSkillDropDowns(Item itm)
+        /// <summary>
+        /// Build a compact preview string for the "original details" textbox.
+        /// This is informational only; the authoritative round-trip is handled
+        /// by the Core writer.
+        /// </summary>
+        private static string BuildPreviewText(ItemDto dto)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"ITEMCREATE: \"{dto.Name}\", \"{dto.Type}\", \"{dto.SubType}\", \"{dto.Style}\", {dto.StarRating ?? 0}");
+            if (dto.DescriptionId.HasValue) sb.AppendLine($"\tITEMDESCRIPTIONID: {dto.DescriptionId}");
+            if (dto.DisplayNameId.HasValue) sb.AppendLine($"\tITEMDISPLAYNAMEID: {dto.DisplayNameId}");
+            if (dto.Cost.HasValue) sb.AppendLine($"\tITEMCOST: {dto.Cost}");
+            if (dto.MinLevel.HasValue) sb.AppendLine($"\tITEMMINLEVEL: {dto.MinLevel}");
+            if (dto.Mesh is not null) sb.AppendLine($"\tITEMMESH: \"{dto.Mesh}\"");
+            if (dto.Mesh2 is not null) sb.AppendLine($"\tITEMMESH2: \"{dto.Mesh2}\"");
+            if (dto.Material is not null) sb.AppendLine($"\tITEMMATERIAL: \"{dto.Material}\"");
+            if (dto.Affinity.HasValue) sb.AppendLine($"\tITEMAFFINITY: {dto.Affinity.Value.Element}, {dto.Affinity.Value.Amount}");
+            foreach (var s in dto.Skills) sb.AppendLine($"\tITEMSKILL: \"{s}\"");
+            foreach (var a in dto.Attributes) sb.AppendLine($"\tITEMATTRIBUTE: \"{a}\"");
+            foreach (var r in dto.Regions) sb.AppendLine($"\tITEMREGION: \"{r}\"");
+            foreach (var h in dto.HideSets) sb.AppendLine($"\tITEMHIDESET: \"{h}\"");
+            foreach (var sm in dto.StatMods) sb.AppendLine($"\tITEMSTATMOD: {sm.Stat}, {sm.Value}");
+            return sb.ToString();
+        }
+
+        private void UpdateSkillDropDowns(ItemDto dto)
         {
             var noneOpt = new SkillInfo { InternalName = string.Empty, DisplayName = "NONE" };
-            List<SkillInfo> skillDataSource = new List<SkillInfo> { noneOpt }; skillDataSource.AddRange(_itemOnlySkills);
+            List<SkillInfo> skillDataSource = new List<SkillInfo> { noneOpt };
+            skillDataSource.AddRange(_itemOnlySkills);
 
             ddlItemEditorNewSkill1.DataSource = new List<SkillInfo>(skillDataSource);
-            ddlItemEditorNewSkill1.DisplayMember = nameof(SkillInfo.DisplayName); ddlItemEditorNewSkill1.ValueMember = nameof(SkillInfo.InternalName);
-            ddlItemEditorNewSkill1.SelectedValue = skillDataSource.FirstOrDefault(s => s.InternalName.Equals(itm.Skills.ElementAtOrDefault(0) ?? "", StringComparison.OrdinalIgnoreCase))?.InternalName ?? string.Empty;
+            ddlItemEditorNewSkill1.DisplayMember = nameof(SkillInfo.DisplayName);
+            ddlItemEditorNewSkill1.ValueMember = nameof(SkillInfo.InternalName);
+            string skill1 = dto.Skills.ElementAtOrDefault(0) ?? string.Empty;
+            ddlItemEditorNewSkill1.SelectedValue = skillDataSource.FirstOrDefault(s => s.InternalName.Equals(skill1, StringComparison.OrdinalIgnoreCase))?.InternalName ?? string.Empty;
 
             ddlItemEditorNewSkill2.DataSource = new List<SkillInfo>(skillDataSource);
-            ddlItemEditorNewSkill2.DisplayMember = nameof(SkillInfo.DisplayName); ddlItemEditorNewSkill2.ValueMember = nameof(SkillInfo.InternalName);
-            ddlItemEditorNewSkill2.SelectedValue = skillDataSource.FirstOrDefault(s => s.InternalName.Equals(itm.Skills.ElementAtOrDefault(1) ?? "", StringComparison.OrdinalIgnoreCase))?.InternalName ?? string.Empty;
+            ddlItemEditorNewSkill2.DisplayMember = nameof(SkillInfo.DisplayName);
+            ddlItemEditorNewSkill2.ValueMember = nameof(SkillInfo.InternalName);
+            string skill2 = dto.Skills.ElementAtOrDefault(1) ?? string.Empty;
+            ddlItemEditorNewSkill2.SelectedValue = skillDataSource.FirstOrDefault(s => s.InternalName.Equals(skill2, StringComparison.OrdinalIgnoreCase))?.InternalName ?? string.Empty;
         }
 
-        private void btnItemEditorNewSave_Click(object? sender, EventArgs e)
+        private async void btnItemEditorNewSave_Click(object? sender, EventArgs e)
         {
-            if (ddlItemEditorAllItems.SelectedItem is not Item currentItemFromDropDown) { MessageBox.Show("No item selected."); return; }
-            Item? currentItemToModify = _items.FirstOrDefault(i => i.Name == currentItemFromDropDown.Name);
-            if (currentItemToModify == null) { MessageBox.Show("Selected item not found in master list."); return; }
-
-            bool itemChanged = false;
-            bool lookupChanged = false;
-
-            // StatMods
-            var collectedStatMods = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            foreach (var rowUI in _dynamicStatModControls)
+            if (_currentDto is null)
             {
-                if (rowUI.StatTypeComboBox.SelectedItem is string statName && !string.IsNullOrWhiteSpace(statName) && int.TryParse(rowUI.StatValueTextBox.Text, out int statVal))
-                    collectedStatMods[statName] = statVal;
-                else if (rowUI.StatTypeComboBox.SelectedItem is string sn && !string.IsNullOrWhiteSpace(sn)) { MessageBox.Show($"Invalid value for stat '{sn}'."); return; }
+                MessageBox.Show("No item selected.");
+                return;
             }
-            if (currentItemToModify.StatMods.Count != collectedStatMods.Count || currentItemToModify.StatMods.Any(kvp => !collectedStatMods.TryGetValue(kvp.Key, out int newVal) || newVal != kvp.Value))
-            { currentItemToModify.StatMods.Clear(); foreach (var kvp in collectedStatMods) currentItemToModify.StatMods.Add(kvp.Key, kvp.Value); itemChanged = true; }
+            var dto = _currentDto;
+
+            // ---- Build ItemPatch from UI state. Only include fields that changed. ----
+
+            var patch = new ItemPatch();
+            bool anyChange = false;
+
+            // Cost
+            if (!int.TryParse(txtItemEditorNewCost.Text, out int costVal))
+            {
+                MessageBox.Show("Invalid Cost value.");
+                return;
+            }
+            if ((dto.Cost ?? 0) != costVal) { patch.Cost = costVal; anyChange = true; }
+
+            // MinLevel
+            if (!int.TryParse(txtItemEditorNewLevel.Text, out int lvlVal))
+            {
+                MessageBox.Show("Invalid MinLevel value.");
+                return;
+            }
+            if ((dto.MinLevel ?? 0) != lvlVal) { patch.MinLevel = lvlVal; anyChange = true; }
 
             // Affinity
             if (ddlItemEditorNewAffinity.SelectedItem is string selAffType)
             {
-                bool affUpdated = false;
-                if (selAffType != "NONE")
+                if (selAffType == "NONE")
                 {
-                    if (int.TryParse(txtItemEditorNewAffinity.Text, out int parsedAffVal))
+                    // If the item currently has an affinity, clear it.
+                    if (dto.Affinity.HasValue) { patch.ClearAffinity = true; anyChange = true; }
+                }
+                else
+                {
+                    if (!int.TryParse(txtItemEditorNewAffinity.Text, out int parsedAffVal))
                     {
-                        if (currentItemToModify.Affinities.Count != 1 || !currentItemToModify.Affinities.ContainsKey(selAffType) || currentItemToModify.Affinities[selAffType] != parsedAffVal)
-                        { currentItemToModify.Affinities.Clear(); currentItemToModify.Affinities[selAffType] = parsedAffVal; affUpdated = true; }
+                        MessageBox.Show($"Invalid affinity value for '{selAffType}'.");
+                        return;
                     }
-                    else { MessageBox.Show($"Invalid affinity value for '{selAffType}'."); }
+                    bool same = dto.Affinity.HasValue
+                                && dto.Affinity.Value.Element.Equals(selAffType, StringComparison.OrdinalIgnoreCase)
+                                && dto.Affinity.Value.Amount == parsedAffVal;
+                    if (!same) { patch.Affinity = (selAffType, parsedAffVal); anyChange = true; }
                 }
-                else if (currentItemToModify.Affinities.Any()) { currentItemToModify.Affinities.Clear(); affUpdated = true; }
-                if (affUpdated) itemChanged = true;
             }
 
-            // Description
-            if (!currentItemToModify.DescriptionId.HasValue && !string.IsNullOrWhiteSpace(txtItemEditorNewDescription.Text))
+            // Skills (list field: compute diff, turn into Add/Remove verbs)
+            var uiSkills = new List<string>();
+            if (ddlItemEditorNewSkill1.SelectedValue is string sk1 && !string.IsNullOrEmpty(sk1)) uiSkills.Add(sk1);
+            if (ddlItemEditorNewSkill2.SelectedValue is string sk2 && !string.IsNullOrEmpty(sk2)
+                && !uiSkills.Contains(sk2, StringComparer.OrdinalIgnoreCase)) uiSkills.Add(sk2);
+
+            var oldSkills = dto.Skills.ToList();
+            var toRemove = oldSkills.Where(s => !uiSkills.Contains(s, StringComparer.OrdinalIgnoreCase)).ToList();
+            var toAdd = uiSkills.Where(s => !oldSkills.Contains(s, StringComparer.OrdinalIgnoreCase)).ToList();
+            if (toRemove.Count > 0) { patch.SkillsRemove = toRemove; anyChange = true; }
+            if (toAdd.Count > 0) { patch.SkillsAdd = toAdd; anyChange = true; }
+
+            // StatMods (list field with tuple values)
+            var uiStats = new List<(string Stat, long Value)>();
+            foreach (var rowUI in _dynamicStatModControls)
             {
-                int? newDescId = LookupHelper.AddNewLookupEntry(_lookupTextPath, txtItemEditorNewDescription.Text, _lookupTable, (m, c) => AppendLog(m, c));
-                if (newDescId.HasValue)
+                if (rowUI.StatTypeComboBox.SelectedItem is string statName
+                    && !string.IsNullOrWhiteSpace(statName))
                 {
-                    currentItemToModify.DescriptionId = newDescId.Value;
-                    currentItemToModify.Description = txtItemEditorNewDescription.Text;
-                    itemChanged = true; lookupChanged = true;
+                    if (!int.TryParse(rowUI.StatValueTextBox.Text, out int statVal))
+                    {
+                        MessageBox.Show($"Invalid value for stat '{statName}'.");
+                        return;
+                    }
+                    uiStats.Add((statName, statVal));
                 }
             }
-            else if (currentItemToModify.DescriptionId.HasValue && txtItemEditorNewDescription.Text != currentItemToModify.Description)
+            var oldStats = dto.StatMods.ToList();
+            bool statsEqual = oldStats.Count == uiStats.Count
+                              && oldStats.All(o => uiStats.Any(u => u.Stat.Equals(o.Stat, StringComparison.OrdinalIgnoreCase) && u.Value == o.Value));
+            if (!statsEqual)
             {
-                if (LookupHelper.UpdateLookupEntry(_lookupTextPath, currentItemToModify.DescriptionId.Value, txtItemEditorNewDescription.Text))
+                if (oldStats.Count > 0) patch.StatModsRemove = oldStats;
+                if (uiStats.Count > 0) patch.StatModsAdd = uiStats;
+                anyChange = true;
+            }
+
+            // ---- Lookup-table (txt) updates: DisplayName / Description text ----
+
+            bool lookupChanged = false;
+            string oldDisplayName = ResolveDisplayName(dto);
+            string oldDescription = ResolveDescription(dto);
+
+            try
+            {
+                if (dto.DisplayNameId.HasValue && txtItemEditorNewName.Text != oldDisplayName)
                 {
-                    currentItemToModify.Description = txtItemEditorNewDescription.Text;
-                    _lookupTable[currentItemToModify.DescriptionId.Value] = txtItemEditorNewDescription.Text;
-                    itemChanged = true; lookupChanged = true;
+                    if (!_lookupTextApi.Update(_becFolder, (int)dto.DisplayNameId.Value, txtItemEditorNewName.Text))
+                    {
+                        MessageBox.Show($"Display-name lookup id {dto.DisplayNameId.Value} was not found.", "Save Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    _lookupTable[(int)dto.DisplayNameId.Value] = txtItemEditorNewName.Text;
+                    lookupChanged = true;
                 }
-            }
 
-            // DisplayName
-            if (currentItemToModify.DisplayNameId.HasValue && txtItemEditorNewName.Text != currentItemToModify.DisplayName)
-            {
-                if (LookupHelper.UpdateLookupEntry(_lookupTextPath, currentItemToModify.DisplayNameId.Value, txtItemEditorNewName.Text))
+                if (!dto.DescriptionId.HasValue && !string.IsNullOrWhiteSpace(txtItemEditorNewDescription.Text))
                 {
-                    currentItemToModify.DisplayName = txtItemEditorNewName.Text;
-                    _lookupTable[currentItemToModify.DisplayNameId.Value] = txtItemEditorNewName.Text;
-                    itemChanged = true; lookupChanged = true;
+                    int newDescId = _lookupTextApi.Add(_becFolder, txtItemEditorNewDescription.Text);
+                    _lookupTable[newDescId] = txtItemEditorNewDescription.Text;
+                    patch.DescriptionId = newDescId;
+                    anyChange = true;
+                    lookupChanged = true;
                 }
-            }
-
-            // Cost
-            if (int.TryParse(txtItemEditorNewCost.Text, out int costVal)) { if (currentItemToModify.Cost != costVal) { currentItemToModify.Cost = costVal; itemChanged = true; } }
-            else { MessageBox.Show("Invalid Cost value."); return; }
-            // MinLevel
-            if (int.TryParse(txtItemEditorNewLevel.Text, out int lvlVal)) { if (currentItemToModify.MinLevel != lvlVal) { currentItemToModify.MinLevel = lvlVal; itemChanged = true; } }
-            else { MessageBox.Show("Invalid MinLevel value."); return; }
-
-            // Skills
-            var skillsFromUI = new List<string>();
-            string? sk1 = null; // Initialize sk1 to null (or string.Empty)
-            if (ddlItemEditorNewSkill1.SelectedValue is string selectedSk1 && !string.IsNullOrEmpty(selectedSk1))
-            {
-                sk1 = selectedSk1; // Assign if valid
-                skillsFromUI.Add(sk1);
-            }
-
-            // Now sk1 is guaranteed to be assigned (either to the selected skill or null/empty)
-            if (ddlItemEditorNewSkill2.SelectedValue is string sk2 && !string.IsNullOrEmpty(sk2))
-            {
-                // Ensure sk2 is different from sk1 (if sk1 was assigned) and not already added
-                if ((sk1 == null || sk1 != sk2) && !skillsFromUI.Contains(sk2))
+                else if (dto.DescriptionId.HasValue && txtItemEditorNewDescription.Text != oldDescription)
                 {
-                    skillsFromUI.Add(sk2);
+                    if (!_lookupTextApi.Update(_becFolder, (int)dto.DescriptionId.Value, txtItemEditorNewDescription.Text))
+                    {
+                        MessageBox.Show($"Description lookup id {dto.DescriptionId.Value} was not found.", "Save Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    _lookupTable[(int)dto.DescriptionId.Value] = txtItemEditorNewDescription.Text;
+                    lookupChanged = true;
                 }
-                // If sk1 was null/empty and sk2 is valid, it will be added.
-                // If sk1 was valid, sk2 will be added if it's different and not already there.
             }
-
-            if (!currentItemToModify.Skills.SequenceEqual(skillsFromUI))
+            catch (Exception ex)
             {
-                currentItemToModify.Skills.Clear();
-                currentItemToModify.Skills.AddRange(skillsFromUI);
-                itemChanged = true;
-                AppendLog("Skills updated.", Color.Green, rtbItemEditor); // Added logging
+                AppendLog($"Lookup text save failed: {ex.Message}", Color.Red, rtbItemEditor);
+                MessageBox.Show($"Lookup text save failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
 
-            if (itemChanged)
+            if (!anyChange && !lookupChanged)
             {
-                currentItemToModify.RawText = currentItemToModify.ToTokFormatString();
-                ItemParser.WriteAllItemsToTok(_itemsTokPath, _currentItemFileHeaderLines, _items);
-                txtItemEditorOriginalDetails.Text = currentItemToModify.RawText;
+                MessageBox.Show("No changes detected to save.", "No Changes");
+                return;
             }
 
-            if (itemChanged || lookupChanged)
+            // ---- Apply patch through the API (off the UI thread). ----
+
+            if (anyChange)
             {
-                MessageBox.Show("Item saved successfully!", "Saved");
-                string originalInternalName = currentItemToModify.Name;
-                LoadDataForEditor(_currentProjectPath); // Reloads _items and _lookupTable
-                _bindingListOfItems = new BindingList<Item>(_items.OrderBy(i => i.DisplayName).ToList());
-
-                ddlItemEditorAllItems.SelectedIndexChanged -= ddlItemEditorAllItems_SelectedIndexChanged;
-                ddlItemEditorAllItems.DataSource = _bindingListOfItems; // Rebind
-
-                var reSelectedItem = _bindingListOfItems.FirstOrDefault(i => i.Name == originalInternalName);
-                if (reSelectedItem != null) ddlItemEditorAllItems.SelectedItem = reSelectedItem;
-                else if (_bindingListOfItems.Any()) ddlItemEditorAllItems.SelectedIndex = 0;
-
-                ddlItemEditorAllItems.SelectedIndexChanged += ddlItemEditorAllItems_SelectedIndexChanged;
-                if (ddlItemEditorAllItems.SelectedItem != null) ddlItemEditorAllItems_SelectedIndexChanged(ddlItemEditorAllItems, EventArgs.Empty);
-                else { ClearEditorFields(); BindAffinityDropdown(); ClearAndRepopulateStatModControls(null); }
+                try
+                {
+                    string stableId = dto.Name;
+                    ItemDto updated = await Task.Run(() => _itemsApi.Patch(_becFolder, stableId, patch));
+                    _currentDto = updated;
+                    // Keep the cache entry fresh so subsequent selections don't
+                    // read the old data until the full reload below completes.
+                    _itemDtoCache[updated.Name] = updated;
+                }
+                catch (Exception ex)
+                {
+                    AppendLog($"Save failed: {ex.Message}", Color.Red, rtbItemEditor);
+                    MessageBox.Show($"Save failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
             }
-            else { MessageBox.Show("No changes detected to save.", "No Changes"); }
+
+            AppendLog($"Item '{dto.Name}' saved.", Color.Green, rtbItemEditor);
+
+            // Refresh list + re-select same item so the dropdown label updates
+            // if the display name changed.
+            string selected = dto.Name;
+            try { LoadItemsFromApi(); }
+            catch (Exception ex) { AppendLog($"Reload failed: {ex.Message}", Color.Red); return; }
+
+            ddlItemEditorAllItems.SelectedIndexChanged -= ddlItemEditorAllItems_SelectedIndexChanged;
+            ddlItemEditorAllItems.DataSource = _bindingListOfItems;
+            var reSelected = _bindingListOfItems.FirstOrDefault(r => r.Name == selected);
+            if (reSelected != null) ddlItemEditorAllItems.SelectedItem = reSelected;
+            else if (_bindingListOfItems.Any()) ddlItemEditorAllItems.SelectedIndex = 0;
+            ddlItemEditorAllItems.SelectedIndexChanged += ddlItemEditorAllItems_SelectedIndexChanged;
+
+            if (ddlItemEditorAllItems.SelectedItem != null) ddlItemEditorAllItems_SelectedIndexChanged(ddlItemEditorAllItems, EventArgs.Empty);
+            else { ClearEditorFields(); BindAffinityDropdown(); ClearAndRepopulateStatModControls(null); }
+        }
+
+        private void EnsureItemCrudButtons()
+        {
+            if (_btnItemEditorAdd != null) return;
+
+            _btnItemEditorAdd = new Button { Text = "Add", Location = new Point(251, 5), Size = new Size(70, 25) };
+            _btnItemEditorRename = new Button { Text = "Rename", Location = new Point(327, 5), Size = new Size(80, 25) };
+            _btnItemEditorRemove = new Button { Text = "Remove", Location = new Point(413, 5), Size = new Size(80, 25) };
+
+            _btnItemEditorAdd.Click += btnItemEditorAdd_Click;
+            _btnItemEditorRename.Click += btnItemEditorRename_Click;
+            _btnItemEditorRemove.Click += btnItemEditorRemove_Click;
+
+            tabEditorItems.Controls.Add(_btnItemEditorAdd);
+            tabEditorItems.Controls.Add(_btnItemEditorRename);
+            tabEditorItems.Controls.Add(_btnItemEditorRemove);
+        }
+
+        private async void btnItemEditorAdd_Click(object? sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(_becFolder)) { MessageBox.Show("Select a project first."); return; }
+
+            using var dialog = new AddItemDialog(_affinityTypes, _itemOnlySkills);
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+            var dto = dialog.BuildDto();
+            try
+            {
+                if (_itemsApi.Get(_becFolder, dto.Name) is not null)
+                {
+                    MessageBox.Show($"Item '{dto.Name}' already exists.", "Duplicate Item", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (!string.IsNullOrWhiteSpace(dialog.DisplayNameText))
+                {
+                    int id = await Task.Run(() => _lookupTextApi.Add(_becFolder, dialog.DisplayNameText));
+                    _lookupTable[id] = dialog.DisplayNameText;
+                    dto.DisplayNameId = id;
+                }
+
+                if (!string.IsNullOrWhiteSpace(dialog.DescriptionText))
+                {
+                    int id = await Task.Run(() => _lookupTextApi.Add(_becFolder, dialog.DescriptionText));
+                    _lookupTable[id] = dialog.DescriptionText;
+                    dto.DescriptionId = id;
+                }
+
+                await Task.Run(() => _itemsApi.Add(_becFolder, dto));
+                AppendLog($"Item '{dto.Name}' added.", Color.Green, rtbItemEditor);
+                ReloadAndSelect(dto.Name);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Add item failed: {ex.Message}", Color.Red, rtbItemEditor);
+                MessageBox.Show($"Add item failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void btnItemEditorRename_Click(object? sender, EventArgs e)
+        {
+            if (_currentDto is null) { MessageBox.Show("No item selected."); return; }
+
+            string? newName = PromptForText("Rename Item", "New internal item name:", _currentDto.Name);
+            if (string.IsNullOrWhiteSpace(newName) || newName == _currentDto.Name) return;
+
+            try
+            {
+                await Task.Run(() => _itemsApi.Rename(_becFolder, _currentDto.Name, newName));
+                AppendLog($"Item '{_currentDto.Name}' renamed to '{newName}'.", Color.Green, rtbItemEditor);
+                ReloadAndSelect(newName);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Rename failed: {ex.Message}", Color.Red, rtbItemEditor);
+                MessageBox.Show($"Rename failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void btnItemEditorRemove_Click(object? sender, EventArgs e)
+        {
+            if (_currentDto is null) { MessageBox.Show("No item selected."); return; }
+
+            string name = _currentDto.Name;
+            var result = MessageBox.Show(
+                $"Remove item '{name}' from items.tok? This creates a backup but may break references in itemsets, shops, or encounters.",
+                "Remove Item",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+            if (result != DialogResult.Yes) return;
+
+            try
+            {
+                bool removed = await Task.Run(() => _itemsApi.Remove(_becFolder, name));
+                if (!removed) { MessageBox.Show($"Item '{name}' was not found."); return; }
+
+                AppendLog($"Item '{name}' removed.", Color.Green, rtbItemEditor);
+                ReloadAndSelect(null);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Remove failed: {ex.Message}", Color.Red, rtbItemEditor);
+                MessageBox.Show($"Remove failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ReloadAndSelect(string? itemName)
+        {
+            LoadItemsFromApi();
+            ddlItemEditorAllItems.SelectedIndexChanged -= ddlItemEditorAllItems_SelectedIndexChanged;
+            ddlItemEditorAllItems.DataSource = _bindingListOfItems;
+
+            ItemRow? row = itemName is null ? null : _bindingListOfItems.FirstOrDefault(r => r.Name == itemName);
+            if (row is not null) ddlItemEditorAllItems.SelectedItem = row;
+            else if (_bindingListOfItems.Any()) ddlItemEditorAllItems.SelectedIndex = 0;
+
+            ddlItemEditorAllItems.SelectedIndexChanged += ddlItemEditorAllItems_SelectedIndexChanged;
+
+            if (ddlItemEditorAllItems.SelectedItem != null) ddlItemEditorAllItems_SelectedIndexChanged(ddlItemEditorAllItems, EventArgs.Empty);
+            else { ClearEditorFields(); BindAffinityDropdown(); ClearAndRepopulateStatModControls(null); }
+        }
+
+        private static string? PromptForText(string title, string label, string initialValue)
+        {
+            using var form = new Form
+            {
+                Text = title,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterParent,
+                MinimizeBox = false,
+                MaximizeBox = false,
+                ClientSize = new Size(420, 120)
+            };
+            var lbl = new Label { Text = label, AutoSize = true, Location = new Point(12, 12) };
+            var txt = new TextBox { Text = initialValue, Location = new Point(12, 35), Width = 395 };
+            var ok = new Button { Text = "OK", DialogResult = DialogResult.OK, Location = new Point(251, 78), Width = 75 };
+            var cancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Location = new Point(332, 78), Width = 75 };
+            form.Controls.AddRange(new Control[] { lbl, txt, ok, cancel });
+            form.AcceptButton = ok;
+            form.CancelButton = cancel;
+            return form.ShowDialog() == DialogResult.OK ? txt.Text.Trim() : null;
+        }
+
+        private sealed class AddItemDialog : Form
+        {
+            private readonly TextBox _name = new() { Width = 260 };
+            private readonly TextBox _displayName = new() { Width = 260 };
+            private readonly TextBox _description = new() { Width = 260, Multiline = true, Height = 60 };
+            private readonly TextBox _type = new() { Width = 260 };
+            private readonly TextBox _subType = new() { Width = 260 };
+            private readonly TextBox _style = new() { Width = 260, Text = "plain" };
+            private readonly NumericUpDown _stars = new() { Width = 80, Minimum = 0, Maximum = 99 };
+            private readonly NumericUpDown _cost = new() { Width = 120, Minimum = 0, Maximum = 9999999 };
+            private readonly NumericUpDown _level = new() { Width = 120, Minimum = 0, Maximum = 999 };
+            private readonly TextBox _rarity = new() { Width = 260 };
+            private readonly TextBox _mesh = new() { Width = 260 };
+            private readonly TextBox _mesh2 = new() { Width = 260 };
+            private readonly TextBox _material = new() { Width = 260 };
+            private readonly ComboBox _affinity = new() { Width = 120, DropDownStyle = ComboBoxStyle.DropDownList };
+            private readonly NumericUpDown _affinityAmount = new() { Width = 120, Minimum = 0, Maximum = 999 };
+            private readonly ComboBox _skill1 = new() { Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+            private readonly ComboBox _skill2 = new() { Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+            private readonly TextBox _regions = new() { Width = 260 };
+            private readonly TextBox _attributes = new() { Width = 260 };
+            private readonly TextBox _hideSets = new() { Width = 260 };
+            private readonly TextBox _showSet = new() { Width = 260 };
+            private readonly TextBox _statMods = new() { Width = 260, Multiline = true, Height = 50 };
+
+            public string DisplayNameText => _displayName.Text.Trim();
+            public string DescriptionText => _description.Text.Trim();
+
+            public AddItemDialog(IEnumerable<string> affinityTypes, IReadOnlyList<SkillInfo> itemSkills)
+            {
+                Text = "Add Item";
+                StartPosition = FormStartPosition.CenterParent;
+                FormBorderStyle = FormBorderStyle.FixedDialog;
+                MinimizeBox = false;
+                MaximizeBox = false;
+                ClientSize = new Size(610, 720);
+
+                _affinity.Items.AddRange(affinityTypes.Cast<object>().ToArray());
+                _affinity.SelectedItem = "NONE";
+
+                var skills = new List<SkillInfo> { new SkillInfo { InternalName = string.Empty, DisplayName = "NONE" } };
+                skills.AddRange(itemSkills);
+                BindSkillCombo(_skill1, skills);
+                BindSkillCombo(_skill2, skills);
+
+                var panel = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Top,
+                    AutoScroll = true,
+                    ColumnCount = 2,
+                    RowCount = 0,
+                    Padding = new Padding(10),
+                    Height = 660
+                };
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 180));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+
+                AddRow(panel, "Internal Name *", _name);
+                AddRow(panel, "Display Name", _displayName);
+                AddRow(panel, "Description", _description);
+                AddRow(panel, "Type *", _type);
+                AddRow(panel, "SubType *", _subType);
+                AddRow(panel, "Style *", _style);
+                AddRow(panel, "Star Rating", _stars);
+                AddRow(panel, "Cost", _cost);
+                AddRow(panel, "Min Level", _level);
+                AddRow(panel, "Rarity", _rarity);
+                AddRow(panel, "Mesh", _mesh);
+                AddRow(panel, "Mesh2", _mesh2);
+                AddRow(panel, "Material", _material);
+                AddRow(panel, "Affinity", _affinity);
+                AddRow(panel, "Affinity Amount", _affinityAmount);
+                AddRow(panel, "Skill 1", _skill1);
+                AddRow(panel, "Skill 2", _skill2);
+                AddRow(panel, "Regions (comma separated)", _regions);
+                AddRow(panel, "Attributes (comma separated)", _attributes);
+                AddRow(panel, "HideSets (comma separated)", _hideSets);
+                AddRow(panel, "ShowSet", _showSet);
+                AddRow(panel, "StatMods (stat=value per line)", _statMods);
+
+                var ok = new Button { Text = "Add Item", DialogResult = DialogResult.OK, Location = new Point(420, 680), Width = 80 };
+                var cancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Location = new Point(510, 680), Width = 80 };
+                ok.Click += (_, _) => ValidateInputs();
+
+                Controls.Add(panel);
+                Controls.Add(ok);
+                Controls.Add(cancel);
+                AcceptButton = ok;
+                CancelButton = cancel;
+            }
+
+            public ItemDto BuildDto()
+            {
+                var dto = new ItemDto
+                {
+                    Name = _name.Text.Trim(),
+                    Type = _type.Text.Trim(),
+                    SubType = _subType.Text.Trim(),
+                    Style = _style.Text.Trim(),
+                    StarRating = (long)_stars.Value,
+                    Cost = (long)_cost.Value,
+                    MinLevel = (long)_level.Value,
+                    Rarity = EmptyToNull(_rarity.Text),
+                    Mesh = EmptyToNull(_mesh.Text),
+                    Mesh2 = EmptyToNull(_mesh2.Text),
+                    Material = EmptyToNull(_material.Text),
+                    ShowSet = EmptyToNull(_showSet.Text)
+                };
+
+                if (_affinity.SelectedItem is string aff && aff != "NONE")
+                    dto.Affinity = (aff, (long)_affinityAmount.Value);
+
+                AddSkill(dto, _skill1);
+                AddSkill(dto, _skill2);
+                dto.Regions.AddRange(SplitCsv(_regions.Text));
+                dto.Attributes.AddRange(SplitCsv(_attributes.Text));
+                dto.HideSets.AddRange(SplitCsv(_hideSets.Text));
+                dto.StatMods.AddRange(ParseStatMods(_statMods.Text));
+                return dto;
+            }
+
+            private bool ValidateInputs()
+            {
+                if (string.IsNullOrWhiteSpace(_name.Text)
+                    || string.IsNullOrWhiteSpace(_type.Text)
+                    || string.IsNullOrWhiteSpace(_subType.Text)
+                    || string.IsNullOrWhiteSpace(_style.Text))
+                {
+                    MessageBox.Show("Internal Name, Type, SubType, and Style are required.", "Missing Fields", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    DialogResult = DialogResult.None;
+                    return false;
+                }
+
+                try { ParseStatMods(_statMods.Text).ToList(); }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Invalid StatMods", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    DialogResult = DialogResult.None;
+                    return false;
+                }
+
+                return true;
+            }
+
+            private static void AddRow(TableLayoutPanel panel, string label, Control control)
+            {
+                int row = panel.RowCount++;
+                panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                panel.Controls.Add(new Label { Text = label, AutoSize = true, Padding = new Padding(0, 6, 0, 0) }, 0, row);
+                panel.Controls.Add(control, 1, row);
+            }
+
+            private static void BindSkillCombo(ComboBox combo, List<SkillInfo> skills)
+            {
+                combo.DisplayMember = nameof(SkillInfo.DisplayName);
+                combo.ValueMember = nameof(SkillInfo.InternalName);
+                combo.DataSource = new List<SkillInfo>(skills);
+            }
+
+            private static void AddSkill(ItemDto dto, ComboBox combo)
+            {
+                if (combo.SelectedValue is string skill && !string.IsNullOrWhiteSpace(skill) && !dto.Skills.Contains(skill))
+                    dto.Skills.Add(skill);
+            }
+
+            private static string? EmptyToNull(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+            private static IEnumerable<string> SplitCsv(string value) =>
+                value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            private static IEnumerable<(string Stat, long Value)> ParseStatMods(string value)
+            {
+                foreach (var raw in value.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    var parts = raw.Split('=', 2, StringSplitOptions.TrimEntries);
+                    if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || !long.TryParse(parts[1], out var amount))
+                        throw new InvalidOperationException("StatMods must use one 'stat=value' pair per line.");
+                    yield return (parts[0], amount);
+                }
+            }
         }
     }
 }
