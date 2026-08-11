@@ -6,6 +6,11 @@ namespace ModdingGUI.Tests;
 
 /// <summary>
 /// Integration tests that run against real game data located by <see cref="GameDataFixture"/>.
+/// The fixture is generated from the vanilla ISO by <c>setup-realdata.ps1</c> and byte-verified
+/// against <c>clean-bec-unpacked</c>, so every count/assertion here is pinned to the exact
+/// certified vanilla values (NOT a threshold). Modified-data expectations belong in later,
+/// separate tests.
+///
 /// All tests are auto-skipped when no REALDATA_ project folder is found.
 /// To target a specific folder pass <c>-ProjectFolder REALDATA_xyz</c> to run-tests.ps1,
 /// or set the <c>REALDATA_PROJECT</c> environment variable before running dotnet test.
@@ -34,8 +39,7 @@ public class RealGameDataTests : IDisposable
     {
         var table = LookupHelper.LoadLookupTable(GameDataFixture.LookupText);
 
-        Assert.True(table.Count > 8000,
-            $"Expected > 8000 lookup entries, got {table.Count}");
+        Assert.Equal(8156, table.Count);
     }
 
     [GameDataFact]
@@ -43,13 +47,10 @@ public class RealGameDataTests : IDisposable
     {
         var table = LookupHelper.LoadLookupTable(GameDataFixture.LookupText);
 
-        // The game data has a small number of legitimately empty placeholder IDs.
-        // Assert that the vast majority (>99%) of entries are non-empty.
         int emptyCount = table.Count(kvp => string.IsNullOrWhiteSpace(kvp.Value));
-        double emptyRatio = (double)emptyCount / table.Count;
 
-        Assert.True(emptyRatio < 0.01,
-            $"Too many empty lookup entries: {emptyCount}/{table.Count} ({emptyRatio:P1})");
+        // Vanilla has exactly zero empty lookup values.
+        Assert.Equal(0, emptyCount);
     }
 
     // -------------------------------------------------------------------------
@@ -57,15 +58,14 @@ public class RealGameDataTests : IDisposable
     // -------------------------------------------------------------------------
 
     [GameDataFact]
-    public void SkillParser_ParsesAllRealSkills_CountAboveThreshold()
+    public void SkillParser_ParsesAllRealSkills_CountMatchesVanilla()
     {
         var skills = SkillParser.ParseSkillsTok(
             GameDataFixture.SkillsTok,
             GameDataFixture.LookupText,
             Log);
 
-        Assert.True(skills.Count > 1800,
-            $"Expected > 1800 skills, got {skills.Count}");
+        Assert.Equal(1811, skills.Count);
     }
 
     [GameDataFact]
@@ -90,7 +90,7 @@ public class RealGameDataTests : IDisposable
             Log);
 
         var itemSkills = skills.Where(s => s.IsItemSkill).ToList();
-        Assert.NotEmpty(itemSkills);
+        Assert.Equal(55, itemSkills.Count);
         Assert.All(itemSkills, s =>
             Assert.StartsWith("Item ", s.InternalName));
     }
@@ -117,8 +117,7 @@ public class RealGameDataTests : IDisposable
     {
         var classDefs = PackValidator.ParseClassDefs(File.ReadLines(GameDataFixture.ClassDefs));
 
-        Assert.True(classDefs.Count >= 100,
-            $"Expected >= 100 class defs, got {classDefs.Count}");
+        Assert.Equal(127, classDefs.Count);
     }
 
     [GameDataFact]
@@ -136,8 +135,7 @@ public class RealGameDataTests : IDisposable
     {
         var skillSets = PackValidator.ParseSkillSets(File.ReadLines(GameDataFixture.SkillsetsFile));
 
-        Assert.True(skillSets.Count > 200,
-            $"Expected > 200 skillsets, got {skillSets.Count}");
+        Assert.Equal(230, skillSets.Count);
     }
 
     [GameDataFact]
@@ -145,8 +143,7 @@ public class RealGameDataTests : IDisposable
     {
         var skills = PackValidator.ParseSkills(File.ReadLines(GameDataFixture.SkillsTok));
 
-        Assert.True(skills.Count > 1800,
-            $"Expected > 1800 skills from ParseSkills, got {skills.Count}");
+        Assert.Equal(1811, skills.Count);
     }
 
     [GameDataFact]
@@ -155,8 +152,7 @@ public class RealGameDataTests : IDisposable
         var gladiators = PackValidator.ParseGladiatorClassesAndSkillSets(
             File.ReadLines(GameDataFixture.GladiatorsFile));
 
-        Assert.True(gladiators.Count > 500,
-            $"Expected > 500 gladiators, got {gladiators.Count}");
+        Assert.Equal(2169, gladiators.Count);
 
         Assert.All(gladiators, g =>
             Assert.False(string.IsNullOrWhiteSpace(g.Class),
@@ -172,10 +168,8 @@ public class RealGameDataTests : IDisposable
     {
         var result = PackValidator.ValidateItemsets(File.ReadLines(GameDataFixture.ItemsetsFile));
 
-        // StepCount counts "Itemset N:" header lines in the vanilla file.
-        // The certified vanilla corpus has 404 itemsets (IDs 0-403).
-        Assert.True(result.StepCount > 350,
-            $"Expected > 350 itemsets, got {result.StepCount}");
+        // StepCount counts "Itemset N:" header lines. Vanilla has 404 (IDs 0-403).
+        Assert.Equal(404, result.StepCount);
     }
 
     [GameDataFact]
@@ -183,8 +177,8 @@ public class RealGameDataTests : IDisposable
     {
         var result = PackValidator.ValidateGladiatorsFile(File.ReadLines(GameDataFixture.GladiatorsFile));
 
-        // The result should have step count matching non-empty lines
-        Assert.True(result.StepCount > 0);
+        // StepCount counts non-empty lines in gladiators.txt. Vanilla has 19531.
+        Assert.Equal(19531, result.StepCount);
     }
 
     [GameDataFact]
@@ -196,9 +190,9 @@ public class RealGameDataTests : IDisposable
             File.ReadLines(GameDataFixture.SkillsTok),
             File.ReadLines(GameDataFixture.ClassDefs));
 
-        // Should run without exception and return a usable result
+        // StepCount = parsed gladiators + their skill-set skill counts. Vanilla = 50070.
         Assert.NotNull(result);
-        Assert.True(result.StepCount > 0);
+        Assert.Equal(50070, result.StepCount);
     }
 
     [GameDataFact]
@@ -229,8 +223,7 @@ public class RealGameDataTests : IDisposable
         var info = new FileInfo(GameDataFixture.VanillaIso);
 
         Assert.True(info.Exists);
-        // Gladius GC ISO is ~1.36 GB
-        Assert.True(info.Length > 1_000_000_000L,
-            $"vanilla.iso size {info.Length} bytes is unexpectedly small");
+        // Gladius GC vanilla ISO is exactly 1,459,978,240 bytes.
+        Assert.Equal(1_459_978_240L, info.Length);
     }
 }
