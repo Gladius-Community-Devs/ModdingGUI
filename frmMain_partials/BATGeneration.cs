@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Text;
 
 namespace ModdingGUI
@@ -21,10 +21,47 @@ namespace ModdingGUI
             string unitsUnpackToolPath = NormalizePath(Path.Combine(toolsPath, "Gladius_Units_IDX_Unpack.py"));
             string dataFolder = NormalizePath(EnsureTrailingSeparator(Path.Combine(becFolder, "Data")));
 
-            // Commands
-            sb.AppendLine($"python {QuotePath(ngcisoToolPath)} -unpack {QuotePath(isoPath)} {QuotePath(isoFolder)} {userInput}_FileList.txt");
-            sb.AppendLine($"python {QuotePath(becToolPath)} --platform GC -unpack {QuotePath(becInputPath)} {QuotePath(becFolder)}");
-            sb.AppendLine($"python {QuotePath(unitsUnpackToolPath)} {QuotePath(dataFolder)}");
+            // Commands.
+            //
+            // Every step is guarded with "|| goto :<step>_failed" so that a tool
+            // failure (the v008 tools exit non-zero on bad input) stops the pipeline
+            // instead of letting the later steps run against stale data.
+            //
+            // hashes.txt is checked up front, but ONLY when the v008 toolchain is
+            // actually installed (tools\tools_v008\). Without it bec-tool-all.py
+            // silently names EVERY unpacked file "unknown-*", which produces a project
+            // folder that looks okay but has no real paths in it. The nested "if exist"
+            // keeps an exe-only partial update (old tools still in place) working exactly
+            // as it did before.
+            string hashesPath = NormalizePath(Path.Combine(toolsPath, "hashes.txt"));
+            string v008MarkerPath = NormalizePath(Path.Combine(toolsPath, "tools_v008", "__init__.py"));
+
+            sb.AppendLine("@echo off");
+            sb.AppendLine($"if exist {QuotePath(v008MarkerPath)} if not exist {QuotePath(hashesPath)} goto :unpack_nohashes");
+            sb.AppendLine($"python {QuotePath(ngcisoToolPath)} -unpack {QuotePath(isoPath)} {QuotePath(isoFolder)} {userInput}_FileList.txt || goto :unpack_failed");
+            sb.AppendLine($"python {QuotePath(becToolPath)} --platform GC -unpack {QuotePath(becInputPath)} {QuotePath(becFolder)} || goto :unpack_failed");
+            sb.AppendLine($"python {QuotePath(unitsUnpackToolPath)} {QuotePath(dataFolder)} || goto :unpack_failed");
+            sb.AppendLine("goto :unpack_ok");
+            sb.AppendLine(":unpack_nohashes");
+            sb.AppendLine("echo.");
+            sb.AppendLine("echo *****************************************************************");
+            sb.AppendLine("echo  ERROR: the tools folder is missing hashes.txt");
+            sb.AppendLine("echo  The upgraded toolchain needs that file to name the unpacked data.");
+            sb.AppendLine("echo  Restore it from the 4.1.4 zip - it lives at tools\\hashes.txt");
+            sb.AppendLine("echo  Unpacking was stopped and no project files were written.");
+            sb.AppendLine("echo *****************************************************************");
+            sb.AppendLine("echo.");
+            sb.AppendLine("exit /b 2");
+            sb.AppendLine(":unpack_failed");
+            sb.AppendLine("echo.");
+            sb.AppendLine("echo *****************************************************************");
+            sb.AppendLine("echo  ERROR: a tool step failed - see the messages above.");
+            sb.AppendLine("echo  Unpacking stopped early; this project folder is incomplete.");
+            sb.AppendLine("echo *****************************************************************");
+            sb.AppendLine("echo.");
+            sb.AppendLine("exit /b 1");
+            sb.AppendLine(":unpack_ok");
+            sb.AppendLine("exit /b 0");
 
             return sb.ToString();
         }
@@ -62,24 +99,48 @@ namespace ModdingGUI
             string fstBinPath = NormalizePath(Path.Combine(isoFolder, "fst.bin"));
             string gladiusFileListPath = NormalizePath(Path.Combine(isoFolder, $"{baseName}_FileList.txt"));
 
-            // Commands
-            sb.AppendLine($"python {QuotePath(tokNumUpdatePath)} {QuotePath(dataConfigFolder)}");
-            sb.AppendLine($"python {QuotePath(tokToolPath)} -c {QuotePath(skillsTokPath)} {QuotePath(skillsStringsBinPath)} {QuotePath(skillsLinesBinPath)} {QuotePath(skillsTokBrfPath)}");
-            sb.AppendLine($"python {QuotePath(updateStringsBinPath)} {QuotePath(dataConfigFolder)}");
-            sb.AppendLine($"python {QuotePath(unitsRepackToolPath)} {QuotePath(dataFolder)}");
-            sb.AppendLine($"python {QuotePath(becToolPath)} -pack {QuotePath(becFolder)} {QuotePath(becFilePath)} {QuotePath(fileListPath)} --platform GC");
-            sb.AppendLine($"python {QuotePath(ngcisoToolPath)} -pack {QuotePath(isoFolder)} {QuotePath(fstBinPath)} {QuotePath(gladiusFileListPath)} {QuotePath(isoFile)}");
+            // Commands.
+            //
+            // Every step is guarded with "|| goto :pack_failed" so that a failed step
+            // (for example the IDX repack rejecting a unit that references a skill set
+            // that does not exist) stops the pipeline. Without the guard the remaining
+            // steps still run and produce a modded ISO that silently contains the OLD
+            // data for the file that failed.
+            sb.AppendLine("@echo off");
+            sb.AppendLine($"python {QuotePath(tokNumUpdatePath)} {QuotePath(dataConfigFolder)} || goto :pack_failed");
+            sb.AppendLine($"python {QuotePath(tokToolPath)} -c {QuotePath(skillsTokPath)} {QuotePath(skillsStringsBinPath)} {QuotePath(skillsLinesBinPath)} {QuotePath(skillsTokBrfPath)} || goto :pack_failed");
+            sb.AppendLine($"python {QuotePath(updateStringsBinPath)} {QuotePath(dataConfigFolder)} || goto :pack_failed");
+            sb.AppendLine($"python {QuotePath(unitsRepackToolPath)} {QuotePath(dataFolder)} || goto :pack_failed");
+            sb.AppendLine($"python {QuotePath(becToolPath)} -pack {QuotePath(becFolder)} {QuotePath(becFilePath)} {QuotePath(fileListPath)} --platform GC || goto :pack_failed");
+            sb.AppendLine($"python {QuotePath(ngcisoToolPath)} -pack {QuotePath(isoFolder)} {QuotePath(fstBinPath)} {QuotePath(gladiusFileListPath)} {QuotePath(isoFile)} || goto :pack_failed");
+            sb.AppendLine("goto :pack_ok");
+            sb.AppendLine(":pack_failed");
+            sb.AppendLine("echo.");
+            sb.AppendLine("echo *****************************************************************");
+            sb.AppendLine("echo  ERROR: a tool step failed - see the messages above.");
+            sb.AppendLine("echo  Packing stopped early. No ISO was written from this run,");
+            sb.AppendLine("echo  or the ISO is missing whatever step failed.");
+            sb.AppendLine("echo  Your project files were not changed by the failed step.");
+            sb.AppendLine("echo *****************************************************************");
+            sb.AppendLine("echo.");
+            sb.AppendLine("exit /b 1");
+            sb.AppendLine(":pack_ok");
+            sb.AppendLine("exit /b 0");
 
             return sb.ToString();
         }
 
 
 
-        // Asynchronous method to run the generated batch file
-        private async Task RunBatchFileAsync(string batchContent, string workingDirectory, RichTextBox targetRtb = null)
+        // Asynchronous method to run the generated batch file.
+        // Returns the batch file's exit code: 0 means every tool step succeeded.
+        // A non-zero code means a step failed and the pipeline stopped early, so the
+        // caller must NOT report success.
+        private async Task<int> RunBatchFileAsync(string batchContent, string workingDirectory, RichTextBox targetRtb = null)
         {
             // Generate a unique batch file name using a GUID
             var batchFilePath = Path.Combine(workingDirectory, $"GeneratedBatch_{Guid.NewGuid()}.bat");
+            int exitCode = -1;
 
             try
             {
@@ -114,6 +175,12 @@ namespace ModdingGUI
                     process.BeginErrorReadLine();  // Begin asynchronous read of standard error
 
                     await process.WaitForExitAsync(); // Wait for the process to exit asynchronously
+                    exitCode = process.ExitCode;       // 0 = every tool step in the batch succeeded
+                }
+
+                if (exitCode != 0)
+                {
+                    AppendLog($"The toolchain stopped with exit code {exitCode}. See the ERROR block above for which step failed.", ErrorColor, targetRtb);
                 }
             }
             catch (Exception ex)
@@ -130,6 +197,8 @@ namespace ModdingGUI
                     AppendLog("Batch file deleted after execution.", InfoColor, targetRtb); // Log that the batch file was deleted
                 }
             }
+
+            return exitCode;
         }
     }
 }

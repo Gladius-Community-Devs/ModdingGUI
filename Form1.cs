@@ -79,7 +79,16 @@ namespace ModdingGUI
                 string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
 
                 // Run the batch file asynchronously within the top-level folder
-                await RunBatchFileAsync(batchContent, topLevelFolder);
+                int unpackExitCode = await RunBatchFileAsync(batchContent, topLevelFolder);
+
+                if (unpackExitCode != 0)
+                {
+                    // A tool step failed (or hashes.txt is missing) and the batch stopped early.
+                    // Do not touch the project paths below: the folder is incomplete.
+                    AppendLog("Unpacking FAILED. The project folder is incomplete - fix the problem above and unpack again.", ErrorColor);
+                    btnUnpack.Enabled = true; // Re-enable the unpack button so the user can retry
+                    return;
+                }
 
                 AppendLog("Unpacking completed successfully.", SuccessColor); // Log successful completion
 
@@ -162,7 +171,16 @@ namespace ModdingGUI
                 string batchContent = GeneratePackBatchFileContent(selectedFolder);
 
                 // Run the batch file asynchronously within the selected folder
-                await RunBatchFileAsync(batchContent, selectedFolder, rtbPackOutput);
+                int packExitCode = await RunBatchFileAsync(batchContent, selectedFolder, rtbPackOutput);
+
+                if (packExitCode != 0)
+                {
+                    // A tool step failed and the batch stopped early, so no usable ISO came out
+                    // of this run. Never report success in that case.
+                    AppendLog("Packing FAILED. No usable ISO was produced by this run - fix the problem above and pack again.", ErrorColor, rtbPackOutput);
+                    btnPack.Enabled = true; // Re-enable the pack button so the user can retry
+                    return;
+                }
 
                 AppendLog("Packing completed successfully.", SuccessColor, rtbPackOutput); // Log successful completion
                 btnRandomize.Enabled = true;
@@ -464,7 +482,14 @@ namespace ModdingGUI
                                     string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
 
                                     // Run the batch file asynchronously within the top-level folder
-                                    await RunBatchFileAsync(batchContent, topLevelFolder);
+                                    int randomizerUnpackExitCode = await RunBatchFileAsync(batchContent, topLevelFolder);
+
+                                    if (randomizerUnpackExitCode != 0)
+                                    {
+                                        // Fall through to the catch below: report the failure instead of
+                                        // claiming the ISO was unpacked successfully.
+                                        throw new Exception("the unpack toolchain stopped early (see the ERROR block above). The project folder is incomplete.");
+                                    }
 
                                     AppendLog("Unpacking completed successfully.", SuccessColor);
 
