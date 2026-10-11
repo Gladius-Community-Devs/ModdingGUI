@@ -1,4 +1,4 @@
-﻿using ModdingGUI.Models;
+using ModdingGUI.Models;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -57,12 +57,31 @@ namespace ModdingGUI
         }
 
 
-        // Method to handle process output data and log it appropriately
+        // Method to handle process output data and log it appropriately.
+        //
+        // Tool output arrives on stdout and stderr, and the batch runner paints all of
+        // stderr red. The modding tools report non-fatal problems on stderr with a
+        // "WARNING:" prefix (e.g. holes in the vanilla lookuptext table), so those lines
+        // are shown in the warning colour instead of looking like a hard failure.
+        // "ERROR:" lines stay red whether they arrive on stdout or stderr.
         private void LogProcessOutput(DataReceivedEventArgs e, Color? color = null, RichTextBox targetRtb = null)
         {
             if (!string.IsNullOrEmpty(e.Data)) // Check if data is not null or empty
             {
-                AppendLog(e.Data, color ?? Color.Black, targetRtb); // Append the data to the log
+                string line = e.Data;
+                Color lineColor = color ?? Color.Black;
+
+                string trimmed = line.TrimStart();
+                if (trimmed.StartsWith("WARNING:", StringComparison.OrdinalIgnoreCase))
+                {
+                    lineColor = WarningColor;
+                }
+                else if (trimmed.StartsWith("ERROR:", StringComparison.OrdinalIgnoreCase))
+                {
+                    lineColor = ErrorColor;
+                }
+
+                AppendLog(line, lineColor, targetRtb); // Append the data to the log
             }
         }
 
