@@ -58,8 +58,14 @@ namespace ModdingGUI
         public static string SkillsTokFile(string projectFolder) =>
             Path.Combine(ConfigFolder(projectFolder), "skills.tok");
 
+        /// <summary>
+        /// The combat-meter definition file. The real game file is
+        /// <c>swingmeter.tok</c> (15 <c>METERCREATE:</c> entries); <c>skillmeter.tok</c>
+        /// does not exist in vanilla data — <c>SkillsContext</c> still accepts it as
+        /// a legacy/modded alias.
+        /// </summary>
         public static string SkillMeterTokFile(string projectFolder) =>
-            Path.Combine(ConfigFolder(projectFolder), "skillmeter.tok");
+            Path.Combine(ConfigFolder(projectFolder), "swingmeter.tok");
 
         public static string WorldmapFile(string projectFolder) =>
             Path.Combine(ConfigFolder(projectFolder), "worldmap.tok");

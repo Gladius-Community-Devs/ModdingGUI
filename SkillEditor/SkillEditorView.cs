@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ModdingGUI.Core.Api;
+using ModdingGUI.Core.Skills;
 
 /// <summary>
 /// Self-contained UserControl for browsing and editing <c>skills.tok</c>
@@ -25,44 +26,22 @@ using ModdingGUI.Core.Api;
 /// </remarks>
 public sealed partial class SkillEditorView : UserControl
 {
-    // ---- catalog models (inner) -------------------------------------------
-
-    private sealed class CatalogSlot
-    {
-        [JsonPropertyName("types")]     public List<string> Types  { get; set; } = new();
-        [JsonPropertyName("values")]    public List<string> Values { get; set; } = new();
-        [JsonPropertyName("enumerate")] public bool?        Enumerate { get; set; }
-        [JsonPropertyName("note")]      public string?      Note { get; set; }
-    }
-
-    private sealed class CatalogField
-    {
-        [JsonPropertyName("enumerate")] public bool             Enumerate { get; set; }
-        [JsonPropertyName("note")]      public string?          Note  { get; set; }
-        [JsonPropertyName("slots")]     public List<CatalogSlot> Slots { get; set; } = new();
-        [JsonPropertyName("mirrors")]   public List<string>     Mirrors { get; set; } = new();
-    }
-
-    private sealed class SkillsCatalogRoot
-    {
-        [JsonPropertyName("fields")]
-        public Dictionary<string, CatalogField> Fields { get; set; } = new();
-    }
-
     // ---- state ------------------------------------------------------------
 
     private readonly ISkillsApi _api = new SkillsApi();
     private string   _projectFolder = string.Empty;
     private SkillDto? _current;
     private bool     _isNew;
-    private SkillsCatalogRoot _catalog = new();
+
+    /// <summary>Shipped field/value catalog (loaded from <c>&lt;app&gt;/skills/</c>).</summary>
+    private SkillsCatalog _catalog = SkillsCatalog.Empty;
+
+    /// <summary>Per-project context (meter names, lookup text); reset on project change.</summary>
+    private SkillsContext? _skillsContext;
 
     // Tracks a pending HandleCreated subscription so it can be replaced if
     // InitializeEditor is called again before the tab is first shown.
     private EventHandler? _pendingLoadHandler;
-
-    // Cache for skillmeter.tok meter IDs; invalidated on project change.
-    private List<string>? _meterCache;
 
     // ---- controls ---------------------------------------------------------
 
@@ -95,6 +74,7 @@ public sealed partial class SkillEditorView : UserControl
     // Bottom bar
     private readonly Button _btnSave   = new() { Text = "Save to Project", Width = 120, Enabled = false };
     private readonly Button _btnDelete = new() { Text = "Delete Skill",    Width = 100, Enabled = false };
+    private readonly Button _btnValidate = new() { Text = "Validate",      Width = 80,  Enabled = false };
     private readonly Label  _lblStatus = new() { AutoSize = true };
 
     // ---- fixed values -----------------------------------------------------
@@ -131,7 +111,7 @@ public sealed partial class SkillEditorView : UserControl
     {
         _projectFolder = projectRootPath.TrimEnd(
             Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        _meterCache = null;   // Invalidate per-project cache on project change
+        _skillsContext = null;   // Invalidate per-project cache on project change
 
         ClearEditor();
         _cmbSkills.Items.Clear();
@@ -174,10 +154,11 @@ public sealed partial class SkillEditorView : UserControl
             FlowDirection = FlowDirection.LeftToRight,
             Padding       = new Padding(4, 6, 0, 0),
         };
-        _btnSave.Margin   = new Padding(0, 0, 6, 0);
-        _btnDelete.Margin = new Padding(0, 0, 10, 0);
-        _lblStatus.Margin = new Padding(0, 4, 0, 0);
-        flwBottom.Controls.AddRange(new Control[] { _btnSave, _btnDelete, _lblStatus });
+        _btnSave.Margin     = new Padding(0, 0, 6, 0);
+        _btnDelete.Margin   = new Padding(0, 0, 6, 0);
+        _btnValidate.Margin = new Padding(0, 0, 10, 0);
+        _lblStatus.Margin   = new Padding(0, 4, 0, 0);
+        flwBottom.Controls.AddRange(new Control[] { _btnSave, _btnDelete, _btnValidate, _lblStatus });
         pnlBottom.Controls.Add(flwBottom);
 
         // ── Left sidebar (fixed width, Dock=Left) ────────────────────────────
@@ -276,6 +257,7 @@ public sealed partial class SkillEditorView : UserControl
         _btnAddField.Click              += BtnAddField_Click;
         _btnSave.Click                  += BtnSave_Click;
         _btnDelete.Click                += BtnDelete_Click;
+        _btnValidate.Click              += BtnValidate_Click;
     }
 
     private static Label MakeLabel(string text) =>
@@ -285,28 +267,16 @@ public sealed partial class SkillEditorView : UserControl
 
     private void LoadCatalog()
     {
-        try
-        {
-            string catalogPath = Path.Combine(
-                AppContext.BaseDirectory, "skills", "skills_catalog.json");
-            if (!File.Exists(catalogPath)) return;
+        // Core owns catalog parsing; a missing/broken catalog degrades to an
+        // empty lookup so the editor stays usable.
+        _catalog = SkillsCatalog.FindForProject(null, AppContext.BaseDirectory) ?? SkillsCatalog.Empty;
 
-            string json = File.ReadAllText(catalogPath, Encoding.UTF8);
-            var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            _catalog = JsonSerializer.Deserialize<SkillsCatalogRoot>(json, opts) ?? new SkillsCatalogRoot();
+        _cmbField.Items.Clear();
+        foreach (string fieldName in _catalog.FieldNames)
+            _cmbField.Items.Add(fieldName);
 
-            // Populate field dropdown in source order (alphabetical by key).
-            _cmbField.Items.Clear();
-            foreach (var key in _catalog.Fields.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase))
-                _cmbField.Items.Add(key);
-
-            if (_cmbField.Items.Count > 0)
-                _cmbField.SelectedIndex = 0;
-        }
-        catch
-        {
-            // Non-fatal — editor is still functional without the catalog.
-        }
+        if (_cmbField.Items.Count > 0)
+            _cmbField.SelectedIndex = 0;
     }
 
     // ---- async skill list load --------------------------------------------
@@ -399,6 +369,7 @@ public sealed partial class SkillEditorView : UserControl
         _current = null;
         _btnSave.Enabled   = true;
         _btnDelete.Enabled = false;
+        _btnValidate.Enabled = true;
         SetStatus("Enter skill details, then click Save to Project.", isError: false);
     }
 
@@ -414,7 +385,7 @@ public sealed partial class SkillEditorView : UserControl
         if (_cmbField.SelectedItem is not string fieldName) return;
 
         // Catalog entry may be absent for dynamically-handled fields.
-        _catalog.Fields.TryGetValue(fieldName, out var field);
+        var field = _catalog.Find(fieldName);
 
         // Show the developer note for non-enumerated catalog fields.
         if (field is not null && !field.Enumerate && !string.IsNullOrWhiteSpace(field.Note))
@@ -475,7 +446,7 @@ public sealed partial class SkillEditorView : UserControl
     private void BtnAddField_Click(object? sender, EventArgs e)
     {
         if (_cmbField.SelectedItem is not string fieldName) return;
-        _catalog.Fields.TryGetValue(fieldName, out var field);
+        var field = _catalog.Find(fieldName);
 
         var parts     = new List<string>();
         int slotIndex = 0;
@@ -537,17 +508,22 @@ public sealed partial class SkillEditorView : UserControl
         _btnSave.Enabled = false;
         SetStatus("Saving…", isError: false);
 
-        SkillDto? result = null;
+        SkillMutationResult? outcome = null;
         Exception? error = null;
         bool wasNew = _isNew;
         string? oldName = _current?.Name;
 
         try
         {
+            // Validation is advisory (PLAN rule 7): Warn mode always writes and
+            // hands the findings back so the status bar can report them.
+            string bec = ProjectPaths.BecFolder(_projectFolder);
+            var catalog = _catalog;
+            var context = ContextForProject();
             if (wasNew)
-                result = await Task.Run(() => _api.Add(ProjectPaths.BecFolder(_projectFolder), dto));
+                outcome = await Task.Run(() => _api.Add(bec, dto, SkillValidationMode.Warn, catalog, context));
             else
-                result = await Task.Run(() => _api.Update(ProjectPaths.BecFolder(_projectFolder), oldName!, dto));
+                outcome = await Task.Run(() => _api.Update(bec, oldName!, dto, SkillValidationMode.Warn, catalog, context));
         }
         catch (Exception ex)
         {
@@ -564,9 +540,16 @@ public sealed partial class SkillEditorView : UserControl
             return;
         }
 
-        _current = result;
+        _current = outcome?.Skill;
         _isNew   = false;
-        SetStatus($"Skill '{dto.Name}' saved.", isError: false);
+        _btnValidate.Enabled = true;
+
+        int warnings = outcome?.Issues.Count(i => i.Severity == SkillValidationSeverity.Warning) ?? 0;
+        int notes    = (outcome?.Issues.Count ?? 0) - warnings;
+        SetStatus(warnings > 0
+                ? $"Skill '{dto.Name}' saved — validation: {warnings} warning(s). Click Validate for details."
+                : $"Skill '{dto.Name}' saved." + (notes > 0 ? $" (validation: {notes} note(s))" : string.Empty),
+            isError: false);
 
         // Reload the dropdown and re-select the saved skill.
         List<string>? names = null;
@@ -582,6 +565,58 @@ public sealed partial class SkillEditorView : UserControl
                 _cmbSkills.SelectedIndex = idx;   // handler is attached → LoadSkill fires for the saved skill
             _btnDelete.Enabled = true;
         }
+    }
+
+    private void BtnValidate_Click(object? sender, EventArgs e)
+    {
+        var dto = BuildDtoFromUi();
+        if (dto is null) return;
+
+        IReadOnlyList<SkillValidationIssue> issues;
+        try
+        {
+            issues = _api.Validate(ProjectPaths.BecFolder(_projectFolder), dto, _catalog, ContextForProject());
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"Validation failed: {ex.Message}", isError: true);
+            return;
+        }
+
+        ReportValidation(dto.Name, issues);
+    }
+
+    /// <summary>
+    /// Surfaces advisory findings: summary in the status bar, full list in a
+    /// dialog. Warnings are reported but never block a save (PLAN rule 7).
+    /// </summary>
+    private void ReportValidation(string skillName, IReadOnlyList<SkillValidationIssue> issues)
+    {
+        int warnings = issues.Count(i => i.Severity == SkillValidationSeverity.Warning);
+        int notes    = issues.Count - warnings;
+
+        SetStatus(
+            issues.Count == 0
+                ? $"Validation: no issues in '{skillName}'."
+                : $"Validation: {warnings} warning(s), {notes} note(s) — click Validate for details.",
+            isError: warnings > 0);
+
+        if (issues.Count == 0)
+        {
+            MessageBox.Show($"No validation issues found in '{skillName}'.", "Validation",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var report = new StringBuilder();
+        foreach (var issue in issues)
+            report.AppendLine($"[{issue.Severity}] {issue.Field} — {issue.Message}");
+        report.AppendLine();
+        report.AppendLine("Warnings are advisory: saving is never blocked.");
+
+        MessageBox.Show(report.ToString(), $"Validation — {skillName}",
+            MessageBoxButtons.OK,
+            warnings > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
     }
 
     private async void BtnDelete_Click(object? sender, EventArgs e)
@@ -650,6 +685,7 @@ public sealed partial class SkillEditorView : UserControl
 
         _btnSave.Enabled   = true;
         _btnDelete.Enabled = true;
+        _btnValidate.Enabled = true;
         SetStatus(string.Empty);
     }
 
@@ -835,7 +871,7 @@ public sealed partial class SkillEditorView : UserControl
     /// All other slots follow the catalog <c>Types</c> declaration.
     /// </summary>
     private static string ApplySlotQuoting(
-        string fieldName, CatalogField? field, int slotIndex, string rawVal)
+        string fieldName, SkillFieldSpec? field, int slotIndex, string rawVal)
     {
         bool alwaysQuote =
             slotIndex == 0 &&
@@ -856,38 +892,37 @@ public sealed partial class SkillEditorView : UserControl
     }
 
     /// <summary>
-    /// Lazy-loads meter IDs from <c>data/config/skillmeter.tok</c>.
-    /// Result is cached until <see cref="InitializeEditor"/> is called again.
+    /// Meter names for the <c>SKILLMETER</c> dropdown, resolved by Core from
+    /// <c>data/config/swingmeter.tok</c> plus the values observed in this project's
+    /// own <c>skills.tok</c>. Result is cached until <see cref="InitializeEditor"/>
+    /// is called again.
     /// </summary>
-    private List<string> LoadMeterIds()
+    private IReadOnlyList<string> LoadMeterIds()
     {
-        if (_meterCache is not null) return _meterCache;
+        if (string.IsNullOrEmpty(_projectFolder)) return Array.Empty<string>();
+        return ContextForProject().MeterIds;
+    }
 
-        _meterCache = new List<string>();
-        if (string.IsNullOrEmpty(_projectFolder)) return _meterCache;
-
-        string path = ProjectPaths.SkillMeterTokFile(_projectFolder);
-        if (!File.Exists(path)) return _meterCache;
+    /// <summary>
+    /// Per-project Core context (meter names + lookup text). Built once per
+    /// project and invalidated by <see cref="InitializeEditor"/>.
+    /// </summary>
+    private SkillsContext ContextForProject()
+    {
+        if (_skillsContext is not null) return _skillsContext;
 
         try
         {
-            var enc = Encoding.GetEncoding("ISO-8859-1");
-            foreach (var line in File.ReadLines(path, enc))
-            {
-                string trimmed = line.Trim();
-                if (!trimmed.StartsWith("METERCREATE:", StringComparison.OrdinalIgnoreCase))
-                    continue;
-                string? id = ExtractFirstQuoted(trimmed);
-                if (id is not null)
-                    _meterCache.Add(id);
-            }
+            _skillsContext = SkillsContext.Load(ProjectPaths.BecFolder(_projectFolder));
         }
-        catch
+        catch (Exception)
         {
-            // If file is unreadable, return empty; UI shows fallback text box.
+            // Unreadable project data: fall back to an empty context so the
+            // editor still works (dropdowns degrade to free-text).
+            _skillsContext = SkillsContext.Empty;
         }
 
-        return _meterCache;
+        return _skillsContext;
     }
 
     /// <summary>
