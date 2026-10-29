@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "User-curated additions to the skills catalog.",
+    "This file is NEVER overwritten by build_catalog.py. Anything you put here",
+    "is set-unioned into skills_catalog.json on every regeneration.",
+    "",
+    "Shape:",
+    "  {",
+    "    \"fields\": {",
+    "      \"<FIELDNAME>\": {",
+    "        \"slots\": [",
+    "          {\"values\": [\"new value 1\", \"new value 2\"]},",
+    "          {\"values\": [\"value for 2nd positional arg\"]}",
+    "        ]",
+    "      }",
+    "    }",
+    "  }",
+    "",
+    "Only string-valued slots accept additions. Numeric slots are unbounded by",
+    "design (they're free-form numeric input in the GUI)."
+  ],
+  "fields": {}
+}

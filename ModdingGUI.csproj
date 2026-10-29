@@ -35,7 +35,7 @@
 
   <ItemGroup>
     <Content Include="ludo.ico" />
-    <Content Include="..\skills\skills_catalog.json">
+    <Content Include="skills\skills_catalog.json">
       <Link>skills\skills_catalog.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

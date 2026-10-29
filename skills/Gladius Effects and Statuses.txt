@@ -1,0 +1,432 @@
+Skill Effects
+
+SKILLEFFECT: "effect", 100, 1
+
+This is required before you can do ANY status. "effect" is one of the options below, 100 is chance for it to apply, 1 is dependent on the effect.
+
+There is also SKILLSPLITEFFECT: if you want to have a skill do a different effect based on a condition
+
+Status Only - used for most status effects when you only want the status. The 1 generally doesn't do much since the status itself takes care of most things.
+Change Stack Relative - moves a gladiator up or down in the stack relative to their current position. This CAN break the game if you try to move people forward in the stack past where their turn would have been. The 1 is how far up or down in the stack they move (i believe by a %, so .3 would be 30% change)
+Change Stack Absolute - honestly couldn't find a difference between this and above, but stack is weird anyway so there could be a difference.
+Change HP Relative - Not sure what the difference between relative and absolute is, but this does a % change in HP (used in most healing skills). 1 is how much to heal. Can also do negative numbers to remove HP
+Change SP Relative - Not sure what the difference between relative and absolute is, but this does a flat change to SP. 1 is how much to change (SP is by 10's, so putting "10" here would change SP by 1). Can also do negative numbers to remove SP
+Change HP Absolute - See above, i couldn't find any difference.
+Change SP Absolute - See above, i couldn't find any difference
+Divvy Up HP - Kills the character and divvy's up their remaining HP to anybody in the area (Galdr's cry of sacrifice used this before i changed it). The 1 does nothing.
+Vampiric HP - leech life, the 1 is a % of how much life you heal from damage (so .1 would be 10% life leech)
+Counterattack - Does a counterattack based on whatever the subskill attached is. 1 is how many times you do the counter attack
+Group Attack - Group attack (pack mentality). 1 does nothing as far as i can tell
+Group Sequential Attack - Group attack that works weird. Initially i thought it chained until somebody failed the roll, but I've had it go for eternity before and completely break the game, so don't use this.
+Shield Block - just used in the "block" level 0 skills for people with shields, you can ignore it.
+Knockback - knocks an enemy back, the 1 is how many tiles they are knocked back
+Knockdown - knocks an enemy down, i don't believe the 1 has any effect.
+Preswitch - no idea. I tried to play with it but couldn't figure it out.
+Random Teleport - basically just Tornado. The 1 is how many tiles they be moved.
+Shield Restore - Ursula's shield restore, i don't think the 1 does anything.
+Shield Break - Breaks a shield, the 1 doesn't do anything
+Helmet Break - Breaks a helmet, the 1 doesn't do anything
+change off affinity - flat change to an offensive affinity (up or down), the 1 is how much to move (each bubble is 20, so putting 30 would be a bubble and a half)
+change def affinity - flat change to a defensive affinity out of 100, up or down, the 1 is how much to move.
+change either affinity - flat change to either affinity (i think it looks at offensive first then overflows to defensive?). Same as above otherwise.
+drain off affinity - flat drain offensive affinity (like channeler drain affinity, but only looks at offensive). Number is how much to steal.
+drain def affinity - flat drain defensive affinity (like channeler drain affinity, but only looks at defensive). Number is how much to steal.
+drain either affinity - flat drain either affinity. Number is how much to steal.
+Change Crowd Source - Change the crowd meter for you. Number is how much to change out of 100.
+Change Crowd Target - Change the crowd meter for your target (could be enemy or ally), out of 100.
+ShiftReturn - cancels forms.
+ShiftTo - go into form
+Remove Status - remove a status
+Summon - summon a creature
+retreat - makes target move away. 1 is number to move.
+
+
+=================================================================================
+=================================================================================
+Skill Statuses
+
+SKILLSTATUS: "status", 100, 1
+
+Status is from option below, 100 is chance to apply, 1 is dependent on the effect. You can also do SKILLSTATUS2: "status", 100, 1 to add a second status to a skill
+
+hpregen noncumulative - hp regen, 1 is how much per tick (not sure what noncumulative means)
+damage multiply - didn't play with this one, i assume just a flat damage multiplier buff/debuff though (either damage done or damage taken)
+set step down limit - how far down you can jump (not really used), 1 is how much
+set step up limit - how far up you can jump, 1 is how much (used on cats). Only really works on innates.
+change off affinity charge rate - flat change to how much affinity you gain offensively.
+mult off affinity charge rate - percent change to how much affinity you gain offensively.
+change def affinity charge rate - flat change to how much affinity you gain defensively
+mult def affinity charge rate - percent change to how much affinity you gain defensively
+bleeding - damage over time, 1 is how much per interval
+poison - damage over time, 1 is how much per interval
+shieldmelt - damage over time to shield, 1 is how much per tick
+confusion - give confusion status, 1 does nothing
+blind - give blind status, 1 does nothing
+charm - give charm status, 1 does nothing
+fear - give fear status, 1 does nothing
+berserk - give berserk status, 1 does nothing
+root - give root status, 1 does nothing
+petrification - petrify status, 1 does nothing
+frozen - frozen status, 1 does nothing
+stun - stun status, 1 does nothing
+summon - adds the summon status to a summoned creature (which is the status that allows it to remain in the world), 1 does nothing
+supercharge - Ursula and Valens' power up skill. 1 does nothing
+immortal - grants immortal status, 1 does nothing
+doom count - sets doom status, 1 is how many counts of doom (i believe auto-goes down on target's turn)
+ambush - basically just cover from archers, i don't think 1 does anything (maybe lets you fire multiple times per ambush?)
+ambush interrupt - the "back off" skills, stops the enemy movement as well as ambushes. i don't think 1 does anything (maybe lets you fire multiple times per ambush?)
+conditional activate - used in skills like berserker adrenaline that has a condition (like half health) to activate. Requires a subskill to know what to do when the condition is met. The 1 does nothing
+always face - always face target, 1 does nothing. Only seems to work on innates
+mult shield effectiveness - Multiply shield health, 1 is how much
+dropped item chance up - multiply dropped item chance (chance per item to drop when chests can drop), 1 is how much
+combatattack damagemult - increase/decrease by % the damage a gladiator does. 1 is the %
+combatdefend damagemult - increase/decrease by % the damage a gladiator takes. 1 is the %
+combatattack critmult - increase/decrease by % the damage a gladiator does in a crit. 1 is the %
+combatdefend critmult - increase/decrease by % the damage a gladiator takes in a crit. 1 is the %
+combatdefend defenseadd - flat add or remove a gladiator's defense, 1 is the number
+combatattack accuracyadd - flat add or remove a gladiator's accuracy, 1 is the number
+combatdefend face front mult - increase/decrease by % the damage a gladiator takes from the front. 1 is the %
+combatattack face front mult - increase/decrease by % the damage a gladiator does from the front. 1 is the %
+combatdefend face back mult - increase/decrease by % the damage a gladiator takes from the back. 1 is the %
+combatattack face back mult - increase/decrease by % the damage a gladiator does from the back. 1 is the %
+crowd no flubs - makes it so if you flub a meter, the crowd doesn't care, 1 does nothing
+crowd positive mult - multiplies the change to crowd meters you do, 1 is percent
+auto regen - set HP regen, number is amount of heal per tick
+simple counterattack - grants a .4 damage counter (used on the counter accessories, doesn't require any subskill). 1 is how many counters you do.
+immunity status - sets an immunity to a status (which is determined in skillstatuscondition)
+immunity counters - immune to counter attacks, 1 does nothing
+skill meta cost add - removes or adds SP cost to skills (only seems to work in innates). 1 is by how much in, 10 per SP.
+skill meta range add - removes or adds range for targeting, only seems to work in innates. 1 is by how much.
+skill meta effect range add - removes or adds area for AoE attacks, only seems to work in innates. 1 is by how much.
+skill meta effect mult - not entirely sure, but i think it adds or removes based on the effect (so like, you could make knockback do 2 squares instead of 1), only likely to work in innates. 1 is by how much.
+skill meta stack cost mult - removes or adds stack cost to skills (like pass being a half cost turn, you could make it a quarter turn with this), only seems to work in innates. 1 is by how much.
+skill meta status duration mult - removes or adds duration to skills, only seems to work in innates. 1 is by how much.
+skill meta status effect mult - removes or adds effects on skills (like making poison do more), only seems to work in innates. 1 is by how much. Not sure on this one honestly
+
+All of the below are pretty much the same, either change by a flat number or a %, the 1 is either the flat number or percent to change by.
+change moverate
+change moverate percent
+change power
+change power percent
+change accuracy
+change accuracy percent
+change defense
+change defense percent
+change initiative
+change initiative percent
+change movetoattack
+change movetoattack percent
+
+=================================================================================
+=================================================================================
+Durations
+
+SKILLSTATUSDURATION: "Time", 1
+SKILLSTATUSINTERVAL: "Time", 1
+
+Both of these use the options below for "Time", then 1 is obviously either how long the status will last or how often the status will tick for things like poison or bleed (interval). Most is self explanatory (stack SUCKS to work with, i advise against it). Source is you, target is your target.
+
+Stack Absolute
+Stack Source Mult
+Stack Target Mult
+Turns Source
+Turns Target
+Lapse on Failed Condition - used for form buffs, like if you wanted to give a status that only activated when in bear form or something
+Lapse with order
+Permanent
+Until Negated
+
+=================================================================================
+=================================================================================
+Conditions
+
+SKILLEFFECTCONDITION: "option below"
+SKILLSPLITEFFECTCONDITION: "option below"
+SKILLTARGETCONDITION: "option below"
+SKILLSTATUSCONDITION: "option below"
+SKILLMOVERANGECONDITION: "option below" (used mostly with teleport skills)
+
+basically just choose one of the below. You can do multiple condition lines for multiple conditions, and if you have a status2 you can throw a "2" on the end of the status conditions to make them apply to the second status. Not all of these work for all of the options above.
+
+any square
+empty square
+friend only
+friend only not self
+enemy only
+all units
+all units not self
+self only
+target has shield
+target has helmet
+target can be dead
+sourcestatus ign knockeddown
+sourcestatus req knockeddown
+sourcestatus ign wounded
+sourcestatus req wounded
+sourcestatus ign woundedquarter
+sourcestatus req woundedquarter
+sourcestatus ign feared
+sourcestatus req feared
+sourcestatus ign confused
+sourcestatus req confused
+sourcestatus ign petrified
+sourcestatus req petrified
+sourcestatus ign frozen
+sourcestatus req frozen
+sourcestatus ign stunned
+sourcestatus req stunned
+sourcestatus ign berserk
+sourcestatus req berserk
+sourcestatus ign charmed
+sourcestatus req charmed
+sourcestatus ign shifted
+sourcestatus req shifted
+sourcestatus ign blinded
+sourcestatus req blinded
+sourcestatus ign supercharged
+sourcestatus req supercharged
+sourcestatus ign immortal
+sourcestatus req immortal
+sourcestatus ign rooted
+sourcestatus req rooted
+sourcestatus ign doomed
+sourcestatus req doomed
+targetstatus ign knockeddown
+targetstatus req knockeddown
+targetstatus ign wounded
+targetstatus req wounded
+targetstatus ign woundedquarter
+targetstatus req woundedquarter
+targetstatus ign feared
+targetstatus req feared
+targetstatus ign confused
+targetstatus req confused
+targetstatus ign petrified
+targetstatus req petrified
+targetstatus ign frozen 
+targetstatus req frozen 
+targetstatus ign stunned
+targetstatus req stunned
+targetstatus ign berserk
+targetstatus req berserk
+targetstatus ign charmed
+targetstatus req charmed
+targetstatus ign shifted
+targetstatus req shifted
+targetstatus ign blinded
+targetstatus req blinded
+targetstatus ign supercharged
+targetstatus req supercharged
+targetstatus ign immortal
+targetstatus req immortal
+targetstatus ign rooted
+targetstatus req rooted
+targetstatus ign doomed
+targetstatus req doomed
+unitattr ign beast
+unitattr req beast
+unitattr ign MALE
+unitattr req MALE
+unitattr ign FEMALE
+unitattr req FEMALE
+unitattr ign NORDAGH
+unitattr req NORDAGH
+unitattr ign IMPERIA
+unitattr req IMPERIA
+unitattr ign EXPANSE
+unitattr req EXPANSE
+unitattr ign STEPPES
+unitattr req STEPPES
+unitattr ign ARCANE
+unitattr req ARCANE
+unitattr ign SUPPORT
+unitattr req SUPPORT
+unitattr ign LIGHT
+unitattr req LIGHT
+unitattr ign MEDIUM
+unitattr req MEDIUM
+unitattr ign HEAVY
+unitattr req HEAVY
+
+There is also SKILLSTATUSSITUATIONSTATUSCONDITION: "option below" (i think some options above CAN ALSO be used with this, but i only ever see these with SKILLSTATUSSITUATIONSTATUSCONDITION and usually in reference to immunities or removing statuses)
+statuscond immunity
+statuscond debuff
+statuscond buff
+statuscond poison
+statuscond bleeding
+statuscond blind
+statuscond doom
+statuscond root
+statuscond confused
+statuscond feared
+statuscond petrified
+statuscond frozen
+statuscond charmed
+statuscond stunned
+statuscond damagepos
+statuscond damageneg
+statuscond immortal
+statuscond supercharge
+statuscond shieldmelt
+statuscond hpregen
+statuscond berserk
+statuscond all
+
+There is also SKILLSTATUSSITUATIONAFFINITYCONDITION: "option below" with
+affinity ign fire
+affinity req fire
+affinity ign water
+affinity req water
+affinity ign air
+affinity req air
+affinity ign earth
+affinity req earth
+affinity ign dark
+affinity req dark
+affinity ign light
+affinity req light
+
+skillattr ign bite
+skillattr req bite
+skillattr ign melee
+skillattr req melee
+skillattr ign ranged
+skillattr req ranged
+skillattr ign spell
+skillattr req spell
+skillattr ign piercing
+skillattr req piercing
+skillattr ign weapon
+skillattr req weapon
+skillattr ign shield
+skillattr req shield
+skillattr ign movetoattack
+skillattr req movetoattack
+skillattr ign affinity
+skillattr req affinity
+skilltype ign innate
+skilltype req innate
+skilltype ign support
+skilltype req support
+skilltype ign attack
+skilltype req attack
+skilltype ign secondary
+skilltype req secondary
+
+=================================================================================
+=================================================================================
+
+Below are all the possible skills.tok lines you can have. Some are unused and i'm unsure if they work.
+
+SKILLCREATE:
+NUMENTRIES:
+SKILLDISPLAYNAMEID:
+SKILLDESCRIPTIONID:
+SKILLCOSTS:
+SKILLAFFCOST:
+SKILLCOMBATMODS:
+SKILLMOVETOATTACKMOD:
+SKILLATTRIBUTE:
+SKILLAFFINITY:
+SKILLWEAPONREQ:
+SKILLWEAPONEXC:
+SKILLMETER:
+SKILLCOMBOBUTTON:
+SKILLRANGE:
+SKILLEXCLUDERANGE:
+SKILLDISTANCEDELAY:
+SKILLEFFECT:
+SKILLEFFECTVALUE2:
+SKILLEFFECTRANGE:
+SKILLEFFECTCONDITION:
+SKILLEFFECTSKILLCOND:
+SKILLEFFECTSTATUSCOND:
+SKILLEFFECTFX:
+SKILLSPLITEFFECT:
+SKILLSPLITEFFECTFX:
+SKILLSPLITEFFECTCONDITION:
+SKILLUSABILITYCONDITION:
+SKILLTARGETCONDITION:
+SKILLMOVERANGECONDITION:
+SKILLMOVERANGE:
+SKILLSTATUS:
+SKILLSTATUSDURATION:
+SKILLSTATUSINTERVAL:
+SKILLSTATUSTARGET:
+SKILLSTATUSUSELIMIT:
+SKILLSTATUSCONDITION:
+SKILLSTATUSSITUATIONCONDITION:
+SKILLSTATUSSITUATIONSKILLCONDITION:
+SKILLSTATUSSITUATIONSTATUSCONDITION:
+SKILLSTATUSSITUATIONUNITCONDITION:
+SKILLSTATUSSITUATIONAFFINITYCONDITION:
+SKILLSTATUSCHANCE:
+SKILLSTATUS2:
+SKILLSTATUSDURATION2:
+SKILLSTATUSINTERVAL2:
+SKILLSTATUSTARGET2:
+SKILLSTATUSUSELIMIT2:
+SKILLSTATUSCONDITION2:
+SKILLSTATUSSITUATIONCONDITION2:
+SKILLSTATUSSITUATIONSKILLCONDITION2:
+SKILLSTATUSSITUATIONSTATUSCONDITION2:
+SKILLSTATUSSITUATIONUNITCONDITION2:
+SKILLSTATUSSITUATIONAFFINITYCONDITION2:
+SKILLSTATUSCHANCE2:
+SKILLANIM:
+SKILLDEFENDHANIM:
+SKILLANIMSPEED:
+SKILLANIMTIME:
+SKILLANIMSTARTTIME:
+SKILLANIMSTARTFRAME:
+SKILLDEFENDHANIMSPEED:
+SKILLLOWANIM:
+SKILLLOWANIMSPEED:
+SKILLLOOPANIM:
+SKILLLOOPANIMSPEED:
+SKILLMOVEANIM:
+SKILLMOVEANIMSPEED:
+SKILLCHARGEANIM:
+SKILLCHARGEANIMSPEED:
+SKILLFXMOVE:
+SKILLFXPROJECTILE:
+SKILLFXPROJECTILEIMPACT:
+SKILLFX:
+SKILLFXSWING:
+SKILLFXCTAG:
+SKILLSOUND:
+SKILLHTAGSOUND:
+SKILLSUBSKILL:
+SKILLPROXY:
+SKILLSHIFTDATA:
+SKILLSUMMONDATA:
+SKILLMULTIHITDATA:
+SKILLPROJECTILE:
+SKILLPROJECTILEATTR:
+SKILLPROJECTILESEQUENCE:
+SKILLPROJECTILEROTATION:
+SKILLLEVEL:
+SKILLEXPCOST:
+SKILLJOBPOINTCOST:
+SKILLUSECLASS:
+SKILLPREREQ:
+SKILLREPLACES:
+SKILLEXCLUSION1:
+SKILLEXCLUSION2:
+SKILLFREE1:
+SKILLFREE2:
+SKILLFREE3:
+SKILLFREE4:
+
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond feared"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond frozen"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond petrified"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond stunned"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond bleeding"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond blind"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond charmed"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond confused"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond doom"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond poison"
+SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond root"
+

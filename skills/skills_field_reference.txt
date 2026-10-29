@@ -1,0 +1,1049 @@
+# ============================================================
+# GLADIUS SKILLS.TOK — FIELD REFERENCE
+# ============================================================
+# Purpose: document every field in skills.tok, their known
+#          static value lists, and how fields relate to each
+#          other, so the GUI schema can be built correctly.
+#
+# Edit this file, then hand it back.  Do not change the
+# FIELD:/FORMAT:/MULTI:/VALUES:/LINK:/REQUIRES:/NOTES:/--- 
+# keywords — only edit the content after the colon.
+#
+# ============================================================
+# FORMAT GUIDE
+# ============
+#
+# Each field block uses these keys (all optional except FIELD):
+#
+#   FIELD:    <FIELDNAME>
+#   FORMAT:   plain-English description of the value structure
+#   MULTI:    yes / no   — can this line appear more than once per skill record?
+#   VALUES:   value1 | value2 | value3
+#             (enum fields only; pipe-separated; wrap to next line with leading spaces)
+#   LINK:     <OTHER_FIELD>
+#             Both fields must appear together whenever either one is present.
+#             Symmetric — only write the link on one side.
+#             Add one LINK: line per linked field.
+#   REQUIRES: <condition>
+#             This field only appears when a condition on another field is true.
+#             The other field CAN exist without this one.
+#   NOTES:    free text — anything useful
+#   ---       (three dashes ends the block)
+#
+# --------------------------------------------------------
+# CONDITION SYNTAX FOR REQUIRES:
+#
+#   FIELD present                  field exists at all
+#   FIELD = value                  field equals a specific value
+#   FIELD.part = value             a sub-part of the field equals a value
+#                                  (use for comma-structured fields, e.g.
+#                                   SKILLCREATE.type = Attack)
+#   FIELD.name = value             for effect/status fields, the name sub-part
+#
+# --------------------------------------------------------
+# EXAMPLES (filled-out blocks for illustration):
+#
+#   FIELD:    SKILLAFFCOST
+#   FORMAT:   integer; divide by 20 to get actual orb cost
+#   MULTI:    no
+#   VALUES:
+#   LINK:     SKILLAFFINITY
+#   REQUIRES:
+#   NOTES:    always paired with SKILLAFFINITY
+#   ---
+#
+#   FIELD:    SKILLAFFINITY
+#   FORMAT:   "value"
+#   MULTI:    no
+#   VALUES:   Air | Dark | Earth | Fire | Light | None | Water
+#   LINK:     SKILLAFFCOST
+#   REQUIRES:
+#   NOTES:
+#   ---
+#
+#   FIELD:    SKILLMOVERANGE
+#   FORMAT:   range, "pattern"
+#   MULTI:    no
+#   VALUES:
+#   LINK:
+#   REQUIRES: SKILLATTRIBUTE = teleport
+#   NOTES:    only present when the teleport attribute is set
+#   ---
+#
+# ============================================================
+# FIELDS ARE GROUPED BY ROLE.
+# If a field belongs to more than one group, it appears in the
+# most relevant one with a cross-reference in NOTES.
+# ============================================================
+
+
+# ============================================================
+# GROUP 1 — CORE IDENTITY
+# Every skill record has at minimum: SKILLCREATE + SKILLDISPLAYNAMEID
+# ============================================================
+
+FIELD:    SKILLCREATE
+FORMAT:   "name", "type", "category"
+MULTI:    no
+VALUES[type]:     Attack | Command | Innate | Secondary | Support
+VALUES[category]: Breakout | Combo | Continue | Crit Cause | Death Effect | Defend
+                  Effect | Hit Cause | Hit Return | Miss Return | One Time | Ongoing
+                  Pass | Standard | Status | Surprise
+LINK:
+REQUIRES:
+NOTES:    The name must be unique across the file.
+          type and category are always present (both quoted).
+---
+
+FIELD:    SKILLDISPLAYNAMEID
+FORMAT:   integer
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Lookup ID into lookuptext_eng.txt for the player-visible skill name.
+---
+
+FIELD:    SKILLDESCRIPTIONID
+FORMAT:   integer
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Lookup ID for the flavour description text. Optional.
+---
+
+FIELD:    SKILLJOBPOINTCOST
+FORMAT:   integer
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    JP cost to learn the skill.
+---
+
+FIELD:    SKILLLEVEL
+FORMAT:   integer
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Skill tier/level; -1 means not level-gated. THIS IS NOT CURRENTLY USED BY THE GAME BUT SHOULD BE SET FOR GOOD READING
+---
+
+FIELD:    SKILLUSECLASS
+FORMAT:   "ClassName"
+MULTI:    yes
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    One line per class that can use this skill.
+          The same skill name/ID can appear multiple times in the file,
+          once per class (each with its own SKILLUSECLASS block). Multiple entries on one skill means multiple classes can use that skill. SKILLUSECLASS is found in classdefs.tok SKILLUSENAME field.
+---
+
+FIELD:    SKILLREPLACES
+FORMAT:   "skill name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    This skill replaces the named skill in the class's skill list.
+---
+
+FIELD:    SKILLPREREQ
+FORMAT:   skill name string (no quotes in vanilla)
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    The skill that must be learned before this one is available.
+---
+
+FIELD:    SKILLWEAPONREQ
+FORMAT:   "value"
+MULTI:    no
+VALUES:   <Any> | bow | javelin | spear
+LINK:
+REQUIRES:
+NOTES:    Weapon type the unit must be equipped with to use this skill. The skill is still learned, it just won't show up until that item is equipped.
+---
+
+
+# ============================================================
+# GROUP 2 — COST AND AFFINITY
+# ============================================================
+
+FIELD:    SKILLCOSTS
+FORMAT:   turns, sp×10
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    First value = turn cost (usually 1, lower to make next turn come faster, higher for slower).
+          Second value = SP cost multiplied by 10 (e.g. 20 = 2 SP).
+---
+
+FIELD:    SKILLAFFCOST
+FORMAT:   integer (divide by 20 to get actual orb cost)
+MULTI:    no
+VALUES:
+LINK:     SKILLAFFINITY
+REQUIRES:
+NOTES:
+---
+
+FIELD:    SKILLAFFINITY
+FORMAT:   "value"
+MULTI:    no
+VALUES:   Air | Dark | Earth | Fire | Light | None | Water
+LINK:     SKILLAFFCOST
+REQUIRES:
+NOTES:    "None" means any affinity type is accepted.
+---
+
+
+# ============================================================
+# GROUP 3 — TARGETING AND RANGE
+# ============================================================
+
+FIELD:    SKILLRANGE
+FORMAT:   range, "pattern"
+MULTI:    no
+VALUES[pattern]: Diamond | Linear | Plus | Plus2x2 | Plus3x3 | Self | Square | Square2x2 | Star
+LINK:
+REQUIRES:
+NOTES:    range = integer tile count.
+          When range = 0 and pattern = "Self", the skill uses SKILLEFFECTRANGE
+          instead to define its AoE footprint.
+---
+
+FIELD:    SKILLEXCLUDERANGE
+FORMAT:   range, "pattern"
+MULTI:    no
+VALUES[pattern]: Diamond | Linear | Plus | Plus2x2 | Plus3x3 | Self | Square | Square2x2 | Star
+LINK:
+REQUIRES: SKILLRANGE
+NOTES:    Tiles excluded from targeting (minimum distance).
+---
+
+FIELD:    SKILLEFFECTRANGE
+FORMAT:   range, "pattern"
+MULTI:    no
+VALUES[pattern]: Cone | Linear | Plus3x3 | Self | SourceCone | SourceDiamond | SourceLinear
+                 SourceSquare | Square | Square2x2 | SrcLinear2x2 | SrcLinear3x3
+LINK:     
+REQUIRES:
+NOTES:    Defines the AoE footprint originating from the targetted tile.
+			Self is for applying the skill to the caster, typically used on Support skills
+---
+
+FIELD:    SKILLEFFECTCONDITION
+FORMAT:   string (see VALUES)
+MULTI:    yes
+VALUES:   friend only | friend only not self | enemy only | all units not self
+          targetstatus req <status> | targetstatus ign <status>
+LINK:     
+REQUIRES: SKILLEFFECTRANGE
+NOTES:    Filters which units are actually affected by the skill.
+          "targetstatus req/ign <status>" uses a status name (see SKILLSTATUS names).
+---
+
+FIELD:    SKILLTARGETCONDITION
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   all units not self | any square | empty square | enemy only
+          friend only | friend only not self | self only
+          target has shield | unitattr ign beast | unitattr req HEAVY|MEDIUM|LIGHT | unitattr req MALE|FEMALE
+          sourcestatus req woundedquarter
+LINK:
+REQUIRES:
+NOTES:    Restricts which squares/units can be chosen as the skill target.
+---
+
+FIELD:    SKILLUSABILITYCONDITION
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   sourcestatus req berserk | targetstatus req berserk | targetstatus req woundedquarter
+LINK:
+REQUIRES:
+NOTES:    Condition on the SOURCE unit (or target) that must be true for the skill
+          to appear as usable in the menu.
+---
+
+
+# ============================================================
+# GROUP 4 — COMBAT MECHANICS
+# ============================================================
+
+FIELD:    SKILLATTRIBUTE
+FORMAT:   string (see VALUES)
+MULTI:    yes
+VALUES:   affinity | cantmiss | charge | melee | movetoattack | noninterface
+          okwithnotargets | piercing | ranged | shield | spell | suicide | teleport | weapon
+LINK:
+REQUIRES:
+NOTES:    Each attribute line adds one attribute to the skill.
+          "weapon" = uses equipped weapon and applies weapon item skills; "shield" = uses equipped shield.
+          "teleport" requires SKILLMOVERANGE to also be present.
+          "movetoattack" requires SKILLMOVETOATTACKMOD to also be present.
+---
+
+FIELD:    SKILLCOMBATMODS
+FORMAT:   accuracy_modifier, damage_multiplier
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    accuracy_modifier: integer added to hit chance (0 = normal accuracy).
+          damage_multiplier: float; 1.0 = 100% of base damage.
+---
+
+FIELD:    SKILLMULTIHITDATA
+FORMAT:   string of position letters per hit (see VALUES)
+MULTI:    yes
+VALUES[letters]: A=front-left | B=in-front | C=front-right | D=right
+                 E=back-right  | F=behind   | G=back-left   | H=left
+LINK:
+REQUIRES:
+NOTES:    One SKILLMULTIHITDATA line per hit in the multi-hit sequence.
+          Each line is a string of letters indicating which adjacent tiles
+          that hit affects (e.g. "BC" hits the tile in front and front-right).
+---
+
+FIELD:    SKILLMOVETOATTACKMOD
+FORMAT:   integer
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES: This is a required line prior to SKILLMOVETOATTACKMOD: SKILLATTRIBUTE = "movetoattack"
+NOTES:    Extra (+) or reduced (-) movement tiles available when using
+          Move-to-Attack with this skill.
+---
+
+FIELD:    SKILLMETER
+FORMAT:   "type", base_value, max_or_step_value
+MULTI:    no
+VALUES[type]: Basic | Bounce1 | Bounce2 | Breakout | Chain | ChainSlow
+              FastButton1 | FastButton2 | FastButton3 | Loop1 | Loop2 | None
+              Pound1 | Pound2 | Pound3 | Precision1 | Precision2 | Precision3
+LINK:
+REQUIRES:
+NOTES:    Controls the timing minigame shown during the skill.
+          For Chain/ChainSlow: third value = total number of hits in the combo.
+          When type = Chain or ChainSlow, SKILLSUBSKILL should also be present.
+---
+
+FIELD:    SKILLSUBSKILL
+FORMAT:   "skill name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Name of the next skill in a combo chain.
+          That skill record has its own SKILLCREATE, SKILLCOMBATMODS, etc.
+          Add REQUIRES/LINK here once combo linking rules are confirmed.
+---
+
+FIELD:    SKILLCOMBOBUTTON
+FORMAT:   "button"
+MULTI:    no
+VALUES:   rdown | rleft | rright | rup
+LINK:
+REQUIRES: A ComboChain ability that calls `SKILLSUBSKILL: "CLASS ComboChain ##"` 
+NOTES:    The button input that triggers this combo step.
+          Only appears in Combo and ComboChain skills. It denotes which button on the face buttons will be hit at this step.
+---
+
+
+# ============================================================
+# GROUP 5 — EFFECTS
+# Effects fire at the moment the skill resolves on the target.
+# SKILLEFFECTSKILLCOND and SKILLEFFECTSTATUSCOND are conditions
+# that gate whether the effect fires at all.
+# ============================================================
+
+FIELD:    SKILLEFFECT
+FORMAT:   "name", chance, value
+MULTI:    yes
+VALUES[name]: Avoid | Block | Change Crowd Source | Change Crowd Target
+              Change HP Absolute | Change HP Relative | Change Stack Relative
+              Counterattack | Divvy Up HP | Group Attack | Helmet Break
+              Knockback | Knockdown | Random Teleport | Remove Status | Retreat
+              Shield Block | Shield Break | Shield Restore | ShiftReturn | ShiftTo
+              Status Only | Summon | Vampiric HP
+              change off affinity | drain either affinity
+LINK:
+REQUIRES:
+NOTES:    chance = integer 0-100 (percentage).
+          value  = integer or float depending on the effect name.
+          Multiple SKILLEFFECT lines = multiple effects applied on hit.
+          "Summon" requires SKILLSUMMONDATA.
+          "ShiftTo" / "ShiftReturn" requires SKILLSHIFTDATA.
+---
+
+FIELD:    SKILLEFFECTSKILLCOND
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   skill: <skill name> | skillattr ign affinity | skillattr ign spell
+          skillattr req melee | skillattr req piercing | skillattr req ranged | skillattr req spell
+LINK:
+REQUIRES:
+NOTES:    Condition in order to trigger an effect. For example, an attack that only poisons if the user uses a specific set of skills they have learned.
+---
+
+FIELD:    SKILLEFFECTSTATUSCOND
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   statuscond all | statuscond bleeding | statuscond blind | statuscond charmed
+          statuscond confused | statuscond debuff | statuscond doom | statuscond poison
+          statuscond root | statuscond shieldmelt | statuscond stunned
+LINK:
+REQUIRES:
+NOTES:    Status the TARGET must have for SKILLEFFECT to fire.
+---
+
+FIELD:    SKILLSPLITEFFECT
+FORMAT:   "name", value
+MULTI:    no
+VALUES[name]: Change HP Relative
+LINK:     
+REQUIRES:
+NOTES:    Like SKILLEFFECT but combines with SKILLSPLITEFFECTCONDITION to allow a skill to do multiple things.
+          Value in quotations can match anything SKILLEFFECT can use, numeric value influences the SKILLEFFECT e.g.:
+		  SKILLSPLITEFFECT: "Shield Restore", 100, 1 < 100% chance to restore shieldmelt
+		  SKILLSPLITEFFECT: "Change HP Relative", -0.1 < decreases targets hp by 10%
+---
+
+FIELD:    SKILLSPLITEFFECTCONDITION
+FORMAT:   "class: ClassName" | "self only" | "enemy only"
+MULTI:    no
+VALUES:
+LINK:     
+REQUIRES: SKILLSPLITEFFECT
+NOTES:    The condition that triggers the split behaviour.
+          This can be used to get different effects on units depending on the value being evaluated.
+---
+
+
+# ============================================================
+# GROUP 6 — STATUS APPLICATION (SLOT 1)
+# These fields define the first status effect the skill applies.
+# All "2" variants in Group 7 are a second independent slot.
+# ============================================================
+
+FIELD:    SKILLSTATUS
+FORMAT:   "name", chance, value
+MULTI:    yes
+VALUES[name]: always face | ambush interrupt | ambush | auto regen | berserk
+              bleeding | blind | change accuracy | change defense | change initiative
+              change initiative percent | change moverate | change power percent
+              combatattack damagemult | combatdefend damagemult | crowd positive mult
+              frozen | hpregen | hpregen noncummulative | immortal | immunity counters
+              immunity status | mult def affinity charge rate | mult off affinity charge rate
+              mult shield effectiveness | petrification | poison | root | set step up limit
+              shieldmelt | simple counterattack | skill meta range add | stun | summon
+              supercharge
+LINK:
+REQUIRES:
+NOTES:    Skill Statuses
+
+SKILLSTATUS: "status", 100, 1
+
+Status is from option below, 100 is chance to apply, 1 is dependent on the effect. You can also do SKILLSTATUS2: "status", 100, 1 to add a second status to a skill
+
+hpregen noncumulative - hp regen, 1 is how much per tick (not sure what noncumulative means)
+damage multiply - didn't play with this one, i assume just a flat damage multiplier buff/debuff though (either damage done or damage taken)
+set step down limit - how far down you can jump (not really used), 1 is how much
+set step up limit - how far up you can jump, 1 is how much (used on cats). Only really works on innates.
+change off affinity charge rate - flat change to how much affinity you gain offensively.
+mult off affinity charge rate - percent change to how much affinity you gain offensively.
+change def affinity charge rate - flat change to how much affinity you gain defensively
+mult def affinity charge rate - percent change to how much affinity you gain defensively
+bleeding - damage over time, 1 is how much per interval
+poison - damage over time, 1 is how much per interval
+shieldmelt - damage over time to shield, 1 is how much per tick
+confusion - give confusion status, 1 does nothing
+blind - give blind status, 1 does nothing
+charm - give charm status, 1 does nothing
+fear - give fear status, 1 does nothing
+berserk - give berserk status, 1 does nothing
+root - give root status, 1 does nothing
+petrification - petrify status, 1 does nothing
+frozen - frozen status, 1 does nothing
+stun - stun status, 1 does nothing
+summon - adds the summon status to a summoned creature (which is the status that allows it to remain in the world), 1 does nothing
+supercharge - Ursula and Valens' power up skill. 1 does nothing
+immortal - grants immortal status, 1 does nothing
+doom count - sets doom status, 1 is how many counts of doom (i believe auto-goes down on target's turn)
+ambush - basically just cover from archers, i don't think 1 does anything (maybe lets you fire multiple times per ambush?)
+ambush interrupt - the "back off" skills, stops the enemy movement as well as ambushes. i don't think 1 does anything (maybe lets you fire multiple times per ambush?)
+conditional activate - used in skills like berserker adrenaline that has a condition (like half health) to activate. Requires a subskill to know what to do when the condition is met. The 1 does nothing
+always face - always face target, 1 does nothing. Only seems to work on innates
+mult shield effectiveness - Multiply shield health, 1 is how much
+dropped item chance up - multiply dropped item chance (chance per item to drop when chests can drop), 1 is how much
+combatattack damagemult - increase/decrease by % the damage a gladiator does. 1 is the %
+combatdefend damagemult - increase/decrease by % the damage a gladiator takes. 1 is the %
+combatattack critmult - increase/decrease by % the damage a gladiator does in a crit. 1 is the %
+combatdefend critmult - increase/decrease by % the damage a gladiator takes in a crit. 1 is the %
+combatdefend defenseadd - flat add or remove a gladiator's defense, 1 is the number
+combatattack accuracyadd - flat add or remove a gladiator's accuracy, 1 is the number
+combatdefend face front mult - increase/decrease by % the damage a gladiator takes from the front. 1 is the %
+combatattack face front mult - increase/decrease by % the damage a gladiator does from the front. 1 is the %
+combatdefend face back mult - increase/decrease by % the damage a gladiator takes from the back. 1 is the %
+combatattack face back mult - increase/decrease by % the damage a gladiator does from the back. 1 is the %
+crowd no flubs - makes it so if you flub a meter, the crowd doesn't care, 1 does nothing
+crowd positive mult - multiplies the change to crowd meters you do, 1 is percent
+auto regen - set HP regen, number is amount of heal per tick
+simple counterattack - grants a .4 damage counter (used on the counter accessories, doesn't require any subskill). 1 is how many counters you do.
+immunity status - sets an immunity to a status (which is determined in skillstatuscondition)
+immunity counters - immune to counter attacks, 1 does nothing
+skill meta cost add - removes or adds SP cost to skills (only seems to work in innates). 1 is by how much in, 10 per SP.
+skill meta range add - removes or adds range for targeting, only seems to work in innates. 1 is by how much.
+skill meta effect range add - removes or adds area for AoE attacks, only seems to work in innates. 1 is by how much.
+skill meta effect mult - not entirely sure, but i think it adds or removes based on the effect (so like, you could make knockback do 2 squares instead of 1), only likely to work in innates. 1 is by how much.
+skill meta stack cost mult - removes or adds stack cost to skills (like pass being a half cost turn, you could make it a quarter turn with this), only seems to work in innates. 1 is by how much.
+skill meta status duration mult - removes or adds duration to skills, only seems to work in innates. 1 is by how much.
+skill meta status effect mult - removes or adds effects on skills (like making poison do more), only seems to work in innates. 1 is by how much. Not sure on this one honestly
+
+All of the below are pretty much the same, either change by a flat number or a %, the 1 is either the flat number or percent to change by.
+change moverate
+change moverate percent
+change power
+change power percent
+change accuracy
+change accuracy percent
+change defense
+change defense percent
+change initiative
+change initiative percent
+change movetoattack
+change movetoattack percent
+          See SKILLSTATUSTARGET, SKILLSTATUSDURATION etc for the rest of slot 1.
+---
+
+FIELD:    SKILLSTATUSTARGET
+FORMAT:   "target_mode", range, "pattern"
+MULTI:    no
+VALUES[target_mode]: Reverse Target Area Unit | Target Area Caster | Target Area Grid
+                     Target Global | Target Unit
+VALUES[pattern]:     Diamond | Plus | Self | Square | SourceSquare
+LINK:
+REQUIRES: SKILLSTATUS
+NOTES:    Who receives the status from slot 1.
+          "Target Unit" = the skill's direct target.
+          "Target Area Caster" = AoE around the caster.
+---
+
+FIELD:    SKILLSTATUSDURATION
+FORMAT:   "type", value
+MULTI:    no
+VALUES[type]: Lapse on Failed Condition | Lapse with order | Permanent
+              Stack Absolute | Stack Source Mult | Stack Target Mult
+              Turns Source | Turns Target | Until Negated
+LINK:
+REQUIRES:
+NOTES:    How long the slot 1 status lasts.
+          Stack types: value is a count or multiplier.
+          Turns types: value is number of turns.
+          "Permanent" / "Until Negated": second value is 0 or 1 (unknown meaning).
+---
+
+FIELD:    SKILLSTATUSCHANCE
+FORMAT:   integer (0-100)
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES: SKILLSTATUS
+NOTES:    Additional percentage gate for the whole slot 1 block.
+          Only seen as 50, 80, 100 in vanilla.
+---
+
+FIELD:    SKILLSTATUSINTERVAL
+FORMAT:   "type", value
+MULTI:    no
+VALUES[type]: Stack Absolute | Turns Source | Turns Target
+LINK:
+REQUIRES: SKILLSTATUS
+NOTES:    How often a periodic status (e.g. poison ticks) fires.
+---
+
+FIELD:    SKILLSTATUSCONDITION
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   all units not self | class: <name> | enemy only | friend only | friend only not self
+          self only | sourcestatus req wounded | sourcestatus req woundedquarter
+          target has shield | targetstatus req shifted | targetstatus req wounded
+          targetstatus req woundedquarter | unitattr req MALE
+LINK:
+REQUIRES: SKILLSTATUS
+NOTES:    Condition the TARGET must meet for slot 1 status to be applied.
+---
+
+FIELD:    SKILLSTATUSUSELIMIT
+FORMAT:   integer
+MULTI:    no
+VALUES:   1
+LINK:
+REQUIRES: SKILLSTATUS
+NOTES:    Limits how many times this skill's status can stack/apply.
+          Only value seen in vanilla is 1.
+---
+
+FIELD:    SKILLSTATUSSITUATIONAFFINITYCONDITION
+FORMAT:   "affinity req <element>"
+MULTI:    no
+VALUES:   affinity req air | affinity req dark | affinity req earth
+          affinity req fire | affinity req water
+LINK:
+REQUIRES: SKILLSTATUS
+NOTES:    The source's current affinity element must match for slot 1 status to fire. e.g.
+			`SKILLSTATUS: "combatdefend damagemult", 100, 1.5
+			SKILLSTATUSDURATION: "Permanent", 0
+			SKILLSTATUSCONDITION: "enemy only"
+			SKILLSTATUSSITUATIONAFFINITYCONDITION: "affinity req water"`
+		This combination will make the user take 50% bonus damage if the enemy has a water affinity item equipped or water affinity skill is used
+---
+
+FIELD:    SKILLSTATUSSITUATIONSKILLCONDITION
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   skill: <skill name> | skillattr ign affinity | skillattr ign spell
+          skillattr req melee | skillattr req piercing | skillattr req ranged | skillattr req spell
+LINK:
+REQUIRES:
+NOTES:    Same as SKILLSTATUSSITUATIONAFFINITYCONDITION but for different conditions.
+---
+
+FIELD:    SKILLSTATUSSITUATIONSTATUSCONDITION
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   statuscond all | statuscond bleeding | statuscond blind | statuscond charmed
+          statuscond confused | statuscond doom | statuscond feared | statuscond frozen
+          statuscond petrified | statuscond poison | statuscond root | statuscond stunned
+LINK:
+REQUIRES:
+NOTES:    Status the TARGET must have for slot 1 SKILLSTATUSSITUATION block to fire.
+			Can also be used to make a unit immune to a condition e.g.
+			`SKILLEFFECT: "Status Only", 100, 1
+			SKILLSTATUS: "immunity status", 0, 0
+			SKILLSTATUSSITUATIONSTATUSCONDITION: "statuscond blind"
+			SKILLSTATUSCHANCE: 100`
+			this makes a unit immune to being blind as a passive effect
+---
+
+FIELD:    SKILLSTATUSSITUATIONUNITCONDITION
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   affinity req earth | affinity req fire | affinity req water
+          class: <name> | enemy only | friend only not self | self only
+          skillattr req melee | skillattr req piercing | skillattr req ranged
+          sourcestatus req wounded | statuscond bleeding | statuscond stunned
+          target has shield | unitattr req beast | unitattr req MALE
+LINK:
+REQUIRES:
+NOTES:    Unit attribute condition for slot 1 SKILLSTATUSSITUATION block.
+---
+
+
+# ============================================================
+# GROUP 7 — STATUS APPLICATION (SLOT 2)
+# Exact same structure as Group 6, but for a second independent
+# status effect on the same skill.
+# All fields here should mirror Group 6 rules once confirmed.
+# ============================================================
+
+FIELD:    SKILLSTATUS2
+FORMAT:   "name", chance, value
+MULTI:    yes
+VALUES[name]: (same list as SKILLSTATUS — see Group 6)
+LINK:
+REQUIRES:
+NOTES:    Second status slot. Add REQUIRES if it can only appear when
+          SKILLSTATUS is also present, or if it is independent.
+---
+
+FIELD:    SKILLSTATUSTARGET2
+FORMAT:   "target_mode", range, "pattern"
+MULTI:    no
+VALUES[target_mode]: Reverse Target Area Unit | Target Area Caster | Target Unit
+VALUES[pattern]:     Diamond | Self | Square
+LINK:
+REQUIRES:
+NOTES:    Who receives the slot 2 status.
+---
+
+FIELD:    SKILLSTATUSDURATION2
+FORMAT:   "type", value
+MULTI:    no
+VALUES[type]: (same list as SKILLSTATUSDURATION — see Group 6)
+LINK:
+REQUIRES:
+NOTES:
+---
+
+FIELD:    SKILLSTATUSCHANCE2
+FORMAT:   integer (0-100)
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:
+---
+
+FIELD:    SKILLSTATUSINTERVAL2
+FORMAT:   "type", value
+MULTI:    no
+VALUES[type]: (same list as SKILLSTATUSINTERVAL — see Group 6)
+LINK:
+REQUIRES:
+NOTES:
+---
+
+FIELD:    SKILLSTATUSCONDITION2
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   class: <name> | enemy only | friend only not self
+          targetstatus req woundedquarter
+LINK:
+REQUIRES:
+NOTES:    Vanilla has fewer values here than SKILLSTATUSCONDITION.
+          Likely same full list applies.
+---
+
+FIELD:    SKILLSTATUSSITUATIONAFFINITYCONDITION2
+FORMAT:   "affinity req <element>"
+MULTI:    no
+VALUES:   (same list as SKILLSTATUSSITUATIONAFFINITYCONDITION — see Group 6)
+LINK:
+REQUIRES:
+NOTES:
+---
+
+FIELD:    SKILLSTATUSSITUATIONSTATUSCONDITION2
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   (same list as SKILLSTATUSSITUATIONSTATUSCONDITION — see Group 6)
+LINK:
+REQUIRES:
+NOTES:
+---
+
+FIELD:    SKILLSTATUSSITUATIONUNITCONDITION2
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   (same list as SKILLSTATUSSITUATIONUNITCONDITION — see Group 6)
+LINK:
+REQUIRES:
+NOTES:
+---
+
+
+# ============================================================
+# GROUP 8 — TELEPORT / MOVEMENT
+# ============================================================
+
+FIELD:    SKILLMOVERANGE
+FORMAT:   range, "pattern"
+MULTI:    no
+VALUES[pattern]: Diamond | Linear | Plus | Self | Square
+LINK:
+REQUIRES: SKILLATTRIBUTE = teleport
+NOTES:    Range and shape of where the unit can teleport to.
+---
+
+FIELD:    SKILLMOVERANGECONDITION
+FORMAT:   string (see VALUES)
+MULTI:    no
+VALUES:   empty square
+LINK:
+REQUIRES:
+NOTES:    Additional condition on the destination tile.
+---
+
+
+# ============================================================
+# GROUP 9 — PROJECTILE
+# ============================================================
+
+FIELD:    SKILLPROJECTILE
+FORMAT:   "asset name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Name of the projectile object/asset used for the visual.
+---
+
+FIELD:    SKILLPROJECTILEATTR
+FORMAT:   "value"
+MULTI:    no
+VALUES:   indirect | multifire | nontarget | return
+LINK:
+REQUIRES:
+NOTES:    "indirect" = no line of sight required.
+          "multifire" = fires multiple projectiles.
+          "nontarget" = projectile does not lock onto target.
+          "return"    = projectile returns to caster.
+---
+
+FIELD:    SKILLPROJECTILEROTATION
+FORMAT:   x, y, z, speed  (all numeric)
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Rotation axis (x/y/z flags 0 or 1) and rotation speed.
+          Exact semantics unknown — mark known meaning here.
+---
+
+FIELD:    SKILLPROJECTILESEQUENCE
+FORMAT:   "target_mode", "fire_condition", "path_type", count
+MULTI:    no
+VALUES[target_mode]:    all | linear | none
+VALUES[fire_condition]: always | ifevaded | ifnotblocked
+VALUES[path_type]:      chainstraight | chainzigzag
+LINK:
+REQUIRES:
+NOTES:    Controls how multiple projectiles (multifire) sequence and travel.
+---
+
+
+# ============================================================
+# GROUP 10 — SUMMON / SHIFT / PROXY / FREE SKILLS
+# Specialised fields used only with specific effect types.
+# ============================================================
+
+FIELD:    SKILLSUMMONDATA
+FORMAT:   "gladiator_name", "variant", integer
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Defines the unit summoned when SKILLEFFECT name = "Summon".
+          variant = "default" in all vanilla cases.
+          integer = unknown (0 in all vanilla cases).
+          Add REQUIRES: SKILLEFFECT.name = Summon once confirmed.
+---
+
+FIELD:    SKILLSHIFTDATA
+FORMAT:   "class", "variant", v1, v2, v3, v4, v5, v6, v7
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Stat modifiers applied when ShiftTo fires.
+          class + variant identify the shift target form.
+          v1-v7 appear to be numeric stat deltas (exact mapping unknown).
+          Add REQUIRES: SKILLEFFECT.name = ShiftTo once confirmed.
+---
+
+FIELD:    SKILLPROXY
+FORMAT:   "skill_name", "proxy_type"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Links this skill to another skill that acts as its proxy/upgrade.
+          proxy_type values seen: "affinity4", "Affinity4".
+          Exact mechanics unknown.
+---
+
+FIELD:    SKILLFREE1
+FORMAT:   "skill name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    A skill granted for free alongside this skill (slot 1 of 4).
+---
+
+FIELD:    SKILLFREE2
+FORMAT:   "skill name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Free skill slot 2.
+---
+
+FIELD:    SKILLFREE3
+FORMAT:   "skill name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Free skill slot 3.
+---
+
+FIELD:    SKILLFREE4
+FORMAT:   "skill name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Free skill slot 4.
+---
+
+
+# ============================================================
+# GROUP 11 — ANIMATION, FX, SOUND
+# These fields control visuals and audio only.
+# They do not affect gameplay logic.
+# Suggest: include in schema as free-text fields, no validation.
+# ============================================================
+
+FIELD:    SKILLANIM
+FORMAT:   "animation_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    The main animation played by the caster.
+---
+
+FIELD:    SKILLANIMSPEED
+FORMAT:   float
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Playback speed multiplier for SKILLANIM.
+---
+
+FIELD:    SKILLANIMSTARTFRAME
+FORMAT:   integer
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Frame offset into SKILLANIM to start playback.
+---
+
+FIELD:    SKILLANIMTIME
+FORMAT:   float
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Duration override for the animation in seconds (or frames — unknown).
+---
+
+FIELD:    SKILLCHARGEANIM
+FORMAT:   "animation_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Animation played during the meter/charge phase.
+---
+
+FIELD:    SKILLDEFENDHANIM
+FORMAT:   "animation_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Animation played by the DEFENDER when hit by this skill.
+---
+
+FIELD:    SKILLLOOPANIM
+FORMAT:   "animation_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Looping animation variant.
+---
+
+FIELD:    SKILLLOWANIM
+FORMAT:   "animation_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Low-quality/fallback animation.
+---
+
+FIELD:    SKILLMOVEANIM
+FORMAT:   "animation_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Animation played while the unit moves (charge/move-to-attack).
+---
+
+FIELD:    SKILLFX
+FORMAT:   "effect_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Particle/visual effect played on the caster or at the point of impact.
+---
+
+FIELD:    SKILLFXCTAG
+FORMAT:   "tag_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    FX contact tag (bone or attachment point on the character).
+---
+
+FIELD:    SKILLFXMOVE
+FORMAT:   "effect_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Visual effect played during movement phase.
+---
+
+FIELD:    SKILLFXPROJECTILE
+FORMAT:   "effect_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Visual effect used as the projectile.
+---
+
+FIELD:    SKILLFXPROJECTILEIMPACT
+FORMAT:   "effect_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Visual effect played on projectile impact.
+---
+
+FIELD:    SKILLFXSWING
+FORMAT:   "effect_name"
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Visual effect played during the weapon swing.
+---
+
+FIELD:    SKILLSOUND
+FORMAT:   "NNN.NNN"  (two three-digit numbers separated by a dot)
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Sound ID in the game's sound bank.
+---
+
+FIELD:    SKILLDISTANCEDELAY
+FORMAT:   float, float
+MULTI:    no
+VALUES:
+LINK:
+REQUIRES:
+NOTES:    Two floats — exact meaning unknown.
+          Seen values: "1.6, 3.75" and "4, 3.75".
+          Likely a distance-to-delay mapping for projectile timing.
+---
