@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using ModdingGUI.Core.Skills;
 using ModdingGUI.Core.Tok;
 
 /// <summary>
@@ -99,11 +100,12 @@ public sealed class SkillsApi : ISkillsApi
                 throw new InvalidOperationException($"Skill '{skill.Name}' already exists.");
 
             var newBlock = BuildBlock(skill);
-            // Append a blank separator line then the new record. Always finish
-            // with a trailing newline (convention for skills.tok).
+            // Append a blank separator line then the new record, and finish with a
+            // blank line so the file keeps the corpus convention (records are
+            // separated by — and followed by — one empty line).
             lines.Add(string.Empty);
             lines.AddRange(newBlock);
-            WriteLines(projectPath, lines, trailing: true);
+            WriteLines(projectPath, lines, trailingNewlines: 2);
             return skill;
         }
     }
@@ -133,30 +135,146 @@ public sealed class SkillsApi : ISkillsApi
 
     // ---- internals ----------------------------------------------------------
 
+    /// <inheritdoc />
+    public IReadOnlyList<SkillValidationIssue> Validate(
+        string projectPath,
+        SkillDto skill,
+        SkillsCatalog? catalog = null,
+        SkillsContext? context = null,
+        SkillValidationOptions? options = null)
+    {
+        options ??= SkillValidationOptions.Default;
+        var resolvedCatalog = catalog ?? ResolveCatalog(projectPath);
+        var resolvedContext = context ?? (options.CheckExternalReferences ? TryResolveContext(projectPath) : null);
+        return SkillsValidator.Validate(skill, resolvedCatalog, resolvedContext, options);
+    }
+
+    /// <inheritdoc />
+    public SkillMutationResult Update(
+        string projectPath,
+        string name,
+        SkillDto skill,
+        SkillValidationMode mode,
+        SkillsCatalog? catalog = null,
+        SkillsContext? context = null)
+    {
+        if (skill is null) throw new ArgumentNullException(nameof(skill));
+
+        var issues = mode == SkillValidationMode.None
+            ? Array.Empty<SkillValidationIssue>()
+            : Validate(projectPath, skill, catalog, context);
+
+        if (mode == SkillValidationMode.Reject && HasWarnings(issues))
+            throw new SkillValidationException(skill.Name, issues);
+
+        var written = Update(projectPath, name, skill);
+        return new SkillMutationResult { Skill = written, Issues = issues };
+    }
+
+    /// <inheritdoc />
+    public SkillMutationResult Add(
+        string projectPath,
+        SkillDto skill,
+        SkillValidationMode mode,
+        SkillsCatalog? catalog = null,
+        SkillsContext? context = null)
+    {
+        if (skill is null) throw new ArgumentNullException(nameof(skill));
+
+        var issues = mode == SkillValidationMode.None
+            ? Array.Empty<SkillValidationIssue>()
+            : Validate(projectPath, skill, catalog, context);
+
+        if (mode == SkillValidationMode.Reject && HasWarnings(issues))
+            throw new SkillValidationException(skill.Name, issues);
+
+        var written = Add(projectPath, skill);
+        return new SkillMutationResult { Skill = written, Issues = issues };
+    }
+
+    private static bool HasWarnings(IReadOnlyList<SkillValidationIssue> issues) =>
+        issues.Any(i => i.Severity == SkillValidationSeverity.Warning);
+
+    /// <summary>
+    /// Resolve the catalog for a project: project-local copy first (a modder who
+    /// regenerated against their own <c>skills.tok</c>), then the copy shipped
+    /// next to the executable. Falls back to <see cref="SkillsCatalog.Empty"/>.
+    /// </summary>
+    private static SkillsCatalog ResolveCatalog(string projectPath)
+    {
+        var catalog = SkillsCatalog.FindForProject(projectPath, AppContext.BaseDirectory);
+        if (catalog is not null) return catalog;
+
+        // Also accept a catalog sitting beside the project folder (sibling of *_BEC).
+        string trimmed = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var parent = Directory.GetParent(trimmed);
+        if (parent is not null)
+        {
+            var sibling = SkillsCatalog.TryLoad(Path.Combine(parent.FullName, "skills_catalog.json"));
+            if (sibling is not null) return sibling;
+        }
+
+        return SkillsCatalog.Empty;
+    }
+
+    /// <summary>
+    /// Build the project context, or <c>null</c> when the project has no skills
+    /// file yet (a brand-new record then validates against the catalog only).
+    /// </summary>
+    private static SkillsContext? TryResolveContext(string projectPath)
+    {
+        try
+        {
+            return SkillsContext.Load(projectPath);
+        }
+        catch (FileNotFoundException)
+        {
+            return null;
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+    }
+
+
     private static string GetPath(string projectPath) =>
         Path.Combine(projectPath, RelativePath.Replace('/', Path.DirectorySeparatorChar));
 
-    private static (List<string> lines, bool trailing) ReadLines(string projectPath)
+    private static (List<string> lines, int trailingNewlines) ReadLines(string projectPath)
     {
         string path = GetPath(projectPath);
         if (!File.Exists(path))
             throw new FileNotFoundException("skills.tok not found.", path);
 
         string text = File.ReadAllText(path, Enc);
-        // Normalise to LF for splitting; remember whether there was a trailing newline.
+        // Normalise to LF for splitting; remember exactly how many newlines
+        // terminated the file so a no-op write reproduces it byte-for-byte
+        // (the corpus ends with a blank separator line, i.e. two).
         string normalised = text.Replace("\r\n", "\n").Replace("\r", "\n");
-        bool trailing = normalised.Length > 0 && normalised[normalised.Length - 1] == '\n';
-        string[] arr = normalised.TrimEnd('\n').Split('\n');
-        return (arr.ToList(), trailing);
+
+        int trailingNewlines = 0;
+        int i = normalised.Length - 1;
+        while (i >= 0 && normalised[i] == '\n')
+        {
+            trailingNewlines++;
+            i--;
+        }
+
+        string body = normalised.Substring(0, normalised.Length - trailingNewlines);
+        var lines = body.Length == 0 ? new List<string>() : body.Split('\n').ToList();
+        return (lines, trailingNewlines);
     }
 
-    private static void WriteLines(string projectPath, List<string> lines, bool trailing)
+    private static void WriteLines(string projectPath, List<string> lines, int trailingNewlines)
     {
         string path = GetPath(projectPath);
         ChangeHistoryService.Backup(projectPath, path);
-        // Write with canonical CRLF line endings.
-        string text = string.Join("\r\n", lines) + (trailing ? "\r\n" : string.Empty);
-        File.WriteAllText(path, text, Enc);
+        // Write with canonical CRLF line endings, preserving the original
+        // number of trailing newlines.
+        var text = new StringBuilder(string.Join("\r\n", lines));
+        for (int i = 0; i < trailingNewlines; i++) text.Append("\r\n");
+        File.WriteAllText(path, text.ToString(), Enc);
     }
 
     private static List<string> ExtractNames(List<string> lines)
@@ -195,7 +313,7 @@ public sealed class SkillsApi : ISkillsApi
     /// <paramref name="createLineIdx"/>. <c>end</c> is the last non-blank,
     /// non-SKILLCREATE line (or equal to <c>start</c> for header-only records).
     /// </summary>
-    private static (int start, int end) BlockEndFrom(List<string> lines, int createLineIdx)
+    internal static (int start, int end) BlockEndFrom(List<string> lines, int createLineIdx)
     {
         int end = createLineIdx;
         for (int j = createLineIdx + 1; j < lines.Count; j++)
@@ -222,7 +340,7 @@ public sealed class SkillsApi : ISkillsApi
         return null;
     }
 
-    private static SkillDto ParseBlock(List<string> lines, int start, int end)
+    internal static SkillDto ParseBlock(List<string> lines, int start, int end)
     {
         var m = SkillCreateRx.Match(lines[start]);
         var dto = new SkillDto
@@ -248,7 +366,7 @@ public sealed class SkillsApi : ISkillsApi
         return dto;
     }
 
-    private static List<string> BuildBlock(SkillDto dto)
+    internal static List<string> BuildBlock(SkillDto dto)
     {
         var lines = new List<string>();
         string type    = dto.SkillType    ?? string.Empty;
