@@ -80,6 +80,29 @@ public sealed class SkillsCatalogTests
     }
 
     [Fact]
+    public void ShippedCatalog_CarriesEngineTruthFromTheDol()
+    {
+        var catalog = ShippedCatalog();
+
+        // Conditional-modifier fields accumulate. Verified in game: a skill whose
+        // 3rd class condition matches still fires it, and Beguile's male-only target
+        // condition still holds alongside "enemy only".
+        Assert.True(catalog.Find("SKILLTARGETCONDITION")!.Accumulates);
+        Assert.True(catalog.Find("SKILLSPLITEFFECTCONDITION")!.Accumulates);
+
+        // Bit-set fields accumulate; the paired status fields offer exactly two slots.
+        Assert.True(catalog.Find("SKILLATTRIBUTE")!.Accumulates);
+        Assert.Equal(2, catalog.Find("SKILLSTATUS")!.MaxOccurrences);
+        Assert.False(catalog.Find("SKILLSTATUS")!.Accumulates);
+
+        // Engine-legal field with no vanilla occurrences.
+        Assert.True(catalog.Find("SKILLWEAPONEXC")!.EngineOnly);
+
+        // Field name used only by the modded overhaul, which the engine ignores.
+        Assert.False(catalog.Find("SKILLSTATUSSITUATION")!.EngineKnown);
+    }
+
+    [Fact]
     public void Parse_ToleratesUnknownMembersMissingKeysAndBadEntries()
     {
         const string json = """

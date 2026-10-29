@@ -57,7 +57,16 @@ public sealed class SkillsValidatorTests
         },
         "SKILLEFFECTRANGE": { "enumerate": false, "multi": false, "slots": [] },
         "SKILLDISPLAYNAMEID": { "enumerate": false, "slots": [ { "types": ["int"], "values": [] } ] },
-        "SKILLDESCRIPTIONID": { "enumerate": false, "slots": [ { "types": ["int"], "values": [] } ] }
+        "SKILLDESCRIPTIONID": { "enumerate": false, "slots": [ { "types": ["int"], "values": [] } ] },
+        "SKILLENGINEDUP": {
+          "enumerate": false, "engine": true, "max_occurrences": 1, "accumulates": false,
+          "slots": [ { "types": ["string"], "values": [] } ]
+        },
+        "SKILLENGINEACCUM": {
+          "enumerate": false, "engine": true, "max_occurrences": null, "accumulates": true,
+          "slots": [ { "types": ["string"], "values": [] } ]
+        },
+        "SKILLNOTENGINE": { "engine": false, "slots": [] }
       }
     }
     """;
@@ -221,5 +230,45 @@ public sealed class SkillsValidatorTests
         var issue = Assert.Single(issues);
         Assert.Equal(SkillValidationCodes.UnknownField, issue.Code);
         Assert.Equal(SkillValidationSeverity.Info, issue.Severity);
+    }
+
+    // ---- engine-truth rules (verified against the GameCube DOL) --------------
+
+    [Fact]
+    public void Validate_FieldNotInEngineTable_IsWarning()
+    {
+        // The engine tokenizer would not match this name: the line is ignored in game.
+        var issues = Validate(Skill("SKILLNOTENGINE", "\"x\""));
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(SkillValidationCodes.FieldNotInEngine, issue.Code);
+        Assert.Equal(SkillValidationSeverity.Warning, issue.Severity);
+    }
+
+    [Fact]
+    public void Validate_RepeatingAccumulatingField_IsAllowed()
+    {
+        // Bit-set / class-set / conditional fields combine, so repeats are legal.
+        var issues = Validate(Skill("SKILLENGINEACCUM", "\"a\"", "SKILLENGINEACCUM", "\"b\"", "SKILLENGINEACCUM", "\"c\""));
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
+    public void Validate_ExceedingEngineSlots_IsWarning()
+    {
+        // Scalar engine field: a second line overwrites the first.
+        var issues = Validate(Skill("SKILLENGINEDUP", "\"a\"", "SKILLENGINEDUP", "\"b\""));
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(SkillValidationCodes.ExceedsEngineSlots, issue.Code);
+        Assert.Equal(SkillValidationSeverity.Warning, issue.Severity);
+        Assert.Contains("only keeps 1", issue.Message);
+    }
+
+    [Fact]
+    public void Validate_SingleOccurrenceOfScalarEngineField_IsClean()
+    {
+        Assert.Empty(Validate(Skill("SKILLENGINEDUP", "\"a\"")));
     }
 }

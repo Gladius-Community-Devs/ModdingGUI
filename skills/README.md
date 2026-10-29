@@ -106,27 +106,49 @@ Resolved at runtime from the project, not from the catalog:
 - `SKILLLEVEL` — integer (1–30; vanilla also uses 0 for innates)
 - `SKILLJOBPOINTCOST` — integer; -1 hidden, 0 free, ≥1 costs that many JP
 
-## Rule support: data beats documentation
+## Engine truth: `dol_skill_fields.json` (authority on legality)
 
-`skills_field_reference.txt` is hand-written intent; `skills.tok` is what the game
-actually ships. The generator measures every documented `MULTI`, `LINK` and
-`REQUIRES` rule against all observed records. When the corpus contradicts a rule the
-rule is **kept but marked advisory** (`links_strict: false` / `strict: false` plus a
-`violations` count) instead of being silently deleted.
+`dol_skill_fields.json` is extracted from the GameCube boot DOL (`SkillLoadTokenFile`
+and its battle-data sibling `FUN_80026ec0`): every field name the engine's tokenizer
+recognises, its internal id, its argument shape, and how repeated lines behave. The
+generator folds all of it into the catalog, so nothing about repetition is guessed
+from the corpus:
 
-Core reports advisory findings as `Info` and strict ones as `Warning`, so
-`Validate()` never flags a valid vanilla record. Fix the reference file, regenerate,
-and the rule becomes strict again automatically.
+| Engine behaviour | Catalog | Validation |
+|---|---|---|
+| Accumulating field — bit-sets (`SKILLATTRIBUTE`, `SKILLPROJECTILEATTR`, `SKILLPROJECTILESEQUENCE`), class sets (`SKILLUSECLASS`, all `class:` conditions) and conditional modifiers (`SKILL*CONDITION`, `SKILLTARGETCONDITION`, `SKILLSPLITEFFECTCONDITION`) | `accumulates: true`, `max_occurrences: null` | repeats are **legal** |
+| Paired status slots (`SKILLSTATUS`/`SKILLSTATUS2`, duration/interval/target/uselimit/chance) | one slot each, `max_occurrences: 1` per spelling | a third line of the same spelling **overwrites** → `exceeds-engine-slots` |
+| Scalar fields (ids, names, floats) | `max_occurrences: 1` | a second line overwrites → `exceeds-engine-slots` |
+| Field names absent from the engine table | `engine: false` | `field-not-in-engine` (the game ignores the line) |
+| Engine fields with no vanilla data (`SKILLWEAPONEXC`, `SKILLEFFECTVALUE2`, …) | `engine_only: true` | documented, usable |
 
-Current advisory set (vanilla + modded corpus):
+Verified in game (two ISO tests, Oct 2026):
+
+- **Light Beam**: a skill's 3rd `class:` condition still fired (the *last* line was
+  `DarkLegionnaire`, yet `DarkCat` took the 10% split damage) → conditions accumulate,
+  nothing is discarded. My earlier "last wins" reading was wrong.
+- **Beguile**: `unitattr req MALE` + `enemy only` both hold — the Amazon could target
+  male enemies but **not** the female one.
+
+Engine-only aliases are also recorded (`SKILLEXPCOST` ≡ `SKILLJOBPOINTCOST`; five
+`SKILLSTATUSSITUATION*CONDITION` spellings share one id), and field names that appear
+only in modded data but not in the engine table are flagged (e.g.
+`SKILLSTATUSSITUATION`, a typo in `modded-skills.tok`).
+
+## Documented rules that the corpus contradicts
+
+`skills_field_reference.txt` also holds `LINK` / `REQUIRES` intent, which the engine
+itself never enforces (the loaders only write per-field slots). Where the corpus
+contradicts such a rule the rule is **kept but marked advisory** (`links_strict: false`
+/ `strict: false` plus a `violations` count); Core reports those as `Info` rather than
+`Warning`. Fix the reference file, regenerate, and the rule becomes strict again.
 
 | Rule | Why it is advisory |
 |---|---|
-| `MULTI: no` on `SKILLTARGETCONDITION`, `SKILLPROJECTILEATTR`, `SKILLUSABILITYCONDITION`, `SKILLEFFECTSTATUSCOND`, `SKILLEFFECTSKILLCOND`, `SKILLSPLITEFFECTCONDITION` | These fields repeat in real records — `MULTI` is forced to `true` from observation |
-| `LINK SKILLAFFINITY ↔ SKILLAFFCOST` | Affinity attacks with no cost exist (`SKILLAFFINITY: "Air"`), and cost-only records exist too |
-| `SKILLEFFECTCONDITION REQUIRES SKILLEFFECTRANGE` | 183 observed records violate it |
-| `SKILLSTATUSTARGET REQUIRES SKILLSTATUS` | 8 records (e.g. `Dervish SurpriseAttack`) have a status target with no status |
-| `SKILLMOVERANGE REQUIRES SKILLATTRIBUTE = teleport` | `translateanim` is also valid (`Galverg Uppercut`) |
+| `LINK SKILLAFFINITY ↔ SKILLAFFCOST` | Affinity attacks with no cost exist (`SKILLAFFINITY: "Air"`), and cost-only records exist too — the two slots are independent |
+| `SKILLEFFECTCONDITION REQUIRES SKILLEFFECTRANGE` | 183 observed records violate it; the reverse also fails, so they are independent |
+| `SKILLSTATUSTARGET REQUIRES SKILLSTATUS` | 8 records (e.g. `Dervish SurpriseAttack`) carry a status target with no status |
+| `SKILLMOVERANGE REQUIRES SKILLATTRIBUTE = teleport` | `translateanim` is also valid (`Galverg Uppercut`) — the rule should be "requires `SKILLATTRIBUTE` present" |
 
 ## Adding a newly-discovered value
 

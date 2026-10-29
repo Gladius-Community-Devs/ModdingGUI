@@ -30,9 +30,14 @@
     },
     "rule_support": {
       "records_scanned": 3638,
-      "multi_flipped_from_data": 9,
       "links_marked_advisory": 2,
       "requires_marked_advisory": 3
+    },
+    "engine": {
+      "source": "GameCube boot DOL (SkillLoadTokenFile / FUN_80026ec0 field tables)",
+      "fields_known": 70,
+      "fields_added_from_engine": 16,
+      "fields_accumulating": 16
     }
   },
   "fields": {
@@ -55,6 +60,13 @@
       "links": [
         "SKILLAFFINITY"
       ],
+      "engine": true,
+      "engine_id": 17,
+      "engine_parser": "runtime",
+      "engine_arity": "int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
       "links_strict": false,
       "link_violations": 35
     },
@@ -82,13 +94,18 @@
         }
       ],
       "format": "\"value\"",
-      "multi": true,
+      "multi": false,
       "note": "\"None\" means any affinity type is accepted.",
       "links": [
         "SKILLAFFCOST"
       ],
-      "multi_source": "observed",
-      "multi_observed_records": 6,
+      "engine": true,
+      "engine_id": 21,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar enum",
+      "max_occurrences": 1,
+      "accumulates": false,
       "links_strict": false,
       "link_violations": 59
     },
@@ -114,7 +131,14 @@
         "SKILLANIM"
       ],
       "format": "\"animation_name\"",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 59,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLANIMSPEED": {
       "enumerate": false,
@@ -138,7 +162,14 @@
         "SKILLANIMSPEED"
       ],
       "format": "float",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 61,
+      "engine_parser": "battle",
+      "engine_arity": "string,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLANIMSTARTFRAME": {
       "enumerate": true,
@@ -155,7 +186,14 @@
       ],
       "format": "integer",
       "multi": false,
-      "note": "Frame offset into SKILLANIM to start playback."
+      "note": "Frame offset into SKILLANIM to start playback.",
+      "engine": true,
+      "engine_id": 64,
+      "engine_parser": "battle",
+      "engine_arity": "int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLANIMTIME": {
       "enumerate": false,
@@ -179,7 +217,14 @@
         "SKILLANIMTIME"
       ],
       "format": "float",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 62,
+      "engine_parser": "battle",
+      "engine_arity": "string,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLATTRIBUTE": {
       "enumerate": true,
@@ -218,7 +263,14 @@
       ],
       "format": "string (see VALUES)",
       "multi": true,
-      "note": "Each attribute line adds one attribute to the skill. \"weapon\" = uses equipped weapon and applies weapon item skills; \"shield\" = uses equipped shield. \"teleport\" requires SKILLMOVERANGE to also be present. \"movetoattack\" requires SKILLMOVETOATTACKMOD to also be present."
+      "note": "Each attribute line adds one attribute to the skill. \"weapon\" = uses equipped weapon and applies weapon item skills; \"shield\" = uses equipped shield. \"teleport\" requires SKILLMOVERANGE to also be present. \"movetoattack\" requires SKILLMOVETOATTACKMOD to also be present.",
+      "engine": true,
+      "engine_id": 20,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "bit-set (OR)",
+      "max_occurrences": null,
+      "accumulates": true
     },
     "SKILLCHARGEANIM": {
       "enumerate": true,
@@ -239,7 +291,14 @@
       ],
       "format": "\"animation_name\"",
       "multi": false,
-      "note": "Animation played during the meter/charge phase."
+      "note": "Animation played during the meter/charge phase.",
+      "engine": true,
+      "engine_id": 72,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLCOMBATMODS": {
       "enumerate": false,
@@ -264,7 +323,14 @@
         "SKILLCOMBATMODS"
       ],
       "format": "accuracy_modifier, damage_multiplier",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 18,
+      "engine_parser": "runtime",
+      "engine_arity": "float,int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLCOMBOBUTTON": {
       "enumerate": true,
@@ -291,7 +357,14 @@
         {
           "raw": "A ComboChain ability that calls `SKILLSUBSKILL: \"CLASS ComboChain ##\"`"
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": 25,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLCOSTS": {
       "enumerate": false,
@@ -315,7 +388,14 @@
         "SKILLCOSTS"
       ],
       "format": "turns, sp×10",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 16,
+      "engine_parser": "runtime",
+      "engine_arity": "float,int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLCREATE": {
       "enumerate": true,
@@ -369,7 +449,14 @@
       ],
       "format": "\"name\", \"type\", \"category\"",
       "multi": false,
-      "note": "The name must be unique across the file. type and category are always present (both quoted)."
+      "note": "The name must be unique across the file. type and category are always present (both quoted).",
+      "engine": true,
+      "engine_id": 12,
+      "engine_parser": "both",
+      "engine_arity": "3 strings",
+      "engine_slot": "record header",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLDEFENDHANIM": {
       "enumerate": true,
@@ -395,7 +482,14 @@
       ],
       "format": "\"animation_name\"",
       "multi": false,
-      "note": "Animation played by the DEFENDER when hit by this skill."
+      "note": "Animation played by the DEFENDER when hit by this skill.",
+      "engine": true,
+      "engine_id": 60,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLDESCRIPTIONID": {
       "enumerate": false,
@@ -412,7 +506,14 @@
         "SKILLDESCRIPTIONID"
       ],
       "format": "integer",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 15,
+      "engine_parser": "runtime",
+      "engine_arity": "int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLDISPLAYNAMEID": {
       "enumerate": false,
@@ -429,7 +530,14 @@
         "SKILLDISPLAYNAMEID"
       ],
       "format": "integer",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 14,
+      "engine_parser": "runtime",
+      "engine_arity": "int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLDISTANCEDELAY": {
       "enumerate": true,
@@ -454,7 +562,14 @@
       ],
       "format": "float, float",
       "multi": false,
-      "note": "Two floats — exact meaning unknown. Seen values: \"1.6, 3.75\" and \"4, 3.75\". Likely a distance-to-delay mapping for projectile timing."
+      "note": "Two floats — exact meaning unknown. Seen values: \"1.6, 3.75\" and \"4, 3.75\". Likely a distance-to-delay mapping for projectile timing.",
+      "engine": true,
+      "engine_id": 28,
+      "engine_parser": "battle",
+      "engine_arity": "float,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLEFFECT": {
       "enumerate": true,
@@ -518,7 +633,14 @@
       ],
       "format": "\"name\", chance, value",
       "multi": true,
-      "note": "chance = integer 0-100 (percentage). value  = integer or float depending on the effect name. Multiple SKILLEFFECT lines = multiple effects applied on hit. \"Summon\" requires SKILLSUMMONDATA. \"ShiftTo\" / \"ShiftReturn\" requires SKILLSHIFTDATA."
+      "note": "chance = integer 0-100 (percentage). value  = integer or float depending on the effect name. Multiple SKILLEFFECT lines = multiple effects applied on hit. \"Summon\" requires SKILLSUMMONDATA. \"ShiftTo\" / \"ShiftReturn\" requires SKILLSHIFTDATA.",
+      "engine": true,
+      "engine_id": 29,
+      "engine_parser": "runtime",
+      "engine_arity": "string,int,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLEFFECTCONDITION": {
       "enumerate": true,
@@ -569,7 +691,14 @@
           "strict": false,
           "violations": 183
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": 32,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional slot",
+      "max_occurrences": 1,
+      "accumulates": true
     },
     "SKILLEFFECTFX": {
       "enumerate": true,
@@ -616,7 +745,14 @@
             "wolfGreater_Heal"
           ]
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": 35,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLEFFECTRANGE": {
       "enumerate": true,
@@ -655,10 +791,15 @@
         }
       ],
       "format": "range, \"pattern\"",
-      "multi": true,
+      "multi": false,
       "note": "Defines the AoE footprint originating from the targetted tile. Self is for applying the skill to the caster, typically used on Support skills",
-      "multi_source": "observed",
-      "multi_observed_records": 1
+      "engine": true,
+      "engine_id": 31,
+      "engine_parser": "battle",
+      "engine_arity": "int,string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLEFFECTSKILLCOND": {
       "enumerate": true,
@@ -688,10 +829,15 @@
         }
       ],
       "format": "string (see VALUES)",
-      "multi": true,
+      "multi": false,
       "note": "Condition in order to trigger an effect. For example, an attack that only poisons if the user uses a specific set of skills they have learned.",
-      "multi_source": "observed",
-      "multi_observed_records": 2
+      "engine": true,
+      "engine_id": 33,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional slot",
+      "max_occurrences": 1,
+      "accumulates": true
     },
     "SKILLEFFECTSTATUSCOND": {
       "enumerate": true,
@@ -719,10 +865,15 @@
         }
       ],
       "format": "string (see VALUES)",
-      "multi": true,
+      "multi": false,
       "note": "Status the TARGET must have for SKILLEFFECT to fire.",
-      "multi_source": "observed",
-      "multi_observed_records": 3
+      "engine": true,
+      "engine_id": 34,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional slot",
+      "max_occurrences": 1,
+      "accumulates": true
     },
     "SKILLEXCLUDERANGE": {
       "enumerate": true,
@@ -757,7 +908,14 @@
           "field": "SKILLRANGE",
           "present": true
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": 27,
+      "engine_parser": "battle",
+      "engine_arity": "int,string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLFREE": {
       "enumerate": false,
@@ -777,7 +935,19 @@
         "SKILLFREE4"
       ],
       "format": "\"skill name\" \"skill name\" \"skill name\" \"skill name\"",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": [
+        98,
+        99,
+        100,
+        101
+      ],
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 4,
+      "accumulates": false
     },
     "SKILLFX": {
       "enumerate": true,
@@ -867,7 +1037,14 @@
       ],
       "format": "\"effect_name\"",
       "multi": false,
-      "note": "Particle/visual effect played on the caster or at the point of impact."
+      "note": "Particle/visual effect played on the caster or at the point of impact.",
+      "engine": true,
+      "engine_id": 77,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLFXCTAG": {
       "enumerate": true,
@@ -889,7 +1066,14 @@
       ],
       "format": "\"tag_name\"",
       "multi": false,
-      "note": "FX contact tag (bone or attachment point on the character)."
+      "note": "FX contact tag (bone or attachment point on the character).",
+      "engine": true,
+      "engine_id": 79,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLFXMOVE": {
       "enumerate": true,
@@ -911,7 +1095,14 @@
       ],
       "format": "\"effect_name\"",
       "multi": false,
-      "note": "Visual effect played during movement phase."
+      "note": "Visual effect played during movement phase.",
+      "engine": true,
+      "engine_id": 74,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLFXPROJECTILE": {
       "enumerate": true,
@@ -948,7 +1139,14 @@
       ],
       "format": "\"effect_name\"",
       "multi": false,
-      "note": "Visual effect used as the projectile."
+      "note": "Visual effect used as the projectile.",
+      "engine": true,
+      "engine_id": 75,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLFXPROJECTILEIMPACT": {
       "enumerate": true,
@@ -976,7 +1174,14 @@
       ],
       "format": "\"effect_name\"",
       "multi": false,
-      "note": "Visual effect played on projectile impact."
+      "note": "Visual effect played on projectile impact.",
+      "engine": true,
+      "engine_id": 76,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLFXSWING": {
       "enumerate": false,
@@ -993,7 +1198,14 @@
         "SKILLFXSWING"
       ],
       "format": "\"effect_name\"",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 78,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLJOBPOINTCOST": {
       "enumerate": false,
@@ -1008,7 +1220,14 @@
         "SKILLJOBPOINTCOST"
       ],
       "format": "integer",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 92,
+      "engine_parser": "runtime",
+      "engine_arity": "int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLLEVEL": {
       "enumerate": false,
@@ -1023,7 +1242,14 @@
         "SKILLLEVEL"
       ],
       "format": "integer",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 91,
+      "engine_parser": "runtime",
+      "engine_arity": "int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLLOOPANIM": {
       "enumerate": true,
@@ -1048,7 +1274,14 @@
       ],
       "format": "\"animation_name\"",
       "multi": false,
-      "note": "Looping animation variant."
+      "note": "Looping animation variant.",
+      "engine": true,
+      "engine_id": 68,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLLOWANIM": {
       "enumerate": true,
@@ -1067,7 +1300,14 @@
       ],
       "format": "\"animation_name\"",
       "multi": false,
-      "note": "Low-quality/fallback animation."
+      "note": "Low-quality/fallback animation.",
+      "engine": true,
+      "engine_id": 66,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLMETER": {
       "enumerate": false,
@@ -1098,7 +1338,14 @@
         "SKILLMETER"
       ],
       "format": "\"type\", base_value, max_or_step_value",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 24,
+      "engine_parser": "runtime",
+      "engine_arity": "string,float,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLMOVEANIM": {
       "enumerate": true,
@@ -1127,7 +1374,14 @@
       ],
       "format": "\"animation_name\"",
       "multi": false,
-      "note": "Animation played while the unit moves (charge/move-to-attack)."
+      "note": "Animation played while the unit moves (charge/move-to-attack).",
+      "engine": true,
+      "engine_id": 70,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLMOVERANGE": {
       "enumerate": true,
@@ -1163,7 +1417,14 @@
           "strict": false,
           "violations": 1
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": 57,
+      "engine_parser": "battle",
+      "engine_arity": "int,string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLMOVERANGECONDITION": {
       "enumerate": true,
@@ -1182,7 +1443,14 @@
       ],
       "format": "string (see VALUES)",
       "multi": false,
-      "note": "Additional condition on the destination tile."
+      "note": "Additional condition on the destination tile.",
+      "engine": true,
+      "engine_id": 58,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional slot",
+      "max_occurrences": 1,
+      "accumulates": true
     },
     "SKILLMOVETOATTACKMOD": {
       "enumerate": true,
@@ -1204,7 +1472,14 @@
         {
           "raw": "This is a required line prior to SKILLMOVETOATTACKMOD: SKILLATTRIBUTE = \"movetoattack\""
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": 19,
+      "engine_parser": "runtime",
+      "engine_arity": "int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLMULTIHITDATA": {
       "enumerate": false,
@@ -1221,7 +1496,14 @@
         "SKILLMULTIHITDATA"
       ],
       "format": "string of position letters per hit (see VALUES)",
-      "multi": true
+      "multi": true,
+      "engine": true,
+      "engine_id": 86,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLPREREQ": {
       "enumerate": false,
@@ -1238,7 +1520,14 @@
         "SKILLPREREQ"
       ],
       "format": "skill name string (no quotes in vanilla)",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 94,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLPROJECTILE": {
       "enumerate": true,
@@ -1278,7 +1567,14 @@
       ],
       "format": "\"asset name\"",
       "multi": false,
-      "note": "Name of the projectile object/asset used for the visual."
+      "note": "Name of the projectile object/asset used for the visual.",
+      "engine": true,
+      "engine_id": 87,
+      "engine_parser": "battle",
+      "engine_arity": "string,string,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLPROJECTILEATTR": {
       "enumerate": true,
@@ -1299,10 +1595,15 @@
         }
       ],
       "format": "\"value\"",
-      "multi": true,
+      "multi": false,
       "note": "\"indirect\" = no line of sight required. \"multifire\" = fires multiple projectiles. \"nontarget\" = projectile does not lock onto target. \"return\"    = projectile returns to caster.",
-      "multi_source": "observed",
-      "multi_observed_records": 2
+      "engine": true,
+      "engine_id": 88,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "bit-set (OR)",
+      "max_occurrences": null,
+      "accumulates": true
     },
     "SKILLPROJECTILEROTATION": {
       "enumerate": true,
@@ -1337,7 +1638,14 @@
       ],
       "format": "x, y, z, speed  (all numeric)",
       "multi": false,
-      "note": "Rotation axis (x/y/z flags 0 or 1) and rotation speed. Exact semantics unknown — mark known meaning here."
+      "note": "Rotation axis (x/y/z flags 0 or 1) and rotation speed. Exact semantics unknown — mark known meaning here.",
+      "engine": true,
+      "engine_id": 90,
+      "engine_parser": "battle",
+      "engine_arity": "4 floats",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLPROJECTILESEQUENCE": {
       "enumerate": true,
@@ -1383,7 +1691,14 @@
       ],
       "format": "\"target_mode\", \"fire_condition\", \"path_type\", count",
       "multi": false,
-      "note": "Controls how multiple projectiles (multifire) sequence and travel."
+      "note": "Controls how multiple projectiles (multifire) sequence and travel.",
+      "engine": true,
+      "engine_id": 89,
+      "engine_parser": "battle",
+      "engine_arity": "string,string,string,int",
+      "engine_slot": "bit-set (OR)",
+      "max_occurrences": null,
+      "accumulates": true
     },
     "SKILLPROXY": {
       "enumerate": true,
@@ -1419,7 +1734,14 @@
       ],
       "format": "\"skill_name\", \"proxy_type\"",
       "multi": false,
-      "note": "Links this skill to another skill that acts as its proxy/upgrade. proxy_type values seen: \"affinity4\", \"Affinity4\". Exact mechanics unknown."
+      "note": "Links this skill to another skill that acts as its proxy/upgrade. proxy_type values seen: \"affinity4\", \"Affinity4\". Exact mechanics unknown.",
+      "engine": true,
+      "engine_id": 83,
+      "engine_parser": "battle",
+      "engine_arity": "string,string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLRANGE": {
       "enumerate": true,
@@ -1454,7 +1776,14 @@
       ],
       "format": "range, \"pattern\"",
       "multi": false,
-      "note": "range = integer tile count. When range = 0 and pattern = \"Self\", the skill uses SKILLEFFECTRANGE instead to define its AoE footprint."
+      "note": "range = integer tile count. When range = 0 and pattern = \"Self\", the skill uses SKILLEFFECTRANGE instead to define its AoE footprint.",
+      "engine": true,
+      "engine_id": 26,
+      "engine_parser": "battle",
+      "engine_arity": "int,string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLREPLACES": {
       "enumerate": true,
@@ -1480,7 +1809,14 @@
       ],
       "format": "\"skill name\"",
       "multi": false,
-      "note": "This skill replaces the named skill in the class's skill list."
+      "note": "This skill replaces the named skill in the class's skill list.",
+      "engine": true,
+      "engine_id": 95,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLSHIFTDATA": {
       "enumerate": true,
@@ -1556,7 +1892,14 @@
       ],
       "format": "\"class\", \"variant\", v1, v2, v3, v4, v5, v6, v7",
       "multi": false,
-      "note": "Stat modifiers applied when ShiftTo fires. class + variant identify the shift target form. v1-v7 appear to be numeric stat deltas (exact mapping unknown). Add REQUIRES: SKILLEFFECT.name = ShiftTo once confirmed."
+      "note": "Stat modifiers applied when ShiftTo fires. class + variant identify the shift target form. v1-v7 appear to be numeric stat deltas (exact mapping unknown). Add REQUIRES: SKILLEFFECT.name = ShiftTo once confirmed.",
+      "engine": true,
+      "engine_id": 84,
+      "engine_parser": "battle",
+      "engine_arity": "string,string,6 ints",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLSOUND": {
       "enumerate": false,
@@ -1573,9 +1916,14 @@
         "SKILLSOUND"
       ],
       "format": "\"NNN.NNN\"  (two three-digit numbers separated by a dot)",
-      "multi": true,
-      "multi_source": "observed",
-      "multi_observed_records": 1
+      "multi": false,
+      "engine": true,
+      "engine_id": 80,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLSPLITEFFECT": {
       "enumerate": true,
@@ -1611,7 +1959,14 @@
       ],
       "format": "\"name\", value",
       "multi": false,
-      "note": "Like SKILLEFFECT but combines with SKILLSPLITEFFECTCONDITION to allow a skill to do multiple things. Value in quotations can match anything SKILLEFFECT can use, numeric value influences the SKILLEFFECT e.g.: SKILLSPLITEFFECT: \"Shield Restore\", 100, 1 < 100% chance to restore shieldmelt SKILLSPLITEFFECT: \"Change HP Relative\", -0.1 < decreases targets hp by 10%"
+      "note": "Like SKILLEFFECT but combines with SKILLSPLITEFFECTCONDITION to allow a skill to do multiple things. Value in quotations can match anything SKILLEFFECT can use, numeric value influences the SKILLEFFECT e.g.: SKILLSPLITEFFECT: \"Shield Restore\", 100, 1 < 100% chance to restore shieldmelt SKILLSPLITEFFECT: \"Change HP Relative\", -0.1 < decreases targets hp by 10%",
+      "engine": true,
+      "engine_id": 36,
+      "engine_parser": "battle",
+      "engine_arity": "string,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLSPLITEFFECTCONDITION": {
       "enumerate": true,
@@ -1637,7 +1992,7 @@
         }
       ],
       "format": "\"class: ClassName\" | \"self only\" | \"enemy only\"",
-      "multi": true,
+      "multi": false,
       "note": "The condition that triggers the split behaviour. This can be used to get different effects on units depending on the value being evaluated.",
       "requires": [
         {
@@ -1645,8 +2000,13 @@
           "present": true
         }
       ],
-      "multi_source": "observed",
-      "multi_observed_records": 1
+      "engine": true,
+      "engine_id": 37,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional slot",
+      "max_occurrences": 1,
+      "accumulates": true
     },
     "SKILLSPLITEFFECTFX": {
       "enumerate": true,
@@ -1662,7 +2022,14 @@
             "ursula_healingLight"
           ]
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": 38,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLSTATUS": {
       "enumerate": true,
@@ -1754,7 +2121,17 @@
       ],
       "format": "\"name\", chance, value \"name\", chance, value",
       "multi": true,
-      "note": "Skill Statuses SKILLSTATUS: \"status\", 100, 1 Status is from option below, 100 is chance to apply, 1 is dependent on the effect. You can also do SKILLSTATUS2: \"status\", 100, 1 to add a second status to a skill hpregen noncumulative - hp regen, 1 is how much per tick (not sure what noncumulative means) damage multiply - didn't play with this one, i assume just a flat damage multiplier buff/debuff though (either damage done or damage taken) set step down limit - how far down you can jump (not really used), 1 is how much set step up limit - how far up you can jump, 1 is how much (used on cats). Only really works on innates. change off affinity charge rate - flat change to how much affinity you gain offensively. mult off affinity charge rate - percent change to how much affinity you gain offensively. change def affinity charge rate - flat change to how much affinity you gain defensively mult def affinity charge rate - percent change to how much affinity you gain defensively bleeding - damage over time, 1 is how much per interval poison - damage over time, 1 is how much per interval shieldmelt - damage over time to shield, 1 is how much per tick confusion - give confusion status, 1 does nothing blind - give blind status, 1 does nothing charm - give charm status, 1 does nothing fear - give fear status, 1 does nothing berserk - give berserk status, 1 does nothing root - give root status, 1 does nothing petrification - petrify status, 1 does nothing frozen - frozen status, 1 does nothing stun - stun status, 1 does nothing summon - adds the summon status to a summoned creature (which is the status that allows it to remain in the world), 1 does nothing supercharge - Ursula and Valens' power up skill. 1 does nothing immortal - grants immortal status, 1 does nothing doom count - sets doom status, 1 is how many counts of doom (i believe auto-goes down on target's turn) ambush - basically just cover from archers, i don't think 1 does anything (maybe lets you fire multiple times per ambush?) ambush interrupt - the \"back off\" skills, stops the enemy movement as well as ambushes. i don't think 1 does anything (maybe lets you fire multiple times per ambush?) conditional activate - used in skills like berserker adrenaline that has a condition (like half health) to activate. Requires a subskill to know what to do when the condition is met. The 1 does nothing always face - always face target, 1 does nothing. Only seems to work on innates mult shield effectiveness - Multiply shield health, 1 is how much dropped item chance up - multiply dropped item chance (chance per item to drop when chests can drop), 1 is how much combatattack damagemult - increase/decrease by % the damage a gladiator does. 1 is the % combatdefend damagemult - increase/decrease by % the damage a gladiator takes. 1 is the % combatattack critmult - increase/decrease by % the damage a gladiator does in a crit. 1 is the % combatdefend critmult - increase/decrease by % the damage a gladiator takes in a crit. 1 is the % combatdefend defenseadd - flat add or remove a gladiator's defense, 1 is the number combatattack accuracyadd - flat add or remove a gladiator's accuracy, 1 is the number combatdefend face front mult - increase/decrease by % the damage a gladiator takes from the front. 1 is the % combatattack face front mult - increase/decrease by % the damage a gladiator does from the front. 1 is the % combatdefend face back mult - increase/decrease by % the damage a gladiator takes from the back. 1 is the % combatattack face back mult - increase/decrease by % the damage a gladiator does from the back. 1 is the % crowd no flubs - makes it so if you flub a meter, the crowd doesn't care, 1 does nothing crowd positive mult - multiplies the change to crowd meters you do, 1 is percent auto regen - set HP regen, number is amount of heal per tick simple counterattack - grants a .4 damage counter (used on the counter accessories, doesn't require any subskill). 1 is how many counters you do. immunity status - sets an immunity to a status (which is determined in skillstatuscondition) immunity counters - immune to counter attacks, 1 does nothing skill meta cost add - removes or adds SP cost to skills (only seems to work in innates). 1 is by how much in, 10 per SP. skill meta range add - removes or adds range for targeting, only seems to work in innates. 1 is by how much. skill meta effect range add - removes or adds area for AoE attacks, only seems to work in innates. 1 is by how much. skill meta effect mult - not entirely sure, but i think it adds or removes based on the effect (so like, you could make knockback do 2 squares instead of 1), only likely to work in innates. 1 is by how much. skill meta stack cost mult - removes or adds stack cost to skills (like pass being a half cost turn, you could make it a quarter turn with this), only seems to work in innates. 1 is by how much. skill meta status duration mult - removes or adds duration to skills, only seems to work in innates. 1 is by how much. skill meta status effect mult - removes or adds effects on skills (like making poison do more), only seems to work in innates. 1 is by how much. Not sure on this one honestly All of the below are pretty much the same, either change by a flat number or a %, the 1 is either the flat number or percent to change by. change moverate change moverate percent change power change power percent change accuracy change accuracy percent change defense change defense percent change initiative change initiative percent change movetoattack change movetoattack percent See SKILLSTATUSTARGET, SKILLSTATUSDURATION etc for the rest of slot 1. Second status slot. Add REQUIRES if it can only appear when SKILLSTATUS is also present, or if it is independent."
+      "note": "Skill Statuses SKILLSTATUS: \"status\", 100, 1 Status is from option below, 100 is chance to apply, 1 is dependent on the effect. You can also do SKILLSTATUS2: \"status\", 100, 1 to add a second status to a skill hpregen noncumulative - hp regen, 1 is how much per tick (not sure what noncumulative means) damage multiply - didn't play with this one, i assume just a flat damage multiplier buff/debuff though (either damage done or damage taken) set step down limit - how far down you can jump (not really used), 1 is how much set step up limit - how far up you can jump, 1 is how much (used on cats). Only really works on innates. change off affinity charge rate - flat change to how much affinity you gain offensively. mult off affinity charge rate - percent change to how much affinity you gain offensively. change def affinity charge rate - flat change to how much affinity you gain defensively mult def affinity charge rate - percent change to how much affinity you gain defensively bleeding - damage over time, 1 is how much per interval poison - damage over time, 1 is how much per interval shieldmelt - damage over time to shield, 1 is how much per tick confusion - give confusion status, 1 does nothing blind - give blind status, 1 does nothing charm - give charm status, 1 does nothing fear - give fear status, 1 does nothing berserk - give berserk status, 1 does nothing root - give root status, 1 does nothing petrification - petrify status, 1 does nothing frozen - frozen status, 1 does nothing stun - stun status, 1 does nothing summon - adds the summon status to a summoned creature (which is the status that allows it to remain in the world), 1 does nothing supercharge - Ursula and Valens' power up skill. 1 does nothing immortal - grants immortal status, 1 does nothing doom count - sets doom status, 1 is how many counts of doom (i believe auto-goes down on target's turn) ambush - basically just cover from archers, i don't think 1 does anything (maybe lets you fire multiple times per ambush?) ambush interrupt - the \"back off\" skills, stops the enemy movement as well as ambushes. i don't think 1 does anything (maybe lets you fire multiple times per ambush?) conditional activate - used in skills like berserker adrenaline that has a condition (like half health) to activate. Requires a subskill to know what to do when the condition is met. The 1 does nothing always face - always face target, 1 does nothing. Only seems to work on innates mult shield effectiveness - Multiply shield health, 1 is how much dropped item chance up - multiply dropped item chance (chance per item to drop when chests can drop), 1 is how much combatattack damagemult - increase/decrease by % the damage a gladiator does. 1 is the % combatdefend damagemult - increase/decrease by % the damage a gladiator takes. 1 is the % combatattack critmult - increase/decrease by % the damage a gladiator does in a crit. 1 is the % combatdefend critmult - increase/decrease by % the damage a gladiator takes in a crit. 1 is the % combatdefend defenseadd - flat add or remove a gladiator's defense, 1 is the number combatattack accuracyadd - flat add or remove a gladiator's accuracy, 1 is the number combatdefend face front mult - increase/decrease by % the damage a gladiator takes from the front. 1 is the % combatattack face front mult - increase/decrease by % the damage a gladiator does from the front. 1 is the % combatdefend face back mult - increase/decrease by % the damage a gladiator takes from the back. 1 is the % combatattack face back mult - increase/decrease by % the damage a gladiator does from the back. 1 is the % crowd no flubs - makes it so if you flub a meter, the crowd doesn't care, 1 does nothing crowd positive mult - multiplies the change to crowd meters you do, 1 is percent auto regen - set HP regen, number is amount of heal per tick simple counterattack - grants a .4 damage counter (used on the counter accessories, doesn't require any subskill). 1 is how many counters you do. immunity status - sets an immunity to a status (which is determined in skillstatuscondition) immunity counters - immune to counter attacks, 1 does nothing skill meta cost add - removes or adds SP cost to skills (only seems to work in innates). 1 is by how much in, 10 per SP. skill meta range add - removes or adds range for targeting, only seems to work in innates. 1 is by how much. skill meta effect range add - removes or adds area for AoE attacks, only seems to work in innates. 1 is by how much. skill meta effect mult - not entirely sure, but i think it adds or removes based on the effect (so like, you could make knockback do 2 squares instead of 1), only likely to work in innates. 1 is by how much. skill meta stack cost mult - removes or adds stack cost to skills (like pass being a half cost turn, you could make it a quarter turn with this), only seems to work in innates. 1 is by how much. skill meta status duration mult - removes or adds duration to skills, only seems to work in innates. 1 is by how much. skill meta status effect mult - removes or adds effects on skills (like making poison do more), only seems to work in innates. 1 is by how much. Not sure on this one honestly All of the below are pretty much the same, either change by a flat number or a %, the 1 is either the flat number or percent to change by. change moverate change moverate percent change power change power percent change accuracy change accuracy percent change defense change defense percent change initiative change initiative percent change movetoattack change movetoattack percent See SKILLSTATUSTARGET, SKILLSTATUSDURATION etc for the rest of slot 1. Second status slot. Add REQUIRES if it can only appear when SKILLSTATUS is also present, or if it is independent.",
+      "engine": true,
+      "engine_id": [
+        39,
+        47
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "string,float,float",
+      "engine_slot": "status slot 1",
+      "max_occurrences": 2,
+      "accumulates": false
     },
     "SKILLSTATUSCHANCE": {
       "enumerate": true,
@@ -1778,7 +2155,17 @@
           "field": "SKILLSTATUS",
           "present": true
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": [
+        46,
+        54
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "float",
+      "engine_slot": "status slot 1",
+      "max_occurrences": 2,
+      "accumulates": false
     },
     "SKILLSTATUSCONDITION": {
       "enumerate": true,
@@ -1847,7 +2234,17 @@
           "field": "SKILLSTATUS",
           "present": true
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": [
+        44,
+        52
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional list",
+      "max_occurrences": null,
+      "accumulates": true
     },
     "SKILLSTATUSDURATION": {
       "enumerate": true,
@@ -1882,7 +2279,17 @@
       ],
       "format": "\"type\", value \"type\", value",
       "multi": false,
-      "note": "How long the slot 1 status lasts. Stack types: value is a count or multiplier. Turns types: value is number of turns. \"Permanent\" / \"Until Negated\": second value is 0 or 1 (unknown meaning)."
+      "note": "How long the slot 1 status lasts. Stack types: value is a count or multiplier. Turns types: value is number of turns. \"Permanent\" / \"Until Negated\": second value is 0 or 1 (unknown meaning).",
+      "engine": true,
+      "engine_id": [
+        40,
+        48
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "string,float",
+      "engine_slot": "status slot 1",
+      "max_occurrences": 2,
+      "accumulates": false
     },
     "SKILLSTATUSINTERVAL": {
       "enumerate": true,
@@ -1916,7 +2323,17 @@
           "field": "SKILLSTATUS",
           "present": true
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": [
+        41,
+        49
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "string,int",
+      "engine_slot": "status slot 1",
+      "max_occurrences": 2,
+      "accumulates": false
     },
     "SKILLSTATUSSITUATION": {
       "enumerate": true,
@@ -1932,7 +2349,8 @@
             "friend only not self"
           ]
         }
-      ]
+      ],
+      "engine": false
     },
     "SKILLSTATUSSITUATIONAFFINITYCONDITION": {
       "enumerate": true,
@@ -1967,7 +2385,17 @@
           "field": "SKILLSTATUS",
           "present": true
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": [
+        45,
+        53
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional list",
+      "max_occurrences": null,
+      "accumulates": true
     },
     "SKILLSTATUSSITUATIONSKILLCONDITION": {
       "enumerate": true,
@@ -2002,7 +2430,17 @@
       ],
       "format": "string (see VALUES)",
       "multi": false,
-      "note": "Same as SKILLSTATUSSITUATIONAFFINITYCONDITION but for different conditions."
+      "note": "Same as SKILLSTATUSSITUATIONAFFINITYCONDITION but for different conditions.",
+      "engine": true,
+      "engine_id": [
+        45,
+        53
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional list",
+      "max_occurrences": null,
+      "accumulates": true
     },
     "SKILLSTATUSSITUATIONSTATUSCONDITION": {
       "enumerate": true,
@@ -2034,7 +2472,17 @@
       ],
       "format": "string (see VALUES) string (see VALUES)",
       "multi": false,
-      "note": "Status the TARGET must have for slot 1 SKILLSTATUSSITUATION block to fire. Can also be used to make a unit immune to a condition e.g. `SKILLEFFECT: \"Status Only\", 100, 1 SKILLSTATUS: \"immunity status\", 0, 0 SKILLSTATUSSITUATIONSTATUSCONDITION: \"statuscond blind\" SKILLSTATUSCHANCE: 100` this makes a unit immune to being blind as a passive effect"
+      "note": "Status the TARGET must have for slot 1 SKILLSTATUSSITUATION block to fire. Can also be used to make a unit immune to a condition e.g. `SKILLEFFECT: \"Status Only\", 100, 1 SKILLSTATUS: \"immunity status\", 0, 0 SKILLSTATUSSITUATIONSTATUSCONDITION: \"statuscond blind\" SKILLSTATUSCHANCE: 100` this makes a unit immune to being blind as a passive effect",
+      "engine": true,
+      "engine_id": [
+        45,
+        53
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional list",
+      "max_occurrences": null,
+      "accumulates": true
     },
     "SKILLSTATUSSITUATIONUNITCONDITION": {
       "enumerate": true,
@@ -2083,7 +2531,17 @@
       ],
       "format": "string (see VALUES) string (see VALUES)",
       "multi": false,
-      "note": "Unit attribute condition for slot 1 SKILLSTATUSSITUATION block."
+      "note": "Unit attribute condition for slot 1 SKILLSTATUSSITUATION block.",
+      "engine": true,
+      "engine_id": [
+        45,
+        53
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional list",
+      "max_occurrences": null,
+      "accumulates": true
     },
     "SKILLSTATUSTARGET": {
       "enumerate": true,
@@ -2135,7 +2593,17 @@
           "strict": false,
           "violations": 8
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": [
+        42,
+        50
+      ],
+      "engine_parser": "battle",
+      "engine_arity": "string,int,string",
+      "engine_slot": "status slot 1",
+      "max_occurrences": 2,
+      "accumulates": false
     },
     "SKILLSTATUSUSELIMIT": {
       "enumerate": true,
@@ -2160,7 +2628,14 @@
           "field": "SKILLSTATUS",
           "present": true
         }
-      ]
+      ],
+      "engine": true,
+      "engine_id": 43,
+      "engine_parser": "battle",
+      "engine_arity": "int",
+      "engine_slot": "status slot 1",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLSUBSKILL": {
       "enumerate": false,
@@ -2177,7 +2652,14 @@
         "SKILLSUBSKILL"
       ],
       "format": "\"skill name\"",
-      "multi": false
+      "multi": false,
+      "engine": true,
+      "engine_id": 82,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLSUMMONDATA": {
       "enumerate": true,
@@ -2236,7 +2718,14 @@
       ],
       "format": "\"gladiator_name\", \"variant\", integer",
       "multi": false,
-      "note": "Defines the unit summoned when SKILLEFFECT name = \"Summon\". variant = \"default\" in all vanilla cases. integer = unknown (0 in all vanilla cases). Add REQUIRES: SKILLEFFECT.name = Summon once confirmed."
+      "note": "Defines the unit summoned when SKILLEFFECT name = \"Summon\". variant = \"default\" in all vanilla cases. integer = unknown (0 in all vanilla cases). Add REQUIRES: SKILLEFFECT.name = Summon once confirmed.",
+      "engine": true,
+      "engine_id": 85,
+      "engine_parser": "battle",
+      "engine_arity": "string,string,int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false
     },
     "SKILLTARGETCONDITION": {
       "enumerate": true,
@@ -2281,10 +2770,15 @@
         }
       ],
       "format": "string (see VALUES)",
-      "multi": true,
+      "multi": false,
       "note": "Restricts which squares/units can be chosen as the skill target.",
-      "multi_source": "observed",
-      "multi_observed_records": 53
+      "engine": true,
+      "engine_id": 56,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional slot",
+      "max_occurrences": 1,
+      "accumulates": true
     },
     "SKILLUSABILITYCONDITION": {
       "enumerate": true,
@@ -2308,10 +2802,15 @@
         }
       ],
       "format": "string (see VALUES)",
-      "multi": true,
+      "multi": false,
       "note": "Condition on the SOURCE unit (or target) that must be true for the skill to appear as usable in the menu.",
-      "multi_source": "observed",
-      "multi_observed_records": 1
+      "engine": true,
+      "engine_id": 55,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional slot",
+      "max_occurrences": 1,
+      "accumulates": true
     },
     "SKILLUSECLASS": {
       "enumerate": false,
@@ -2328,7 +2827,14 @@
         "SKILLUSECLASS"
       ],
       "format": "\"ClassName\"",
-      "multi": true
+      "multi": true,
+      "engine": true,
+      "engine_id": 93,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "class set",
+      "max_occurrences": null,
+      "accumulates": true
     },
     "SKILLWEAPONREQ": {
       "enumerate": true,
@@ -2350,7 +2856,270 @@
       ],
       "format": "\"value\"",
       "multi": false,
-      "note": "Weapon type the unit must be equipped with to use this skill. The skill is still learned, it just won't show up until that item is equipped."
+      "note": "Weapon type the unit must be equipped with to use this skill. The skill is still learned, it just won't show up until that item is equipped.",
+      "engine": true,
+      "engine_id": 22,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar enum",
+      "max_occurrences": 1,
+      "accumulates": false
+    },
+    "NUMENTRIES": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "NUMENTRIES"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 13,
+      "engine_parser": "both",
+      "engine_arity": "int",
+      "engine_slot": "file header",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLANIMSTARTTIME": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLANIMSTARTTIME"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 63,
+      "engine_parser": "battle",
+      "engine_arity": "float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLCHARGEANIMSPEED": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLCHARGEANIMSPEED"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 73,
+      "engine_parser": "battle",
+      "engine_arity": "string,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLDEFENDHANIMSPEED": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLDEFENDHANIMSPEED"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 65,
+      "engine_parser": "battle",
+      "engine_arity": "string,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLEFFECTVALUE2": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLEFFECTVALUE2"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 30,
+      "engine_parser": "battle",
+      "engine_arity": "float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLEXCLUSION1": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLEXCLUSION1"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 96,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "parsed then discarded",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLEXCLUSION2": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLEXCLUSION2"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 97,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "parsed then discarded",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLEXPCOST": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLEXPCOST"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 92,
+      "engine_parser": "runtime",
+      "engine_arity": "int",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLHTAGSOUND": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLHTAGSOUND"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 81,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLLOOPANIMSPEED": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLLOOPANIMSPEED"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 69,
+      "engine_parser": "battle",
+      "engine_arity": "string,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLLOWANIMSPEED": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLLOWANIMSPEED"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 67,
+      "engine_parser": "battle",
+      "engine_arity": "string,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLMOVEANIMSPEED": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLMOVEANIMSPEED"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 71,
+      "engine_parser": "battle",
+      "engine_arity": "string,float",
+      "engine_slot": "scalar",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLSTATUSSITUATIONCONDITION": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLSTATUSSITUATIONCONDITION"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 45,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional list",
+      "max_occurrences": null,
+      "accumulates": true,
+      "engine_only": true
+    },
+    "SKILLSTATUSSITUATIONCONDITION2": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLSTATUSSITUATIONCONDITION2"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 53,
+      "engine_parser": "battle",
+      "engine_arity": "string",
+      "engine_slot": "conditional list",
+      "max_occurrences": null,
+      "accumulates": true,
+      "engine_only": true
+    },
+    "SKILLSTATUSUSELIMIT2": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLSTATUSUSELIMIT2"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 51,
+      "engine_parser": "battle",
+      "engine_arity": "int",
+      "engine_slot": "status slot 2",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
+    },
+    "SKILLWEAPONEXC": {
+      "enumerate": false,
+      "note": "Engine-legal field with no vanilla occurrences.",
+      "mirrors": [
+        "SKILLWEAPONEXC"
+      ],
+      "slots": [],
+      "engine": true,
+      "engine_id": 23,
+      "engine_parser": "runtime",
+      "engine_arity": "string",
+      "engine_slot": "scalar enum",
+      "max_occurrences": 1,
+      "accumulates": false,
+      "engine_only": true
     }
   }
 }

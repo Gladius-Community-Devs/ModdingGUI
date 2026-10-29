@@ -1,0 +1,893 @@
+[
+ {
+  "name": "SKILLCREATE",
+  "id": 12,
+  "parser": "both",
+  "arity": "3 strings",
+  "slot": "record header",
+  "max_occurrences": 1,
+  "note": "name, type, sub-type"
+ },
+ {
+  "name": "NUMENTRIES",
+  "id": 13,
+  "parser": "both",
+  "arity": "int",
+  "slot": "file header",
+  "max_occurrences": 1,
+  "note": "declares record count"
+ },
+ {
+  "name": "SKILLDISPLAYNAMEID",
+  "id": 14,
+  "parser": "runtime",
+  "arity": "int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLDESCRIPTIONID",
+  "id": 15,
+  "parser": "runtime",
+  "arity": "int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLCOSTS",
+  "id": 16,
+  "parser": "runtime",
+  "arity": "float,int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": "turn cost, SP cost"
+ },
+ {
+  "name": "SKILLAFFCOST",
+  "id": 17,
+  "parser": "runtime",
+  "arity": "int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLCOMBATMODS",
+  "id": 18,
+  "parser": "runtime",
+  "arity": "float,int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": "accuracy mod, damage mult"
+ },
+ {
+  "name": "SKILLMOVETOATTACKMOD",
+  "id": 19,
+  "parser": "runtime",
+  "arity": "int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLATTRIBUTE",
+  "id": 20,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "bit-set (OR)",
+  "max_occurrences": null,
+  "note": "SkillDataSetAttribute; repeats add flags"
+ },
+ {
+  "name": "SKILLAFFINITY",
+  "id": 21,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar enum",
+  "max_occurrences": 1,
+  "note": "FUN_801323a4 lookup"
+ },
+ {
+  "name": "SKILLWEAPONREQ",
+  "id": 22,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar enum",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLWEAPONEXC",
+  "id": 23,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar enum",
+  "max_occurrences": 1,
+  "note": "only set if unset"
+ },
+ {
+  "name": "SKILLMETER",
+  "id": 24,
+  "parser": "runtime",
+  "arity": "string,float,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLCOMBOBUTTON",
+  "id": 25,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLRANGE",
+  "id": 26,
+  "parser": "battle",
+  "arity": "int,string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLEXCLUDERANGE",
+  "id": 27,
+  "parser": "battle",
+  "arity": "int,string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLDISTANCEDELAY",
+  "id": 28,
+  "parser": "battle",
+  "arity": "float,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLEFFECT",
+  "id": 29,
+  "parser": "runtime",
+  "arity": "string,int,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": "SkillDataLookupEffect"
+ },
+ {
+  "name": "SKILLEFFECTVALUE2",
+  "id": 30,
+  "parser": "battle",
+  "arity": "float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLEFFECTRANGE",
+  "id": 31,
+  "parser": "battle",
+  "arity": "int,string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLEFFECTCONDITION",
+  "id": 32,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional slot",
+  "max_occurrences": 1,
+  "note": "UnitConditionalModify: last wins"
+ },
+ {
+  "name": "SKILLEFFECTSKILLCOND",
+  "id": 33,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional slot",
+  "max_occurrences": 1,
+  "note": "SkillConditionalModify: last wins"
+ },
+ {
+  "name": "SKILLEFFECTSTATUSCOND",
+  "id": 34,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional slot",
+  "max_occurrences": 1,
+  "note": "StatusConditionalModify: last wins"
+ },
+ {
+  "name": "SKILLEFFECTFX",
+  "id": 35,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSPLITEFFECT",
+  "id": 36,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSPLITEFFECTFX",
+  "id": 38,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSPLITEFFECTCONDITION",
+  "id": 37,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional slot",
+  "max_occurrences": 1,
+  "note": "UnitConditionalModify: last wins"
+ },
+ {
+  "name": "SKILLUSABILITYCONDITION",
+  "id": 55,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional slot",
+  "max_occurrences": 1,
+  "note": "UnitConditionalModify: last wins"
+ },
+ {
+  "name": "SKILLTARGETCONDITION",
+  "id": 56,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional slot",
+  "max_occurrences": 1,
+  "note": "UnitConditionalModify: last wins"
+ },
+ {
+  "name": "SKILLMOVERANGECONDITION",
+  "id": 58,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional slot",
+  "max_occurrences": 1,
+  "note": "UnitConditionalModify: last wins"
+ },
+ {
+  "name": "SKILLMOVERANGE",
+  "id": 57,
+  "parser": "battle",
+  "arity": "int,string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUS",
+  "id": 39,
+  "parser": "battle",
+  "arity": "string,float,float",
+  "slot": "status slot 1",
+  "max_occurrences": 1,
+  "note": "pairs with SKILLSTATUS2; 3rd occurrence overwrites slot 1"
+ },
+ {
+  "name": "SKILLSTATUSDURATION",
+  "id": 40,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "status slot 1",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUSINTERVAL",
+  "id": 41,
+  "parser": "battle",
+  "arity": "string,int",
+  "slot": "status slot 1",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUSTARGET",
+  "id": 42,
+  "parser": "battle",
+  "arity": "string,int,string",
+  "slot": "status slot 1",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUSUSELIMIT",
+  "id": 43,
+  "parser": "battle",
+  "arity": "int",
+  "slot": "status slot 1",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUSCONDITION",
+  "id": 44,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": " Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONCONDITION",
+  "id": 45,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "alias of the 5 SITUATION* spellings (id 0x2D) Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONSKILLCONDITION",
+  "id": 45,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "same id 0x2D Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONSTATUSCONDITION",
+  "id": 45,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "same id 0x2D Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONUNITCONDITION",
+  "id": 45,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "same id 0x2D Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONAFFINITYCONDITION",
+  "id": 45,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "same id 0x2D Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSCHANCE",
+  "id": 46,
+  "parser": "battle",
+  "arity": "float",
+  "slot": "status slot 1",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUS2",
+  "id": 47,
+  "parser": "battle",
+  "arity": "string,float,float",
+  "slot": "status slot 2",
+  "max_occurrences": 1,
+  "note": "sets slot index 2"
+ },
+ {
+  "name": "SKILLSTATUSDURATION2",
+  "id": 48,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "status slot 2",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUSINTERVAL2",
+  "id": 49,
+  "parser": "battle",
+  "arity": "string,int",
+  "slot": "status slot 2",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUSTARGET2",
+  "id": 50,
+  "parser": "battle",
+  "arity": "string,int,string",
+  "slot": "status slot 2",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUSUSELIMIT2",
+  "id": 51,
+  "parser": "battle",
+  "arity": "int",
+  "slot": "status slot 2",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSTATUSCONDITION2",
+  "id": 52,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": " Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONCONDITION2",
+  "id": 53,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "alias group 0x35 Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONSKILLCONDITION2",
+  "id": 53,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "same id 0x35 Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONSTATUSCONDITION2",
+  "id": 53,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "same id 0x35 Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONUNITCONDITION2",
+  "id": 53,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "same id 0x35 Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSSITUATIONAFFINITYCONDITION2",
+  "id": 53,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "conditional list",
+  "max_occurrences": null,
+  "note": "same id 0x35 Accumulates: each line adds conditions."
+ },
+ {
+  "name": "SKILLSTATUSCHANCE2",
+  "id": 54,
+  "parser": "battle",
+  "arity": "float",
+  "slot": "status slot 2",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLANIM",
+  "id": 59,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLDEFENDHANIM",
+  "id": 60,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLANIMSPEED",
+  "id": 61,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLANIMTIME",
+  "id": 62,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLANIMSTARTTIME",
+  "id": 63,
+  "parser": "battle",
+  "arity": "float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLANIMSTARTFRAME",
+  "id": 64,
+  "parser": "battle",
+  "arity": "int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLDEFENDHANIMSPEED",
+  "id": 65,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLLOWANIM",
+  "id": 66,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLLOWANIMSPEED",
+  "id": 67,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLLOOPANIM",
+  "id": 68,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLLOOPANIMSPEED",
+  "id": 69,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLMOVEANIM",
+  "id": 70,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLMOVEANIMSPEED",
+  "id": 71,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLCHARGEANIM",
+  "id": 72,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLCHARGEANIMSPEED",
+  "id": 73,
+  "parser": "battle",
+  "arity": "string,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLFXMOVE",
+  "id": 74,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLFXPROJECTILE",
+  "id": 75,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLFXPROJECTILEIMPACT",
+  "id": 76,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLFX",
+  "id": 77,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLFXSWING",
+  "id": 78,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLFXCTAG",
+  "id": 79,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSOUND",
+  "id": 80,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLHTAGSOUND",
+  "id": 81,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSUBSKILL",
+  "id": 82,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLPROXY",
+  "id": 83,
+  "parser": "battle",
+  "arity": "string,string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSHIFTDATA",
+  "id": 84,
+  "parser": "battle",
+  "arity": "string,string,6 ints",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLSUMMONDATA",
+  "id": 85,
+  "parser": "battle",
+  "arity": "string,string,int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLMULTIHITDATA",
+  "id": 86,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLPROJECTILE",
+  "id": 87,
+  "parser": "battle",
+  "arity": "string,string,float",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLPROJECTILEATTR",
+  "id": 88,
+  "parser": "battle",
+  "arity": "string",
+  "slot": "bit-set (OR)",
+  "max_occurrences": null,
+  "note": "multifire/indirect/nontarget/return; repeats add flags"
+ },
+ {
+  "name": "SKILLPROJECTILESEQUENCE",
+  "id": 89,
+  "parser": "battle",
+  "arity": "string,string,string,int",
+  "slot": "bit-set (OR)",
+  "max_occurrences": null,
+  "note": "repeats add flags"
+ },
+ {
+  "name": "SKILLPROJECTILEROTATION",
+  "id": 90,
+  "parser": "battle",
+  "arity": "4 floats",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLLEVEL",
+  "id": 91,
+  "parser": "runtime",
+  "arity": "int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLEXPCOST",
+  "id": 92,
+  "parser": "runtime",
+  "arity": "int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": "same engine field as SKILLJOBPOINTCOST (0x5C)"
+ },
+ {
+  "name": "SKILLJOBPOINTCOST",
+  "id": 92,
+  "parser": "runtime",
+  "arity": "int",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": "has a hardcoded \"KillTest\" name special case"
+ },
+ {
+  "name": "SKILLUSECLASS",
+  "id": 93,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "class set",
+  "max_occurrences": null,
+  "note": "FUN_800f9608; repeats add classes"
+ },
+ {
+  "name": "SKILLPREREQ",
+  "id": 94,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLREPLACES",
+  "id": 95,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLEXCLUSION1",
+  "id": 96,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "parsed then discarded",
+  "max_occurrences": 1,
+  "note": "value is read but never stored"
+ },
+ {
+  "name": "SKILLEXCLUSION2",
+  "id": 97,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "parsed then discarded",
+  "max_occurrences": 1,
+  "note": "value is read but never stored"
+ },
+ {
+  "name": "SKILLFREE1",
+  "id": 98,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLFREE2",
+  "id": 99,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLFREE3",
+  "id": 100,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ },
+ {
+  "name": "SKILLFREE4",
+  "id": 101,
+  "parser": "runtime",
+  "arity": "string",
+  "slot": "scalar",
+  "max_occurrences": 1,
+  "note": ""
+ }
+]

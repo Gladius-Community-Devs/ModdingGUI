@@ -69,6 +69,18 @@ public static class SkillValidationCodes
 
     /// <summary>A field's documented prerequisite is absent or has the wrong value.</summary>
     public const string MissingRequirement = "missing-requirement";
+
+    /// <summary>
+    /// The field name is not in the engine's field table, so the game silently
+    /// ignores the line (verified against the GameCube DOL field tables).
+    /// </summary>
+    public const string FieldNotInEngine = "field-not-in-engine";
+
+    /// <summary>
+    /// The record repeats a field more often than the engine has slots for it, so
+    /// the extra lines are overwritten — the edit is lost in game.
+    /// </summary>
+    public const string ExceedsEngineSlots = "exceeds-engine-slots";
 }
 
 /// <summary>Knobs for <see cref="SkillsValidator.Validate"/>.</summary>

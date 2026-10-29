@@ -252,6 +252,10 @@ public sealed class SkillsCatalog
                 NumericMax = numericMax,
                 ReferenceOnly = ReadNullableBool(el, "reference_only") ?? false,
                 HasNumberedVariants = hasNumberedVariants,
+                EngineKnown = ReadNullableBool(el, "engine"),
+                MaxOccurrences = (int?)ReadNullableLong(el, "max_occurrences"),
+                Accumulates = ReadNullableBool(el, "accumulates") ?? false,
+                EngineOnly = ReadNullableBool(el, "engine_only") ?? false,
             };
         }
         catch (InvalidOperationException)
@@ -354,8 +358,36 @@ public sealed class SkillFieldSpec
     /// <summary>True when numbered variants were observed, which legitimises repetition.</summary>
     public bool HasNumberedVariants { get; init; }
 
-    /// <summary>True when repetition is legal (explicit <c>MULTI: yes</c> or numbered variants).</summary>
-    public bool AllowsRepetition => Multi || HasNumberedVariants;
+    /// <summary>
+    /// Whether the game engine recognises this field name. <c>null</c> when the
+    /// catalog carries no engine data (older catalogs). <c>false</c> means the
+    /// engine's tokenizer will never match the name — the line is silently ignored
+    /// in game, so the edit has no effect.
+    /// </summary>
+    public bool? EngineKnown { get; init; }
+
+    /// <summary>
+    /// How many occurrences the engine can hold in one record: <c>1</c> for a
+    /// scalar (last wins), <c>2</c> for the paired status slots, <c>null</c> for
+    /// repeating or accumulating fields.
+    /// </summary>
+    public int? MaxOccurrences { get; init; }
+
+    /// <summary>
+    /// True when repeated lines combine instead of overwriting: bit-set fields
+    /// (attribute / projectile flags), class sets and conditional-modifier fields.
+    /// </summary>
+    public bool Accumulates { get; init; }
+
+    /// <summary>True for engine-legal fields that never occur in the vanilla corpus.</summary>
+    public bool EngineOnly { get; init; }
+
+    /// <summary>True when repetition is legal (engine allows it, or explicit MULTI / numbered variants).</summary>
+    public bool AllowsRepetition =>
+        Accumulates
+        || Multi
+        || HasNumberedVariants
+        || (EngineKnown == true && (MaxOccurrences is null || MaxOccurrences > 1));
 }
 
 /// <summary>Shape and known values for one positional argument of a field.</summary>

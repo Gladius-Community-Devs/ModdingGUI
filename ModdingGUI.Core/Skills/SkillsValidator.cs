@@ -88,17 +88,22 @@ public static class SkillsValidator
                 continue;
             }
 
-            if (entries.Count > 1 && !spec.AllowsRepetition)
+            // Engine truth wins over the corpus: a field the engine never matches is
+            // silently dropped in game, however often modded data uses it.
+            if (spec.EngineKnown == false)
             {
                 issues.Add(new SkillValidationIssue
                 {
                     Severity = SkillValidationSeverity.Warning,
-                    Code = SkillValidationCodes.DuplicateSingleCardinality,
+                    Code = SkillValidationCodes.FieldNotInEngine,
                     Field = fieldName,
-                    Message = $"appears {entries.Count} times but is single-use " +
-                              $"(documented as MULTI: no, no numbered variants observed)",
+                    Message = "field name is not in the engine's field table — " +
+                              "the game ignores this line",
                 });
             }
+
+            if (entries.Count > 1 || spec.Accumulates)
+                CheckRepetition(fieldName, spec, entries.Count, issues);
 
             foreach (var entry in entries)
                 CheckTokens(fieldName, spec, entry, issues);
@@ -168,6 +173,40 @@ public static class SkillsValidator
 
     private static bool ShouldEnumerate(SkillFieldSpec spec, SkillSlotSpec slot) =>
         slot.Enumerate ?? spec.Enumerate;
+
+    /// <summary>
+    /// Judge repetition against engine semantics (verified against the GameCube
+    /// DOL): accumulating fields — bit-sets, class sets and conditional modifiers —
+    /// combine, so repeats are legal; slot-based fields silently overwrite once
+    /// their slot count is exceeded.
+    /// </summary>
+    private static void CheckRepetition(
+        string fieldName,
+        SkillFieldSpec spec,
+        int count,
+        List<SkillValidationIssue> issues)
+    {
+        if (count <= 1 || spec.Accumulates) return;
+
+        if (spec.EngineKnown == true)
+        {
+            if (spec.MaxOccurrences is null) return;   // engine allows unbounded repeats
+            if (count > spec.MaxOccurrences.Value)
+            {
+                Add(issues, SkillValidationSeverity.Warning, SkillValidationCodes.ExceedsEngineSlots, fieldName,
+                    $"appears {count} times but the engine only keeps {spec.MaxOccurrences.Value} " +
+                    $"(later line(s) overwrite earlier ones)");
+            }
+            return;
+        }
+
+        // No engine metadata (older catalog): fall back to the documented MULTI flag.
+        if (!spec.AllowsRepetition)
+        {
+            Add(issues, SkillValidationSeverity.Warning, SkillValidationCodes.DuplicateSingleCardinality, fieldName,
+                $"appears {count} times but is documented as single-use (MULTI: no)");
+        }
+    }
 
     private static void CheckLinks(
         string fieldName,

@@ -646,21 +646,16 @@ def mark_unsupported_rules(
     catalog: dict[str, Any],
     records: list[dict[str, list[str]]],
 ) -> dict[str, int]:
-    """Mark documented rules the observed corpus contradicts as advisory."""
-    counts = {"multi_flipped": 0, "links_advisory": 0, "requires_advisory": 0}
+    """Mark documented rules the observed corpus contradicts as advisory.
+
+    Repeat legality is NOT decided here any more: the engine's own behaviour
+    (``dol_skill_fields.json``) is authoritative, because the corpus can repeat a
+    field the engine merely overwrites (last-wins) as easily as one it
+    accumulates. See :func:`annotate_engine`.
+    """
+    counts = {"links_advisory": 0, "requires_advisory": 0}
 
     for fname, spec in catalog["fields"].items():
-        mirrors = spec.get("mirrors") or [fname]
-        has_numbered = any(re.search(r"\d+$", m) and m != fname for m in mirrors)
-
-        if not spec.get("multi") and not has_numbered:
-            repeats = sum(1 for rec in records if len(rec.get(fname, [])) > 1)
-            if repeats > 0:
-                spec["multi"] = True
-                spec["multi_source"] = "observed"
-                spec["multi_observed_records"] = repeats
-                counts["multi_flipped"] += 1
-
         links = spec.get("links")
         if links:
             violations = 0
@@ -702,6 +697,105 @@ def mark_unsupported_rules(
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Engine truth (extracted from the GameCube DOL)
+# ---------------------------------------------------------------------------
+# dol_skill_fields.json is produced from the boot DOL: every field name the
+# engine's tokenizer recognises, its internal id, argument shape and repeat
+# behaviour, read out of SkillLoadTokenFile (runtime record) and FUN_80026ec0
+# (battle/effect record). It is the authority on legality — the corpus cannot
+# be, because a modded file happily repeats a field the engine merely overwrites.
+DOL_FIELDS_FILENAME = "dol_skill_fields.json"
+
+# "bit-set (OR)", "class set" and "conditional slot" all accumulate; scalar and
+# "status slot N" fields are last-wins (the status pairs simply give two slots).
+_ACCUMULATING_SLOT_MARKERS = ("OR", "set", "conditional")
+
+
+def load_engine_fields(path: Path) -> dict[str, dict[str, Any]]:
+    """Load the DOL-derived engine field table (name -> row)."""
+    if not path.exists():
+        print(f"[warn] missing engine field table: {path}")
+        return {}
+    try:
+        with path.open("r", encoding="utf-8") as fh:
+            rows = json.load(fh)
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"[warn] could not read {path}: {exc}")
+        return {}
+    return {row["name"]: row for row in rows if row.get("name")}
+
+
+def annotate_engine(
+    catalog: dict[str, Any],
+    engine: dict[str, dict[str, Any]],
+) -> dict[str, int]:
+    """Attach engine id, cardinality and accumulation semantics to each field."""
+    counts = {"engine_known": 0, "engine_only_added": 0, "accumulating": 0}
+    covered: set[str] = set()
+
+    for fname, spec in catalog["fields"].items():
+        # Dedupe: the base name also appears in `mirrors`.
+        names = list(dict.fromkeys([fname] + list(spec.get("mirrors") or [])))
+        hits = [engine[n] for n in names if n in engine]
+        covered.update(n for n in names if n in engine)
+        spec["engine"] = bool(hits)
+        if not hits:
+            continue
+
+        counts["engine_known"] += 1
+        ids = sorted({h["id"] for h in hits})
+        spec["engine_id"] = ids[0] if len(ids) == 1 else ids
+        spec["engine_parser"] = hits[0].get("parser")
+        spec["engine_arity"] = hits[0].get("arity")
+        spec["engine_slot"] = hits[0].get("slot")
+
+        maxima = [h.get("max_occurrences") for h in hits]
+        if any(m is None for m in maxima):
+            spec["max_occurrences"] = None          # unbounded / accumulating
+        elif len({h["id"] for h in hits}) > 1:
+            # Distinct engine ids sharing one catalog name (SKILLFREE1..4,
+            # SKILLEXCLUSION1..2): each field is single-use, so the name-level
+            # allowance is the number of slots.
+            spec["max_occurrences"] = sum(m for m in maxima if m) or None
+        else:
+            spec["max_occurrences"] = max(m for m in maxima if m)
+        accumulates = any(
+            any(marker in (h.get("slot") or "") for marker in _ACCUMULATING_SLOT_MARKERS)
+            for h in hits
+        )
+        spec["accumulates"] = accumulates
+        if accumulates:
+            counts["accumulating"] += 1
+
+    # Engine fields that never appear in the corpus are still legal — document
+    # them so the editor and the validator know they exist.
+    for name in sorted(engine):
+        if name in covered:
+            continue
+        row = engine[name]
+        catalog["fields"][name] = {
+            "enumerate": False,
+            "note": "Engine-legal field with no vanilla occurrences.",
+            "mirrors": [name],
+            "slots": [],
+            "engine": True,
+            "engine_id": row["id"],
+            "engine_parser": row.get("parser"),
+            "engine_arity": row.get("arity"),
+            "engine_slot": row.get("slot"),
+            "max_occurrences": row.get("max_occurrences"),
+            "accumulates": any(
+                marker in (row.get("slot") or "")
+                for marker in _ACCUMULATING_SLOT_MARKERS
+            ),
+            "engine_only": True,
+        }
+        counts["engine_only_added"] += 1
+
+    return counts
+
+
 def merge_reference(
     catalog: dict[str, Any],
     reference: dict[str, dict[str, Any]],
@@ -793,13 +887,21 @@ def main() -> None:
     reference = parse_field_reference(here / REFERENCE_FILENAME)
     ref_counts = merge_reference(catalog, reference, REFERENCE_FILENAME)
 
+    engine = load_engine_fields(here / DOL_FIELDS_FILENAME)
+    engine_counts = annotate_engine(catalog, engine)
+
     records = scan_records(tok_files)
     rule_counts = mark_unsupported_rules(catalog, records)
     catalog["_meta"]["rule_support"] = {
         "records_scanned": len(records),
-        "multi_flipped_from_data": rule_counts["multi_flipped"],
         "links_marked_advisory": rule_counts["links_advisory"],
         "requires_marked_advisory": rule_counts["requires_advisory"],
+    }
+    catalog["_meta"]["engine"] = {
+        "source": "GameCube boot DOL (SkillLoadTokenFile / FUN_80026ec0 field tables)",
+        "fields_known": engine_counts["engine_known"],
+        "fields_added_from_engine": engine_counts["engine_only_added"],
+        "fields_accumulating": engine_counts["accumulating"],
     }
 
     overrides_path = here / "skills_catalog_overrides.json"
@@ -827,9 +929,11 @@ def main() -> None:
           f"multi {ref_counts['multi_yes']}, "
           f"reference-only {ref_counts['reference_only']})")
     print(f"  rule support:     records {len(records)}, "
-          f"multi flipped from data {rule_counts['multi_flipped']}, "
           f"links advisory {rule_counts['links_advisory']}, "
           f"requires advisory {rule_counts['requires_advisory']}")
+    print(f"  engine truth:     known {engine_counts['engine_known']}, "
+          f"added {engine_counts['engine_only_added']}, "
+          f"accumulating {engine_counts['accumulating']}")
 
 
 if __name__ == "__main__":
