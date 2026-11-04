@@ -940,7 +940,6 @@ public sealed partial class SkillEditorView : UserControl
             return new List<string>();
         }
 
-        // Step 1: SKILLUSECLASS values from the current SKILL Box.
         var classNames = ParseSkillBox(_txtSkillBox.Text)
             .Where(f => f.FieldName.Equals("SKILLUSECLASS", StringComparison.OrdinalIgnoreCase))
             .Select(f => f.RawValue.Trim('"', ' '))
@@ -953,114 +952,11 @@ public sealed partial class SkillEditorView : UserControl
             return new List<string>();
         }
 
-        // Step 2: Resolve mesh names from classdefs.tok.
-        string classdefsPath = ProjectPaths.ClassDefsFile(_projectFolder);
-        if (!File.Exists(classdefsPath))
-        {
-            errorMessage = "classdefs.tok not found in project.";
-            return new List<string>();
-        }
-
-        List<string> meshes;
-        try { meshes = ResolveMeshesFromClassdefs(classdefsPath, classNames); }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error reading classdefs: {ex.Message}";
-            return new List<string>();
-        }
-
-        if (meshes.Count == 0)
-        {
-            errorMessage = $"No MESH found for class(es): {string.Join(", ", classNames)}.";
-            return new List<string>();
-        }
-
-        // Step 3: Scan data/characters/<mesh>/ for *.pan files whose stems contain '_'.
-        string charsRoot = ProjectPaths.CharactersFolder(_projectFolder);
-        var animSets = new List<HashSet<string>>();
-
-        foreach (var mesh in meshes)
-        {
-            string meshDir = Path.Combine(charsRoot, mesh);
-            if (!Directory.Exists(meshDir)) continue;
-
-            var animsForMesh = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            try
-            {
-                foreach (var pan in Directory.EnumerateFiles(meshDir, "*.pan"))
-                {
-                    string stem = Path.GetFileNameWithoutExtension(pan);
-                    int us = stem.IndexOf('_');
-                    if (us < 0) continue;
-                    animsForMesh.Add(stem.Substring(us + 1));
-                }
-            }
-            catch { /* skip unreadable mesh dir */ }
-
-            animSets.Add(animsForMesh);
-        }
-
-        if (animSets.Count == 0)
-        {
-            errorMessage = $"No character folders found for mesh(es): {string.Join(", ", meshes)}.";
-            return new List<string>();
-        }
-
-        // Step 4: Intersect across all meshes — only universally-valid animations.
-        IEnumerable<string> result = animSets[0];
-        for (int i = 1; i < animSets.Count; i++)
-            result = result.Where(a => animSets[i].Contains(a));
-
-        return result.OrderBy(a => a, StringComparer.OrdinalIgnoreCase).ToList();
-    }
-
-    /// <summary>
-    /// Parses <c>classdefs.tok</c> (blank-line delimited blocks) and returns
-    /// the MESH value for every block whose SKILLUSENAME matches one of
-    /// <paramref name="classNames"/>.
-    /// </summary>
-    private static List<string> ResolveMeshesFromClassdefs(
-        string path, IEnumerable<string> classNames)
-    {
-        var targets = new HashSet<string>(classNames, StringComparer.OrdinalIgnoreCase);
-        var enc     = Encoding.GetEncoding("ISO-8859-1");
-        var lines   = File.ReadAllLines(path, enc);
-
-        var    meshes       = new List<string>();
-        string? currentMesh  = null;
-        bool    inTargetBlock = false;
-
-        foreach (var raw in lines)
-        {
-            string line = raw.Trim();
-
-            if (string.IsNullOrEmpty(line))
-            {
-                // Block boundary.
-                if (inTargetBlock && currentMesh is not null)
-                    meshes.Add(currentMesh);
-                currentMesh   = null;
-                inTargetBlock = false;
-                continue;
-            }
-
-            if (line.StartsWith("SKILLUSENAME:", StringComparison.OrdinalIgnoreCase))
-            {
-                string val = line.Substring("SKILLUSENAME:".Length).Trim().Trim('"');
-                if (targets.Contains(val))
-                    inTargetBlock = true;
-            }
-            else if (line.StartsWith("MESH:", StringComparison.OrdinalIgnoreCase))
-            {
-                currentMesh = line.Substring("MESH:".Length).Trim().Trim('"');
-            }
-        }
-
-        // Flush final block if the file doesn't end with a blank line.
-        if (inTargetBlock && currentMesh is not null)
-            meshes.Add(currentMesh);
-
-        return meshes;
+        // Class → mesh → *.pan resolution lives in Core so the MCP server resolves the
+        // same names the editor shows.
+        var result = SkillAnimationResolver.Resolve(_projectFolder, classNames);
+        if (result.Error is not null) errorMessage = result.Error;
+        return result.AnimationNames.ToList();
     }
 
     /// <summary>Returns the first double-quoted substring in <paramref name="line"/>,
