@@ -1,0 +1,27 @@
+{
+ "_meta": {
+  "format_version": 1,
+  "generated_from": "data/school/*.tok",
+  "files": 74,
+  "units": 924
+ },
+ "header_keys": {
+  "BADGE": 88,
+  "GOLD": 74,
+  "HERO": 73,
+  "INVENTORY": 6988,
+  "NAME": 74
+ },
+ "unit_keys": {
+  "CORESTATSCOMP": 52,
+  "CORESTATSCOMP2": 873,
+  "CREATEUNIT": 1,
+  "CUSTOMIZE": 5,
+  "EXPERIENCE": 925,
+  "ITEMSCOMP": 923,
+  "JOBPOINTS": 921,
+  "LEVEL": 925,
+  "MODITEMSCOMP": 1,
+  "SKILL": 26913
+ }
+}

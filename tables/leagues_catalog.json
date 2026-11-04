@@ -1,0 +1,60 @@
+{
+ "_meta": {
+  "format_version": 1,
+  "generated_from": "data/towns/leagues/*.tok",
+  "files": 44,
+  "leagues": 220,
+  "encounters": 839
+ },
+ "header_keys": {
+  "LEAGUEPTSNEEDED": 41,
+  "OFFICEDESC": 44,
+  "OFFICENAME": 44,
+  "OFFICER": 20,
+  "RECRUIT": 221,
+  "SCHOOL": 200,
+  "TAGLINE1": 44,
+  "TAGLINE2": 44
+ },
+ "league_keys": {
+  "BADGE": 94,
+  "DESIGNNOTES": 78,
+  "ENCPTSNEEDED": 220,
+  "HERO": 36,
+  "LEAGUEDESC": 220,
+  "LEAGUEPTS": 220,
+  "MINPOP": 112,
+  "ONHOVER": 220,
+  "ONSELECT": 220,
+  "ONWIN": 220,
+  "PRIZECOMPLETION": 352,
+  "PRIZEMASTERY": 260,
+  "TIER": 114
+ },
+ "encounter_keys": {
+  "DESIGNNOTES": 307,
+  "ENCDESC": 839,
+  "ENCFILE": 839,
+  "ENCPTS": 777,
+  "ENTRYFEE": 302,
+  "FREQUENCY": 839,
+  "MAXLEVEL": 10,
+  "MINLEVEL": 11,
+  "ONHOVER": 839,
+  "ONSELECT": 839,
+  "ONWIN": 839,
+  "PRIZETIER": 1980,
+  "TEAMS": 839,
+  "TYPE": 520
+ },
+ "teams_shapes": {
+  "4 4 4 0 0": 80,
+  "1 4 4 0 0": 58,
+  "3 3 3 0 0": 50,
+  "1 1 1 0 0": 46,
+  "5 5 5 0 0": 35,
+  "2 2 2 0 0": 34,
+  "1 3 3 0 0": 26,
+  "2 2 2 2 2": 25
+ }
+}

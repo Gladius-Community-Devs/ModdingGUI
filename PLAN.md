@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 292 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (276 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 306 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (290 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -180,7 +180,18 @@ Unlocks display-name resolution everywhere and makes Team Builder real.
 ### Phase 4 — Encounters, Leagues, Towns, Schools, plus config tail
 Finishes the main `data/config` + `data/towns` + `data/encounters` triangle.
 
-**Status: in progress.** Encounters are done; leagues, towns, schools and the config tail remain.
+**Delivered.** `IEncountersApi` (834 `.enc` files, `UNITDB` arity 21), `ISchoolsApi`
+(74 rosters, 924 units), `ILeaguesApi` (44 files, 220 leagues, 839 bouts) and
+`IConfigTableApi` for flat `KEY value` tables — which is what the town data actually is:
+`data/towns` holds `shops/` (59 files), `leagues/` (44) and `schools/*.tnt` tints, with no
+`towns/*.tok` to model, so the planned `ITownsApi` folded into the generic table API.
+Every API is raw-line based, byte-identical on a no-op write, locked and backed up.
+Corpus findings folded into the validators: `PRIZETIER` is colon-less, `CORESTATSCOMP`
+takes 7 values where `CORESTATSCOMP2` takes 6, `ITEMSCOMP` may omit trailing slots, and
+7 vanilla league bouts reference `.enc` files that do not exist (pinned in the gate).
+Manual test plan: `MANUAL_TESTING_PHASE_4.md` at the workspace root.
+
+**Status: done.** All four families landed; `ITownsApi` folded into `IConfigTableApi`.
 
 - **Done — `IEncountersApi`** over `.enc`: an encounter is a header section plus `TEAM:`
   sections holding `UNITDB` rows. `ListFiles/List/Get/SetField/AddField/RemoveField/`
