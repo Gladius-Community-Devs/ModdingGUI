@@ -48,6 +48,15 @@ public interface IEncountersApi
     /// </summary>
     void SetTeamUnits(string projectPath, string relativePath, int teamIndex, IReadOnlyList<string> unitRawValues);
 
+    /// <summary>Replace one unit row of a team (0-based position within the team).</summary>
+    void SetTeamUnit(string projectPath, string relativePath, int teamIndex, int unitIndex, EncounterUnit unit);
+
+    /// <summary>Append a unit to a team.</summary>
+    void AddTeamUnit(string projectPath, string relativePath, int teamIndex, EncounterUnit unit);
+
+    /// <summary>Remove one unit from a team (0-based position within the team).</summary>
+    void RemoveTeamUnit(string projectPath, string relativePath, int teamIndex, int unitIndex);
+
     /// <summary>
     /// Advisory checks: unknown header keys, teams with no units or no start grid, and
     /// <c>UNITDB</c> rows with the wrong argument count.

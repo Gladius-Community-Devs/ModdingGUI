@@ -37,6 +37,18 @@ public static class EncounterValidationCodes
 
     /// <summary>No <c>ENCOUNTERNAME</c>, which leagues reference by name.</summary>
     public const string MissingName = "missing-encounter-name";
+
+    /// <summary>The key is not in the engine's encounter field table, so it is ignored.</summary>
+    public const string FieldNotInEngine = "field-not-in-engine";
+
+    /// <summary>A <c>UNITDB</c> row has 21 values but one has the wrong type.</summary>
+    public const string UnitShape = "unit-shape";
+
+    /// <summary>The spawn chance is outside 0–100.</summary>
+    public const string UnitSpawnChance = "unit-spawn-chance";
+
+    /// <summary>The unit has no start slot, so it cannot be placed.</summary>
+    public const string UnitStartSlot = "unit-start-slot";
 }
 
 /// <summary>One finding about one encounter.</summary>
@@ -68,11 +80,15 @@ public sealed class EncountersCatalog
     private EncountersCatalog(
         IReadOnlyDictionary<string, int> headerKeys,
         IReadOnlyDictionary<string, int> teamKeys,
+        IReadOnlyDictionary<string, int> engineKeys,
+        IReadOnlyList<string> engineOnlyKeys,
         int unitArgumentCount,
         int fileCount)
     {
         HeaderKeys = headerKeys;
         TeamKeys = teamKeys;
+        EngineKeys = engineKeys;
+        EngineOnlyKeys = engineOnlyKeys;
         UnitArgumentCount = unitArgumentCount;
         FileCount = fileCount;
     }
@@ -83,7 +99,16 @@ public sealed class EncountersCatalog
     /// <summary>Per-team keys seen in the corpus with their frequencies.</summary>
     public IReadOnlyDictionary<string, int> TeamKeys { get; }
 
-    /// <summary>Number of arguments a <c>UNITDB</c> row carries (21 in the vanilla corpus).</summary>
+    /// <summary>
+    /// The engine's own encounter key table (<c>EncounterSetup</c>, DOL <c>0x80106ddc</c>): key
+    /// name to field id. Empty when the catalog predates the DOL merge.
+    /// </summary>
+    public IReadOnlyDictionary<string, int> EngineKeys { get; }
+
+    /// <summary>Engine-legal keys the vanilla corpus never uses (e.g. <c>BLOCK</c>).</summary>
+    public IReadOnlyList<string> EngineOnlyKeys { get; }
+
+    /// <summary>Number of arguments a <c>UNITDB</c> row carries (21, from the DOL parser).</summary>
     public int UnitArgumentCount { get; }
 
     /// <summary>Encounter files the catalog was generated from.</summary>
@@ -104,6 +129,7 @@ public sealed class EncountersCatalog
 
         var headerKeys = ReadCounts(root, "header_keys");
         var teamKeys = ReadCounts(root, "team_keys");
+        var engineKeys = ReadEngineKeys(root, "engine_keys");
 
         int unitArity = 21;
         int fileCount = 0;
@@ -125,7 +151,9 @@ public sealed class EncountersCatalog
             }
         }
 
-        return new EncountersCatalog(headerKeys, teamKeys, unitArity, fileCount);
+        var engineOnly = ReadEngineOnly(root);
+
+        return new EncountersCatalog(headerKeys, teamKeys, engineKeys, engineOnly, unitArity, fileCount);
     }
 
     /// <summary>Load the shipped catalog, or null when the file is not deployed.</summary>
@@ -149,6 +177,40 @@ public sealed class EncountersCatalog
             yield return Path.Combine(dir.FullName,
                 ShippedRelativePath.Replace('/', Path.DirectorySeparatorChar));
         }
+    }
+
+    private static IReadOnlyDictionary<string, int> ReadEngineKeys(JsonElement root, string property)
+    {
+        var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        if (!root.TryGetProperty(property, out var element) || element.ValueKind != JsonValueKind.Object)
+            return result;
+
+        foreach (var pair in element.EnumerateObject())
+        {
+            if (pair.Value.ValueKind == JsonValueKind.Object
+                && pair.Value.TryGetProperty("id", out var id)
+                && id.ValueKind == JsonValueKind.Number)
+            {
+                result[pair.Name] = id.GetInt32();
+            }
+        }
+        return result;
+    }
+
+    private static IReadOnlyList<string> ReadEngineOnly(JsonElement root)
+    {
+        if (!root.TryGetProperty("_meta", out var meta)
+            || !meta.TryGetProperty("engine", out var engine)
+            || !engine.TryGetProperty("engine_only", out var only)
+            || only.ValueKind != JsonValueKind.Array)
+        {
+            return Array.Empty<string>();
+        }
+
+        return only.EnumerateArray()
+            .Where(v => v.ValueKind == JsonValueKind.String)
+            .Select(v => v.GetString()!)
+            .ToArray();
     }
 
     private static IReadOnlyDictionary<string, int> ReadCounts(JsonElement root, string property)
@@ -189,11 +251,20 @@ public static class EncounterValidator
         {
             foreach (var field in encounter.Fields)
             {
-                if (catalog.HeaderKeys.ContainsKey(field.Key)) continue;
-                issues.Add(new EncounterValidationIssue(
-                    EncounterValidationSeverity.Warning,
-                    EncounterValidationCodes.UnknownHeaderKey, "header", field.Key,
-                    $"'{field.Key}' is not a known encounter header key; the game ignores it"));
+                if (!catalog.HeaderKeys.ContainsKey(field.Key))
+                {
+                    issues.Add(new EncounterValidationIssue(
+                        EncounterValidationSeverity.Warning,
+                        EncounterValidationCodes.UnknownHeaderKey, "header", field.Key,
+                        $"'{field.Key}' is not a known encounter header key; the game ignores it"));
+                }
+                else if (catalog.EngineKeys.Count > 0 && !catalog.EngineKeys.ContainsKey(field.Key))
+                {
+                    issues.Add(new EncounterValidationIssue(
+                        EncounterValidationSeverity.Warning,
+                        EncounterValidationCodes.FieldNotInEngine, "header", field.Key,
+                        $"'{field.Key}' is not in the engine's encounter field table"));
+                }
             }
         }
 
@@ -213,11 +284,20 @@ public static class EncounterValidator
             {
                 foreach (var field in team.Fields)
                 {
-                    if (catalog.TeamKeys.ContainsKey(field.Key)) continue;
-                    issues.Add(new EncounterValidationIssue(
-                        EncounterValidationSeverity.Warning,
-                        EncounterValidationCodes.UnknownTeamKey, site, field.Key,
-                        $"'{field.Key}' is not a known team key; the game ignores it"));
+                    if (!catalog.TeamKeys.ContainsKey(field.Key))
+                    {
+                        issues.Add(new EncounterValidationIssue(
+                            EncounterValidationSeverity.Warning,
+                            EncounterValidationCodes.UnknownTeamKey, site, field.Key,
+                            $"'{field.Key}' is not a known team key; the game ignores it"));
+                    }
+                    else if (catalog.EngineKeys.Count > 0 && !catalog.EngineKeys.ContainsKey(field.Key))
+                    {
+                        issues.Add(new EncounterValidationIssue(
+                            EncounterValidationSeverity.Warning,
+                            EncounterValidationCodes.FieldNotInEngine, site, field.Key,
+                            $"'{field.Key}' is not in the engine's encounter field table"));
+                    }
                 }
             }
 
@@ -237,17 +317,48 @@ public static class EncounterValidator
                     "team has no UNITDB rows"));
             }
 
-            if (catalog is not null)
+            for (int i = 0; i < team.Units.Count; i++)
             {
-                for (int i = 0; i < team.Units.Count; i++)
+                string raw = team.Units[i];
+                int count = CountArguments(raw);
+                string where = $"{site}, unit {i + 1}";
+
+                if (catalog is not null && count != catalog.UnitArgumentCount)
                 {
-                    int count = CountArguments(team.Units[i]);
-                    if (count == catalog.UnitArgumentCount) continue;
                     issues.Add(new EncounterValidationIssue(
                         EncounterValidationSeverity.Warning,
-                        EncounterValidationCodes.UnitArgumentCount, site, "UNITDB",
-                        $"unit {i + 1} has {count} arguments; the corpus always has " +
-                        $"{catalog.UnitArgumentCount}"));
+                        EncounterValidationCodes.UnitArgumentCount, where, "UNITDB",
+                        $"{count} arguments; the engine reads {catalog.UnitArgumentCount} " +
+                        "(string, int, string, int×5, string×4, int×12)"));
+                    continue;
+                }
+
+                var unit = EncounterUnit.TryParse(raw);
+                if (unit is null)
+                {
+                    issues.Add(new EncounterValidationIssue(
+                        EncounterValidationSeverity.Warning,
+                        EncounterValidationCodes.UnitShape, where, "UNITDB",
+                        "a value has the wrong type for its slot; the engine aborts the record"));
+                    continue;
+                }
+
+                // The engine tests (rand % 100) + 1 <= value, so 100 or more always spawns (the
+                // corpus even contains 1000); only a negative value is meaningless.
+                if (unit.SpawnChancePercent < 0)
+                {
+                    issues.Add(new EncounterValidationIssue(
+                        EncounterValidationSeverity.Warning,
+                        EncounterValidationCodes.UnitSpawnChance, where, "UNITDB",
+                        $"spawn chance {unit.SpawnChancePercent} is negative"));
+                }
+
+                if (string.IsNullOrWhiteSpace(unit.StartSlot))
+                {
+                    issues.Add(new EncounterValidationIssue(
+                        EncounterValidationSeverity.Warning,
+                        EncounterValidationCodes.UnitStartSlot, where, "UNITDB",
+                        "unit has no start slot, so it cannot be placed on the grid"));
                 }
             }
         }

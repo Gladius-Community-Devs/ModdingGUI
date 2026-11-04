@@ -25,6 +25,7 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 DEFAULT_ROOT = REPO.parent / "clean-bec-unpacked" / "data" / "encounters"
+DEFAULT_ENGINE = REPO / "dol" / "encounters_fields.json"
 OUT_PATH = HERE / "encounters_catalog.json"
 
 KEY_RE = re.compile(r"^\s*([A-Z][A-Z0-9_]*)(?:\s*:\s*|\s+)(.*)$")
@@ -111,6 +112,7 @@ def scan(path: Path) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate encounters_catalog.json")
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
+    parser.add_argument("--engine", type=Path, default=DEFAULT_ENGINE)
     parser.add_argument("--out", type=Path, default=OUT_PATH)
     args = parser.parse_args()
 
@@ -118,15 +120,38 @@ def main() -> None:
         raise SystemExit(f"encounter folder not found: {args.root} (pass --root)")
 
     data = scan(args.root)
+    # The engine's own table (EncounterSetup, DOL 0x80106ddc) is the authority on which keys
+    # exist at all; the corpus only shows which ones are used.
+    engine_keys = {}
+    if args.engine.exists():
+        for row in json.loads(args.engine.read_text(encoding="utf-8")):
+            engine_keys[row["name"]] = {
+                "id": row["id"],
+                "occurrences": data["header_keys"].get(row["name"], 0)
+                              + data["team_keys"].get(row["name"], 0),
+            }
+
+    # TEAM and UNITDB are used, just not inside the header/team key sets.
+    if "TEAM" in engine_keys:
+        engine_keys["TEAM"]["occurrences"] = data["totals"]["teams"]
+    if "UNITDB" in engine_keys:
+        engine_keys["UNITDB"]["occurrences"] = data["totals"]["units"]
+
     catalog = {
         "_meta": {
-            "format_version": 1,
+            "format_version": 2,
             "generated_from": "data/encounters/**/*.enc",
             "totals": data["totals"],
             "unit_arity": data["unit_arity"],
+            "engine": {
+                "source": "GameCube bootfile.dol, EncounterSetup field table at 0x80303DD0",
+                "keys": len(engine_keys),
+                "engine_only": sorted(k for k, v in engine_keys.items() if v["occurrences"] == 0),
+            },
         },
         "header_keys": data["header_keys"],
         "team_keys": data["team_keys"],
+        "engine_keys": engine_keys,
         "encounters": data["encounters"],
     }
 
@@ -139,6 +164,9 @@ def main() -> None:
     print(f"  header keys:  {len(data['header_keys'])}")
     print(f"  team keys:    {len(data['team_keys'])}")
     print(f"  UNITDB arity: {data['unit_arity']}")
+    if engine_keys:
+        unused = [k for k, v in engine_keys.items() if v["occurrences"] == 0]
+        print(f"  engine keys:  {len(engine_keys)} ({len(unused)} unused: {', '.join(sorted(unused))})")
 
 
 if __name__ == "__main__":

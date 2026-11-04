@@ -1,6 +1,6 @@
 {
  "_meta": {
-  "format_version": 1,
+  "format_version": 2,
   "generated_from": "data/encounters/**/*.enc",
   "totals": {
    "files": 834,
@@ -9,6 +9,15 @@
   },
   "unit_arity": {
    "21": 6702
+  },
+  "engine": {
+   "source": "GameCube bootfile.dol, EncounterSetup field table at 0x80303DD0",
+   "keys": 20,
+   "engine_only": [
+    "BLOCK",
+    "FORCEPLACEMENT",
+    "VOICEINTRO"
+   ]
   }
  },
  "header_keys": {
@@ -30,6 +39,88 @@
  "team_keys": {
   "GRIDFILE": 2051,
   "SCHOOL": 1040
+ },
+ "engine_keys": {
+  "ENCOUNTERNAME": {
+   "id": 12,
+   "occurrences": 834
+  },
+  "PRIZETIER": {
+   "id": 13,
+   "occurrences": 1973
+  },
+  "SCENE": {
+   "id": 14,
+   "occurrences": 834
+  },
+  "GRIDFILE": {
+   "id": 15,
+   "occurrences": 2885
+  },
+  "PROPSFILE": {
+   "id": 16,
+   "occurrences": 447
+  },
+  "MUSIC": {
+   "id": 17,
+   "occurrences": 526
+  },
+  "VOICEINTRO": {
+   "id": 18,
+   "occurrences": 0
+  },
+  "CAMERATRACK": {
+   "id": 19,
+   "occurrences": 1598
+  },
+  "CUTSCENE": {
+   "id": 20,
+   "occurrences": 42
+  },
+  "BATTLESCRIPT": {
+   "id": 21,
+   "occurrences": 320
+  },
+  "CANDIE": {
+   "id": 22,
+   "occurrences": 116
+  },
+  "TOTALPOP": {
+   "id": 23,
+   "occurrences": 739
+  },
+  "CROWDLEVEL": {
+   "id": 24,
+   "occurrences": 416
+  },
+  "TEAM": {
+   "id": 25,
+   "occurrences": 2051
+  },
+  "SCHOOL": {
+   "id": 26,
+   "occurrences": 1040
+  },
+  "VALENSEASE": {
+   "id": 27,
+   "occurrences": 826
+  },
+  "URSULAEASE": {
+   "id": 28,
+   "occurrences": 826
+  },
+  "UNITDB": {
+   "id": 29,
+   "occurrences": 6702
+  },
+  "FORCEPLACEMENT": {
+   "id": 30,
+   "occurrences": 0
+  },
+  "BLOCK": {
+   "id": 31,
+   "occurrences": 0
+  }
  },
  "encounters": [
   {

@@ -24,6 +24,17 @@ public sealed class EncounterTeamDto
     /// <summary>Raw <c>UNITDB:</c> argument lists, one per unit, in file order.</summary>
     public IReadOnlyList<string> Units { get; init; } = Array.Empty<string>();
 
+    /// <summary>
+    /// Units parsed into their 21 named slots. Entries are null when a row does not match the
+    /// engine's argument shape; <see cref="Units"/> keeps the raw text for those.
+    /// </summary>
+    public IReadOnlyList<EncounterUnit?> ParsedUnits =>
+        Units.Select(EncounterUnit.TryParse).ToArray();
+
+    /// <summary>One parsed unit by position in the team, or null.</summary>
+    public EncounterUnit? Unit(int index) =>
+        index >= 0 && index < Units.Count ? EncounterUnit.TryParse(Units[index]) : null;
+
     /// <summary>All values of a field, in file order.</summary>
     public IReadOnlyList<string> Values(string key) =>
         Fields.Where(f => string.Equals(f.Key, key, StringComparison.OrdinalIgnoreCase))

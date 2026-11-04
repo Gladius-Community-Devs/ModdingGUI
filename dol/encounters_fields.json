@@ -1,0 +1,82 @@
+[
+ {
+  "name": "ENCOUNTERNAME",
+  "id": 12
+ },
+ {
+  "name": "PRIZETIER",
+  "id": 13
+ },
+ {
+  "name": "SCENE",
+  "id": 14
+ },
+ {
+  "name": "GRIDFILE",
+  "id": 15
+ },
+ {
+  "name": "PROPSFILE",
+  "id": 16
+ },
+ {
+  "name": "MUSIC",
+  "id": 17
+ },
+ {
+  "name": "VOICEINTRO",
+  "id": 18
+ },
+ {
+  "name": "CAMERATRACK",
+  "id": 19
+ },
+ {
+  "name": "CUTSCENE",
+  "id": 20
+ },
+ {
+  "name": "BATTLESCRIPT",
+  "id": 21
+ },
+ {
+  "name": "CANDIE",
+  "id": 22
+ },
+ {
+  "name": "TOTALPOP",
+  "id": 23
+ },
+ {
+  "name": "CROWDLEVEL",
+  "id": 24
+ },
+ {
+  "name": "TEAM",
+  "id": 25
+ },
+ {
+  "name": "SCHOOL",
+  "id": 26
+ },
+ {
+  "name": "VALENSEASE",
+  "id": 27
+ },
+ {
+  "name": "URSULAEASE",
+  "id": 28
+ },
+ {
+  "name": "UNITDB",
+  "id": 29
+ },
+ {
+  "name": "FORCEPLACEMENT",
+  "id": 30
+ },
+ {
+  "name": "BLOCK",
+  "id": 31
+ }
+]

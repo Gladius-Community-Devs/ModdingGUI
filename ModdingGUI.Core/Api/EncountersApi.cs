@@ -148,6 +148,61 @@ public sealed class EncountersApi : IEncountersApi
         });
     }
 
+    /// <inheritdoc />
+    public void SetTeamUnit(
+        string projectPath, string relativePath, int teamIndex, int unitIndex, EncounterUnit unit)
+    {
+        ArgumentNullException.ThrowIfNull(unit);
+
+        Edit(projectPath, relativePath, (lines, trailing) =>
+        {
+            var team = RequireTeam(lines, teamIndex);
+            var rows = KeyLinesIn(lines, team.Start + 1, team.End, "UNITDB");
+            if (unitIndex < 0 || unitIndex >= rows.Count)
+                throw new InvalidOperationException($"team {teamIndex} has no unit {unitIndex}.");
+
+            int index = rows[unitIndex];
+            string indent = new string(lines[index].TakeWhile(char.IsWhiteSpace).ToArray());
+            lines[index] = $"{indent}UNITDB: \t{unit.RebuildRaw()}";
+            return true;
+        });
+    }
+
+    /// <inheritdoc />
+    public void AddTeamUnit(
+        string projectPath, string relativePath, int teamIndex, EncounterUnit unit)
+    {
+        ArgumentNullException.ThrowIfNull(unit);
+
+        Edit(projectPath, relativePath, (lines, trailing) =>
+        {
+            var team = RequireTeam(lines, teamIndex);
+            var rows = KeyLinesIn(lines, team.Start + 1, team.End, "UNITDB");
+
+            int at = rows.Count > 0 ? rows[^1] + 1 : team.End;
+            string indent = rows.Count > 0
+                ? new string(lines[rows[0]].TakeWhile(char.IsWhiteSpace).ToArray())
+                : "\t";
+            lines.Insert(at, $"{indent}UNITDB: \t{unit.RebuildRaw()}");
+            return true;
+        });
+    }
+
+    /// <inheritdoc />
+    public void RemoveTeamUnit(
+        string projectPath, string relativePath, int teamIndex, int unitIndex)
+    {
+        Edit(projectPath, relativePath, (lines, trailing) =>
+        {
+            var team = RequireTeam(lines, teamIndex);
+            var rows = KeyLinesIn(lines, team.Start + 1, team.End, "UNITDB");
+            if (unitIndex < 0 || unitIndex >= rows.Count) return false;
+
+            lines.RemoveAt(rows[unitIndex]);
+            return true;
+        });
+    }
+
     // ---- editing plumbing ---------------------------------------------------
 
     private void EditHeader(string projectPath, string relativePath, string key, string rawValue, bool addWhenMissing)

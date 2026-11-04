@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 306 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (290 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 322 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (306 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -189,7 +189,16 @@ Every API is raw-line based, byte-identical on a no-op write, locked and backed 
 Corpus findings folded into the validators: `PRIZETIER` is colon-less, `CORESTATSCOMP`
 takes 7 values where `CORESTATSCOMP2` takes 6, `ITEMSCOMP` may omit trailing slots, and
 7 vanilla league bouts reference `.enc` files that do not exist (pinned in the gate).
-Manual test plan: `MANUAL_TESTING_PHASE_4.md` at the workspace root.
+**`UNITDB` is modelled, not opaque.** `EncounterSetup` (DOL `0x80106ddc`, case `0x1D`)
+reads exactly 21 values — `string, int, string, int×5, string×4, int×12` — so `EncounterUnit`
+exposes unit name, spawn chance, start slot, placement X/Y, position jitter, four class tags,
+four boolean flags and two spawn flags by name, and slots 7/8/17/18/19 by index (the engine
+passes them into unit creation without a visible test). The engine's 20-key encounter field
+table is merged into the catalog (`dol/encounters_fields.json`), so the three keys vanilla
+never uses (`BLOCK`, `FORCEPLACEMENT`, `VOICEINTRO`) are known and typos are flagged.
+Corpus detail: spawn chance uses `(rand % 100) + 1 <= value`, so ≥100 always spawns — the
+corpus contains `1000` — and only negatives are flagged.
+Manual QA plan: `MANUAL_TESTING_PHASE_4.md` at the workspace root.
 
 **Status: done.** All four families landed; `ITownsApi` folded into `IConfigTableApi`.
 
