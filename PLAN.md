@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 322 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (306 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 348 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (332 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -29,7 +29,7 @@ Realistic schemas/Apis to build:
 | Worldmap / fonts / hotkeys / options | `data/config/*.tok` | small Apis as needed (Phase 4 tail) |
 | Scripts `.scp` | compiled | **out of scope** |
 | Character `.pan` / `.bin` | binary | **read-only helpers only**, used by Skills animation resolver |
-| Grids `.grd` | binary | `ModdingGUI.Core.Grids.GridFile`; two layouts, decoded from the DOL: v2 round-trips byte for byte, v1 parses its per-cell slot lists and is write-refused |
+| Grids `.grd` | binary | `ModdingGUI.Core.Grids.GridFile`; two layouts decoded from the DOL, both read/write, 430/430 round-trip byte for byte |
 
 This is the universe. ~12 schemas + units `.txt` family.
 
@@ -204,8 +204,11 @@ corpus contains `1000` — and only negatives are flagged.
 `FUN_800b0e84`, a different format: a `u32` name count, that many raw 32-byte names (no `F`/`E`
 prefix), then 1024 records of `(u16 count, u16 pad, u32 offset)` whose offsets point at arrays of
 `u32` slot indices. Legacy grids therefore store a slot list per cell, which is why they are
-~3.2 kB larger. The reader parses both; v1 writes stay refused because regenerating that offset
-payload is a separate job (the old Java tool truncated 3.2 kB instead).
+~3.2 kB larger. **Both layouts are read and written.** An unchanged version-1 grid is written back
+from the bytes we loaded, which keeps vanilla's shared index arrays and makes no-op saves
+byte-identical; once a cell changes, the payload is rebuilt with one array per non-empty cell and
+absolute offsets. All 430 vanilla grids round-trip byte for byte and the 27 legacy maps are
+editable in the Grid Builder.
 
 A slot may paint many tiles — that is how the player chooses where to stand — so one cell per slot
 was wrong. Validation enforces the real rule: `start-slot-overflow` warns when named units outnumber
