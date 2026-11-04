@@ -93,6 +93,45 @@ public sealed class GridFormatTests : IDisposable
     }
 
     [Fact]
+    public void VersionOneGrid_ReadsPerCellSlotLists()
+    {
+        if (!CleanBecCorpus.IsAvailable) return;
+
+        // Legacy layout (FUN_800b0e84): a u16 count plus a u32 offset per cell, pointing at arrays of
+        // slot indices. These maps paint whole regions - Start1 covers several tiles - which is why
+        // several units may legally share one start slot.
+        string? file = Directory
+            .EnumerateFiles(Path.Combine(CleanBecCorpus.Root!, "data"), "*.grd", SearchOption.AllDirectories)
+            .FirstOrDefault(f => Path.GetFileName(f)
+                .Equals("belfortarenamultilevelstart.grd", StringComparison.OrdinalIgnoreCase));
+        if (file is null) return;
+
+        var grid = GridFile.Load(file);
+        Assert.Equal(1, grid.LayoutVersion);
+
+        var cellsPerTag = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (int slot = 0; slot < GridFile.NumSlots; slot++)
+        {
+            string tag = grid.GetTagNameForSlot(slot);
+            if (string.IsNullOrWhiteSpace(tag) || tag == GridFile.NO_VALUE) continue;
+
+            int cells = 0;
+            for (int row = 0; row < GridFile.ArenaSize; row++)
+            {
+                for (int col = 0; col < GridFile.ArenaSize; col++)
+                {
+                    if ((grid.GetValue(row, col) & (1 << slot)) != 0) cells++;
+                }
+            }
+            cellsPerTag[tag] = cells;
+        }
+
+        Assert.True(cellsPerTag.ContainsKey("Start1"), "Start1 should be named");
+        Assert.True(cellsPerTag["Start1"] > 1, $"Start1 should paint several tiles, saw {cellsPerTag["Start1"]}");
+        Assert.All(cellsPerTag.Keys, tag => Assert.StartsWith("Start", tag, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void VersionOneAndTwoGridsBothReportTheirVersion()
     {
         if (!CleanBecCorpus.IsAvailable) return;

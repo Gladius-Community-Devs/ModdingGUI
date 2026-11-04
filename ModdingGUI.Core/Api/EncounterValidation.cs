@@ -67,6 +67,15 @@ public static class EncounterValidationCodes
     /// in the vanilla grids, so an unpainted slot cannot place a unit at all.
     /// </summary>
     public const string StartSlotUnpainted = "start-slot-unpainted";
+
+    /// <summary>
+    /// More units share a start slot than the grid paints cells for it. Each painted cell places one
+    /// unit, so the surplus is dropped at spawn time (observed in game).
+    /// </summary>
+    public const string StartSlotOverflow = "start-slot-overflow";
+
+    /// <summary>The <c>TEAM</c> line's index does not parse, so the team cannot be identified.</summary>
+    public const string TeamIndex = "team-index";
 }
 
 /// <summary>One finding about one encounter.</summary>
@@ -303,7 +312,7 @@ public static class EncounterValidator
 
         foreach (var team in encounter.Teams)
         {
-            string site = $"team {team.Index}";
+            string site = $"{encounter.Name} team {team.Index}";
 
             if (catalog is not null)
             {
@@ -348,7 +357,7 @@ public static class EncounterValidator
             }
 
             // Which tags the grid actually paints. A slot with no painted cell cannot place a unit.
-            HashSet<string>? painted = grid is null ? null : PaintedTags(grid);
+            Dictionary<string, int>? cellsPerTag = grid is null ? null : CellsPerTag(grid);
 
             if (team.Units.Count == 0)
             {
@@ -403,7 +412,7 @@ public static class EncounterValidator
                         EncounterValidationCodes.UnitStartSlot, where, "UNITDB",
                         "unit has no start slot, so it cannot be placed on the grid"));
                 }
-                else if (painted is not null && !painted.Contains(unit.StartSlot))
+                else if (cellsPerTag is not null && !cellsPerTag.ContainsKey(unit.StartSlot))
                 {
                     bool tagExists = Enumerable.Range(0, Grids.GridFile.NumSlots)
                         .Any(slot => string.Equals(grid!.GetTagNameForSlot(slot), unit.StartSlot,
@@ -438,13 +447,32 @@ public static class EncounterValidator
                     startSlots[unit.StartSlot] = i;
                 }
             }
+
+            // Team -1 is the neutral team (summoned creatures): one vanilla encounter puts four of them
+            // on a two-cell slot and works, so capacity is only enforced for the player and enemy teams.
+            if (cellsPerTag is not null && team.Index >= 0)
+            {
+                foreach (var (slot, count) in UnitCountsPerSlot(team))
+                {
+                    if (!cellsPerTag.TryGetValue(slot, out int cells)) continue;
+
+                    if (count > cells)
+                    {
+                        issues.Add(new EncounterValidationIssue(
+                            EncounterValidationSeverity.Warning,
+                            EncounterValidationCodes.StartSlotOverflow, site, "UNITDB",
+                            $"{count} units share start slot '{slot}' but the grid paints only {cells} " +
+                            $"cell(s) for it; the surplus cannot be placed"));
+                    }
+                }
+            }
         }
 
         return issues;
     }
 
-    /// <summary>Tag names the grid paints at least one cell with.</summary>
-    private static HashSet<string> PaintedTags(Grids.GridFile grid)
+    /// <summary>How many cells the grid paints for each tag name.</summary>
+    private static Dictionary<string, int> CellsPerTag(Grids.GridFile grid)
     {
         var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
@@ -455,18 +483,37 @@ public static class EncounterValidator
 
             int bit = 1 << slot;
             int cells = 0;
-            for (int row = 0; row < Grids.GridFile.ArenaSize && cells == 0; row++)
+            for (int row = 0; row < Grids.GridFile.ArenaSize; row++)
             {
                 for (int col = 0; col < Grids.GridFile.ArenaSize; col++)
                 {
-                    if ((grid.GetValue(row, col) & bit) != 0) { cells++; break; }
+                    if ((grid.GetValue(row, col) & bit) != 0) cells++;
                 }
             }
 
             if (cells > 0) counts[tag] = cells;
         }
 
-        return new HashSet<string>(counts.Keys, StringComparer.OrdinalIgnoreCase);
+        return counts;
+    }
+
+    /// <summary>How many units of a team sit on each start slot.</summary>
+    private static Dictionary<string, int> UnitCountsPerSlot(EncounterTeamDto team)
+    {
+        var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (string raw in team.Units)
+        {
+            var unit = EncounterUnit.TryParse(raw);
+            if (unit is null || string.IsNullOrWhiteSpace(unit.StartSlot)) continue;
+
+            // Only named units need their own cell: an empty name means "generate one from the team's
+            // school", and those are auto-placed (four vanilla encounters share a 1-cell slot between
+            // three or four generated units). A named unit with nowhere to stand is dropped instead.
+            if (string.IsNullOrWhiteSpace(unit.UnitName)) continue;
+
+            counts[unit.StartSlot] = counts.TryGetValue(unit.StartSlot, out int seen) ? seen + 1 : 1;
+        }
+        return counts;
     }
 
     /// <summary>Count comma-separated arguments, ignoring empty slots.</summary>

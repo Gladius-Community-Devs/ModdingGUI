@@ -367,7 +367,8 @@ public sealed class EncountersApi : IEncountersApi
         {
             var match = TeamRx.Match(lines[i]);
             if (!match.Success) continue;
-            teams.Add((i, lines.Count, int.TryParse(match.Groups["index"].Value.Trim(), out int n) ? n : -1));
+            teams.Add((i, lines.Count,
+                int.TryParse(match.Groups["index"].Value.Trim(), out int n) ? n : int.MinValue));
         }
 
         for (int i = 0; i < teams.Count; i++)

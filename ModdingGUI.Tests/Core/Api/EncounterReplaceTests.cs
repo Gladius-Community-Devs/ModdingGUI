@@ -152,9 +152,8 @@ public sealed class EncounterReplaceTests : IDisposable
                 .Where(i => i.Severity == EncounterValidationSeverity.Warning));
         }
 
-        Assert.True(warnings.Count == 0, string.Join("\n  ", warnings
-            .GroupBy(w => w.Code)
-            .Select(g => $"{g.Key}: {g.Count()} case(s), e.g. {g.First().Message}")));
+        Assert.True(warnings.Count == 0, string.Join("\n  ",
+            warnings.Take(40).Select(w => $"{w.Code} [{w.Site}] {w.Message}")));
     }
 
     [Fact]

@@ -260,6 +260,26 @@ namespace ModdingGUI.Core.Grids
                         stage = "Reading Tag Count";
                         g._activeCountFromFile = br.ReadInt32(); // informational; preserved on save
 
+                        if (g._fileHeaderValue < 2)
+                        {
+                            // Legacy layout, see FUN_800b0e84 in the DOL: the header count is a BIG-endian
+                            // name count, names are raw 32-byte records, and the cells come from a table of
+                            // 1024 (u16 count, u32 offset) records whose offsets point at arrays of u32 slot
+                            // indices. It is not a bitmask grid at all.
+                            fs.Position = 0;
+                            var legacyBytes = new byte[fs.Length];
+                            int read = fs.Read(legacyBytes, 0, legacyBytes.Length);
+                            if (read != legacyBytes.Length)
+                                throw new EndOfStreamException(
+                                    $"Incomplete read of legacy grid '{Path.GetFileName(fileName)}'.");
+
+                            LoadLegacy(g, legacyBytes);
+                            Array.Copy(g._data, g._originalData, g._data.Length);
+                            g._hasBaseline = true;
+                            g.IsDirty = false;
+                            return g;
+                        }
+
                         // 27 of the 430 vanilla grids are version 1 and store plain names ("Start1"),
                         // with no F/E prefix. Treating those as unknown made every slot vanish, which
                         // the Grid Builder showed as an empty tag list and the encounter validator as
@@ -421,6 +441,75 @@ namespace ModdingGUI.Core.Grids
             Array.Copy(_data, _originalData, _data.Length); // Update baseline
             _hasBaseline = true;
             IsDirty = false; // Saved file is no longer dirty
+        }
+
+        /// <summary>
+        /// Parse the legacy (version &lt; 2) layout, matching <c>FUN_800b0e84</c> in the DOL.
+        /// </summary>
+        /// <remarks>
+        /// <para>Header: <c>u32 version</c>, <c>u32 BE nameCount</c>, then <c>nameCount</c> × 32-byte raw
+        /// names (no F/E prefix; every name is an active slot).</para>
+        /// <para>Then 1024 records of 8 bytes: <c>u16 BE entryCount</c>, <c>u16 unused</c>,
+        /// <c>u32 BE offset</c>. A record's offset points into the same file at an array of
+        /// <c>u32 BE</c> slot indices; each index below 30 sets that slot's bit on the cell. Cells with
+        /// <c>entryCount == 0</c> are empty, and the payload that the offsets point at sits after the
+        /// record table — which is why these files are ~3.2 kB larger than version 2.</para>
+        /// </remarks>
+        private static void LoadLegacy(GridFile grid, byte[] data)
+        {
+            for (int slot = 0; slot < NumSlots; slot++)
+            {
+                grid._tags[slot] = NO_VALUE;
+                grid._activeTags[slot] = false;
+            }
+            Array.Clear(grid._data, 0, grid._data.Length);
+
+            if (data.Length < 8 + NumSlots * 2) return;
+
+            int nameCount = data[4] | (data[5] << 8) | (data[6] << 16) | (data[7] << 24);
+            if (nameCount < 0 || nameCount > NumSlots) nameCount = Math.Min(Math.Max(nameCount, 0), NumSlots);
+
+            const int nameSize = 32;
+            int tableStart = 8 + nameCount * nameSize;
+
+            for (int i = 0; i < nameCount; i++)
+            {
+                int offset = 8 + i * nameSize;
+                if (offset + nameSize > data.Length) break;
+
+                string name = Encoding.ASCII.GetString(data, offset, nameSize)
+                    .TrimEnd('\0').Trim();
+                if (name.Length == 0) continue;
+
+                grid._tags[i] = name;
+                grid._activeTags[i] = true;
+            }
+
+            const int recordSize = 8;
+            for (int cell = 0; cell < grid._data.Length; cell++)
+            {
+                int record = tableStart + cell * recordSize;
+                if (record + recordSize > data.Length) break;
+
+                int entries = data[record] | (data[record + 1] << 8);
+                if (entries <= 0) continue;
+
+                long payload = (uint)(data[record + 4] | (data[record + 5] << 8)
+                             | (data[record + 6] << 16) | (data[record + 7] << 24));
+
+                int value = 0;
+                for (int e = 0; e < entries; e++)
+                {
+                    long at = payload + e * 4L;
+                    if (at < 0 || at + 4 > data.Length) break;
+
+                    int index = data[at] | (data[at + 1] << 8)
+                              | (data[at + 2] << 16) | (data[at + 3] << 24);
+                    if (index >= 0 && index < 0x1e) value |= 1 << index;
+                }
+
+                grid._data[cell] = value;
+            }
         }
 
         // Helper to get the 1D array index from 2D grid coordinates
