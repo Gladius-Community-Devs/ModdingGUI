@@ -115,7 +115,26 @@ public sealed class EncountersApi : IEncountersApi
         var encounter = Get(projectPath, relativePath)
             ?? throw new FileNotFoundException($"encounter not found: {relativePath}");
 
-        return EncounterValidator.Validate(encounter, EncountersCatalog.Shipped());
+        string bec = ProjectRoots.ResolveBecFolder(projectPath);
+
+        return EncounterValidator.Validate(encounter, EncountersCatalog.Shipped(),
+            gridPath => LoadGrid(bec, gridPath));
+    }
+
+    /// <summary>Load a team grid from a <c>GRIDFILE</c> value, or null when it does not resolve.</summary>
+    private static Grids.GridFile? LoadGrid(string bec, string gridPath)
+    {
+        string? full = GamePaths.ResolveInProject(bec, gridPath);
+        if (full is null || !File.Exists(full)) return null;
+
+        try
+        {
+            return Grids.GridFile.Load(full);
+        }
+        catch (IOException)
+        {
+            return null;
+        }
     }
 
     /// <inheritdoc />

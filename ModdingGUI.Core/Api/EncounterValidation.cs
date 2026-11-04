@@ -55,6 +55,18 @@ public static class EncounterValidationCodes
     /// second one is dropped at spawn time (confirmed in game: a moved unit disappeared).
     /// </summary>
     public const string DuplicateStartSlot = "duplicate-start-slot";
+
+    /// <summary>The team's GRIDFILE does not resolve to a file in this project.</summary>
+    public const string GridMissing = "grid-missing";
+
+    /// <summary>The grid has no tag with the unit's start-slot name.</summary>
+    public const string StartSlotUnknown = "start-slot-unknown";
+
+    /// <summary>
+    /// The grid names the tag but paints no cell with it. Each start slot paints exactly one cell
+    /// in the vanilla grids, so an unpainted slot cannot place a unit at all.
+    /// </summary>
+    public const string StartSlotUnpainted = "start-slot-unpainted";
 }
 
 /// <summary>One finding about one encounter.</summary>
@@ -237,9 +249,16 @@ public sealed class EncountersCatalog
 public static class EncounterValidator
 {
     /// <summary>Validate a parsed encounter against the catalog (a null catalog skips key checks).</summary>
+    /// <param name="encounter">Parsed encounter.</param>
+    /// <param name="catalog">Key catalog, or null to skip key checks.</param>
+    /// <param name="gridResolver">
+    /// Loads a team's grid from its <c>GRIDFILE</c> value. Pass null to skip grid checks; the
+    /// encounter API supplies one that resolves <c>$d</c>/<c>$l</c> against the project.
+    /// </param>
     public static IReadOnlyList<EncounterValidationIssue> Validate(
         EncounterDto encounter,
-        EncountersCatalog? catalog)
+        EncountersCatalog? catalog,
+        Func<string, Grids.GridFile?>? gridResolver = null)
     {
         ArgumentNullException.ThrowIfNull(encounter);
 
@@ -307,13 +326,29 @@ public static class EncounterValidator
                 }
             }
 
-            if (team.Value("GRIDFILE") is null)
+            Grids.GridFile? grid = null;
+            string? gridFile = team.Value("GRIDFILE");
+            if (gridFile is null)
             {
                 issues.Add(new EncounterValidationIssue(
                     EncounterValidationSeverity.Warning,
                     EncounterValidationCodes.TeamWithoutGrid, site, "GRIDFILE",
                     "team has no GRIDFILE, so its UNITDB start slots cannot resolve"));
             }
+            else if (gridResolver is not null)
+            {
+                grid = gridResolver(gridFile);
+                if (grid is null)
+                {
+                    issues.Add(new EncounterValidationIssue(
+                        EncounterValidationSeverity.Warning,
+                        EncounterValidationCodes.GridMissing, site, "GRIDFILE",
+                        $"GRIDFILE '{gridFile.Trim().Trim('"')}' does not resolve to a file in this project"));
+                }
+            }
+
+            // Which tags the grid actually paints. A slot with no painted cell cannot place a unit.
+            HashSet<string>? painted = grid is null ? null : PaintedTags(grid);
 
             if (team.Units.Count == 0)
             {
@@ -368,6 +403,25 @@ public static class EncounterValidator
                         EncounterValidationCodes.UnitStartSlot, where, "UNITDB",
                         "unit has no start slot, so it cannot be placed on the grid"));
                 }
+                else if (painted is not null && !painted.Contains(unit.StartSlot))
+                {
+                    bool tagExists = Enumerable.Range(0, Grids.GridFile.NumSlots)
+                        .Any(slot => string.Equals(grid!.GetTagNameForSlot(slot), unit.StartSlot,
+                                                       StringComparison.OrdinalIgnoreCase));
+
+                    // Info, not a warning: 72 vanilla units sit on slots their grid does not paint,
+                    // on maps that demonstrably work, so the data alone cannot decide whether this is
+                    // broken. It is still worth surfacing - an unpainted slot is a plausible cause of
+                    // a unit silently failing to spawn.
+                    issues.Add(new EncounterValidationIssue(
+                        EncounterValidationSeverity.Info,
+                        tagExists ? EncounterValidationCodes.StartSlotUnpainted
+                                  : EncounterValidationCodes.StartSlotUnknown,
+                        where, "UNITDB",
+                        tagExists
+                            ? $"start slot '{unit.StartSlot}' is not painted on the team grid"
+                            : $"start slot '{unit.StartSlot}' is not a tag on the team grid"));
+                }
                 else if (startSlots.TryGetValue(unit.StartSlot, out int alreadyTakenBy))
                 {
                     // Vanilla shares slots freely (4171 cases, 340 between named units), so this is
@@ -387,6 +441,32 @@ public static class EncounterValidator
         }
 
         return issues;
+    }
+
+    /// <summary>Tag names the grid paints at least one cell with.</summary>
+    private static HashSet<string> PaintedTags(Grids.GridFile grid)
+    {
+        var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        for (int slot = 0; slot < Grids.GridFile.NumSlots; slot++)
+        {
+            string tag = grid.GetTagNameForSlot(slot);
+            if (string.IsNullOrWhiteSpace(tag) || tag == Grids.GridFile.NO_VALUE) continue;
+
+            int bit = 1 << slot;
+            int cells = 0;
+            for (int row = 0; row < Grids.GridFile.ArenaSize && cells == 0; row++)
+            {
+                for (int col = 0; col < Grids.GridFile.ArenaSize; col++)
+                {
+                    if ((grid.GetValue(row, col) & bit) != 0) { cells++; break; }
+                }
+            }
+
+            if (cells > 0) counts[tag] = cells;
+        }
+
+        return new HashSet<string>(counts.Keys, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>Count comma-separated arguments, ignoring empty slots.</summary>

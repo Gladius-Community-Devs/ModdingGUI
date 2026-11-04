@@ -26,13 +26,30 @@ public sealed class EncounterReplaceTests : IDisposable
         Directory.CreateDirectory(_projectDir);
         if (!CleanBecCorpus.IsAvailable) return;
 
+        // Grids too: the API validates each unit's start slot against the team grid.
         string source = Path.Combine(CleanBecCorpus.Root!, "data", "encounters");
-        foreach (string file in Directory.EnumerateFiles(source, "*.enc", SearchOption.AllDirectories))
+        foreach (string pattern in new[] { "*.enc", "*.grd" })
         {
-            string destination = Path.Combine(_projectDir, "data", "encounters",
-                Path.GetRelativePath(source, file));
-            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-            File.Copy(file, destination, overwrite: true);
+            foreach (string file in Directory.EnumerateFiles(source, pattern, SearchOption.AllDirectories))
+            {
+                string destination = Path.Combine(_projectDir, "data", "encounters",
+                    Path.GetRelativePath(source, file));
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                File.Copy(file, destination, overwrite: true);
+            }
+        }
+
+        // The arenas also reference grids under data/levels via the $l macro.
+        string levels = Path.Combine(CleanBecCorpus.Root!, "data", "levels");
+        if (Directory.Exists(levels))
+        {
+            foreach (string file in Directory.EnumerateFiles(levels, "*.grd", SearchOption.AllDirectories))
+            {
+                string destination = Path.Combine(_projectDir, "data", "levels",
+                    Path.GetRelativePath(levels, file));
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                File.Copy(file, destination, overwrite: true);
+            }
         }
     }
 
@@ -117,6 +134,43 @@ public sealed class EncounterReplaceTests : IDisposable
         var issues = api.Validate(_projectDir, Arena);
         var issue = Assert.Single(issues.Where(i => i.Code == EncounterValidationCodes.DuplicateStartSlot));
         // Information, not a warning: vanilla itself shares slots 4171 times.
+        Assert.Equal(EncounterValidationSeverity.Info, issue.Severity);
+    }
+
+    [Fact]
+    public void Validate_EveryVanillaEncounter_ViaApi_HasNoWarnings()
+    {
+        if (!Ready) return;
+
+        var api = new EncountersApi();
+        var warnings = new List<EncounterValidationIssue>();
+
+        foreach (string relative in api.ListFiles(_projectDir))
+        {
+            if (api.Get(_projectDir, relative) is null) continue;
+            warnings.AddRange(api.Validate(_projectDir, relative)
+                .Where(i => i.Severity == EncounterValidationSeverity.Warning));
+        }
+
+        Assert.True(warnings.Count == 0, string.Join("\n  ", warnings
+            .GroupBy(w => w.Code)
+            .Select(g => $"{g.Key}: {g.Count()} case(s), e.g. {g.First().Message}")));
+    }
+
+    [Fact]
+    public void Validate_UnitOnUnpaintedSlot_IsReported()
+    {
+        if (!Ready) return;
+
+        // Start5 is painted on the arena grid, so a name the grid does not know is the failure to
+        // provoke: the engine would silently fail to place the unit.
+        var api = new EncountersApi();
+        var team = api.Get(_projectDir, Arena)!.Team(1)!;
+        api.SetTeamUnit(_projectDir, Arena, 1, 0, team.Unit(0)!.WithStartSlot("Start9"));
+
+        var issues = api.Validate(_projectDir, Arena);
+        var issue = Assert.Single(issues.Where(i => i.Code == EncounterValidationCodes.StartSlotUnknown));
+        // Info: vanilla itself has 72 units on slots their grid does not paint.
         Assert.Equal(EncounterValidationSeverity.Info, issue.Severity);
     }
 

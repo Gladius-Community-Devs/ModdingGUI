@@ -1,4 +1,5 @@
 ﻿using System.Drawing; // Required for Point and Image
+using ModdingGUI.Core.Grids;
 using System.Drawing.Drawing2D; // Required for RotateFlipType
 
 namespace ModdingGUI

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace ModdingGUI
+namespace ModdingGUI.Core.Grids
 {
     public sealed class GridFile
     {
@@ -13,7 +13,9 @@ namespace ModdingGUI
         public const int NumSlots = 30;   // Max bits for named tags (0-29)
         public const string NO_VALUE = "**NONE**";
 
-        private int _fileHeaderValue = 0; // Stores the first integer from the GRD file
+        private int _fileHeaderValue = 0; // Stores the first integer from the GRD file (layout version)
+        private int _activeCountFromFile;  // Header count, preserved verbatim: vanilla files disagree
+                                           // with their own F/E prefixes, so it is informational.
 
         // Master list of known tag names for UI suggestions or initializing NEW grids.
         // The order here defines a "default" layout for NEW files.
@@ -255,9 +257,15 @@ namespace ModdingGUI
                     using (var br = new BinaryReader(fs, Encoding.UTF8, false))
                     {
                         stage = "Reading File Header";
-                        g._fileHeaderValue = br.ReadInt32(); // Store the actual header value
+                        g._fileHeaderValue = br.ReadInt32(); // Format version: 1 = bare tag names, 2+ = F/E prefixed
                         stage = "Reading Tag Count";
-                        br.ReadInt32(); // This is the "activeCount" in Java, can be ignored if we rely on F/E prefixes
+                        g._activeCountFromFile = br.ReadInt32(); // informational; preserved on save
+
+                        // 27 of the 430 vanilla grids are version 1 and store plain names ("Start1"),
+                        // with no F/E prefix. Treating those as unknown made every slot vanish, which
+                        // the Grid Builder showed as an empty tag list and the encounter validator as
+                        // "slot does not exist" on maps that work in game.
+                        bool bareTagNames = g._fileHeaderValue < 2;
 
                         stage = "Reading Tags from file to overwrite defaults";
                         byte[] tagBuffer = new byte[32];
@@ -286,14 +294,15 @@ namespace ModdingGUI
                                     fileTagName = (rawFullTagFromFile.Length > 1) ? rawFullTagFromFile.Substring(1).Trim() : NO_VALUE;
                                     if (string.IsNullOrEmpty(fileTagName)) fileTagName = NO_VALUE;
                                 }
+                                else if (bareTagNames)
+                                {
+                                    // Version 1: the block is the tag name itself, always usable.
+                                    fileTagIsActive = true;
+                                    fileTagName = rawFullTagFromFile;
+                                }
                                 else
                                 {
-                                    // No F/E prefix. Java's behavior: m_activeTags[i] remains false (from its init).
-                                    // m_gridTags[i] retains its constructor-initialized value.
-                                    // For C#, if we want to be robust: treat as inactive, name is NO_VALUE.
-                                    // Or, if the game expects any non-F/E string to be an active tag name:
-                                    // fileTagIsActive = true; fileTagName = rawFullTagFromFile.Trim();
-                                    // Given Java's strict F/E, let's assume no prefix = inactive.
+                                    // Version 2 without a prefix: no usable name in this slot.
                                     fileTagIsActive = false;
                                     fileTagName = NO_VALUE;
                                 }
@@ -332,47 +341,58 @@ namespace ModdingGUI
             }
         }
 
+        /// <summary>True when this grid's layout is fully understood (version 2 or newer).</summary>
+        public bool IsWritableLayout => _fileHeaderValue >= 2;
+
+        /// <summary>Layout version from the file header (1 = bare tag names and an unmapped body).</summary>
+        public int LayoutVersion => _fileHeaderValue;
+
         public void Save(string fileName)
         {
+            if (!IsWritableLayout)
+            {
+                throw new NotSupportedException(
+                    $"Grid format version {_fileHeaderValue} is read-only: '{Path.GetFileName(fileName)}' has a " +
+                    "body layout we have not mapped yet (the 27 version-1 files are larger than the version-2 " +
+                    "ones), so writing it could corrupt the map. Reading its tags is supported.");
+            }
             using (var fs = File.Create(fileName))
             using (var bw = new BinaryWriter(fs, Encoding.UTF8, false))
             {
                 bw.Write(this._fileHeaderValue); // Write the stored/original header value
 
-                int activeTagCountCalculated = 0;
-                for (int i = 0; i < NumSlots; i++)
-                {
-                    if (_activeTags[i])
-                    {
-                        activeTagCountCalculated++;
-                    }
-                }
-                bw.Write(activeTagCountCalculated); // This is the "numEntries" from Java
+                // Preserved verbatim: some vanilla grids declare a count that disagrees with their own
+                // F/E prefixes (qstinvasion1.grd says 3 while six tags are active), which proves the game
+                // does not rely on it. Recomputing it would rewrite those files for no reason.
+                bw.Write(_activeCountFromFile);
+
+                // Version 1 grids store bare tag names; version 2+ prefix each with F (in use) or
+                // E (unused). Writing the wrong form keeps the version byte but makes the slots
+                // unreadable, so the format has to follow _fileHeaderValue.
+                bool bareTagNames = _fileHeaderValue < 2;
 
                 byte[] tagDataBuffer = new byte[32];
                 for (int i = 0; i < NumSlots; i++) // For slots 0-29
                 {
                     Array.Clear(tagDataBuffer, 0, tagDataBuffer.Length);
 
-                    tagDataBuffer[0] = (byte)(_activeTags[i] ? 'F' : 'E');
-
-                    // Use the current tag name for this slot (_tags[i])
                     string tagStringToWrite = _tags[i] ?? NO_VALUE;
-                    if (!_activeTags[i] && !tagStringToWrite.Equals(NO_VALUE))
+                    int offset = 0;
+
+                    if (!bareTagNames)
                     {
-                        // If tag is inactive but has a name other than NO_VALUE,
-                        // Java would still write E + that name.
-                        // If it's inactive and NO_VALUE, it writes E + NO_VALUE.
-                    }
-                    else if (_activeTags[i] && tagStringToWrite.Equals(NO_VALUE))
-                    {
-                        // This is like "F**NONE**" - active but name is NO_VALUE
+                        tagDataBuffer[0] = (byte)(_activeTags[i] ? 'F' : 'E');
+                        offset = 1;
                     }
 
+                    // An unnamed slot holds the prefix alone (or nothing in version 1): the vanilla
+                    // files write 'E', not 'E**NONE**'.
+                    if (tagStringToWrite.Equals(NO_VALUE, StringComparison.Ordinal))
+                        tagStringToWrite = string.Empty;
 
                     byte[] stringBytes = Encoding.UTF8.GetBytes(tagStringToWrite);
-                    int lengthToCopy = Math.Min(stringBytes.Length, tagDataBuffer.Length - 1); // Max 31 bytes for tag name
-                    Buffer.BlockCopy(stringBytes, 0, tagDataBuffer, 1, lengthToCopy);
+                    int lengthToCopy = Math.Min(stringBytes.Length, tagDataBuffer.Length - offset);
+                    Buffer.BlockCopy(stringBytes, 0, tagDataBuffer, offset, lengthToCopy);
 
                     bw.Write(tagDataBuffer);
                 }
