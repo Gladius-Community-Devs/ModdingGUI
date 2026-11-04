@@ -39,6 +39,18 @@
       <Link>skills\skills_catalog.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="classdefs\classdefs_catalog.json">
+      <Link>classdefs\classdefs_catalog.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="dol\skills_fields.json">
+      <Link>dol\skills_fields.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="dol\classdefs_fields.json">
+      <Link>dol\classdefs_fields.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

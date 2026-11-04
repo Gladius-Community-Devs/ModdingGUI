@@ -1,0 +1,3964 @@
+{
+  "_meta": {
+    "format_version": 1,
+    "generated_from": [
+      "classdefs.tok"
+    ],
+    "class_count": 128,
+    "engine": {
+      "source": "GameCube bootfile.dol classdefs field table (0x803038B0)",
+      "fields_known": 22,
+      "fields_added_from_engine": 3,
+      "fields_not_in_engine": 0
+    }
+  },
+  "fields": {
+    "AFFINITY": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 35,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "Air",
+            "Dark",
+            "Earth",
+            "Fire",
+            "Water"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 35
+    },
+    "ATTRIBUTE": {
+      "multi": true,
+      "max_occurrences": 9,
+      "classes_using": 562,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "Arcane",
+            "Beast",
+            "Expanse",
+            "Female",
+            "Heavy",
+            "Human",
+            "Imperia",
+            "Light",
+            "Male",
+            "Medium",
+            "NoKnockback",
+            "NoKnockdown",
+            "Nordagh",
+            "Short",
+            "Steppes",
+            "Support",
+            "alwaysfaceondefend",
+            "deathinstantdisappear",
+            "deathremainonfield",
+            "doesntfaceonattack",
+            "doesntfaceondefend",
+            "doesntmove",
+            "noidles",
+            "noreacts",
+            "simpleanims"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 19
+    },
+    "CLASSICON": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 20,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "galdr.tga",
+            "hud_iconclass_Barbarian.tga",
+            "hud_iconclass_Centurion.tga",
+            "hud_iconclass_Legionnaire.tga",
+            "hud_iconclass_Samnite.tga",
+            "hud_iconclass_Secutor.tga",
+            "hud_iconclass_Ursula.tga",
+            "hud_iconclass_Valens.tga",
+            "hud_iconclass_wolf.tga"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 21
+    },
+    "DERIVATIONCLASSNAME": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 1,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "Archer"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 18
+    },
+    "DESCRIPTIONID": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 128,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 29
+    },
+    "DISPLAYNAMEID": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 128,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 30
+    },
+    "FX": {
+      "multi": true,
+      "max_occurrences": 5,
+      "classes_using": 125,
+      "arity": 2,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "continuous alive",
+            "death disappear",
+            "react block",
+            "react crit",
+            "react die",
+            "react hit",
+            "react weak"
+          ]
+        },
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "affinityAirGreater_ambientEffects",
+            "affinityAirGreater_teleport",
+            "affinityAir_ambientEffects",
+            "affinityAir_teleport",
+            "affinityEarthGreater_ambientEffects",
+            "affinityEarthGreater_teleport",
+            "affinityEarth_ambientEffects",
+            "affinityEarth_teleport",
+            "affinityFireGreater_ambientEffects",
+            "affinityFireGreater_teleport",
+            "affinityFire_ambientEffects",
+            "affinityFire_teleport",
+            "affinityWaterGreater_ambientEffects",
+            "affinityWaterGreater_teleport",
+            "affinityWater_ambientEffects",
+            "affinityWater_teleport",
+            "barrel_break",
+            "barrel_hit",
+            "channeler_hitReact",
+            "cyclopsGreater_Teleport",
+            "darkAffinityAir_ambientEffects",
+            "darkGodDragon_hitC",
+            "darkGodDragon_hitM",
+            "darkGodShiva_hitC",
+            "darkGodShiva_hitL",
+            "darkGodShiva_hitM",
+            "darkGod_DragonAmbient",
+            "darkGod_FaceAmbient",
+            "darkGod_ShivaAmbient",
+            "darkGod_hitBloodC",
+            "darkGod_hitBloodL",
+            "darkGod_hitBloodM",
+            "darkaffinityAirGreater_ambientEffects",
+            "darkaffinityEarthGreater_ambientEffects",
+            "darkaffinityEarth_ambientEffects",
+            "darkaffinityFireGreater_ambientEffects",
+            "darkaffinityFire_ambientEffects",
+            "darkaffinityWaterGreater_ambientEffects",
+            "darkaffinityWater_ambientEffects",
+            "practicepost_hit",
+            "template_PetrifyThaw.emt",
+            "template_hitBluntM",
+            "titanAir_ambientAir",
+            "titanEarth_ambientAir",
+            "titanFire_ambientEffects",
+            "titanWater_ambientEffects"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 36
+    },
+    "GRIDSIZE": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 125,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 24
+    },
+    "HEADICON": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 35,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "NONE",
+            "beastAir.tga",
+            "beastDarkAir.tga",
+            "beastDarkEarth.tga",
+            "beastDarkFire.tga",
+            "beastDarkWater.tga",
+            "beastEarth.tga",
+            "beastFire.tga",
+            "beastWater.tga",
+            "berserker.tga",
+            "berserkerF.tga",
+            "darkGod.tga",
+            "ludo.tga",
+            "mutuus.tga",
+            "undeadMeleeExp.tga",
+            "undeadMeleeImp.tga",
+            "undeadMeleeNor.tga",
+            "undeadMeleeSte.tga",
+            "ursula.tga",
+            "valens.tga"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 22
+    },
+    "ITEMCAT": {
+      "multi": true,
+      "max_occurrences": 20,
+      "classes_using": 875,
+      "arity": 3,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "accessory",
+            "armor",
+            "helmet",
+            "shield",
+            "weapon"
+          ]
+        },
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "<Any>",
+            "Anklet",
+            "Armband",
+            "Armor",
+            "Axe",
+            "Belt",
+            "Bow",
+            "Bracelet",
+            "Bullring",
+            "Charm",
+            "Club",
+            "Collar",
+            "Eye",
+            "Feather",
+            "Hammer",
+            "Helmet",
+            "HelmetA",
+            "HelmetB",
+            "HelmetC",
+            "HelmetD",
+            "HelmetE",
+            "HelmetF",
+            "Javelin",
+            "Jewel",
+            "Medal",
+            "Necklace",
+            "Poem",
+            "Ring",
+            "Runestone",
+            "Scalp",
+            "Shield",
+            "Spear",
+            "Staff",
+            "Sword",
+            "Tooth"
+          ]
+        },
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "Amazon",
+            "Arcane",
+            "Archer",
+            "Bandit",
+            "Barbarian",
+            "Berserker",
+            "Centurion",
+            "Channeler",
+            "Civilian",
+            "Cultist",
+            "Cyclops",
+            "CyclopsLesser",
+            "DarkLegion",
+            "Dervish",
+            "Diadem",
+            "Druid",
+            "Eiji",
+            "Galdr",
+            "Galverg",
+            "Gladiatorial",
+            "Gungnir",
+            "Gwazi",
+            "Hat",
+            "Heavy",
+            "Helm",
+            "Legionnaire",
+            "Light",
+            "Ludo",
+            "Medium",
+            "Military",
+            "Minotaur",
+            "Mongrel",
+            "MongrelShaman",
+            "Murmillo",
+            "Mutuus",
+            "Ogre",
+            "Peltast",
+            "Plain",
+            "Samnite",
+            "Satyr",
+            "Secutor",
+            "Summoner",
+            "TwoHanded",
+            "Undead",
+            "UndeadCaster",
+            "Urlan",
+            "Ursula",
+            "Valens",
+            "Valkyrie",
+            "Yeti"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 27
+    },
+    "ITEMSIZES": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 128,
+      "arity": 3,
+      "slots": [
+        {
+          "types": [
+            "float",
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "float",
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "float",
+            "int"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 26
+    },
+    "LEVELSTATAWARDS": {
+      "multi": true,
+      "max_occurrences": 6,
+      "classes_using": 768,
+      "arity": 6,
+      "slots": [
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 33
+    },
+    "LEVELUPJPGIVEN": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 128,
+      "arity": 5,
+      "slots": [
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 32
+    },
+    "LEVELUPXPNEEDED": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 128,
+      "arity": 5,
+      "slots": [
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "float",
+            "int"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 31
+    },
+    "LEVELZEROSTATS": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 128,
+      "arity": 6,
+      "slots": [
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        },
+        {
+          "types": [
+            "int"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 34
+    },
+    "MESH": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 127,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 14
+    },
+    "ROCKSCISSORSPAPER": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 43,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "Light",
+            "Medium",
+            "Plain"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 20
+    },
+    "SKILLUSENAME": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 127,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 16
+    },
+    "SOUNDTABLENAME": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 120,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 38
+    },
+    "UNITSETNAME": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 127,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 15
+    },
+    "VOICELINEPREFIX": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 95,
+      "arity": 1,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": []
+        }
+      ],
+      "enumerate": false,
+      "engine": true,
+      "engine_id": 37
+    },
+    "XPAWARD": {
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 122,
+      "arity": 2,
+      "slots": [
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "0",
+            "1",
+            "10",
+            "15",
+            "30",
+            "50",
+            "60",
+            "75"
+          ]
+        },
+        {
+          "types": [
+            "string"
+          ],
+          "values": [
+            "0",
+            "1",
+            "1.44",
+            "1.52"
+          ]
+        }
+      ],
+      "enumerate": true,
+      "engine": true,
+      "engine_id": 25
+    },
+    "BASECLASSNAME": {
+      "engine": true,
+      "engine_id": 17,
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 0,
+      "slots": [],
+      "enumerate": false,
+      "engine_only": true
+    },
+    "SHADOWSET": {
+      "engine": true,
+      "engine_id": 23,
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 0,
+      "slots": [],
+      "enumerate": false,
+      "engine_only": true
+    },
+    "ITEMINDIV": {
+      "engine": true,
+      "engine_id": 28,
+      "multi": false,
+      "max_occurrences": 1,
+      "classes_using": 0,
+      "slots": [],
+      "enumerate": false,
+      "engine_only": true
+    }
+  },
+  "classes": {
+    "Amazon": {
+      "displayNameId": 4458,
+      "descriptionId": 7733,
+      "mesh": "Amazon",
+      "skillUseName": "Amazon",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Archer": {
+      "displayNameId": 4459,
+      "descriptionId": 7734,
+      "mesh": "Archer",
+      "skillUseName": "Archer",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "ArcherF": {
+      "displayNameId": 4459,
+      "descriptionId": 7737,
+      "mesh": "ArcherF",
+      "skillUseName": "Archer",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BanditA": {
+      "displayNameId": 4460,
+      "descriptionId": 7735,
+      "mesh": "banditA",
+      "skillUseName": "Bandit",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BanditAF": {
+      "displayNameId": 4460,
+      "descriptionId": 7735,
+      "mesh": "banditAF",
+      "skillUseName": "Bandit",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BanditB": {
+      "displayNameId": 4460,
+      "descriptionId": 7754,
+      "mesh": "banditB",
+      "skillUseName": "Bandit",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BanditBF": {
+      "displayNameId": 4460,
+      "descriptionId": 7755,
+      "mesh": "banditBF",
+      "skillUseName": "Bandit",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Barbarian": {
+      "displayNameId": 4461,
+      "descriptionId": 7738,
+      "mesh": "Barbarian",
+      "skillUseName": "Barbarian",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BarbarianF": {
+      "displayNameId": 4461,
+      "descriptionId": 7739,
+      "mesh": "barbarianf",
+      "skillUseName": "Barbarian",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Bear": {
+      "displayNameId": 4462,
+      "descriptionId": 8168,
+      "mesh": "bear",
+      "skillUseName": "Bear",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BearGreater": {
+      "displayNameId": 4463,
+      "descriptionId": 7740,
+      "mesh": "bearGreater",
+      "skillUseName": "BearGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BeastAir": {
+      "displayNameId": 7878,
+      "descriptionId": 0,
+      "mesh": "affinityAir",
+      "skillUseName": "AffinityBeast",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastAirGreater": {
+      "displayNameId": 7879,
+      "descriptionId": 0,
+      "mesh": "affinityAirGreater",
+      "skillUseName": "AffinityBeastGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastDarkAir": {
+      "displayNameId": 7880,
+      "descriptionId": 0,
+      "mesh": "darkAffinityAir",
+      "skillUseName": "AffinityBeast",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastDarkAirGreater": {
+      "displayNameId": 7881,
+      "descriptionId": 0,
+      "mesh": "darkAffinityAirGreater",
+      "skillUseName": "AffinityBeastGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastDarkEarth": {
+      "displayNameId": 7882,
+      "descriptionId": 0,
+      "mesh": "darkAffinityEarth",
+      "skillUseName": "AffinityBeast",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastDarkEarthGreater": {
+      "displayNameId": 7883,
+      "descriptionId": 0,
+      "mesh": "darkAffinityEarthGreater",
+      "skillUseName": "AffinityBeastGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastDarkFire": {
+      "displayNameId": 7884,
+      "descriptionId": 0,
+      "mesh": "darkAffinityFire",
+      "skillUseName": "AffinityBeast",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastDarkFireGreater": {
+      "displayNameId": 7885,
+      "descriptionId": 0,
+      "mesh": "darkAffinityFireGreater",
+      "skillUseName": "AffinityBeastGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastDarkWater": {
+      "displayNameId": 7886,
+      "descriptionId": 0,
+      "mesh": "darkAffinityWater",
+      "skillUseName": "AffinityBeast",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastDarkWaterGreater": {
+      "displayNameId": 7887,
+      "descriptionId": 0,
+      "mesh": "darkAffinityWaterGreater",
+      "skillUseName": "AffinityBeastGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastEarth": {
+      "displayNameId": 7888,
+      "descriptionId": 0,
+      "mesh": "affinityEarth",
+      "skillUseName": "AffinityBeast",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastEarthGreater": {
+      "displayNameId": 7889,
+      "descriptionId": 0,
+      "mesh": "affinityEarthGreater",
+      "skillUseName": "AffinityBeastGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastFire": {
+      "displayNameId": 7890,
+      "descriptionId": 0,
+      "mesh": "affinityFire",
+      "skillUseName": "AffinityBeast",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastFireGreater": {
+      "displayNameId": 7891,
+      "descriptionId": 0,
+      "mesh": "affinityFireGreater",
+      "skillUseName": "AffinityBeastGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastWater": {
+      "displayNameId": 7892,
+      "descriptionId": 0,
+      "mesh": "affinityWater",
+      "skillUseName": "AffinityBeast",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "BeastWaterGreater": {
+      "displayNameId": 7893,
+      "descriptionId": 0,
+      "mesh": "affinityWaterGreater",
+      "skillUseName": "AffinityBeastGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "Berserker": {
+      "displayNameId": 4464,
+      "descriptionId": 7741,
+      "mesh": "berserker",
+      "skillUseName": "Berserker",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BerserkerEnraged": {
+      "displayNameId": 4464,
+      "descriptionId": 7742,
+      "mesh": "berserkerRage",
+      "skillUseName": "Berserker",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BerserkerEnragedF": {
+      "displayNameId": 4464,
+      "descriptionId": 7743,
+      "mesh": "berserkerRageF",
+      "skillUseName": "Berserker",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "BerserkerF": {
+      "displayNameId": 4464,
+      "descriptionId": 7744,
+      "mesh": "berserkerF",
+      "skillUseName": "Berserker",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Boss": {
+      "displayNameId": 0,
+      "descriptionId": 0,
+      "mesh": null,
+      "skillUseName": "Boss",
+      "keys": [
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "SKILLUSENAME",
+        "UNITSETNAME"
+      ]
+    },
+    "Cat": {
+      "displayNameId": 4465,
+      "descriptionId": 7745,
+      "mesh": "cat",
+      "skillUseName": "Cat",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CatGreater": {
+      "displayNameId": 4466,
+      "descriptionId": 7746,
+      "mesh": "catGreater",
+      "skillUseName": "CatGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Centurion": {
+      "displayNameId": 4467,
+      "descriptionId": 7747,
+      "mesh": "centurion",
+      "skillUseName": "Centurion",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CenturionF": {
+      "displayNameId": 4467,
+      "descriptionId": 7748,
+      "mesh": "centurionf",
+      "skillUseName": "Centurion",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "ChannelerExp": {
+      "displayNameId": 4468,
+      "descriptionId": 7749,
+      "mesh": "channelerExp",
+      "skillUseName": "Channeler",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "ChannelerImp": {
+      "displayNameId": 4468,
+      "descriptionId": 7750,
+      "mesh": "channelerImp",
+      "skillUseName": "Channeler",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CitizenExp": {
+      "displayNameId": 4469,
+      "descriptionId": 8165,
+      "mesh": "citizenExp",
+      "skillUseName": "Citizen",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CitizenExpF": {
+      "displayNameId": 4469,
+      "descriptionId": 8165,
+      "mesh": "citizenExpF",
+      "skillUseName": "Citizen",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CitizenImp": {
+      "displayNameId": 7875,
+      "descriptionId": 8162,
+      "mesh": "citizenImp",
+      "skillUseName": "Citizen",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CitizenImpF": {
+      "displayNameId": 7875,
+      "descriptionId": 8162,
+      "mesh": "citizenImpF",
+      "skillUseName": "Citizen",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CitizenNor": {
+      "displayNameId": 7876,
+      "descriptionId": 8163,
+      "mesh": "citizenNor",
+      "skillUseName": "Citizen",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CitizenNorF": {
+      "displayNameId": 7876,
+      "descriptionId": 8163,
+      "mesh": "citizenNorF",
+      "skillUseName": "Citizen",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CitizenSte": {
+      "displayNameId": 7877,
+      "descriptionId": 8164,
+      "mesh": "citizenSte",
+      "skillUseName": "Citizen",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CitizenSteF": {
+      "displayNameId": 7877,
+      "descriptionId": 8164,
+      "mesh": "citizenSteF",
+      "skillUseName": "Citizen",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Cyclops": {
+      "displayNameId": 4470,
+      "descriptionId": 7751,
+      "mesh": "cyclops",
+      "skillUseName": "Cyclops",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "CyclopsGreater": {
+      "displayNameId": 4471,
+      "descriptionId": 7752,
+      "mesh": "cyclopsGreater",
+      "skillUseName": "CyclopsGreater",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "DarkCat": {
+      "displayNameId": 7756,
+      "descriptionId": 7753,
+      "mesh": "darkGodCat",
+      "skillUseName": "DarkCat",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "DarkGod": {
+      "displayNameId": 6125,
+      "descriptionId": 6126,
+      "mesh": "DarkGod",
+      "skillUseName": "DarkGod",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "DarkGodDragon": {
+      "displayNameId": 0,
+      "descriptionId": 0,
+      "mesh": "darkGodDragon4",
+      "skillUseName": "DarkGod",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "DarkGodDragon1": {
+      "displayNameId": 0,
+      "descriptionId": 0,
+      "mesh": "darkGodDragon",
+      "skillUseName": "DarkGod",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "DarkGodDragon2": {
+      "displayNameId": 0,
+      "descriptionId": 0,
+      "mesh": "darkGodDragon2",
+      "skillUseName": "DarkGod",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "DarkGodDragon3": {
+      "displayNameId": 0,
+      "descriptionId": 0,
+      "mesh": "darkGodDragon3",
+      "skillUseName": "DarkGod",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "DarkGodFace": {
+      "displayNameId": 7218,
+      "descriptionId": 0,
+      "mesh": "darkGodFace",
+      "skillUseName": "DarkGod",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "DarkGodKnight": {
+      "displayNameId": 6083,
+      "descriptionId": 0,
+      "mesh": "darkGodKnight",
+      "skillUseName": "DarkGod",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "DarkGodShiva": {
+      "displayNameId": 6082,
+      "descriptionId": 0,
+      "mesh": "darkGodShiva",
+      "skillUseName": "DarkGod",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "DarkLegionnaire": {
+      "displayNameId": 8112,
+      "descriptionId": 7757,
+      "mesh": "legionnaireDark",
+      "skillUseName": "DarkLegionnaire",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "DarkWolf": {
+      "displayNameId": 7759,
+      "descriptionId": 7758,
+      "mesh": "darkGodDog",
+      "skillUseName": "DarkWolf",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Dervish": {
+      "displayNameId": 4473,
+      "descriptionId": 7760,
+      "mesh": "dervish",
+      "skillUseName": "Dervish",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "DervishF": {
+      "displayNameId": 4473,
+      "descriptionId": 7761,
+      "mesh": "dervishf",
+      "skillUseName": "Dervish",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Eiji": {
+      "displayNameId": 4459,
+      "descriptionId": 7762,
+      "mesh": "eiji",
+      "skillUseName": "Eiji",
+      "keys": [
+        "ATTRIBUTE",
+        "DERIVATIONCLASSNAME",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Galdr": {
+      "displayNameId": 4475,
+      "descriptionId": 7764,
+      "mesh": "galdrF",
+      "skillUseName": "Galdr",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Galverg": {
+      "displayNameId": 4476,
+      "descriptionId": 7765,
+      "mesh": "galverg",
+      "skillUseName": "Galverg",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Gungnir": {
+      "displayNameId": 4477,
+      "descriptionId": 7766,
+      "mesh": "peltastNor",
+      "skillUseName": "Gungnir",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "GungnirF": {
+      "displayNameId": 4478,
+      "descriptionId": 7768,
+      "mesh": "peltastNorF",
+      "skillUseName": "Gungnir",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Gwazi": {
+      "displayNameId": 7915,
+      "descriptionId": 7769,
+      "mesh": "gwazi",
+      "skillUseName": "Gwazi",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Legionnaire": {
+      "displayNameId": 4480,
+      "descriptionId": 7770,
+      "mesh": "Legionnaire",
+      "skillUseName": "Legionnaire",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "LegionnaireF": {
+      "displayNameId": 4480,
+      "descriptionId": 7771,
+      "mesh": "legionnaireF",
+      "skillUseName": "Legionnaire",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Ludo": {
+      "displayNameId": 3192,
+      "descriptionId": 7772,
+      "mesh": "ludo",
+      "skillUseName": "Ludo",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "LudoDark": {
+      "displayNameId": 4472,
+      "descriptionId": 8176,
+      "mesh": "ludoDark",
+      "skillUseName": "Ludo",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Minotaur": {
+      "displayNameId": 4481,
+      "descriptionId": 7773,
+      "mesh": "minotaur",
+      "skillUseName": "Minotaur",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Mongrel": {
+      "displayNameId": 4482,
+      "descriptionId": 7774,
+      "mesh": "mongrel",
+      "skillUseName": "Mongrel",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "MongrelShaman": {
+      "displayNameId": 4483,
+      "descriptionId": 7775,
+      "mesh": "mongrelShaman",
+      "skillUseName": "MongrelShaman",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Murmillo": {
+      "displayNameId": 4484,
+      "descriptionId": 7776,
+      "mesh": "Murmillo",
+      "skillUseName": "Murmillo",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "MurmilloF": {
+      "displayNameId": 4485,
+      "descriptionId": 7777,
+      "mesh": "murmillof",
+      "skillUseName": "Murmillo",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Mutuus": {
+      "displayNameId": 4486,
+      "descriptionId": 7777,
+      "mesh": "mutuusSenate",
+      "skillUseName": "Mutuus",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "MutuusDark": {
+      "displayNameId": 6328,
+      "descriptionId": 8115,
+      "mesh": "MutuusDark",
+      "skillUseName": "Mutuus",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "MutuusSenate": {
+      "displayNameId": 0,
+      "descriptionId": 0,
+      "mesh": "MutuusSenate",
+      "skillUseName": "Mutuus",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME"
+      ]
+    },
+    "Nephilia": {
+      "displayNameId": 4487,
+      "descriptionId": 7779,
+      "mesh": "nephilia",
+      "skillUseName": "Nephilia",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "UNITSETNAME"
+      ]
+    },
+    "Ogre": {
+      "displayNameId": 4488,
+      "descriptionId": 7780,
+      "mesh": "ogre",
+      "skillUseName": "Ogre",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Orin": {
+      "displayNameId": 3734,
+      "descriptionId": 0,
+      "mesh": "Orin",
+      "skillUseName": null,
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "XPAWARD"
+      ]
+    },
+    "Peltast": {
+      "displayNameId": 4490,
+      "descriptionId": 7781,
+      "mesh": "peltast",
+      "skillUseName": "Peltast",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "PeltastF": {
+      "displayNameId": 4490,
+      "descriptionId": 7781,
+      "mesh": "peltastF",
+      "skillUseName": "Peltast",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "PropBarrel": {
+      "displayNameId": 4491,
+      "descriptionId": 0,
+      "mesh": "propbarrel",
+      "skillUseName": "Prop",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "PropPracticePost": {
+      "displayNameId": 6501,
+      "descriptionId": 0,
+      "mesh": "PropPracticePost",
+      "skillUseName": "Prop",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "PropStatue": {
+      "displayNameId": 4492,
+      "descriptionId": 0,
+      "mesh": "propstatuefire",
+      "skillUseName": "Prop",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "PropTombstone": {
+      "displayNameId": 6407,
+      "descriptionId": 0,
+      "mesh": "PropTombstone",
+      "skillUseName": "Prop",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "XPAWARD"
+      ]
+    },
+    "SamniteExp": {
+      "displayNameId": 4493,
+      "descriptionId": 7782,
+      "mesh": "SamniteExp",
+      "skillUseName": "Samnite",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "SamniteExpF": {
+      "displayNameId": 4493,
+      "descriptionId": 7782,
+      "mesh": "SamniteExpF",
+      "skillUseName": "Samnite",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "SamniteImp": {
+      "displayNameId": 4493,
+      "descriptionId": 7782,
+      "mesh": "SamniteImp",
+      "skillUseName": "Samnite",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "SamniteImpF": {
+      "displayNameId": 4493,
+      "descriptionId": 7782,
+      "mesh": "SamniteImpF",
+      "skillUseName": "Samnite",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "SamniteSte": {
+      "displayNameId": 4493,
+      "descriptionId": 7782,
+      "mesh": "SamniteSte",
+      "skillUseName": "Samnite",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "SamniteSteF": {
+      "displayNameId": 4493,
+      "descriptionId": 7782,
+      "mesh": "SamniteSteF",
+      "skillUseName": "Samnite",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Satyr": {
+      "displayNameId": 4494,
+      "descriptionId": 7783,
+      "mesh": "Satyr",
+      "skillUseName": "Satyr",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Scarab": {
+      "displayNameId": 4495,
+      "descriptionId": 7784,
+      "mesh": "Scarab",
+      "skillUseName": "Scarab",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Scorpion": {
+      "displayNameId": 4496,
+      "descriptionId": 7785,
+      "mesh": "scorpion",
+      "skillUseName": "Scorpion",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "SecutorImp": {
+      "displayNameId": 4479,
+      "descriptionId": 7786,
+      "mesh": "SecutorImp",
+      "skillUseName": "Secutor",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "SecutorImpF": {
+      "displayNameId": 4479,
+      "descriptionId": 7786,
+      "mesh": "SecutorImpF",
+      "skillUseName": "Secutor",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "SecutorSte": {
+      "displayNameId": 4479,
+      "descriptionId": 7786,
+      "mesh": "SecutorSte",
+      "skillUseName": "Secutor",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "SecutorSteF": {
+      "displayNameId": 4479,
+      "descriptionId": 7786,
+      "mesh": "SecutorSteF",
+      "skillUseName": "Secutor",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Summoner": {
+      "displayNameId": 4497,
+      "descriptionId": 7787,
+      "mesh": "Summoner",
+      "skillUseName": "Summoner",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "TitanAir": {
+      "displayNameId": 7789,
+      "descriptionId": 7788,
+      "mesh": "titan",
+      "skillUseName": "Boss",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "TitanEarth": {
+      "displayNameId": 7790,
+      "descriptionId": 7791,
+      "mesh": "TitanEarth",
+      "skillUseName": "Boss",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX"
+      ]
+    },
+    "TitanFire": {
+      "displayNameId": 7792,
+      "descriptionId": 7791,
+      "mesh": "TitanFire",
+      "skillUseName": "Boss",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX"
+      ]
+    },
+    "TitanWater": {
+      "displayNameId": 7793,
+      "descriptionId": 7791,
+      "mesh": "TitanWater",
+      "skillUseName": "Boss",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX"
+      ]
+    },
+    "UndeadCasterA": {
+      "displayNameId": 4498,
+      "descriptionId": 7800,
+      "mesh": "skeletonSpl1",
+      "skillUseName": "UndeadCaster",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UndeadCasterB": {
+      "displayNameId": 4499,
+      "descriptionId": 7800,
+      "mesh": "skeletonSpl2",
+      "skillUseName": "UndeadCaster",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UndeadMeleeExpA": {
+      "displayNameId": 4500,
+      "descriptionId": 7801,
+      "mesh": "skeletonExp1",
+      "skillUseName": "UndeadMelee",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UndeadMeleeExpB": {
+      "displayNameId": 4500,
+      "descriptionId": 7801,
+      "mesh": "skeletonExp2",
+      "skillUseName": "UndeadMelee",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UndeadMeleeImpA": {
+      "displayNameId": 4500,
+      "descriptionId": 7801,
+      "mesh": "skeletonImp1",
+      "skillUseName": "UndeadMelee",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UndeadMeleeImpB": {
+      "displayNameId": 4500,
+      "descriptionId": 7801,
+      "mesh": "skeletonImp2",
+      "skillUseName": "UndeadMelee",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UndeadMeleeNorA": {
+      "displayNameId": 4500,
+      "descriptionId": 7801,
+      "mesh": "skeletonNor1",
+      "skillUseName": "UndeadMelee",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UndeadMeleeNorB": {
+      "displayNameId": 4500,
+      "descriptionId": 7801,
+      "mesh": "skeletonNor2",
+      "skillUseName": "UndeadMelee",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UndeadMeleeSteA": {
+      "displayNameId": 4500,
+      "descriptionId": 7801,
+      "mesh": "skeletonSte1",
+      "skillUseName": "UndeadMelee",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UndeadMeleeSteB": {
+      "displayNameId": 4500,
+      "descriptionId": 7801,
+      "mesh": "skeletonSte2",
+      "skillUseName": "UndeadMelee",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "FX",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Urlan": {
+      "displayNameId": 3672,
+      "descriptionId": 1,
+      "mesh": "urlan",
+      "skillUseName": "Urlan",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Ursula": {
+      "displayNameId": 4501,
+      "descriptionId": 7797,
+      "mesh": "ursula",
+      "skillUseName": "Ursula",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UrsulaCostumeA": {
+      "displayNameId": 4501,
+      "descriptionId": 7797,
+      "mesh": "ursulaSummer",
+      "skillUseName": "Ursula",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "UrsulaCostumeB": {
+      "displayNameId": 4501,
+      "descriptionId": 7797,
+      "mesh": "ursulaAdvanced",
+      "skillUseName": "Ursula",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Usus": {
+      "displayNameId": 3310,
+      "descriptionId": 8161,
+      "mesh": "Usus",
+      "skillUseName": "Usus",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Valens": {
+      "displayNameId": 4501,
+      "descriptionId": 7799,
+      "mesh": "valens",
+      "skillUseName": "Valens",
+      "keys": [
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "ValensCostumeA": {
+      "displayNameId": 4501,
+      "descriptionId": 7799,
+      "mesh": "valensSummer",
+      "skillUseName": "Valens",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "ValensCostumeB": {
+      "displayNameId": 4501,
+      "descriptionId": 7799,
+      "mesh": "valensAdvanced",
+      "skillUseName": "Valens",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "ValensNoAmulet": {
+      "displayNameId": 7732,
+      "descriptionId": 7799,
+      "mesh": "valensNoAmulet",
+      "skillUseName": "Valens",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "HEADICON",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Wolf": {
+      "displayNameId": 4502,
+      "descriptionId": 7796,
+      "mesh": "wolf",
+      "skillUseName": "Wolf",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "WolfGreater": {
+      "displayNameId": 4503,
+      "descriptionId": 7795,
+      "mesh": "WolfGreater",
+      "skillUseName": "WolfGreater",
+      "keys": [
+        "AFFINITY",
+        "ATTRIBUTE",
+        "CLASSICON",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "ROCKSCISSORSPAPER",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    },
+    "Yeti": {
+      "displayNameId": 3671,
+      "descriptionId": 7794,
+      "mesh": "Yeti",
+      "skillUseName": "Yeti",
+      "keys": [
+        "ATTRIBUTE",
+        "DESCRIPTIONID",
+        "DISPLAYNAMEID",
+        "GRIDSIZE",
+        "ITEMCAT",
+        "ITEMSIZES",
+        "LEVELSTATAWARDS",
+        "LEVELUPJPGIVEN",
+        "LEVELUPXPNEEDED",
+        "LEVELZEROSTATS",
+        "MESH",
+        "SKILLUSENAME",
+        "SOUNDTABLENAME",
+        "UNITSETNAME",
+        "VOICELINEPREFIX",
+        "XPAWARD"
+      ]
+    }
+  }
+}
