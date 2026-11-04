@@ -1,3 +1,5 @@
+using ModdingGUI.Core.Api;
+using ModdingGUI.Core.Tok.Values;
 using System.Text.RegularExpressions;
 
 namespace ModdingGUI
@@ -230,86 +232,58 @@ namespace ModdingGUI
         /// </summary>
         public class ClassParser
         {
-            public List<ClassDefinition> ParseClassDefs(string filePath)
+            /// <summary>
+            /// Reads class definitions through <see cref="IClassesApi"/> — the shell never
+            /// parses classdefs.tok itself, so Team Builder sees exactly what the editor and
+            /// the MCP server see (comments and unknown keys included).
+            /// </summary>
+            /// <param name="becFolder">The project's <c>&lt;name&gt;_BEC</c> folder.</param>
+            public List<ClassDefinition> ParseClassDefs(string becFolder)
             {
+                var api = new ClassDefsApi();
                 var classDefinitions = new List<ClassDefinition>();
 
-                if (!File.Exists(filePath))
+                foreach (var dto in api.GetAll(becFolder))
                 {
-                    throw new FileNotFoundException($"The file '{filePath}' does not exist.");
-                }
+                    var currentClass = new ClassDefinition { ClassName = dto.Name };
 
-                var lines = File.ReadAllLines(filePath);
-                ClassDefinition currentClass = null;
-
-                foreach (var line in lines)
-                {
-                    var trimmedLine = line.Trim();
-
-                    if (trimmedLine.StartsWith("CREATECLASS:", StringComparison.OrdinalIgnoreCase))
+                    foreach (string attribute in dto.Values("ATTRIBUTE"))
                     {
-                        if (currentClass != null)
-                        {
-                            classDefinitions.Add(currentClass);
-                        }
-
-                        currentClass = new ClassDefinition();
-
-                        var match = Regex.Match(trimmedLine, @"CREATECLASS:\s*(\w+)", RegexOptions.IgnoreCase);
-                        if (match.Success)
-                        {
-                            currentClass.ClassName = match.Groups[1].Value.Trim();
-                        }
-                        else
-                        {
-                            currentClass = null;
-                        }
-
-                        continue;
+                        string names = Unquote(attribute);
+                        if (names.Length > 0) currentClass.Attributes.Add(names);
                     }
 
-                    if (currentClass != null)
-                    {
-                        if (trimmedLine.StartsWith("ATTRIBUTE:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var attrMatch = Regex.Match(trimmedLine, @"ATTRIBUTE:\s*""([^""]+)""", RegexOptions.IgnoreCase);
-                            if (attrMatch.Success)
-                            {
-                                currentClass.Attributes.Add(attrMatch.Groups[1].Value.Trim());
-                            }
-                        }
-                        else if (trimmedLine.StartsWith("AFFINITY:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var affMatch = Regex.Match(trimmedLine, @"AFFINITY:\s*""([^""]+)""", RegexOptions.IgnoreCase);
-                            if (affMatch.Success)
-                            {
-                                currentClass.Affinity = affMatch.Groups[1].Value.Trim();
-                            }
-                        }
-                        else if (trimmedLine.StartsWith("ITEMCAT:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var catMatch = Regex.Match(trimmedLine, @"ITEMCAT:\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)", RegexOptions.IgnoreCase);
-                            if (catMatch.Success)
-                            {
-                                var allowedGear = new AllowedGear
-                                {
-                                    GearType = catMatch.Groups[1].Value.Trim(),
-                                    SubType = catMatch.Groups[2].Value.Trim(),
-                                    Style = catMatch.Groups[3].Value.Trim()
-                                };
-                                currentClass.AllowedGears.Add(allowedGear);
-                            }
-                        }
-                    }
-                }
+                    string? affinity = dto.Value("AFFINITY");
+                    if (affinity is not null) currentClass.Affinity = Unquote(affinity);
 
-                if (currentClass != null)
-                {
+                    foreach (string itemCat in dto.Values("ITEMCAT"))
+                    {
+                        var parts = SplitArguments(itemCat);
+                        if (parts.Count < 3) continue;
+
+                        currentClass.AllowedGears.Add(new AllowedGear
+                        {
+                            GearType = parts[0],
+                            SubType = parts[1],
+                            Style = parts[2],
+                        });
+                    }
+
                     classDefinitions.Add(currentClass);
                 }
 
                 return classDefinitions;
             }
+
+            /// <summary>Strip surrounding quotes and whitespace from a raw value.</summary>
+            private static string Unquote(string raw) => raw.Trim().Trim('"');
+
+            /// <summary>Split a comma-separated value into argument texts (drops empty slots).</summary>
+            private static List<string> SplitArguments(string raw) =>
+                TokValueReader.Parse(raw).Tokens
+                    .Where(t => t.Kind != TokValueKind.Empty)
+                    .Select(t => Unquote(t.Text))
+                    .ToList();
         }
 
 
@@ -652,7 +626,8 @@ namespace ModdingGUI
             string projectFolderName = Path.GetFileName(projectPath);
 
             // Step 3: Construct the paths to classdefs.tok, gladiators.txt, and statsets.txt dynamically
-            string classDefsPath = Path.Combine(projectPath, $"{projectFolderName}_BEC", "data", "config", "classdefs.tok");
+            string becFolder     = Path.Combine(projectPath, $"{projectFolderName}_BEC");
+            string classDefsPath = Path.Combine(becFolder, "data", "config", "classdefs.tok");
             string gladiatorsPath = Path.Combine(projectPath, $"{projectFolderName}_BEC", "data", "units", "gladiators.txt");
             string statSetsPath = Path.Combine(projectPath, $"{projectFolderName}_BEC", "data", "units", "statsets.txt");
 
@@ -721,7 +696,7 @@ namespace ModdingGUI
             try
             {
                 var classParser = new ClassParser();
-                classDefinitions = await Task.Run(() => classParser.ParseClassDefs(classDefsPath));
+                classDefinitions = await Task.Run(() => classParser.ParseClassDefs(becFolder));
 
                 var gladiatorParser = new GladiatorParser();
                 gladiatorEntries = await Task.Run(() => gladiatorParser.ParseGladiators(gladiatorsPath));

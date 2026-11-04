@@ -147,7 +147,8 @@ Bring Skills up to the same architectural bar as Items, without a typed schema.
 ### Phase 3 — Lookup + Classes (high leverage)
 Unlocks display-name resolution everywhere and makes Team Builder real.
 
-**Status: in progress.** Classes and lookup are done in Core; the shell migration is next.
+**Status: done** (exit criteria met). Core has `IClassesApi` and the language-aware
+`ILookupTextApi`; `LookupHelper` is deleted; Team Builder reads classes through the API.
 
 - **Done — `IClassesApi`** over `classdefs.tok`: raw, comment-preserving blocks
   (`List/GetAll/Get/SetField/AddField/RemoveField/Rename/Add/Remove/Validate`) with the
@@ -164,10 +165,15 @@ Unlocks display-name resolution everywhere and makes Team Builder real.
   `ansi`), but the API used UTF-8 — 456 bytes in the English table decoded to U+FFFD and
   a write would have re-encoded them, corrupting every accented string on the way into
   the packed `.bin`.
-- **Next — shell migration.** Point `LookupHelper`, the skill editor's
-  `SKILLDISPLAYNAMEID` dropdown and the item editor's name resolution at
-  `ILookupTextApi`; wire `ClassDefsCatalog` into the skills animation/mesh resolver
-  (`SkillsContext.AnimationsForMeshes`) and into Team Builder; then delete `LookupHelper`.
+- **Done — shell migration.** `LookupHelper` deleted (`SkillParser` takes a pre-loaded
+  table, `LookupTextResolver` in Core owns the line→text rule); the item editor already
+  used `ILookupTextApi`. `SkillAnimationResolver` moved the SKILLUSECLASS → SKILLUSENAME →
+  MESH → `*.pan` chain into Core and the editor's private classdefs parser is gone. Team
+  Builder's `ClassParser` now calls `IClassesApi.GetAll` instead of reading the file.
+- **Deviation — no `SKILLDISPLAYNAMEID` dropdown.** The plan assumed one exists; the field
+  is a bare numeric id and the editor shows it as a plain text box. Making it a
+  lookup-backed picker is a UX addition, not a migration, so it is not part of this phase.
+  (The item editor already resolves display names through `ILookupTextApi`.)
 
 **Exit:** Team Builder reads class metadata via `IClassesApi`. `LookupHelper` either delegates or is deleted.
 
