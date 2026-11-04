@@ -1,0 +1,14 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- MSB3277 (WindowsBase 4.0.0.0 vs 5.0.0.0) is unavoidable with the WebView2
+         package: Microsoft.Web.WebView2 ships Microsoft.Web.WebView2.Wpf.dll beside its
+         WinForms assembly, so both are referenced and the WPF one depends on WPF's
+         WindowsBase. This is a WinForms app (UseWPF is off) that never loads the WPF
+         assembly, and the resolver picks .NET 8's WindowsBase, so the warning is noise.
+         Silenced here rather than per project because the reference flows through the
+         app into the test project too. -->
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
+  </PropertyGroup>
+
+</Project>

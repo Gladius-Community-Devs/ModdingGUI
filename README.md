@@ -86,6 +86,14 @@ This color-coded logging helps users identify the status of each action immediat
 - **Python 3 Not Found**: Ensure Python 3 is installed and added to your PATH. You can verify by running `python --version` in the command prompt.
 - **Missing Tools**: Confirm that all required Python scripts are available in the `tools/` directory.
 - **Error During Execution**: Errors during unpacking or packing are logged in red. Check the log messages for details on the failure point.
+- **`Couldn't process file Form1.resx due to its being in the Internet or Restricted zone`**: MSBuild refuses to compile a `.resx` that carries the mark of the web. The mark usually arrives on `ludo.ico` (which `Form1.resx` embeds) when the repository came from a zip download. Clear it and rebuild:
+
+  ```powershell
+  Get-ChildItem -Recurse -File | Unblock-File
+  ```
+
+  This is a per-machine file attribute, not a project setting, so every fresh copy of the repo may need it once.
+- **`MSB3270` architecture mismatch**: the app is `win-x64` (it publishes a self-contained single-file exe), so `ModdingGUI.Tests` also sets `PlatformTarget` to `x64`. Give any new project that references the app the same platform target.
 
 ## Contributing
 

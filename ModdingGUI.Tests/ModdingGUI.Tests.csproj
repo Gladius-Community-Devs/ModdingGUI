@@ -6,6 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <UseWindowsForms>true</UseWindowsForms>
+    <!-- The app is win-x64 (it ships a self-contained single-file exe), so the test
+         project must match or MSBuild reports MSB3270: an MSIL test assembly cannot
+         reference an AMD64 project assembly. PlatformTarget alone fixes that; adding a
+         RuntimeIdentifier here would also relocate the output into a win-x64 subfolder. -->
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
