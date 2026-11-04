@@ -58,8 +58,21 @@ public sealed class SkillsApiValidationTests : IDisposable
 
     private string HistoryRoot => Path.Combine(_projectDir, ".mod-history");
 
+    /// <summary>
+    /// Vanilla records that legitimately trip a documented cross-field rule. The
+    /// engine never checks these rules (the DOL loaders only write per-field slots),
+    /// so this is guidance rather than corruption — but the list is pinned so the gate
+    /// fails the moment a *new* warning appears.
+    /// </summary>
+    private static readonly (string Skill, string Code, string Field)[] KnownVanillaWarnings =
+    {
+        // SKILLSTATUSTARGET with no SKILLSTATUS: the target line has nothing to target.
+        ("Dervish SurpriseAttack", SkillValidationCodes.MissingRequirement, "SKILLSTATUSTARGET"),
+        ("Secutor BackAttack", SkillValidationCodes.MissingRequirement, "SKILLSTATUSTARGET"),
+    };
+
     [CleanBecFact]
-    public void Validate_EveryVanillaSkill_HasNoWarnings()
+    public void Validate_EveryVanillaSkill_HasOnlyPinnedWarnings()
     {
         var api = new SkillsApi();
         var catalog = SkillsCatalogTests.ShippedCatalog();
@@ -84,13 +97,24 @@ public sealed class SkillsApiValidationTests : IDisposable
 
         _output.WriteLine($"info-level findings across vanilla corpus: {infoCount}");
 
-        string grouped = string.Join("\n  ", warnings
+        var pinned = KnownVanillaWarnings
+            .Select(w => (w.Skill, w.Code, w.Field))
+            .ToHashSet();
+
+        var unexpected = warnings
+            .Where(w => !pinned.Contains((w.Skill, w.Issue.Code, w.Issue.Field ?? string.Empty)))
+            .ToList();
+
+        string grouped = string.Join("\n  ", unexpected
             .GroupBy(w => (w.Issue.Code, w.Issue.Field))
             .Select(g => $"{g.Key.Code} / {g.Key.Field}: {g.Count()} skill(s), " +
                          $"e.g. {string.Join(", ", g.Take(3).Select(x => x.Skill))}"));
 
-        Assert.True(warnings.Count == 0,
-            $"expected zero warnings on vanilla data, got {warnings.Count}:\n  {grouped}");
+        Assert.True(unexpected.Count == 0,
+            $"{unexpected.Count} unexpected warning(s) on vanilla data:\n  {grouped}");
+
+        // Keep the exception list honest: it must match reality exactly.
+        Assert.Equal(KnownVanillaWarnings.Length, warnings.Count);
     }
 
     [CleanBecFact]

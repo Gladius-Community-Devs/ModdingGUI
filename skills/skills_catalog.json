@@ -23,15 +23,15 @@
       "file": "skills_field_reference.txt",
       "fields_documented": 68,
       "fields_with_values": 17,
-      "fields_with_links": 2,
-      "fields_with_requires": 12,
-      "multi_yes": 6,
+      "fields_with_links": 0,
+      "fields_with_requires": 11,
+      "multi_yes": 12,
       "reference_only_fields": 0
     },
     "rule_support": {
       "records_scanned": 3638,
-      "links_marked_advisory": 2,
-      "requires_marked_advisory": 3
+      "links_violated": 0,
+      "requires_violated": 1
     },
     "engine": {
       "source": "GameCube boot DOL (SkillLoadTokenFile / FUN_80026ec0 field tables)",
@@ -57,18 +57,13 @@
       ],
       "format": "integer (divide by 20 to get actual orb cost)",
       "multi": false,
-      "links": [
-        "SKILLAFFINITY"
-      ],
       "engine": true,
       "engine_id": 17,
       "engine_parser": "runtime",
       "engine_arity": "int",
       "engine_slot": "scalar",
       "max_occurrences": 1,
-      "accumulates": false,
-      "links_strict": false,
-      "link_violations": 35
+      "accumulates": false
     },
     "SKILLAFFINITY": {
       "enumerate": true,
@@ -96,18 +91,13 @@
       "format": "\"value\"",
       "multi": false,
       "note": "\"None\" means any affinity type is accepted.",
-      "links": [
-        "SKILLAFFCOST"
-      ],
       "engine": true,
       "engine_id": 21,
       "engine_parser": "runtime",
       "engine_arity": "string",
       "engine_slot": "scalar enum",
       "max_occurrences": 1,
-      "accumulates": false,
-      "links_strict": false,
-      "link_violations": 59
+      "accumulates": false
     },
     "SKILLANIM": {
       "enumerate": false,
@@ -684,14 +674,6 @@
       "format": "string (see VALUES)",
       "multi": true,
       "note": "Filters which units are actually affected by the skill. \"targetstatus req/ign <status>\" uses a status name (see SKILLSTATUS names).",
-      "requires": [
-        {
-          "field": "SKILLEFFECTRANGE",
-          "present": true,
-          "strict": false,
-          "violations": 183
-        }
-      ],
       "engine": true,
       "engine_id": 32,
       "engine_parser": "battle",
@@ -829,7 +811,7 @@
         }
       ],
       "format": "string (see VALUES)",
-      "multi": false,
+      "multi": true,
       "note": "Condition in order to trigger an effect. For example, an attack that only poisons if the user uses a specific set of skills they have learned.",
       "engine": true,
       "engine_id": 33,
@@ -865,7 +847,7 @@
         }
       ],
       "format": "string (see VALUES)",
-      "multi": false,
+      "multi": true,
       "note": "Status the TARGET must have for SKILLEFFECT to fire.",
       "engine": true,
       "engine_id": 34,
@@ -1413,9 +1395,7 @@
       "requires": [
         {
           "field": "SKILLATTRIBUTE",
-          "equals": "teleport",
-          "strict": false,
-          "violations": 1
+          "present": true
         }
       ],
       "engine": true,
@@ -1595,7 +1575,7 @@
         }
       ],
       "format": "\"value\"",
-      "multi": false,
+      "multi": true,
       "note": "\"indirect\" = no line of sight required. \"multifire\" = fires multiple projectiles. \"nontarget\" = projectile does not lock onto target. \"return\"    = projectile returns to caster.",
       "engine": true,
       "engine_id": 88,
@@ -1992,7 +1972,7 @@
         }
       ],
       "format": "\"class: ClassName\" | \"self only\" | \"enemy only\"",
-      "multi": false,
+      "multi": true,
       "note": "The condition that triggers the split behaviour. This can be used to get different effects on units depending on the value being evaluated.",
       "requires": [
         {
@@ -2590,7 +2570,6 @@
         {
           "field": "SKILLSTATUS",
           "present": true,
-          "strict": false,
           "violations": 8
         }
       ],
@@ -2770,7 +2749,7 @@
         }
       ],
       "format": "string (see VALUES)",
-      "multi": false,
+      "multi": true,
       "note": "Restricts which squares/units can be chosen as the skill target.",
       "engine": true,
       "engine_id": 56,
@@ -2802,7 +2781,7 @@
         }
       ],
       "format": "string (see VALUES)",
-      "multi": false,
+      "multi": true,
       "note": "Condition on the SOURCE unit (or target) that must be true for the skill to appear as usable in the menu.",
       "engine": true,
       "engine_id": 55,

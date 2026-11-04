@@ -188,7 +188,6 @@ FIELD:    SKILLAFFCOST
 FORMAT:   integer (divide by 20 to get actual orb cost)
 MULTI:    no
 VALUES:
-LINK:     SKILLAFFINITY
 REQUIRES:
 NOTES:
 ---
@@ -197,7 +196,6 @@ FIELD:    SKILLAFFINITY
 FORMAT:   "value"
 MULTI:    no
 VALUES:   Air | Dark | Earth | Fire | Light | None | Water
-LINK:     SKILLAFFCOST
 REQUIRES:
 NOTES:    "None" means any affinity type is accepted.
 ---
@@ -244,14 +242,14 @@ MULTI:    yes
 VALUES:   friend only | friend only not self | enemy only | all units not self
           targetstatus req <status> | targetstatus ign <status>
 LINK:     
-REQUIRES: SKILLEFFECTRANGE
+REQUIRES:
 NOTES:    Filters which units are actually affected by the skill.
           "targetstatus req/ign <status>" uses a status name (see SKILLSTATUS names).
 ---
 
 FIELD:    SKILLTARGETCONDITION
 FORMAT:   string (see VALUES)
-MULTI:    no
+MULTI:    yes
 VALUES:   all units not self | any square | empty square | enemy only
           friend only | friend only not self | self only
           target has shield | unitattr ign beast | unitattr req HEAVY|MEDIUM|LIGHT | unitattr req MALE|FEMALE
@@ -263,7 +261,7 @@ NOTES:    Restricts which squares/units can be chosen as the skill target.
 
 FIELD:    SKILLUSABILITYCONDITION
 FORMAT:   string (see VALUES)
-MULTI:    no
+MULTI:    yes
 VALUES:   sourcestatus req berserk | targetstatus req berserk | targetstatus req woundedquarter
 LINK:
 REQUIRES:
@@ -384,7 +382,7 @@ NOTES:    chance = integer 0-100 (percentage).
 
 FIELD:    SKILLEFFECTSKILLCOND
 FORMAT:   string (see VALUES)
-MULTI:    no
+MULTI:    yes
 VALUES:   skill: <skill name> | skillattr ign affinity | skillattr ign spell
           skillattr req melee | skillattr req piercing | skillattr req ranged | skillattr req spell
 LINK:
@@ -394,7 +392,7 @@ NOTES:    Condition in order to trigger an effect. For example, an attack that o
 
 FIELD:    SKILLEFFECTSTATUSCOND
 FORMAT:   string (see VALUES)
-MULTI:    no
+MULTI:    yes
 VALUES:   statuscond all | statuscond bleeding | statuscond blind | statuscond charmed
           statuscond confused | statuscond debuff | statuscond doom | statuscond poison
           statuscond root | statuscond shieldmelt | statuscond stunned
@@ -417,7 +415,7 @@ NOTES:    Like SKILLEFFECT but combines with SKILLSPLITEFFECTCONDITION to allow 
 
 FIELD:    SKILLSPLITEFFECTCONDITION
 FORMAT:   "class: ClassName" | "self only" | "enemy only"
-MULTI:    no
+MULTI:    yes
 VALUES:
 LINK:     
 REQUIRES: SKILLSPLITEFFECT
@@ -748,7 +746,7 @@ FORMAT:   range, "pattern"
 MULTI:    no
 VALUES[pattern]: Diamond | Linear | Plus | Self | Square
 LINK:
-REQUIRES: SKILLATTRIBUTE = teleport
+REQUIRES: SKILLATTRIBUTE present
 NOTES:    Range and shape of where the unit can teleport to.
 ---
 
@@ -777,7 +775,7 @@ NOTES:    Name of the projectile object/asset used for the visual.
 
 FIELD:    SKILLPROJECTILEATTR
 FORMAT:   "value"
-MULTI:    no
+MULTI:    yes
 VALUES:   indirect | multifire | nontarget | return
 LINK:
 REQUIRES:

@@ -239,9 +239,9 @@ public static class SkillsValidator
             if (!req.IsEnforceable) continue;   // prose-only entry
 
             var severity = req.Strict ? SkillValidationSeverity.Warning : SkillValidationSeverity.Info;
-            string suffix = req.Strict
-                ? string.Empty
-                : $" (advisory: {req.Violations} observed record(s) violate this documented rule)";
+            string suffix = req.Violations > 0
+                ? $" ({req.Violations} observed record(s) in the corpus break this rule too)"
+                : string.Empty;
 
             string required = SkillsCatalog.NormalizeFieldName(req.Field!);
             if (!byField.TryGetValue(required, out var entries) || entries.Count == 0)

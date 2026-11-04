@@ -53,30 +53,27 @@ public sealed class SkillsCatalogTests
     {
         var catalog = ShippedCatalog();
 
-        // SKILLAFFINITY: linked to SKILLAFFCOST, enum values documented.
+        // SKILLAFFINITY documents its enum values, and the affinity<->cost LINK that
+        // the corpus disproved has been removed from the reference file.
         var affinity = catalog.Find("SKILLAFFINITY");
         Assert.NotNull(affinity);
-        Assert.Contains("SKILLAFFCOST", affinity!.Links);
+        Assert.Empty(affinity!.Links);
         Assert.NotEmpty(affinity.Slots);
         Assert.Contains("Fire", affinity.Slots[0].Values);
 
-        // The LINK is documented but the corpus violates it (affinity attacks with
-        // no cost), so the generator must have marked it advisory rather than
-        // letting Validate() flag valid vanilla records.
-        Assert.False(affinity.LinksStrict);
-
-        // SKILLSTATUS may repeat (MULTI: yes in the reference file).
+        // Condition fields repeat in game, so the reference marks them MULTI: yes.
         Assert.True(catalog.Find("SKILLSTATUS")!.Multi);
+        Assert.True(catalog.Find("SKILLTARGETCONDITION")!.Multi);
 
-        // SKILLMOVERANGE carries a structured REQUIRES rule whose value constraint
-        // vanilla does not honour (translateanim), so it is advisory with a count.
+        // SKILLMOVERANGE requires SKILLATTRIBUTE to be present (not specifically
+        // "teleport" — translateanim is valid too), and the rule is strict/clean.
         var moverange = catalog.Find("SKILLMOVERANGE");
         Assert.NotNull(moverange);
         var requirement = Assert.Single(moverange!.Requirements.Where(r => r.IsEnforceable));
         Assert.Equal("SKILLATTRIBUTE", requirement.Field);
-        Assert.Equal("teleport", requirement.Value);
-        Assert.False(requirement.Strict);
-        Assert.True(requirement.Violations > 0);
+        Assert.Null(requirement.Value);
+        Assert.True(requirement.Strict);
+        Assert.Equal(0, requirement.Violations);
     }
 
     [Fact]

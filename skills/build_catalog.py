@@ -646,14 +646,16 @@ def mark_unsupported_rules(
     catalog: dict[str, Any],
     records: list[dict[str, list[str]]],
 ) -> dict[str, int]:
-    """Mark documented rules the observed corpus contradicts as advisory.
+    """Measure documented LINK/REQUIRES rules against the corpus.
 
-    Repeat legality is NOT decided here any more: the engine's own behaviour
-    (``dol_skill_fields.json``) is authoritative, because the corpus can repeat a
-    field the engine merely overwrites (last-wins) as easily as one it
-    accumulates. See :func:`annotate_engine`.
+    The engine never enforces cross-field rules (verified in the DOL: the loaders
+    only write per-field slots), so these rules exist purely to *inform* modders.
+    They therefore stay strict — a violation is a warning, with the observed count
+    carried in the message — instead of being silently downgraded when vanilla data
+    trips them. Repeat legality is not decided here either; see
+    :func:`annotate_engine`.
     """
-    counts = {"links_advisory": 0, "requires_advisory": 0}
+    counts = {"links_violated": 0, "requires_violated": 0}
 
     for fname, spec in catalog["fields"].items():
         links = spec.get("links")
@@ -666,9 +668,8 @@ def mark_unsupported_rules(
                     if normalize_field_name(link) not in rec:
                         violations += 1
             if violations:
-                spec["links_strict"] = False
                 spec["link_violations"] = violations
-                counts["links_advisory"] += 1
+                counts["links_violated"] += 1
 
         for req in spec.get("requires") or []:
             target = req.get("field")
@@ -687,9 +688,8 @@ def mark_unsupported_rules(
                     if not any(_first_token_text(v).lower() == wanted for v in values):
                         violations += 1
             if violations:
-                req["strict"] = False
                 req["violations"] = violations
-                counts["requires_advisory"] += 1
+                counts["requires_violated"] += 1
 
     return counts
 
@@ -894,8 +894,8 @@ def main() -> None:
     rule_counts = mark_unsupported_rules(catalog, records)
     catalog["_meta"]["rule_support"] = {
         "records_scanned": len(records),
-        "links_marked_advisory": rule_counts["links_advisory"],
-        "requires_marked_advisory": rule_counts["requires_advisory"],
+        "links_violated": rule_counts["links_violated"],
+        "requires_violated": rule_counts["requires_violated"],
     }
     catalog["_meta"]["engine"] = {
         "source": "GameCube boot DOL (SkillLoadTokenFile / FUN_80026ec0 field tables)",
@@ -929,8 +929,8 @@ def main() -> None:
           f"multi {ref_counts['multi_yes']}, "
           f"reference-only {ref_counts['reference_only']})")
     print(f"  rule support:     records {len(records)}, "
-          f"links advisory {rule_counts['links_advisory']}, "
-          f"requires advisory {rule_counts['requires_advisory']}")
+          f"links violated {rule_counts['links_violated']}, "
+          f"requires violated {rule_counts['requires_violated']}")
     print(f"  engine truth:     known {engine_counts['engine_known']}, "
           f"added {engine_counts['engine_only_added']}, "
           f"accumulating {engine_counts['accumulating']}")
