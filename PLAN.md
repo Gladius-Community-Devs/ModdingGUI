@@ -29,7 +29,7 @@ Realistic schemas/Apis to build:
 | Worldmap / fonts / hotkeys / options | `data/config/*.tok` | small Apis as needed (Phase 4 tail) |
 | Scripts `.scp` | compiled | **out of scope** |
 | Character `.pan` / `.bin` | binary | **read-only helpers only**, used by Skills animation resolver |
-| Grids `.grd` | binary | already covered by `GridBuilder` |
+| Grids `.grd` | binary | `ModdingGUI.Core.Grids.GridFile`; two layouts, decoded from the DOL: v2 round-trips byte for byte, v1 parses its per-cell slot lists and is write-refused |
 
 This is the universe. ~12 schemas + units `.txt` family.
 
@@ -198,6 +198,21 @@ table is merged into the catalog (`dol/encounters_fields.json`), so the three ke
 never uses (`BLOCK`, `FORCEPLACEMENT`, `VOICEINTRO`) are known and typos are flagged.
 Corpus detail: spawn chance uses `(rand % 100) + 1 <= value`, so ≥100 always spawns — the
 corpus contains `1000` — and only negatives are flagged.
+**Grids — both layouts decoded from the DOL.** The engine reader is `FUN_800b0b4c` (called by
+`BattleProcessGridFile`): a little-endian `u32 version`, then for version 2+ an inline `u32 count` +
+30 x 32-byte tags + 1024 `u32` cells (bits 0-29; bits 30/31 masked off). Version < 2 branches to
+`FUN_800b0e84`, a different format: a `u32` name count, that many raw 32-byte names (no `F`/`E`
+prefix), then 1024 records of `(u16 count, u16 pad, u32 offset)` whose offsets point at arrays of
+`u32` slot indices. Legacy grids therefore store a slot list per cell, which is why they are
+~3.2 kB larger. The reader parses both; v1 writes stay refused because regenerating that offset
+payload is a separate job (the old Java tool truncated 3.2 kB instead).
+
+A slot may paint many tiles — that is how the player chooses where to stand — so one cell per slot
+was wrong. Validation enforces the real rule: `start-slot-overflow` warns when named units outnumber
+the cells painted for their slot (the case that silently dropped a unit in QA). Generated
+(empty-name) units are auto-placed and neutral team `-1` is engine-managed, so neither counts — with
+that, all 834 vanilla encounters validate clean.
+
 Manual QA plan: `MANUAL_TESTING_PHASE_4.md` at the workspace root.
 
 **Status: done.** All four families landed; `ITownsApi` folded into `IConfigTableApi`.
