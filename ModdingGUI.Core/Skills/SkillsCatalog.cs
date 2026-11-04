@@ -256,6 +256,7 @@ public sealed class SkillsCatalog
                 MaxOccurrences = (int?)ReadNullableLong(el, "max_occurrences"),
                 Accumulates = ReadNullableBool(el, "accumulates") ?? false,
                 EngineOnly = ReadNullableBool(el, "engine_only") ?? false,
+                EngineSlot = ReadString(el, "engine_slot"),
             };
         }
         catch (InvalidOperationException)
@@ -381,6 +382,21 @@ public sealed class SkillFieldSpec
 
     /// <summary>True for engine-legal fields that never occur in the vanilla corpus.</summary>
     public bool EngineOnly { get; init; }
+
+    /// <summary>
+    /// The engine's slot kind for this field, e.g. <c>status slot 1</c>,
+    /// <c>bit-set (OR)</c>, <c>conditional list</c>, <c>scalar</c>. Used to tailor
+    /// validation messages to the failure mode the engine actually has.
+    /// </summary>
+    public string? EngineSlot { get; init; }
+
+    /// <summary>
+    /// True when this field occupies one of the engine's status slots. A third
+    /// status line is not a silent overwrite: it crashes the game (verified in game).
+    /// </summary>
+    public bool IsStatusSlot =>
+        EngineSlot is not null &&
+        EngineSlot.StartsWith("status slot", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>True when repetition is legal (engine allows it, or explicit MULTI / numbered variants).</summary>
     public bool AllowsRepetition =>

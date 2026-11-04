@@ -175,11 +175,18 @@ public static class SkillsValidator
         slot.Enumerate ?? spec.Enumerate;
 
     /// <summary>
-    /// Judge repetition against engine semantics (verified against the GameCube
-    /// DOL): accumulating fields — bit-sets, class sets and conditional modifiers —
-    /// combine, so repeats are legal; slot-based fields silently overwrite once
-    /// their slot count is exceeded.
+    /// Judge repetition against engine semantics. Two behaviours were verified in
+    /// game, not just decompiled:
     /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    ///   <item>Accumulating fields — bit-sets, class sets and conditional modifiers —
+    ///   combine, so repeats are legal (a 3rd <c>class:</c> condition still fires).</item>
+    ///   <item>Status slots exist exactly twice; a <em>third</em> <c>SKILLSTATUS</c>
+    ///   line freezes the game rather than overwriting a slot.</item>
+    ///   <item>Other slot-based fields keep their last value.</item>
+    /// </list>
+    /// </remarks>
     private static void CheckRepetition(
         string fieldName,
         SkillFieldSpec spec,
@@ -193,9 +200,12 @@ public static class SkillsValidator
             if (spec.MaxOccurrences is null) return;   // engine allows unbounded repeats
             if (count > spec.MaxOccurrences.Value)
             {
+                string consequence = spec.IsStatusSlot
+                    ? "the engine has two status slots and a third status line freezes the game"
+                    : "later line(s) overwrite earlier ones";
+
                 Add(issues, SkillValidationSeverity.Warning, SkillValidationCodes.ExceedsEngineSlots, fieldName,
-                    $"appears {count} times but the engine only keeps {spec.MaxOccurrences.Value} " +
-                    $"(later line(s) overwrite earlier ones)");
+                    $"appears {count} times but the engine only keeps {spec.MaxOccurrences.Value} — {consequence}");
             }
             return;
         }

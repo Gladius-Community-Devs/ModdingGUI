@@ -66,7 +66,11 @@ public sealed class SkillsValidatorTests
           "enumerate": false, "engine": true, "max_occurrences": null, "accumulates": true,
           "slots": [ { "types": ["string"], "values": [] } ]
         },
-        "SKILLNOTENGINE": { "engine": false, "slots": [] }
+        "SKILLNOTENGINE": { "engine": false, "slots": [] },
+        "SKILLSTATUSDURATION": {
+          "enumerate": false, "engine": true, "max_occurrences": 1, "accumulates": false,
+          "engine_slot": "status slot 1", "slots": []
+        }
       }
     }
     """;
@@ -270,5 +274,21 @@ public sealed class SkillsValidatorTests
     public void Validate_SingleOccurrenceOfScalarEngineField_IsClean()
     {
         Assert.Empty(Validate(Skill("SKILLENGINEDUP", "\"a\"")));
+    }
+
+    [Fact]
+    public void Validate_ThirdStatusLine_WarnsThatItCrashesTheGame()
+    {
+        // Verified in game (Oct 2026): 1 status works, 2 work, a third freezes the
+        // game. The message must say so rather than claim a silent overwrite.
+        var issues = Validate(Skill(
+            "SKILLSTATUSDURATION", "\"Stack Source Mult\", 1.5",
+            "SKILLSTATUSDURATION", "\"Stack Source Mult\", 2.5",
+            "SKILLSTATUSDURATION", "\"Stack Source Mult\", 3.5"));
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(SkillValidationCodes.ExceedsEngineSlots, issue.Code);
+        Assert.Equal(SkillValidationSeverity.Warning, issue.Severity);
+        Assert.Contains("freezes the game", issue.Message);
     }
 }

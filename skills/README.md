@@ -117,18 +117,21 @@ from the corpus:
 | Engine behaviour | Catalog | Validation |
 |---|---|---|
 | Accumulating field — bit-sets (`SKILLATTRIBUTE`, `SKILLPROJECTILEATTR`, `SKILLPROJECTILESEQUENCE`), class sets (`SKILLUSECLASS`, all `class:` conditions) and conditional modifiers (`SKILL*CONDITION`, `SKILLTARGETCONDITION`, `SKILLSPLITEFFECTCONDITION`) | `accumulates: true`, `max_occurrences: null` | repeats are **legal** |
-| Paired status slots (`SKILLSTATUS`/`SKILLSTATUS2`, duration/interval/target/uselimit/chance) | one slot each, `max_occurrences: 1` per spelling | a third line of the same spelling **overwrites** → `exceeds-engine-slots` |
+| Paired status slots (`SKILLSTATUS`/`SKILLSTATUS2`, duration/interval/target/uselimit/chance) | one slot each, `max_occurrences: 1` per spelling — two statuses total | a **third status line freezes the game** → `exceeds-engine-slots` (other paired fields just overwrite) |
 | Scalar fields (ids, names, floats) | `max_occurrences: 1` | a second line overwrites → `exceeds-engine-slots` |
 | Field names absent from the engine table | `engine: false` | `field-not-in-engine` (the game ignores the line) |
 | Engine fields with no vanilla data (`SKILLWEAPONEXC`, `SKILLEFFECTVALUE2`, …) | `engine_only: true` | documented, usable |
 
-Verified in game (two ISO tests, Oct 2026):
+Verified in game (three ISO tests, Oct 2026):
 
 - **Light Beam**: a skill's 3rd `class:` condition still fired (the *last* line was
   `DarkLegionnaire`, yet `DarkCat` took the 10% split damage) → conditions accumulate,
   nothing is discarded. My earlier "last wins" reading was wrong.
 - **Beguile**: `unitattr req MALE` + `enemy only` both hold — the Amazon could target
   male enemies but **not** the female one.
+- **Status slots**: one `SKILLSTATUS` applied (confusion), two applied (confusion +
+  blind), and a **third froze the game**. So the status pair is exactly two slots and
+  overflowing it is a hard crash, not a silent overwrite — the validator says so.
 
 Engine-only aliases are also recorded (`SKILLEXPCOST` ≡ `SKILLJOBPOINTCOST`; five
 `SKILLSTATUSSITUATION*CONDITION` spellings share one id), and field names that appear
