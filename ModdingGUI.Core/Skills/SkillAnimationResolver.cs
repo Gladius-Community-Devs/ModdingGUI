@@ -32,7 +32,10 @@ public static class SkillAnimationResolver
     /// <summary>
     /// Resolve animation names for one or more <c>SKILLUSECLASS</c> values.
     /// </summary>
-    /// <param name="projectPath">The project's BEC folder (the root the Apis take).</param>
+    /// <param name="projectPath">
+    /// The project root or its BEC folder — either is accepted (see
+    /// <see cref="ProjectRoots.ResolveBecFolder"/>).
+    /// </param>
     /// <param name="skillUseClasses">Values of the skill's <c>SKILLUSECLASS</c> lines.</param>
     public static Result Resolve(string projectPath, IEnumerable<string> skillUseClasses)
     {
@@ -47,6 +50,8 @@ public static class SkillAnimationResolver
 
         if (classNames.Count == 0)
             return new Result(Array.Empty<string>(), null);   // caller decides the wording
+
+        projectPath = ProjectRoots.ResolveBecFolder(projectPath);
 
         List<string> meshes;
         try

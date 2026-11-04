@@ -953,8 +953,10 @@ public sealed partial class SkillEditorView : UserControl
         }
 
         // Class → mesh → *.pan resolution lives in Core so the MCP server resolves the
-        // same names the editor shows.
-        var result = SkillAnimationResolver.Resolve(_projectFolder, classNames);
+        // same names the editor shows. Core APIs take the BEC folder, not the outer
+        // project root — every other call in this view wraps the path the same way.
+        var result = SkillAnimationResolver.Resolve(
+            ProjectPaths.BecFolder(_projectFolder), classNames);
         if (result.Error is not null) errorMessage = result.Error;
         return result.AnimationNames.ToList();
     }
