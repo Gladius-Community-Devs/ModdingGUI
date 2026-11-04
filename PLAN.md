@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 348 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (332 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 358 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (342 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -208,7 +208,22 @@ prefix), then 1024 records of `(u16 count, u16 pad, u32 offset)` whose offsets p
 from the bytes we loaded, which keeps vanilla's shared index arrays and makes no-op saves
 byte-identical; once a cell changes, the payload is rebuilt with one array per non-empty cell and
 absolute offsets. All 430 vanilla grids round-trip byte for byte and the 27 legacy maps are
-editable in the Grid Builder.
+editable in the Grid Builder. Grid writes go through `IGridsApi`, which takes the project lock
+and writes a `.mod-history` backup first — the shell no longer calls `GridFile.Save` directly, so
+a grid edit is as recoverable as a text edit.
+
+**`UNITDB` slots** are named from evidence, not guesses. The engine (`EncounterSetup` case
+`0x1D`) confirms slots 1-3 (name, spawn chance, start marker), 4-6 (x, y, jitter — the jitter
+flag adds `rand()` and clamps to ≥1) and 20-21 (spawn flags `0x100`/`0x200`). A modder's notes
+(`devnotes.txt`) supply 7-8 (attribute/affinity requirement), 14-16 (the three "prohibited"
+flips), 18 (mercenary required) and 19 (item drop chance % — vanilla values are 5-step
+percentages up to 90, which fits). Still unknown and left as numbers with a comment: slot 13,
+slot 17 (vanilla 0-3). The modder notes guessed slots 4-6 were level bounds; the DOL disproves
+that, so the notes are not treated as authoritative where the code disagrees.
+
+Also recorded: `EncounterSetup` forces `Summoner`/`UndeadCaster` on the second and later unit of
+a team, which is the summon behaviour behind Hall of Titans and Summoner's Endurance — those
+extra units on one slot are engine-generated, not placements.
 
 A slot may paint many tiles — that is how the player chooses where to stand — so one cell per slot
 was wrong. Validation enforces the real rule: `start-slot-overflow` warns when named units outnumber

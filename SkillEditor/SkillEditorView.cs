@@ -387,9 +387,9 @@ public sealed partial class SkillEditorView : UserControl
         // Catalog entry may be absent for dynamically-handled fields.
         var field = _catalog.Find(fieldName);
 
-        // Show the developer note for non-enumerated catalog fields.
+        // Show a one-line summary; the full derivation lives behind a details toggle.
         if (field is not null && !field.Enumerate && !string.IsNullOrWhiteSpace(field.Note))
-            AddInfoLabel(field.Note, isError: false);
+            AddFieldNote(field);
 
         // ── Special dynamic dropdowns ─────────────────────────────────────────
 
@@ -794,6 +794,56 @@ public sealed partial class SkillEditorView : UserControl
             Margin      = new Padding(0, 2, 0, 6),
         };
         _flpSlots.Controls.Add(lbl);
+    }
+
+    /// <summary>
+    /// Field guidance for the Add Field panel: the catalog summary on one line, with the full note
+    /// (how the value is derived — engine lookups, file chains) behind a "Full details" toggle. The long
+    /// text is developer knowledge, not something a modder needs in the middle of the form.
+    /// </summary>
+    private void AddFieldNote(SkillFieldSpec field)
+    {
+        string summary = string.IsNullOrWhiteSpace(field.Summary) ? field.Note! : field.Summary!;
+
+        var lblSummary = new Label
+        {
+            Text        = summary,
+            AutoSize    = true,
+            MaximumSize = new Size(218, 0),
+            ForeColor   = Color.FromArgb(80, 80, 140),
+            Font        = new Font(SystemFonts.DefaultFont, FontStyle.Italic),
+            Margin      = new Padding(0, 2, 0, 2),
+        };
+        _flpSlots.Controls.Add(lblSummary);
+
+        if (string.Equals(summary, field.Note, StringComparison.Ordinal)) return;
+
+        var lblDetails = new Label
+        {
+            Text        = field.Note!,
+            AutoSize    = true,
+            MaximumSize = new Size(218, 0),
+            ForeColor   = Color.FromArgb(90, 90, 90),
+            Font        = new Font(SystemFonts.DefaultFont, FontStyle.Regular),
+            Margin      = new Padding(0, 0, 0, 6),
+            Visible     = false,
+        };
+
+        var lnkDetails = new LinkLabel
+        {
+            Text     = "Full details",
+            AutoSize = true,
+            Margin   = new Padding(0, 0, 0, 4),
+            Font     = new Font(SystemFonts.DefaultFont, FontStyle.Regular),
+        };
+        lnkDetails.LinkClicked += (_, _) =>
+        {
+            lblDetails.Visible = !lblDetails.Visible;
+            lnkDetails.Text = lblDetails.Visible ? "Hide details" : "Full details";
+        };
+
+        _flpSlots.Controls.Add(lnkDetails);
+        _flpSlots.Controls.Add(lblDetails);
     }
 
     /// <summary>

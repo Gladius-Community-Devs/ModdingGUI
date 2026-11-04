@@ -240,6 +240,7 @@ public sealed class SkillsCatalog
                 Name = normalized,
                 Enumerate = ReadNullableBool(el, "enumerate") ?? false,
                 Note = ReadString(el, "note"),
+                Summary = Summarize(ReadString(el, "summary"), ReadString(el, "note")),
                 Format = ReadString(el, "format"),
                 Multi = ReadNullableBool(el, "multi") ?? false,
                 Mirrors = mirrors,
@@ -305,6 +306,32 @@ public sealed class SkillsCatalog
         }
         return list;
     }
+
+/// <summary>
+/// Compress a note into one sentence for the editor. An explicit summary wins; otherwise the first
+/// sentence of the note is used, falling back to a hard cap so a run-on note still yields a line.
+/// </summary>
+public static string? Summarize(string? summary, string? note)
+{
+    if (!string.IsNullOrWhiteSpace(summary)) return summary!.Trim();
+    if (string.IsNullOrWhiteSpace(note)) return null;
+
+    string text = note!.Trim().Replace("\r", " ").Replace("\n", " ");
+    while (text.Contains("  ", StringComparison.Ordinal)) text = text.Replace("  ", " ");
+
+    int end = text.IndexOf(". ", StringComparison.Ordinal);
+    string sentence = end > 20 ? text[..(end + 1)] : text;
+
+    const int cap = 140;
+    if (sentence.Length > cap)
+    {
+        int space = sentence.LastIndexOf(' ', cap);
+        sentence = sentence[..(space > 40 ? space : cap)].TrimEnd(',', ';', ':') + "…";
+    }
+
+    return sentence;
+}
+
 }
 
 /// <summary>One documented <c>skills.tok</c> field.</summary>
@@ -318,6 +345,13 @@ public sealed class SkillFieldSpec
 
     /// <summary>Human-readable guidance (from the generator policy or the reference file).</summary>
     public string? Note { get; init; }
+
+    /// <summary>
+    /// One-line version of <see cref="Note"/> for the editor: the first sentence, capped. The full note
+    /// carries how the value is derived (engine lookups, file chains) and belongs behind a details
+    /// toggle, not in the middle of the form.
+    /// </summary>
+    public string? Summary { get; init; }
 
     /// <summary>Documented value shape, e.g. <c>"name", chance, value</c>.</summary>
     public string? Format { get; init; }

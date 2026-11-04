@@ -1,4 +1,6 @@
-﻿using System;
+using System;
+using ModdingGUI.Core;
+using ModdingGUI.Core.Api;
 using ModdingGUI.Core.Grids;
 using System.IO;
 using System.Linq;
@@ -650,8 +652,17 @@ namespace ModdingGUI
             if (_currentArenaPath == null || CurrentGrid == null) return;
             try
             {
-                CurrentGrid.Save(_currentArenaPath);
+                // No GUI bypass: the write goes through Core, which takes the project lock and writes a
+                // timestamped .mod-history backup first, exactly like every other edit in the app.
+                string root = ProjectRoots.ResolveBecFolder(_currentArenaPath);
+                string relative = Path.GetRelativePath(root, _currentArenaPath);
+                string? backup = new GridsApi().Save(root, relative, CurrentGrid);
+
                 AppendLog($"Arena saved: {_currentArenaPath}", "Green", isDetail: false);
+                if (backup is not null)
+                {
+                    AppendLog($"  backup: {backup}", "Green", isDetail: true);
+                }
             }
             catch (Exception ex)
             {

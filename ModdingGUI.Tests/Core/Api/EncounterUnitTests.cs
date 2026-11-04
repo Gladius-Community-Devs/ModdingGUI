@@ -35,8 +35,8 @@ public sealed class EncounterUnitTests
         Assert.Equal(1, unit.PositionX);
         Assert.Equal(1, unit.PositionY);
         Assert.Equal(0, unit.PositionJitter);
-        Assert.Equal(0, unit.Slot7);
-        Assert.Equal(-1, unit.Slot8);
+        Assert.Equal(0, unit.AttributeRequirement);
+        Assert.Equal(-1, unit.AffinityRequirement);
         Assert.Empty(unit.ClassTags);
         Assert.Equal(3, unit.Slot17);
         Assert.Equal(0, unit.Flag100);

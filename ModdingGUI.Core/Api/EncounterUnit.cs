@@ -7,20 +7,22 @@ using System.Linq;
 using ModdingGUI.Core.Tok.Values;
 
 /// <summary>
-/// One <c>UNITDB</c> row of an encounter team: a single unit placed on the battle grid.
+/// One <c>UNITDB</c> row — the 21 values the engine reads in <c>EncounterSetup</c> case <c>0x1D</c>
+/// (<c>0x80106ddc</c>), in read order.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The argument order is not guesswork — it comes from <c>EncounterSetup</c> in the GameCube DOL
-/// (<c>0x80106ddc</c>, case <c>0x1D</c> of the token switch), which reads exactly 21 values:
-/// <c>string, int, string, int×5, string×4, int×12</c>. Reading them in that order is what makes
-/// a row valid; the engine aborts the record on a type mismatch.
+/// Slots 1-3 (name, spawn chance, start marker), 4-6 (x, y, jitter) and 20-21 (spawn flags 0x100,
+/// 0x200) are confirmed by the engine: the jitter flag adds <c>rand()</c> to the coordinates and the
+/// two flags are OR-ed straight into the spawn flags passed to unit creation. A separate modder's
+/// notes (devnotes.txt) guessed slots 4-6 were level bounds; the code disproves that — they are
+/// coordinates, and <c>0</c> is clamped to <c>1</c> before use.
 /// </para>
 /// <para>
-/// The names come from what the surrounding code does with each value. Three slots are passed
-/// straight into unit creation without any visible test, so they are exposed by index
-/// (<see cref="Slot17"/>, <see cref="Slot18"/>, <see cref="Slot19"/>) rather than given a
-/// misleading name.
+/// Slots 7-8 (attribute / affinity requirement), 14-16 (the three "prohibited" flips), 18 (mercenary)
+/// and 19 (item drop chance) come from those modder notes; slot 19's vanilla values (multiples of 5
+/// up to 90) and the engine storing 7-8 on the unit spec both fit. Unknown and left as numbers: slot
+/// 13, slot 17 (vanilla 0-3) and the two flags are documented as such rather than guessed.
 /// </para>
 /// </remarks>
 public sealed class EncounterUnit
@@ -55,11 +57,18 @@ public sealed class EncounterUnit
     /// <summary>Slot 6 — non-zero adds a random offset to the placement.</summary>
     public int PositionJitter { get; init; }
 
-    /// <summary>Slot 7 — passed into the spawned unit unchanged (purpose not identified).</summary>
-    public int Slot7 { get; init; }
+    /// <summary>
+    /// Slot 7 — attribute requirement for the player's unit (bit flags; the engine stores it on the
+    /// unit spec it builds for the slot). Reported by a modder; vanilla values are flag-like
+    /// (1, 2, 4, 8, 16, 24, 32, 56, 64, 4224).
+    /// </summary>
+    public int AttributeRequirement { get; init; }
 
-    /// <summary>Slot 8 — passed into the spawned unit unchanged (purpose not identified).</summary>
-    public int Slot8 { get; init; }
+    /// <summary>
+    /// Slot 8 — affinity requirement (<c>-1</c> = none, otherwise an affinity id; vanilla uses 1-5).
+    /// Reported by a modder; the engine copies it into the unit spec unchanged, which matches.
+    /// </summary>
+    public int AffinityRequirement { get; init; }
 
     /// <summary>Slot 9 — first extra class tag added to the unit (accumulates, like skill classes).</summary>
     public string ClassTag1 { get; init; } = string.Empty;
@@ -73,26 +82,41 @@ public sealed class EncounterUnit
     /// <summary>Slot 12 — fourth extra class tag.</summary>
     public string ClassTag4 { get; init; } = string.Empty;
 
-    /// <summary>Slot 13 — boolean flag (0/1) carried on the spawned unit.</summary>
+    /// <summary>
+    /// Slot 13 — boolean flag (0/1). Purpose unknown: the engine stores it as a byte on the unit spec
+    /// and nothing in vanilla distinguishes it from the three flags that follow.
+    /// </summary>
     public int FlagA { get; init; }
 
-    /// <summary>Slot 14 — boolean flag (0/1).</summary>
-    public int FlagB { get; init; }
+    /// <summary>
+    /// Slot 14 — flips the class list from "required" to "prohibited" (modder-reported). Consistent with
+    /// the engine writing it as a byte next to the class names it just parsed.
+    /// </summary>
+    public int ProhibitClasses { get; init; }
 
-    /// <summary>Slot 15 — boolean flag (0/1).</summary>
-    public int FlagC { get; init; }
+    /// <summary>Slot 15 — flips <see cref="AttributeRequirement"/> to "prohibited" (modder-reported).</summary>
+    public int ProhibitAttribute { get; init; }
 
-    /// <summary>Slot 16 — boolean flag (0/1).</summary>
-    public int FlagD { get; init; }
+    /// <summary>Slot 16 — flips <see cref="AffinityRequirement"/> to "prohibited" (modder-reported).</summary>
+    public int ProhibitAffinity { get; init; }
 
-    /// <summary>Slot 17 — passed to unit creation (purpose not identified).</summary>
+    /// <summary>
+    /// Slot 17 — passed into unit creation. Purpose unknown; vanilla values are only 0-3 and every
+    /// encounter uses 0.
+    /// </summary>
     public int Slot17 { get; init; }
 
-    /// <summary>Slot 18 — stored on the spawned unit (purpose not identified).</summary>
-    public int Slot18 { get; init; }
+    /// <summary>
+    /// Slot 18 — requires a mercenary (temporary recruit) for the slot (modder-reported). Every vanilla
+    /// encounter leaves it 0, so it is untested in game.
+    /// </summary>
+    public int RequiresMercenary { get; init; }
 
-    /// <summary>Slot 19 — passed to unit creation (purpose not identified).</summary>
-    public int Slot19 { get; init; }
+    /// <summary>
+    /// Slot 19 — chance per item to drop a chest, as a percentage (modder-reported). Vanilla values are
+    /// 0, 20, 25, 30, 33, 35, 40, 50, 60, 70, 75, 80, 90, which is what a percentage looks like.
+    /// </summary>
+    public int ItemDropChancePercent { get; init; }
 
     /// <summary>Slot 20 — sets spawn flag <c>0x100</c> when non-zero.</summary>
     public int Flag100 { get; init; }
@@ -149,19 +173,19 @@ public sealed class EncounterUnit
             PositionX = numbers[3],
             PositionY = numbers[4],
             PositionJitter = numbers[5],
-            Slot7 = numbers[6],
-            Slot8 = numbers[7],
+            AttributeRequirement = numbers[6],
+            AffinityRequirement = numbers[7],
             ClassTag1 = Unquote(slots[8]),
             ClassTag2 = Unquote(slots[9]),
             ClassTag3 = Unquote(slots[10]),
             ClassTag4 = Unquote(slots[11]),
             FlagA = numbers[12],
-            FlagB = numbers[13],
-            FlagC = numbers[14],
-            FlagD = numbers[15],
+            ProhibitClasses = numbers[13],
+            ProhibitAttribute = numbers[14],
+            ProhibitAffinity = numbers[15],
             Slot17 = numbers[16],
-            Slot18 = numbers[17],
-            Slot19 = numbers[18],
+            RequiresMercenary = numbers[17],
+            ItemDropChancePercent = numbers[18],
             Flag100 = numbers[19],
             Flag200 = numbers[20],
         };
@@ -185,19 +209,19 @@ public sealed class EncounterUnit
         slots[3] = PositionX.ToString(CultureInfo.InvariantCulture);
         slots[4] = PositionY.ToString(CultureInfo.InvariantCulture);
         slots[5] = PositionJitter.ToString(CultureInfo.InvariantCulture);
-        slots[6] = Slot7.ToString(CultureInfo.InvariantCulture);
-        slots[7] = Slot8.ToString(CultureInfo.InvariantCulture);
+        slots[6] = AttributeRequirement.ToString(CultureInfo.InvariantCulture);
+        slots[7] = AffinityRequirement.ToString(CultureInfo.InvariantCulture);
         slots[8] = Quote(ClassTag1);
         slots[9] = Quote(ClassTag2);
         slots[10] = Quote(ClassTag3);
         slots[11] = Quote(ClassTag4);
         slots[12] = FlagA.ToString(CultureInfo.InvariantCulture);
-        slots[13] = FlagB.ToString(CultureInfo.InvariantCulture);
-        slots[14] = FlagC.ToString(CultureInfo.InvariantCulture);
-        slots[15] = FlagD.ToString(CultureInfo.InvariantCulture);
+        slots[13] = ProhibitClasses.ToString(CultureInfo.InvariantCulture);
+        slots[14] = ProhibitAttribute.ToString(CultureInfo.InvariantCulture);
+        slots[15] = ProhibitAffinity.ToString(CultureInfo.InvariantCulture);
         slots[16] = Slot17.ToString(CultureInfo.InvariantCulture);
-        slots[17] = Slot18.ToString(CultureInfo.InvariantCulture);
-        slots[18] = Slot19.ToString(CultureInfo.InvariantCulture);
+        slots[17] = RequiresMercenary.ToString(CultureInfo.InvariantCulture);
+        slots[18] = ItemDropChancePercent.ToString(CultureInfo.InvariantCulture);
         slots[19] = Flag100.ToString(CultureInfo.InvariantCulture);
         slots[20] = Flag200.ToString(CultureInfo.InvariantCulture);
 
@@ -225,19 +249,19 @@ public sealed class EncounterUnit
             PositionX = PositionX,
             PositionY = PositionY,
             PositionJitter = PositionJitter,
-            Slot7 = Slot7,
-            Slot8 = Slot8,
+            AttributeRequirement = AttributeRequirement,
+            AffinityRequirement = AffinityRequirement,
             ClassTag1 = ClassTag1,
             ClassTag2 = ClassTag2,
             ClassTag3 = ClassTag3,
             ClassTag4 = ClassTag4,
             FlagA = FlagA,
-            FlagB = FlagB,
-            FlagC = FlagC,
-            FlagD = FlagD,
+            ProhibitClasses = ProhibitClasses,
+            ProhibitAttribute = ProhibitAttribute,
+            ProhibitAffinity = ProhibitAffinity,
             Slot17 = Slot17,
-            Slot18 = Slot18,
-            Slot19 = Slot19,
+            RequiresMercenary = RequiresMercenary,
+            ItemDropChancePercent = ItemDropChancePercent,
             Flag100 = Flag100,
             Flag200 = Flag200,
         };
