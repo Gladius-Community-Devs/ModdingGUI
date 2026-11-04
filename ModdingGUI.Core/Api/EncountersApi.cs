@@ -60,6 +60,56 @@ public sealed class EncountersApi : IEncountersApi
     }
 
     /// <inheritdoc />
+    public void ReplaceWith(
+        string projectPath,
+        string sourceRelativePath,
+        string destinationRelativePath,
+        string? encounterName = null,
+        bool stripCutscene = true)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceRelativePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationRelativePath);
+
+        string bec = ProjectRoots.ResolveBecFolder(projectPath);
+        using (ProjectLock.Acquire(bec))
+        {
+            string sourcePath = FullPath(bec, sourceRelativePath);
+            if (!File.Exists(sourcePath))
+                throw new FileNotFoundException("source encounter not found.", sourcePath);
+
+            var (sourceLines, _) = RawLineFile.Read(bec, sourceRelativePath, Path.GetFileName(sourceRelativePath));
+
+            // Keep the destination's own trailing-newline count so repeated runs are stable.
+            int trailing = 2;
+            string destinationPath = FullPath(bec, destinationRelativePath);
+            if (File.Exists(destinationPath))
+            {
+                var (_, existingTrailing) = RawLineFile.Read(bec, destinationRelativePath,
+                    Path.GetFileName(destinationRelativePath));
+                trailing = existingTrailing;
+            }
+
+            var lines = new List<string>(sourceLines);
+
+            if (stripCutscene)
+                lines.RemoveAll(line => TokLineEditing.TryKey(line, out string key, out _, out _)
+                                        && string.Equals(key, "CUTSCENE", StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(encounterName))
+            {
+                int nameLine = TokLineEditing.FirstKeyLine(lines, 0, lines.Count, "ENCOUNTERNAME");
+                if (nameLine >= 0)
+                    TokLineEditing.ReplaceValue(lines, nameLine, $"\"{encounterName.Trim().Trim('"')}\"");
+                else
+                    TokLineEditing.Insert(lines, 0, "ENCOUNTERNAME", $"\"{encounterName}\"");
+            }
+
+            ChangeHistoryService.Backup(bec, destinationPath);
+            RawLineFile.Write(bec, destinationRelativePath, lines, trailing);
+        }
+    }
+
+    /// <inheritdoc />
     public IReadOnlyList<EncounterValidationIssue> Validate(string projectPath, string relativePath)
     {
         var encounter = Get(projectPath, relativePath)

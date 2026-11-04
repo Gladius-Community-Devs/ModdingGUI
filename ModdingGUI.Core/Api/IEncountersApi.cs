@@ -58,8 +58,36 @@ public interface IEncountersApi
     void RemoveTeamUnit(string projectPath, string relativePath, int teamIndex, int unitIndex);
 
     /// <summary>
-    /// Advisory checks: unknown header keys, teams with no units or no start grid, and
-    /// <c>UNITDB</c> rows with the wrong argument count.
+    /// Overwrite one encounter file with another's content — the way to make a story or staged
+    /// battle run a different fight.
+    /// </summary>
+    /// <remarks>
+    /// Story battles (<c>Scene04U</c>, <c>Scene06U</c>, …) are started by the compiled game-flow
+    /// script by <b>encounter name</b>: the engine resolves that name by scanning the encounters
+    /// tree for a matching <c>ENCOUNTERNAME</c>. Repointing a league's <c>ENCFILE</c> therefore
+    /// does nothing for them (verified in game), while replacing the encounter file does.
+    /// </remarks>
+    /// <param name="projectPath">Project root or BEC folder.</param>
+    /// <param name="sourceRelativePath">Encounter to copy from.</param>
+    /// <param name="destinationRelativePath">Encounter file to overwrite.</param>
+    /// <param name="encounterName">
+    /// <c>ENCOUNTERNAME</c> to write into the destination. Pass the destination's existing name
+    /// (the usual case) so whatever looks it up still finds it; null keeps the source's name.
+    /// </param>
+    /// <param name="stripCutscene">
+    /// Drop <c>CUTSCENE</c> lines. Story battles fire their own cinematics, so a copied-in
+    /// cutscene reference would play the wrong scene.
+    /// </param>
+    void ReplaceWith(
+        string projectPath,
+        string sourceRelativePath,
+        string destinationRelativePath,
+        string? encounterName = null,
+        bool stripCutscene = true);
+
+    /// <summary>
+    /// Advisory checks: unknown header keys, teams with no units or no start grid,
+    /// <c>UNITDB</c> rows with the wrong argument count, and duplicate start slots.
     /// </summary>
     IReadOnlyList<EncounterValidationIssue> Validate(string projectPath, string relativePath);
 }

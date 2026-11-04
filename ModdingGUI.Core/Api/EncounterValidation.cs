@@ -49,6 +49,12 @@ public static class EncounterValidationCodes
 
     /// <summary>The unit has no start slot, so it cannot be placed.</summary>
     public const string UnitStartSlot = "unit-start-slot";
+
+    /// <summary>
+    /// Two units of the same team share a start slot. The grid slot places one unit, so the
+    /// second one is dropped at spawn time (confirmed in game: a moved unit disappeared).
+    /// </summary>
+    public const string DuplicateStartSlot = "duplicate-start-slot";
 }
 
 /// <summary>One finding about one encounter.</summary>
@@ -317,6 +323,8 @@ public static class EncounterValidator
                     "team has no UNITDB rows"));
             }
 
+            var startSlots = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
             for (int i = 0; i < team.Units.Count; i++)
             {
                 string raw = team.Units[i];
@@ -359,6 +367,21 @@ public static class EncounterValidator
                         EncounterValidationSeverity.Warning,
                         EncounterValidationCodes.UnitStartSlot, where, "UNITDB",
                         "unit has no start slot, so it cannot be placed on the grid"));
+                }
+                else if (startSlots.TryGetValue(unit.StartSlot, out int alreadyTakenBy))
+                {
+                    // Vanilla shares slots freely (4171 cases, 340 between named units), so this is
+                    // information, not an error. It is still worth surfacing: a QA build that moved
+                    // a named unit onto an occupied slot lost that unit in game, and only checking in
+                    // game will tell whether it is the slot or something else.
+                    issues.Add(new EncounterValidationIssue(
+                        EncounterValidationSeverity.Info,
+                        EncounterValidationCodes.DuplicateStartSlot, where, "UNITDB",
+                        $"start slot '{unit.StartSlot}' is also used by unit {alreadyTakenBy + 1}"));
+                }
+                else
+                {
+                    startSlots[unit.StartSlot] = i;
                 }
             }
         }
