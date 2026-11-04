@@ -86,13 +86,15 @@ This color-coded logging helps users identify the status of each action immediat
 - **Python 3 Not Found**: Ensure Python 3 is installed and added to your PATH. You can verify by running `python --version` in the command prompt.
 - **Missing Tools**: Confirm that all required Python scripts are available in the `tools/` directory.
 - **Error During Execution**: Errors during unpacking or packing are logged in red. Check the log messages for details on the failure point.
-- **`Couldn't process file Form1.resx due to its being in the Internet or Restricted zone`**: MSBuild refuses to compile a `.resx` that carries the mark of the web. The mark usually arrives on `ludo.ico` (which `Form1.resx` embeds) when the repository came from a zip download. Clear it and rebuild:
+- **`MSB3821: Couldn't process file Form1.resx due to its being in the Internet or Restricted zone`**: two unrelated causes, in order of likelihood.
+  1. The `.resx` is not a real resource file. VS's `GenerateResource` (MSBuild 18) rejects one that contains markup it cannot process — a `.resx` holding the Visual Studio *template documentation* (prose inside `<root>`, `<resheader>` without `<value>`, `[base64 mime encoded …]` placeholders) trips this even though the file carries no zone mark at all, while older MSBuild versions silently accepted it. Replace it with a minimal valid file (see `SkillEditor\SkillEditorView.resx`).
+  2. A file really does have the mark of the web, typically because the repository arrived as a zip download. Clear it and rebuild:
 
-  ```powershell
-  Get-ChildItem -Recurse -File | Unblock-File
-  ```
+     ```powershell
+     Get-ChildItem -Recurse -File | Unblock-File
+     ```
 
-  This is a per-machine file attribute, not a project setting, so every fresh copy of the repo may need it once.
+     This is a per-machine file attribute, not a project setting, so every fresh copy of the repo may need it once.
 - **`MSB3270` architecture mismatch**: the app is `win-x64` (it publishes a self-contained single-file exe), so `ModdingGUI.Tests` also sets `PlatformTarget` to `x64`. Give any new project that references the app the same platform target.
 
 ## Contributing
