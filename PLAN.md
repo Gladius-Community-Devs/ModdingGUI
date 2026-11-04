@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 293 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (277 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 268 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (252 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 

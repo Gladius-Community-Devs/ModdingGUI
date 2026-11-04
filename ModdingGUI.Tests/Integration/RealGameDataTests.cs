@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Drawing;
 using ModdingGUI;
+using ModdingGUI.Core.Api;
 using Xunit;
 
 namespace ModdingGUI.Tests;
@@ -30,6 +32,12 @@ public class RealGameDataTests : IDisposable
 
     private void Log(string msg, Color? _) => _logs.Add(msg);
 
+    private IReadOnlyDictionary<int, string>? _lookup;
+
+    /// <summary>The English lookup table, loaded once through the Core API.</summary>
+    private IReadOnlyDictionary<int, string> Lookup =>
+        _lookup ??= new LookupTextApi().Load(GameDataFixture.BecFolder);
+
     // -------------------------------------------------------------------------
     // LookupHelper
     // -------------------------------------------------------------------------
@@ -37,7 +45,7 @@ public class RealGameDataTests : IDisposable
     [GameDataFact]
     public void LookupHelper_LoadsRealLookupTable_ReturnsAllEntries()
     {
-        var table = LookupHelper.LoadLookupTable(GameDataFixture.LookupText);
+        var table = new LookupTextApi().Load(GameDataFixture.BecFolder);
 
         Assert.Equal(8156, table.Count);
     }
@@ -45,7 +53,7 @@ public class RealGameDataTests : IDisposable
     [GameDataFact]
     public void LookupHelper_RealLookupTable_AllValuesNonEmpty()
     {
-        var table = LookupHelper.LoadLookupTable(GameDataFixture.LookupText);
+        var table = new LookupTextApi().Load(GameDataFixture.BecFolder);
 
         int emptyCount = table.Count(kvp => string.IsNullOrWhiteSpace(kvp.Value));
 
@@ -62,7 +70,7 @@ public class RealGameDataTests : IDisposable
     {
         var skills = SkillParser.ParseSkillsTok(
             GameDataFixture.SkillsTok,
-            GameDataFixture.LookupText,
+            Lookup, 
             Log);
 
         Assert.Equal(1811, skills.Count);
@@ -73,7 +81,7 @@ public class RealGameDataTests : IDisposable
     {
         var skills = SkillParser.ParseSkillsTok(
             GameDataFixture.SkillsTok,
-            GameDataFixture.LookupText,
+            Lookup, 
             Log);
 
         Assert.All(skills, s =>
@@ -86,7 +94,7 @@ public class RealGameDataTests : IDisposable
     {
         var skills = SkillParser.ParseSkillsTok(
             GameDataFixture.SkillsTok,
-            GameDataFixture.LookupText,
+            Lookup, 
             Log);
 
         var itemSkills = skills.Where(s => s.IsItemSkill).ToList();
@@ -100,7 +108,7 @@ public class RealGameDataTests : IDisposable
     {
         var skills = SkillParser.ParseSkillsTok(
             GameDataFixture.SkillsTok,
-            GameDataFixture.LookupText,
+            Lookup, 
             Log);
 
         Assert.All(skills, s =>
