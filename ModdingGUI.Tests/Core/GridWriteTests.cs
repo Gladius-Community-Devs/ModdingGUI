@@ -45,7 +45,7 @@ public sealed class GridWriteTests : IDisposable
     }
 
     [Fact]
-    public void EveryWritableGrid_RoundTripsByteForByte()
+    public void EveryGrid_RoundTripsByteForByte()
     {
         if (!Ready) return;
 
@@ -54,10 +54,8 @@ public sealed class GridWriteTests : IDisposable
 
         foreach (string file in CorpusGrids())
         {
-            if (LayoutVersion(file) < 2) continue;
-
             var grid = GridFile.Load(file);
-            Assert.True(grid.IsWritableLayout);
+            Assert.True(grid.IsWritableLayout, $"{Path.GetFileName(file)} should be writable");
 
             string copy = Path.Combine(_tempDir, Path.GetFileName(file));
             grid.Save(copy);
@@ -67,13 +65,13 @@ public sealed class GridWriteTests : IDisposable
                 failures.Add(Path.GetRelativePath(CleanBecCorpus.Root!, file));
         }
 
-        Assert.True(checkedGrids > 350, $"expected the version-2 corpus, only saw {checkedGrids} grids");
+        Assert.True(checkedGrids >= 430, $"expected the whole corpus, only saw {checkedGrids} grids");
         Assert.True(failures.Count == 0,
             $"{failures.Count} grid(s) did not round-trip: {string.Join(", ", failures.Take(5))}");
     }
 
     [Fact]
-    public void VersionOneGrid_IsReadableButRefusesToSave()
+    public void VersionOneGrid_IsReadableAndWritable()
     {
         if (!Ready) return;
 
@@ -81,17 +79,59 @@ public sealed class GridWriteTests : IDisposable
         var grid = GridFile.Load(file);
 
         Assert.Equal(1, grid.LayoutVersion);
-        Assert.False(grid.IsWritableLayout);
+        Assert.True(grid.IsWritableLayout);
 
-        // Tags are still readable, which is what the Grid Builder shows.
-        Assert.NotEmpty(Enumerable.Range(0, GridFile.NumSlots)
+        // Real names only: the legacy header lists them without an F/E prefix.
+        var names = Enumerable.Range(0, GridFile.NumSlots)
             .Select(grid.GetTagNameForSlot)
-            .Where(n => !string.IsNullOrWhiteSpace(n) && n != GridFile.NO_VALUE));
+            .Where(n => !string.IsNullOrWhiteSpace(n) && n != GridFile.NO_VALUE)
+            .ToArray();
+        Assert.NotEmpty(names);
+    }
 
-        var error = Assert.Throws<NotSupportedException>(
-            () => grid.Save(Path.Combine(_tempDir, "refused.grd")));
-        Assert.Contains("read-only", error.Message);
-        Assert.False(File.Exists(Path.Combine(_tempDir, "refused.grd")));
+    [Fact]
+    public void Save_LegacyGrid_AfterEditingACell_ReloadsWithThatCell()
+    {
+        if (!Ready) return;
+
+        string file = CorpusGrids().First(f => LayoutVersion(f) == 1);
+        var grid = GridFile.Load(file);
+
+        int slot = Enumerable.Range(0, GridFile.NumSlots)
+            .First(s => string.Equals(grid.GetTagNameForSlot(s), "Start1", StringComparison.OrdinalIgnoreCase));
+
+        // Find an empty cell and paint Start1 into it.
+        int row = -1, col = -1;
+        for (int r = 0; r < GridFile.ArenaSize && row < 0; r++)
+        {
+            for (int c = 0; c < GridFile.ArenaSize; c++)
+            {
+                if (grid.GetValue(r, c) == 0) { row = r; col = c; break; }
+            }
+        }
+        Assert.True(row >= 0, "expected an empty cell to paint");
+
+        grid.SetValue(row, col, 1 << slot);
+        string copy = Path.Combine(_tempDir, "legacy-edited.grd");
+        grid.Save(copy);
+
+        var reloaded = GridFile.Load(copy);
+        Assert.Equal(1, reloaded.LayoutVersion);
+        Assert.Equal(1 << slot, reloaded.GetValue(row, col) & (1 << slot));
+        Assert.Equal(grid.GetTagNameForSlot(slot), reloaded.GetTagNameForSlot(slot));
+    }
+
+    [Fact]
+    public void Save_UnknownVersion_IsRefused()
+    {
+        // A version-3 file is not something we understand, so writing must fail rather than guess.
+        string file = Path.Combine(_tempDir, "future.grd");
+        var bytes = new byte[8 + GridFile.NumSlots * 32 + GridFile.ArenaSize * GridFile.ArenaSize * 4];
+        BitConverter.GetBytes(3).CopyTo(bytes, 0);
+        File.WriteAllBytes(file, bytes);
+
+        Assert.Throws<NotSupportedException>(() => GridFile.Load(file).Save(file + ".out"));
+        Assert.False(File.Exists(file + ".out"));
     }
 
     [Fact]

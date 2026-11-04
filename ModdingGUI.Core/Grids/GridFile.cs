@@ -56,8 +56,11 @@ namespace ModdingGUI.Core.Grids
 
         private readonly int[] _data = new int[ArenaSize * ArenaSize]; // Raw grid cell data
         private readonly int[] _originalData = new int[ArenaSize * ArenaSize]; // For dirty checking
-        private byte[] _trailingData = Array.Empty<byte>(); // Bytes past the 1024 cells (version 1 carries
-                                                            // an unmodelled block here; preserved verbatim)
+        private byte[] _trailingData = Array.Empty<byte>(); // Bytes past the 1024 cells (unused by the
+                                                            // legacy layout, kept for safety)
+        private byte[] _legacyOriginalFile = Array.Empty<byte>(); // Whole version-1 file, for a verbatim
+                                                                  // no-op save
+        private string[] _legacyOriginalNames = Array.Empty<string>();
         private bool _hasBaseline = false;
 
         public bool IsDirty { get; private set; }
@@ -274,6 +277,8 @@ namespace ModdingGUI.Core.Grids
                                     $"Incomplete read of legacy grid '{Path.GetFileName(fileName)}'.");
 
                             LoadLegacy(g, legacyBytes);
+                            g._legacyOriginalFile = legacyBytes;
+                            g._legacyOriginalNames = (string[])g._tags.Clone();
                             Array.Copy(g._data, g._originalData, g._data.Length);
                             g._hasBaseline = true;
                             g.IsDirty = false;
@@ -370,7 +375,7 @@ namespace ModdingGUI.Core.Grids
         }
 
         /// <summary>True when this grid's layout is fully understood (version 2 or newer).</summary>
-        public bool IsWritableLayout => _fileHeaderValue >= 2;
+        public bool IsWritableLayout => _fileHeaderValue is 1 or 2;
 
         /// <summary>Layout version from the file header (1 = bare tag names and an unmapped body).</summary>
         public int LayoutVersion => _fileHeaderValue;
@@ -380,12 +385,16 @@ namespace ModdingGUI.Core.Grids
             if (!IsWritableLayout)
             {
                 throw new NotSupportedException(
-                    $"Grid format version {_fileHeaderValue} is read-only: '{Path.GetFileName(fileName)}' " +
-                    "has a body layout we have not mapped (its size implies two 32x32 layers behind a " +
-                    "4-slot tag header, which does not fit all 27 version-1 files), so writing it could " +
-                    "corrupt the map. The original Java tool wrote these files as version 2 and silently " +
-                    "dropped the extra 3.2 kB. Reading the tags is supported.");
+                    $"Grid format version {_fileHeaderValue} is unknown, so '{Path.GetFileName(fileName)}' " +
+                    "cannot be written. Versions 1 (legacy per-cell slot lists) and 2 (bitmask) are supported.");
             }
+
+            if (_fileHeaderValue < 2)
+            {
+                SaveLegacy(fileName);
+                return;
+            }
+
             using (var fs = File.Create(fileName))
             using (var bw = new BinaryWriter(fs, Encoding.UTF8, false))
             {
@@ -510,6 +519,115 @@ namespace ModdingGUI.Core.Grids
 
                 grid._data[cell] = value;
             }
+        }
+
+        /// <summary>
+        /// Write the legacy (version 1) layout that <c>FUN_800b0e84</c> reads.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// An unchanged grid is written back byte for byte from the bytes we loaded, which keeps the
+        /// original payload layout (vanilla shares index arrays between cells). Once a cell changes the
+        /// payload has to be rebuilt, so each cell gets its own array, appended in cell order; the record
+        /// table's offsets are then absolute positions inside the file.
+        /// </para>
+        /// <para>
+        /// Names are written for every slot up to the highest named one, so slot numbers keep matching the
+        /// bits that reference them; unnamed slots inside that range are written as an empty block.
+        /// </para>
+        /// </remarks>
+        private void SaveLegacy(string fileName)
+        {
+            bool cellsUnchanged = _data.AsSpan().SequenceEqual(_originalData);
+            bool namesUnchanged = _tags.AsSpan().SequenceEqual(_legacyOriginalNames);
+            if (cellsUnchanged && namesUnchanged && _legacyOriginalFile.Length > 0)
+            {
+                File.WriteAllBytes(fileName, _legacyOriginalFile);
+                Array.Copy(_data, _originalData, _data.Length);
+                _hasBaseline = true;
+                IsDirty = false;
+                return;
+            }
+
+            int nameCount = 0;
+            for (int slot = 0; slot < NumSlots; slot++)
+            {
+                if (_activeTags[slot] && !string.IsNullOrWhiteSpace(_tags[slot])
+                    && !_tags[slot].Equals(NO_VALUE, StringComparison.Ordinal))
+                {
+                    nameCount = slot + 1;   // keep slot numbering intact: no compaction
+                }
+            }
+
+            const int nameSize = 32;
+            const int recordSize = 8;
+            int tableStart = 8 + nameCount * nameSize;
+
+            // Build the payload first so the record table can hold absolute offsets.
+            using var payloadStream = new MemoryStream();
+            var records = new (int Count, int Offset)[ArenaSize * ArenaSize];
+
+            for (int cell = 0; cell < _data.Length; cell++)
+            {
+                int value = _data[cell];
+                if (value == 0) continue;
+
+                var indices = new List<int>();
+                for (int slot = 0; slot < 0x1e; slot++)
+                {
+                    if ((value & (1 << slot)) != 0) indices.Add(slot);
+                }
+                if (indices.Count == 0) continue;
+
+                int offset = tableStart + _data.Length * recordSize + (int)payloadStream.Length;
+                records[cell] = (indices.Count, offset);
+
+                foreach (int index in indices)
+                {
+                    payloadStream.WriteByte((byte)(index & 0xFF));
+                    payloadStream.WriteByte((byte)((index >> 8) & 0xFF));
+                    payloadStream.WriteByte((byte)((index >> 16) & 0xFF));
+                    payloadStream.WriteByte((byte)((index >> 24) & 0xFF));
+                }
+            }
+
+            using var buffer = new MemoryStream();
+            using var bw = new BinaryWriter(buffer, Encoding.ASCII, false);
+
+            bw.Write(_fileHeaderValue);            // 1
+            bw.Write(nameCount);                   // little-endian name count
+            for (int slot = 0; slot < nameCount; slot++)
+            {
+                var block = new byte[nameSize];
+                bool named = _activeTags[slot] && !string.IsNullOrWhiteSpace(_tags[slot])
+                             && !_tags[slot].Equals(NO_VALUE, StringComparison.Ordinal);
+                if (named)
+                {
+                    byte[] bytes = Encoding.ASCII.GetBytes(_tags[slot]);
+                    Buffer.BlockCopy(bytes, 0, block, 0, Math.Min(bytes.Length, nameSize));
+                }
+                bw.Write(block);
+            }
+
+            for (int cell = 0; cell < _data.Length; cell++)
+            {
+                var (count, offset) = records[cell];
+                bw.Write((ushort)count);
+                bw.Write((ushort)0);
+                bw.Write((uint)offset);
+            }
+
+            bw.Write(payloadStream.ToArray());
+            bw.Flush();
+
+            byte[] legacyBytes = buffer.ToArray();
+            File.WriteAllBytes(fileName, legacyBytes);
+
+            Array.Copy(_data, _originalData, _data.Length);
+            _legacyOriginalFile = legacyBytes;
+            _legacyOriginalNames = (string[])_tags.Clone();
+            _hasBaseline = true;
+            IsDirty = false;
         }
 
         // Helper to get the 1D array index from 2D grid coordinates
