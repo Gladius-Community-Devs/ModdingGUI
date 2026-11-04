@@ -23,10 +23,17 @@ Realistic schemas/Apis to build:
 | Skill meter | `data/config/swingmeter.tok` (`skillmeter.tok` never existed; accepted as a legacy alias) | read-only helper inside `SkillsContext` (Phase 2.7) |
 | Encounters | `data/encounters/*.enc` | `IEncountersApi` (Phase 4) |
 | Leagues | `data/towns/leagues/*.tok` | `ILeaguesApi` (Phase 4) |
-| Towns / shops | `data/towns/*.tok` | `ITownsApi` (Phase 4) |
+| Shops | `data/towns/shops/*.tok` (59 files) | **No `ITownsApi`**: `data/towns` has no
+  `towns/*.tok` at all — it holds `shops/`, `leagues/` and `schools/*.tnt`. Shop files are covered
+  today by `IConfigTableApi` (repeated keys + raw values, so the header keys and the `ITEM` rows are
+  readable and writable). A typed `IShopsApi` waits for a consumer (shop editor or randomizer stock)
+  and, before naming anything, the same DOL pass `UNITDB` got: `Shop`/`GetShopName` are script
+  bindings, not the reader, so the 12 `ITEM` values are still unverified |
 | Schools | `data/school/*.tok` | `ISchoolsApi` (Phase 4) |
 | Units (txt) | `data/units/*.txt` (gladiators, statsets, itemsets, skillsets) | `IGladiatorsApi`, `IStatSetsApi`, `IItemSetsApi`, `ISkillSetsApi` — separate delimited backend (Phase 5) |
-| Worldmap / fonts / hotkeys / options | `data/config/*.tok` | small Apis as needed (Phase 4 tail) |
+| Worldmap / fonts / hotkeys / options | `data/config/*.tok` | **Not built, deliberately.** No consumer
+  needs them yet; Phase 6 (randomizer) will name the ones it actually reads rather than growing four
+  speculative Apis |
 | Scripts `.scp` | compiled | **out of scope** |
 | Character `.pan` / `.bin` | binary | **read-only helpers only**, used by Skills animation resolver |
 | Grids `.grd` | binary | `ModdingGUI.Core.Grids.GridFile`; two layouts decoded from the DOL, both read/write, 430/430 round-trip byte for byte |
@@ -189,13 +196,12 @@ Every API is raw-line based, byte-identical on a no-op write, locked and backed 
 Corpus findings folded into the validators: `PRIZETIER` is colon-less, `CORESTATSCOMP`
 takes 7 values where `CORESTATSCOMP2` takes 6, `ITEMSCOMP` may omit trailing slots, and
 7 vanilla league bouts reference `.enc` files that do not exist (pinned in the gate).
-**`UNITDB` is modelled, not opaque.** `EncounterSetup` (DOL `0x80106ddc`, case `0x1D`)
-reads exactly 21 values — `string, int, string, int×5, string×4, int×12` — so `EncounterUnit`
-exposes unit name, spawn chance, start slot, placement X/Y, position jitter, four class tags,
-four boolean flags and two spawn flags by name, and slots 7/8/17/18/19 by index (the engine
-passes them into unit creation without a visible test). The engine's 20-key encounter field
-table is merged into the catalog (`dol/encounters_fields.json`), so the three keys vanilla
-never uses (`BLOCK`, `FORCEPLACEMENT`, `VOICEINTRO`) are known and typos are flagged.
+**`UNITDB` is modelled, not opaque.** `EncounterSetup` (DOL `0x80106ddc`, case `0x1D`) reads
+exactly 21 values — `string, int, string, int×5, string×4, int×9` (the earlier `int×12` note was a
+miscount; the nine trailing values are indices 12-20). `EncounterUnit` names what evidence supports
+and leaves the rest numeric with a comment (see the evidence table below). The engine's 20-key
+encounter field table is merged into the catalog (`dol/encounters_fields.json`), so the three keys
+vanilla never uses (`BLOCK`, `FORCEPLACEMENT`, `VOICEINTRO`) are known and typos are flagged.
 Corpus detail: spawn chance uses `(rand % 100) + 1 <= value`, so ≥100 always spawns — the
 corpus contains `1000` — and only negatives are flagged.
 **Grids — both layouts decoded from the DOL.** The engine reader is `FUN_800b0b4c` (called by
@@ -245,10 +251,17 @@ Manual QA plan: `MANUAL_TESTING_PHASE_4.md` at the workspace root.
   **Format finding:** tok keys are not always `KEY: value` — `PRIZETIER` uses a tab
   (`PRIZETIER\t"DrakeDefaultCash" 0`), so both the parser and the catalog generator
   accept a colon-less upper-case key.
-- `ILeaguesApi` — recruits, store inventories, league progression.
-- `ITownsApi` — town defs, shop refs.
-- `ISchoolsApi` — school defs.
-- Small Apis for `worldmap.tok`, `fonts.tok`, `hotkeys.tok`, `options.tok` as the randomizer needs them.
+- **Done — `ILeaguesApi`** (44 files, 220 leagues, 839 bouts) and **`ISchoolsApi`** (74 rosters,
+  924 units), same raw-line + lock + backup + round-trip discipline.
+- **Folded — `ITownsApi`** into `IConfigTableApi`: there is no `data/towns/*.tok`. Shops, league files
+  and flat config all ride the generic table API today; a typed `IShopsApi` is deferred with the
+  format table above rather than invented.
+- **Deferred — the small `worldmap`/`fonts`/`hotkeys`/`options` Apis.** No consumer yet; Phase 6 will
+  surface which are actually read instead of shipping four speculative wrappers.
+- **Added, not originally planned — `IGridsApi`** (`List`, `Get`, `Describe`, `Save`). Grids turned out
+  to be battle-facing, so they needed a real Api: it takes the project lock and writes a `.mod-history`
+  backup before every grid write. The Grid Builder now calls it instead of `GridFile.Save`, closing the
+  last "shell writes a game file directly" path.
 
 **Exit:** all `.tok`/`.enc` formats with mod relevance have an Api. Round-trip gate stays green.
 
@@ -257,6 +270,11 @@ Gladiators, statsets, itemsets, skillsets. Tab/space-delimited, NOT tok.
 
 - New `DelimitedRecordSchema<T>` peer abstraction (sibling of `RecordSchema<T>`).
 - `IGladiatorsApi`, `IStatSetsApi`, `IItemSetsApi`, `ISkillSetsApi`.
+- `IShopsApi` **if** a consumer lands with it (shop editor, randomizer stock). The rows are
+  `ITEM "name", 2, -1, 1, 100, 0, 1, 12, 0, 0, 1, 0` — a repeated key with a positional tuple, the same
+  shape as `UNITDB`, so extract the positional-row helper `EncounterUnit` already proves out instead of
+  writing a second parser. Name the 12 values only after the DOL reader is identified (`Shop` and
+  `GetShopName` are script bindings, not the parser).
 - Same lock + backup + round-trip discipline.
 - Must ship before Phase 6 (randomizer rewrite depends on these).
 
@@ -279,13 +297,15 @@ Expose the `.mod-history` archive as a first-class feature.
 - `ChangeHistoryService.RestoreBackup(projectPath, relativeFilePath, backupPath)` — copies the chosen `.bak` over the live file, first writing a backup of the live file so the restore itself is undoable.
 - Each `IXxxApi` gains `IReadOnlyList<(DateTime, string)> ListBackups(projectPath)` and `void RestoreBackup(projectPath, backupPath)` (or delegates directly to `ChangeHistoryService`).
 - GUI: history panel per editor tab listing available backups with timestamp; "Restore" button triggers the Api method.
+- **Includes binary formats**: `IGridsApi` backups are ordinary `.mod-history` entries, so grid restores
+  come free once the panel exists — which is why grid writes were moved onto the Api in Phase 4.
 
 **Exit:** user can browse and restore any prior backup from within the GUI; restoring is itself undoable (creates a new `.bak` of the pre-restore state).
 
 ### Phase 8 — `ModdingGUI.Mcp` stdio server
 Thin tools-over-stdio bridge. One tool per Core method.
 
-- Tool families: `items_*`, `skills_*`, `lookup_*`, `classes_*`, `encounters_*`, `leagues_*`, `towns_*`, `schools_*`, `gladiators_*`, `statsets_*`, `itemsets_*`, `skillsets_*`, `randomizer_*`, `project_*`.
+- Tool families: `items_*`, `skills_*`, `lookup_*`, `classes_*`, `encounters_*`, `leagues_*`, `schools_*`, `grids_*`, `gladiators_*`, `statsets_*`, `itemsets_*`, `skillsets_*`, `shops_*` (when built), `randomizer_*`, `project_*`.
 - All write tools accept `strict: bool = false`. `false` = `WarnInLog`/`None` (matches GUI). `true` = `RejectOnError`.
 - `skills_catalog_describe_field(fieldName)` returns slot types, enums, notes — so AIs can construct valid `SkillDto`s without guessing.
 - Trust model: stdio only, no network, no auth beyond OS process trust.
@@ -333,6 +353,20 @@ fields accumulate rather than overwrite; there are exactly two status slots and 
 `SKILLSTATUS` line crashes the game; `SKILLEFFECTCONDITION` filters targets without
 `SKILLEFFECTRANGE`.
 
+7. **Start slots are regions, not tiles.** A slot may paint many cells — that is how the player
+   chooses where each unit stands. On `arenacertification4.grd` each slot paints exactly one cell,
+   which is why two *named* units on `Start6` cost one of them (**observed in game**). Encounter
+   validation therefore warns (`start-slot-overflow`) only when named units outnumber painted cells;
+   generated units are auto-placed and the neutral team `-1` is engine-managed, so neither counts.
+8. **Summon fights are engine-driven.** `EncounterSetup` forces `Summoner`/`UndeadCaster` on the
+   second and later unit of a team, which is what Hall of Titans and Summoner's Endurance are doing —
+   extra units sharing one slot there are summoned, not mis-placed. Do not "fix" them.
+9. **Legacy grids are a different format.** 27 of 430 vanilla grids are layout version 1 (raw tag
+   names, per-cell slot lists, ~3.2 kB larger). Both layouts read and write; a no-op save is
+   byte-identical for all 430. Verify a grid edit in game by painting a `NoMove` cell or an extra
+   start tile on a reachable map — no version-1 grid is used by the Ursula campaign (they are
+   Imperia/Belfort arenas).
+
 ## 4. Cross-cutting rules (apply to every phase)
 
 1. **No GUI bypass.** Every persistent edit goes through a Core Api. The shell never writes game files directly.
@@ -346,6 +380,24 @@ fields accumulate rather than overwrite; there are exactly two status slots and 
 9. **`dotnet test -c Release` green** at the end of every phase. No phase merges with failing tests.
 10. **One phase at a time.** Don't expand scope mid-phase.
 11. **Never hand-roll the pack chain.** `ModdingGUI --pack <project>` replays the app's own batch (`BatchContentBuilder`), including `Tok_Num_Update.py`. A hand-copied subset once skipped that step, left `NUMENTRIES` stale, and the game silently dropped the tail of the skill list.
+12. **Names need evidence, and the engine outranks notes.** Before a field gets a name, check what the
+    engine does with it, then what a modder documented, then what the corpus values look like. Where
+    they disagree the engine wins (`UNITDB` slots 4-6 are coordinates, not level bounds — the code adds
+    `rand()` and clamps to ≥ 1). Anything still unexplained stays numeric with a comment naming the
+    evidence, never an invented label.
+13. **Binary formats preserve what we do not understand.** Keep unknown trailing bytes verbatim, make a
+    no-op save byte-identical, and never truncate: the original Java grid tool wrote 27 legacy maps as
+    version 2 and silently dropped 3.2 kB. If a payload has to be rebuilt, rebuild it only after an edit.
+14. **Every write goes through an `IXxxApi`, binary included.** Lock, then `.mod-history` backup, then
+    write. `IGridsApi` is the precedent — the shell must not call a serializer directly, even when the
+    file is a grid.
+15. **Field help is a summary plus a toggle.** One line in the form (first sentence, ≤ 140 chars) with
+    the derivation behind "Full details". The methodology of how a value is resolved is developer
+    knowledge; a modder choosing a value needs the gist.
+16. **A rule that vanilla violates is suspect.** `start-slot-overflow` was first written as "duplicate
+    start slot = warning" and flagged 4 working encounters; investigating those is what produced the
+    region semantics and the summon exception. Before pinning a rule, check the corpus for false
+    positives and explain every one.
 
 ## 5. Final goals (definition of done for the project)
 
