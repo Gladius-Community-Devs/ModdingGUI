@@ -122,7 +122,7 @@ from the corpus:
 | Field names absent from the engine table | `engine: false` | `field-not-in-engine` (the game ignores the line) |
 | Engine fields with no vanilla data (`SKILLWEAPONEXC`, `SKILLEFFECTVALUE2`, …) | `engine_only: true` | documented, usable |
 
-Verified in game (three ISO tests, Oct 2026):
+Verified in game (four ISO tests, Oct 2026):
 
 - **Light Beam**: a skill's 3rd `class:` condition still fired (the *last* line was
   `DarkLegionnaire`, yet `DarkCat` took the 10% split damage) → conditions accumulate,
@@ -132,6 +132,13 @@ Verified in game (three ISO tests, Oct 2026):
 - **Status slots**: one `SKILLSTATUS` applied (confusion), two applied (confusion +
   blind), and a **third froze the game**. So the status pair is exactly two slots and
   overflowing it is a hard crash, not a silent overwrite — the validator says so.
+- **Effect condition vs effect range**: two otherwise identical skills with
+  `SKILLEFFECTCONDITION: "class: DarkWolf"`, one with and one **without**
+  `SKILLEFFECTRANGE`. Both damaged only the wolf and did nothing to the cat, so the
+  condition is evaluated independently of the range (without a range the effect is
+  single-target — no area outline is drawn, the condition still filters). The
+  `SKILLEFFECTCONDITION REQUIRES SKILLEFFECTRANGE` rule was therefore dropped from
+  the reference file, and the 68 vanilla condition-without-range skills are valid.
 
 Engine-only aliases are also recorded (`SKILLEXPCOST` ≡ `SKILLJOBPOINTCOST`; five
 `SKILLSTATUSSITUATION*CONDITION` spellings share one id), and field names that appear
