@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 279 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (263 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 292 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (276 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -180,7 +180,18 @@ Unlocks display-name resolution everywhere and makes Team Builder real.
 ### Phase 4 — Encounters, Leagues, Towns, Schools, plus config tail
 Finishes the main `data/config` + `data/towns` + `data/encounters` triangle.
 
-- `IEncountersApi` (`.enc`) — same tok grammar, distinct schema.
+**Status: in progress.** Encounters are done; leagues, towns, schools and the config tail remain.
+
+- **Done — `IEncountersApi`** over `.enc`: an encounter is a header section plus `TEAM:`
+  sections holding `UNITDB` rows. `ListFiles/List/Get/SetField/AddField/RemoveField/`
+  `SetTeamField/RemoveTeamField/SetTeamUnits/Validate`, raw-line editing so comments,
+  indentation and unknown keys survive. A generated `encounters/encounters_catalog.json`
+  (834 files, 2051 teams, 6702 units, `UNITDB` arity 21) feeds `EncounterValidator`:
+  unknown header/team keys, wrong unit argument counts, teams without a grid.
+  No-op writes are byte-identical, verified by a sweep across the corpus.
+  **Format finding:** tok keys are not always `KEY: value` — `PRIZETIER` uses a tab
+  (`PRIZETIER\t"DrakeDefaultCash" 0`), so both the parser and the catalog generator
+  accept a colon-less upper-case key.
 - `ILeaguesApi` — recruits, store inventories, league progression.
 - `ITownsApi` — town defs, shop refs.
 - `ISchoolsApi` — school defs.

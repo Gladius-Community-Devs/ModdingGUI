@@ -1,0 +1,10810 @@
+{
+ "_meta": {
+  "format_version": 1,
+  "generated_from": "data/encounters/**/*.enc",
+  "totals": {
+   "files": 834,
+   "teams": 2051,
+   "units": 6702
+  },
+  "unit_arity": {
+   "21": 6702
+  }
+ },
+ "header_keys": {
+  "BATTLESCRIPT": 320,
+  "CAMERATRACK": 1598,
+  "CANDIE": 116,
+  "CROWDLEVEL": 416,
+  "CUTSCENE": 42,
+  "ENCOUNTERNAME": 834,
+  "GRIDFILE": 834,
+  "MUSIC": 526,
+  "PRIZETIER": 1973,
+  "PROPSFILE": 447,
+  "SCENE": 834,
+  "TOTALPOP": 739,
+  "URSULAEASE": 826,
+  "VALENSEASE": 826
+ },
+ "team_keys": {
+  "GRIDFILE": 2051,
+  "SCHOOL": 1040
+ },
+ "encounters": [
+  {
+   "path": "expanse/expansedunes/expansedunesencounter01.enc",
+   "name": "ExpanseDunesEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "expanse/expansedunes/expansedunesencounter02.enc",
+   "name": "ExpanseDunesEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expansedunes/expansedunesencounter03.enc",
+   "name": "ExpanseDunesEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "expanse/expansedunes/expansedunesencounter04.enc",
+   "name": "ExpanseDunesEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "expanse/expansedunes/qsthellgate_series.enc",
+   "name": "qstHellGate_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 6
+   }
+  },
+  {
+   "path": "expanse/expansedunes/qsthellgate_series1.enc",
+   "name": "qstHellGate_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expansedunes/qsthellgate_series2.enc",
+   "name": "qstHellGate_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expansedunes/qsthellgate_series3.enc",
+   "name": "qstHellGate_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expansedunes/qsthellgate_series4.enc",
+   "name": "qstHellGate_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expansedunes/qsthellgate_series5.enc",
+   "name": "qstHellGate_Series5",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 6,
+    "1": 4,
+    "2": 3
+   }
+  },
+  {
+   "path": "expanse/expansedunes/qstsarenenutetexdunes.enc",
+   "name": "qstSarenenutetExDunes",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/expansedunes/qstwumpusdunes.enc",
+   "name": "qstWumpusDunes",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/expansedunes/scene47u.enc",
+   "name": "Scene47u",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 5,
+    "2": 1
+   }
+  },
+  {
+   "path": "expanse/expansedunes/scene47v.enc",
+   "name": "Scene47V",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 5,
+    "2": 1
+   }
+  },
+  {
+   "path": "expanse/expanseoasis/expanseoasisencounter01.enc",
+   "name": "ExpanseOasisEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expanseoasis/expanseoasisencounter02.enc",
+   "name": "ExpanseOasisEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 2
+   }
+  },
+  {
+   "path": "expanse/expanseoasis/expanseoasisencounter03.enc",
+   "name": "ExpanseOasisEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "expanse/expanseoasis/expanseoasisencounter04.enc",
+   "name": "ExpanseOasisEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/expanseoasis/qstsarenenutetexoasis.enc",
+   "name": "qstSarenenutetExOasis",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/expanseoasis/qstwumpusoasis.enc",
+   "name": "qstWumpusOasis",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/expanseroad/expanseroadencounter01.enc",
+   "name": "ExpanseRoadEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expanseroad/expanseroadencounter02.enc",
+   "name": "ExpanseRoadEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "expanse/expanseroad/expanseroadencounter03.enc",
+   "name": "ExpanseRoadEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expanseroad/expanseroadencounter04.enc",
+   "name": "ExpanseRoadEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 3
+   }
+  },
+  {
+   "path": "expanse/expanseroad/qstsarenenutetexroad.enc",
+   "name": "qstSarenenutetExRoad",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/expanseroad/qstwumpusroad.enc",
+   "name": "qstWumpusRoad",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/expanseshore/expanseshoreencounter01.enc",
+   "name": "ExpanseShoreEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expanseshore/expanseshoreencounter02.enc",
+   "name": "ExpanseShoreEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expanseshore/expanseshoreencounter03.enc",
+   "name": "ExpanseShoreEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3
+   }
+  },
+  {
+   "path": "expanse/expanseshore/expanseshoreencounter04.enc",
+   "name": "ExpanseShoreEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "expanse/expanseshore/qstsarenenutetexshore.enc",
+   "name": "qstSarenenutetExShore",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/expanseshore/qstwumpusshore.enc",
+   "name": "qstWumpusShore",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/expanseshore/shore_2p.enc",
+   "name": "Shore_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/expanseshore/shore_3p.enc",
+   "name": "Shore_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "expanse/expanseshore/shore_4p.enc",
+   "name": "Shore_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "expanse/mysterioustablet/qstmysteriousplane.enc",
+   "name": "qstMysteriousPlane",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/offeringplate/qstdervishchallengeoverclass.enc",
+   "name": "qstDervishChallengeOverclass",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/offeringplate/qstpirgosfatherbattle.enc",
+   "name": "qstPirgosFatherBattle",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 8,
+    "-1": 1
+   }
+  },
+  {
+   "path": "expanse/offeringplate/scene52u.enc",
+   "name": "Scene52u",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/offeringplate/scene52v.enc",
+   "name": "Scene52V",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/anteupbyo1000.enc",
+   "name": "AnteUpByo1000",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/anteupbyo10000.enc",
+   "name": "AnteUpByo10000",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/anteupbyo20000.enc",
+   "name": "AnteUpByo20000",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 1,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/anteupbyo4000.enc",
+   "name": "AnteUpByo4000",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/anteupbyo6000.enc",
+   "name": "AnteUpByo6000",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/anteupbyo8000.enc",
+   "name": "AnteUpByo8000",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3,
+    "2": 2,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/aridextradrypyo.enc",
+   "name": "AridExtraDryPyo",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/barebones.enc",
+   "name": "Barebones",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 6
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/burningflame.enc",
+   "name": "BurningFlame",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/desertheat.enc",
+   "name": "DesertHeat",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/enterthedarknesstsu.enc",
+   "name": "EnterTheDarknessTsu",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/expansethrone1.enc",
+   "name": "ExpanseThrone1",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 8
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/expansethrone2.enc",
+   "name": "ExpanseThrone2",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 8
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/expansethrone3.enc",
+   "name": "ExpanseThrone3",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 8
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/expansethrone4.enc",
+   "name": "ExpanseThrone4",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 1,
+    "3": 2,
+    "-1": 8
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/highflying.enc",
+   "name": "HighFlying",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2,
+    "-1": 6
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/humanssmellba.enc",
+   "name": "HumansSmellBa",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/leakyfaucetji.enc",
+   "name": "LeakyFaucetJi",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/lightweightstsu1.enc",
+   "name": "LightweightsTsu1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/lightweightstsu2.enc",
+   "name": "LightweightsTsu2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 8
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/lightweightstsu3.enc",
+   "name": "LightweightsTsu3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 6
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/lightweightstsu4.enc",
+   "name": "LightweightsTsu4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/mirage_series.enc",
+   "name": "Mirage_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 2
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/mirage_series1.enc",
+   "name": "Mirage_Series1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 8
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/mirage_series2.enc",
+   "name": "Mirage_Series2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 8
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/mirage_series3.enc",
+   "name": "Mirage_Series3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 8
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/mirage_series4.enc",
+   "name": "Mirage_Series4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3,
+    "-1": 8
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/mpiblis2p.enc",
+   "name": "MPIblis2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/mpiblis3p.enc",
+   "name": "MPIblis3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/mpiblis4p.enc",
+   "name": "MPIblis4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/openko.enc",
+   "name": "OpenKo",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/qstdervishchallengeunderclass.enc",
+   "name": "qstDervishChallengeUnderclass",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/scene49ub.enc",
+   "name": "Scene49ub",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/seriessyo_series.enc",
+   "name": "SeriesSyo_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 3
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/seriessyo_series1.enc",
+   "name": "SeriesSyo_Series1",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2,
+    "2": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/seriessyo_series2.enc",
+   "name": "SeriesSyo_Series2",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/seriessyo_series3.enc",
+   "name": "SeriesSyo_Series3",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/seriessyo_series4.enc",
+   "name": "SeriesSyo_Series4",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/ssimasrevenge.enc",
+   "name": "SsimasRevenge",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/summonersendurance_series.enc",
+   "name": "SummonersEndurance_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 5
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/summonersendurance_series1.enc",
+   "name": "SummonersEndurance_Series1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/summonersendurance_series2.enc",
+   "name": "SummonersEndurance_Series2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/summonersendurance_series3.enc",
+   "name": "SummonersEndurance_Series3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/summonersendurance_series4.enc",
+   "name": "SummonersEndurance_Series4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/palaceibliis/summonersendurance_series5.enc",
+   "name": "SummonersEndurance_Series5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 1,
+    "-1": 4
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/berserkershi.enc",
+   "name": "BerserkerShi",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/breakthebank.enc",
+   "name": "BreakTheBank",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/bulkofhulk.enc",
+   "name": "BulkofHulk",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/cyclopszu.enc",
+   "name": "CyclopsZu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/dervishro.enc",
+   "name": "DervishRo",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/desertcats.enc",
+   "name": "DesertCats",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/desertopen.enc",
+   "name": "DesertOpen",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/desertwitches.enc",
+   "name": "DesertWitches",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/elementalspo.enc",
+   "name": "ElementalsPo",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/heavyweightmya.enc",
+   "name": "HeavyweightMya",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/insect_series.enc",
+   "name": "Insect_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 4
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/insect_series1.enc",
+   "name": "Insect_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/insect_series2.enc",
+   "name": "Insect_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/insect_series3.enc",
+   "name": "Insect_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/insect_series4.enc",
+   "name": "Insect_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/insect_series5.enc",
+   "name": "Insect_Series5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 7
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/lightweights.enc",
+   "name": "Lightweights",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/liquidswordszya.enc",
+   "name": "LiquidSwordsZya",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/mysticspo.enc",
+   "name": "MysticsPo",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 2
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/oasisvagrants.enc",
+   "name": "OasisVagrants",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 1,
+    "3": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/oneononedu.enc",
+   "name": "OneOnOneDu",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/openbarnburner.enc",
+   "name": "OpenBarnBurner",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/phoenixflames.enc",
+   "name": "PhoenixFlames",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/procitizenbyu1.enc",
+   "name": "ProCitizenByu1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6,
+    "-1": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/procitizenbyu2.enc",
+   "name": "ProCitizenByu2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/procitizenbyu3.enc",
+   "name": "ProCitizenByu3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/procitizenbyu4.enc",
+   "name": "ProCitizenByu4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/qaarah_2p.enc",
+   "name": "QaaRah_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/qaarah_3p.enc",
+   "name": "QaaRah_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/qaarah_4p.enc",
+   "name": "QaaRah_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/qstdervishchallengemidclass.enc",
+   "name": "qstDervishChallengeMidclass",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/rangedcombatrya.enc",
+   "name": "RangedCombatRya",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/redeyenya.enc",
+   "name": "RedEyeNya",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/samnitetsu.enc",
+   "name": "SamniteTsu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/sandstormpya.enc",
+   "name": "SandstormPya",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 6
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/summonerkwa.enc",
+   "name": "SummonerKwa",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/toastedroaches.enc",
+   "name": "ToastedRoaches",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/treasuretrove1.enc",
+   "name": "TreasureTrove1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/treasuretrove2.enc",
+   "name": "TreasureTrove2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/treasuretrove3.enc",
+   "name": "TreasureTrove3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/treasuretrove4.enc",
+   "name": "TreasureTrove4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "expanse/scorchedoasis/undeadcasterwo.enc",
+   "name": "UndeadCasterWo",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortbeast1.enc",
+   "name": "BelfortBeast1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortbeast2.enc",
+   "name": "BelfortBeast2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortbeast3.enc",
+   "name": "BelfortBeast3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortbeast4.enc",
+   "name": "BelfortBeast4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortbeast5.enc",
+   "name": "BelfortBeast5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortclassic1.enc",
+   "name": "BelfortClassic1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortclassic2.enc",
+   "name": "BelfortClassic2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortclassic3.enc",
+   "name": "BelfortClassic3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortclassic4.enc",
+   "name": "BelfortClassic4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortclassic5.enc",
+   "name": "BelfortClassic5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortclassic6.enc",
+   "name": "BelfortClassic6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortendurance_series.enc",
+   "name": "BelfortEndurance_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortendurance_series1.enc",
+   "name": "BelfortEndurance_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortendurance_series2.enc",
+   "name": "BelfortEndurance_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortendurance_series3.enc",
+   "name": "BelfortEndurance_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortendurance_series4.enc",
+   "name": "BelfortEndurance_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/belfortarena/belfortendurance_series5.enc",
+   "name": "BelfortEndurance_Series5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/belfortarena/bestbelfort1.enc",
+   "name": "BestBelfort1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/bestbelfort2.enc",
+   "name": "BestBelfort2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/belfortarena/bestbelfort3.enc",
+   "name": "BestBelfort3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/belfortarena/bestbelfort4.enc",
+   "name": "BestBelfort4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/belfortarena/bestbelfort5.enc",
+   "name": "BestBelfort5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 6
+   }
+  },
+  {
+   "path": "imperia/belfortarena/bestbelfort6.enc",
+   "name": "BestBelfort6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 6
+   }
+  },
+  {
+   "path": "imperia/belfortarena/championship.enc",
+   "name": "Championship",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/belfortarena/glory1_ursula.enc",
+   "name": "Glory1_Ursula",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/belfortarena/glory2_ursula.enc",
+   "name": "Glory2_Ursula",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/belfortarena/glory3_ursula.enc",
+   "name": "Glory3_Ursula",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/glory4_ursula.enc",
+   "name": "Glory4_Ursula",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/belfortarena/glory5_ursula.enc",
+   "name": "Glory5_Ursula",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/glory6_ursula.enc",
+   "name": "Glory6_Ursula",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 7
+   }
+  },
+  {
+   "path": "imperia/belfortarena/imperiaglory1.enc",
+   "name": "ImperiaGlory1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/imperiaglory2.enc",
+   "name": "ImperiaGlory2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/imperiaglory3.enc",
+   "name": "ImperiaGlory3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/belfortarena/imperiaglory4.enc",
+   "name": "ImperiaGlory4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/belfortarena/imperiaglory5.enc",
+   "name": "ImperiaGlory5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/imperiaglory6.enc",
+   "name": "ImperiaGlory6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/belfortarena/scene18u.enc",
+   "name": "Scene18U",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/belfortarena/tournament.enc",
+   "name": "Tournament",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6
+   }
+  },
+  {
+   "path": "imperia/belfortarena/tournament2.enc",
+   "name": "Tournament2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/bellatusheavy.enc",
+   "name": "BellatusHeavy",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/bellatusheavy2.enc",
+   "name": "BellatusHeavy2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/bellatuslight.enc",
+   "name": "BellatusLight",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/bellatuslight2.enc",
+   "name": "BellatusLight2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/bellatusmidweight.enc",
+   "name": "BellatusMidweight",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/bellatusmidweight2.enc",
+   "name": "BellatusMidweight2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatacircus1.enc",
+   "name": "TrikataCircus1",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3,
+    "2": 3,
+    "-1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatacircus2.enc",
+   "name": "TrikataCircus2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatacircus3.enc",
+   "name": "TrikataCircus3",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 5
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatacircus4.enc",
+   "name": "TrikataCircus4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatacircus5.enc",
+   "name": "TrikataCircus5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatamagic1.enc",
+   "name": "TrikataMagic1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatamagic2.enc",
+   "name": "TrikataMagic2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatamagic3.enc",
+   "name": "TrikataMagic3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatamagic4.enc",
+   "name": "TrikataMagic4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikataopen1.enc",
+   "name": "TrikataOpen1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikataopen2.enc",
+   "name": "TrikataOpen2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikataopen3.enc",
+   "name": "TrikataOpen3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikataopen4.enc",
+   "name": "TrikataOpen4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikataopen5.enc",
+   "name": "TrikataOpen5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatasurvival_series.enc",
+   "name": "TrikataSurvival_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatasurvival_series1.enc",
+   "name": "TrikataSurvival_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatasurvival_series2.enc",
+   "name": "TrikataSurvival_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatasurvival_series3.enc",
+   "name": "TrikataSurvival_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatasurvival_series4.enc",
+   "name": "TrikataSurvival_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatatourney01.enc",
+   "name": "TrikataTourney01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatatourney02.enc",
+   "name": "TrikataTourney02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatatribunal1.enc",
+   "name": "TrikataTribunal1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatatribunal2.enc",
+   "name": "TrikataTribunal2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatatribunal3.enc",
+   "name": "TrikataTribunal3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatatribunal4.enc",
+   "name": "TrikataTribunal4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/bloodyhalo/trikatatribunal5.enc",
+   "name": "TrikataTribunal5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/calthaarena/caltha_2p.enc",
+   "name": "Caltha_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/calthaarena/caltha_3p.enc",
+   "name": "Caltha_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "imperia/calthaarena/caltha_4p.enc",
+   "name": "Caltha_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "imperia/calthaarena/calthanordaghvsimperia.enc",
+   "name": "CalthaNordaghVsImperia",
+   "teams": [
+    1,
+    2
+   ],
+   "units": {
+    "1": 4,
+    "2": 4
+   }
+  },
+  {
+   "path": "imperia/calthaarena/minotaurbattle.enc",
+   "name": "MinotaurBattle",
+   "teams": [
+    1,
+    2
+   ],
+   "units": {
+    "1": 4,
+    "2": 2
+   }
+  },
+  {
+   "path": "imperia/calthaarena/nordaghtribute01.enc",
+   "name": "NordaghTribute01",
+   "teams": [
+    1,
+    2
+   ],
+   "units": {
+    "1": 4,
+    "2": 4
+   }
+  },
+  {
+   "path": "imperia/calthaarena/scene28u.enc",
+   "name": "Scene28U",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/calthaarena/scene56sb.enc",
+   "name": "Scene56sb",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/calthaarena/scene56se.enc",
+   "name": "Scene56se",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/calthaarena/versusschool_series.enc",
+   "name": "versusSchool_series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/calthaarena/versusschool_series1.enc",
+   "name": "versusSchool_series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/calthaarena/versusschool_series2.enc",
+   "name": "versusSchool_series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/calthaarena/versusschool_series3.enc",
+   "name": "versusSchool_series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/calthaarena/versusschool_series4.enc",
+   "name": "versusSchool_series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/calthaarena/versusschool_series5.enc",
+   "name": "versusSchool_series5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/channelerstemple/channelers_2p.enc",
+   "name": "Channelers_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/channelerstemple/channelers_3p.enc",
+   "name": "Channelers_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "imperia/channelerstemple/channelers_4p.enc",
+   "name": "Channelers_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosclassic1.enc",
+   "name": "ExurosClassic1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosclassic2.enc",
+   "name": "ExurosClassic2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosclassic3.enc",
+   "name": "ExurosClassic3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosclassic4.enc",
+   "name": "ExurosClassic4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosclassic5.enc",
+   "name": "ExurosClassic5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosclassic6.enc",
+   "name": "ExurosClassic6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosopen1.enc",
+   "name": "ExurosOpen1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosopen2.enc",
+   "name": "ExurosOpen2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosopen3.enc",
+   "name": "ExurosOpen3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosopen4.enc",
+   "name": "ExurosOpen4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosopen5.enc",
+   "name": "ExurosOpen5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/exuroseye/exurosopen6.enc",
+   "name": "ExurosOpen6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/exuroseye/onslaught_series.enc",
+   "name": "Onslaught_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/exuroseye/onslaught_series1.enc",
+   "name": "Onslaught_Series1",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "2": 4
+   }
+  },
+  {
+   "path": "imperia/exuroseye/onslaught_series2.enc",
+   "name": "Onslaught_Series2",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "2": 4
+   }
+  },
+  {
+   "path": "imperia/exuroseye/onslaught_series3.enc",
+   "name": "Onslaught_Series3",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "2": 4
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orus_2p.enc",
+   "name": "Orus_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orus_3p.enc",
+   "name": "Orus_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orus_4p.enc",
+   "name": "Orus_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orusmonster1.enc",
+   "name": "OrusMonster1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orusmonster2.enc",
+   "name": "OrusMonster2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orusmonster3.enc",
+   "name": "OrusMonster3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orusmonster4.enc",
+   "name": "OrusMonster4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orusmonster5.enc",
+   "name": "OrusMonster5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orusmonster6.enc",
+   "name": "OrusMonster6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orustournament.enc",
+   "name": "OrusTournament",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orustribunal1.enc",
+   "name": "OrusTribunal1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orustribunal2.enc",
+   "name": "OrusTribunal2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orustribunal3.enc",
+   "name": "OrusTribunal3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/orustribunal4.enc",
+   "name": "OrusTribunal4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/exuroseye/sizetestbattle.enc",
+   "name": "SizeTestBattle",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 6
+   }
+  },
+  {
+   "path": "imperia/halloftitans/hall of titans battle.enc",
+   "name": "Hall of Titans Battle",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/halloftitans/scene63v.enc",
+   "name": "Scene63v",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/halloftitans/scene65v_series.enc",
+   "name": "Scene65v_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 4
+   }
+  },
+  {
+   "path": "imperia/halloftitans/scene65v_series1.enc",
+   "name": "Scene65v_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/halloftitans/scene65v_series2.enc",
+   "name": "Scene65v_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/halloftitans/scene65v_series3.enc",
+   "name": "Scene65v_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/halloftitans/scene65v_series4.enc",
+   "name": "Scene65v_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/imperiafield/fieldencounter01.enc",
+   "name": "FieldEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/imperiafield/fieldencounter02.enc",
+   "name": "FieldEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/imperiafield/fieldencounter03.enc",
+   "name": "FieldEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/imperiafield/fieldencounter04.enc",
+   "name": "FieldEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/imperiafield/imperiafieldencounterendgame.enc",
+   "name": "ImperiaFieldEncounterEndGame",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/imperiafield/pedangrymongrels.enc",
+   "name": "pedAngryMongrels",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/imperiafield/qstsarenenutetimpfield.enc",
+   "name": "qstSarenenutetImpField",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/imperiaorchard/orchard_2p.enc",
+   "name": "Orchard_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/imperiaorchard/orchard_3p.enc",
+   "name": "Orchard_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "imperia/imperiaorchard/orchard_4p.enc",
+   "name": "Orchard_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "imperia/imperiaorchard/orchardencounters01.enc",
+   "name": "OrchardEncounters01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/imperiaorchard/orchardencounters02.enc",
+   "name": "OrchardEncounters02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/imperiaorchard/orchardencounters03.enc",
+   "name": "OrchardEncounters03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/imperiaorchard/orchardencounters04.enc",
+   "name": "OrchardEncounters04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/imperiaorchard/qstsarenenutetimporchard.enc",
+   "name": "qstSarenenutetImpOrchard",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/imperiaorchard/scene04va.enc",
+   "name": "Scene04Va",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/imperiaroadencounterendgame.enc",
+   "name": "ImperiaRoadEncounterEndGame",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/qstloyalist.enc",
+   "name": "qstLoyalist",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 7
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/qstsarenenutetimproad.enc",
+   "name": "qstSarenenutetImpRoad",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/roadencounters01.enc",
+   "name": "RoadEncounters01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/roadencounters02.enc",
+   "name": "RoadEncounters02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/roadencounters03.enc",
+   "name": "RoadEncounters03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/roadencounters04.enc",
+   "name": "RoadEncounters04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/roadencountersrivalschool.enc",
+   "name": "RoadEncountersRivalSchool",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/scene04v.enc",
+   "name": "Scene04V",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/scene06v.enc",
+   "name": "Scene06V",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "-1": 1
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/scene23u.enc",
+   "name": "Scene23U",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 1,
+    "-1": 1
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/scene71v_series.enc",
+   "name": "Scene71V_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 4
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/scene71v_series1.enc",
+   "name": "Scene71V_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/scene71v_series2.enc",
+   "name": "Scene71V_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/scene71v_series3.enc",
+   "name": "Scene71V_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/imperiaroad/scene73v.enc",
+   "name": "Scene73V",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/imperiashore/qstpriam.enc",
+   "name": "qstPriam",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/imperiashore/qstsarenenutetimpshore.enc",
+   "name": "qstSarenenutetImpShore",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/imperiashore/shoreencounters01.enc",
+   "name": "ShoreEncounters01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/imperiashore/shoreencounters02.enc",
+   "name": "ShoreEncounters02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/imperiashore/shoreencounters03.enc",
+   "name": "ShoreEncounters03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/imperiashore/shoreencounters04.enc",
+   "name": "ShoreEncounters04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeska_2p.enc",
+   "name": "CroBeska_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeska_3p.enc",
+   "name": "CroBeska_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeska_4p.enc",
+   "name": "CroBeska_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskabeast1.enc",
+   "name": "CroBeskaBeast1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskabeast2.enc",
+   "name": "CroBeskaBeast2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskabeast3.enc",
+   "name": "CroBeskaBeast3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskabeast4.enc",
+   "name": "CroBeskaBeast4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskabeast5.enc",
+   "name": "CroBeskaBeast5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskabeast6.enc",
+   "name": "CroBeskaBeast6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskatourney01_series.enc",
+   "name": "CroBeskaTourney01_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskatourney01_series1.enc",
+   "name": "CroBeskaTourney01_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskatourney01_series2.enc",
+   "name": "CroBeskaTourney01_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/crobeskatourney01_series3.enc",
+   "name": "CroBeskaTourney01_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/dervish1.enc",
+   "name": "Dervish1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/dervish2.enc",
+   "name": "Dervish2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/dervish3.enc",
+   "name": "Dervish3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/dervish4.enc",
+   "name": "Dervish4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/mongrelsiege.enc",
+   "name": "MongrelSiege",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/mongrelsiege2.enc",
+   "name": "MongrelSiege2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/mongrelsiege3.enc",
+   "name": "MongrelSiege3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/mongrelsiege4.enc",
+   "name": "MongrelSiege4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/mongrelsiege5.enc",
+   "name": "MongrelSiege5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/qstinvasion1.enc",
+   "name": "qstInvasion1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 3
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/spartacus1.enc",
+   "name": "Spartacus1",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2,
+    "2": 2,
+    "-1": 2
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/spartacus2.enc",
+   "name": "Spartacus2",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/spartacus3.enc",
+   "name": "Spartacus3",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 5,
+    "-1": 5
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/spartacus4.enc",
+   "name": "Spartacus4",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 4,
+    "2": 2,
+    "-1": 2
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/spartacus5.enc",
+   "name": "Spartacus5",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2,
+    "2": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/versusdervish.enc",
+   "name": "VersusDervish",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/versusmongrels.enc",
+   "name": "VersusMongrels",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/versusmurmillo.enc",
+   "name": "VersusMurmillo",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/mongrelsmaw/versussamnites.enc",
+   "name": "VersusSamnites",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/battle1.enc",
+   "name": "Battle1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2,
+    "-1": 2
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/battle2.enc",
+   "name": "Battle2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/battle3.enc",
+   "name": "Battle3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/battle4.enc",
+   "name": "Battle4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/battle5.enc",
+   "name": "Battle5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4,
+    "-1": 5
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/battle6.enc",
+   "name": "Battle6",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5,
+    "-1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/dax size test.enc",
+   "name": "Dax Size Test",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 11,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/dax test battle.enc",
+   "name": "Dax Test Battle",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/meteredtestbattle.enc",
+   "name": "MeteredTestBattle",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/openbattleursula1.enc",
+   "name": "OpenBattleUrsula1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/openbattleursula2.enc",
+   "name": "OpenBattleUrsula2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3,
+    "-1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/openbattleursula3.enc",
+   "name": "OpenBattleUrsula3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/openbattleursula4.enc",
+   "name": "OpenBattleUrsula4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/openbattleursula5.enc",
+   "name": "OpenBattleUrsula5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 6
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/openbattleursula6.enc",
+   "name": "OpenBattleUrsula6",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4,
+    "-1": 5
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgos_tournament.enc",
+   "name": "Pirgos_Tournament",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgoschanneler_series.enc",
+   "name": "PirgosChanneler_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgoschanneler_series1.enc",
+   "name": "PirgosChanneler_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgoschanneler_series2.enc",
+   "name": "PirgosChanneler_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgoschanneler_series3.enc",
+   "name": "PirgosChanneler_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgoschanneler_series4.enc",
+   "name": "PirgosChanneler_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosclassicbattle.enc",
+   "name": "PirgosClassicBattle",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosclassicbattle2.enc",
+   "name": "PirgosClassicBattle2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosclassicbattle3.enc",
+   "name": "PirgosClassicBattle3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosclassicbattle4.enc",
+   "name": "PirgosClassicBattle4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosclassicbattle5.enc",
+   "name": "PirgosClassicBattle5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosclassicbattle6.enc",
+   "name": "PirgosClassicBattle6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosendseries_series.enc",
+   "name": "PirgosEndSeries_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosendseries_series1.enc",
+   "name": "PirgosEndSeries_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosendseries_series2.enc",
+   "name": "PirgosEndSeries_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosendseries_series3.enc",
+   "name": "PirgosEndSeries_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosendseries_series4.enc",
+   "name": "PirgosEndSeries_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosmultiplayer.enc",
+   "name": "PirgosMultiplayer",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosranged1.enc",
+   "name": "PirgosRanged1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosranged2.enc",
+   "name": "PirgosRanged2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosranged3.enc",
+   "name": "PirgosRanged3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosranged4.enc",
+   "name": "PirgosRanged4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosranged5.enc",
+   "name": "PirgosRanged5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/pirgosranged6.enc",
+   "name": "PirgosRanged6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/scene61v.enc",
+   "name": "Scene61v",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/seriesbattle_series.enc",
+   "name": "SeriesBattle_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/seriesbattle_series1.enc",
+   "name": "SeriesBattle_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/seriesbattle_series2.enc",
+   "name": "SeriesBattle_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/seriesbattle_series3.enc",
+   "name": "SeriesBattle_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/trainingseries1.enc",
+   "name": "TrainingSeries1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/trainingseries2.enc",
+   "name": "TrainingSeries2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/trainingseries3.enc",
+   "name": "TrainingSeries3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/trainingseries4.enc",
+   "name": "TrainingSeries4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/trainingseries5.enc",
+   "name": "TrainingSeries5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 1,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/trainingseries6.enc",
+   "name": "TrainingSeries6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/valenstourney.enc",
+   "name": "ValensTourney",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/pirgosarena/xbox demo.enc",
+   "name": "Xbox Demo",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/airvsfire.enc",
+   "name": "AirVsFire",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/caltharegional01.enc",
+   "name": "CalthaRegional01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/caltharegional02.enc",
+   "name": "CalthaRegional02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/earthvswater.enc",
+   "name": "EarthVsWater",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/firevsair.enc",
+   "name": "FireVsAir",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/imperiagirls1.enc",
+   "name": "ImperiaGirls1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/imperiagirls2.enc",
+   "name": "ImperiaGirls2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/imperiagirls3.enc",
+   "name": "ImperiaGirls3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/imperiagirls4.enc",
+   "name": "ImperiaGirls4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/imperiagirls5.enc",
+   "name": "ImperiaGirls5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/qstinvasion2.enc",
+   "name": "qstInvasion2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6,
+    "-1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaopen1.enc",
+   "name": "SyrnaOpen1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaopen2.enc",
+   "name": "SyrnaOpen2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaopen3.enc",
+   "name": "SyrnaOpen3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaopen4.enc",
+   "name": "SyrnaOpen4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaopen5.enc",
+   "name": "SyrnaOpen5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaopen6.enc",
+   "name": "SyrnaOpen6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaprop01.enc",
+   "name": "SyrnaProp01",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 1
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaprop02.enc",
+   "name": "SyrnaProp02",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaprop04.enc",
+   "name": "SyrnaProp04",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 2
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaprop05.enc",
+   "name": "SyrnaProp05",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnaprop06.enc",
+   "name": "SyrnaProp06",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnasecutor1.enc",
+   "name": "SyrnaSecutor1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnasecutor2.enc",
+   "name": "SyrnaSecutor2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnasecutor3.enc",
+   "name": "SyrnaSecutor3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnasecutor4.enc",
+   "name": "SyrnaSecutor4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnasecutor5.enc",
+   "name": "SyrnaSecutor5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnasecutor6.enc",
+   "name": "SyrnaSecutor6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnatourney01.enc",
+   "name": "SyrnaTourney01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnatribunal_series.enc",
+   "name": "SyrnaTribunal_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnatribunal_series1.enc",
+   "name": "SyrnaTribunal_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnatribunal_series2.enc",
+   "name": "SyrnaTribunal_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnatribunal_series3.enc",
+   "name": "SyrnaTribunal_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnatribunal_series4.enc",
+   "name": "SyrnaTribunal_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/syrnatribunal_series5.enc",
+   "name": "SyrnaTribunal_Series5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "imperia/theatreantiquitis/watervsearth.enc",
+   "name": "WaterVsEarth",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "imperia/valensschool/robbers.enc",
+   "name": "Robbers",
+   "teams": [
+    0,
+    -1
+   ],
+   "units": {
+    "0": 1,
+    "-1": 1
+   }
+  },
+  {
+   "path": "imperia/valensschool/scene06va.enc",
+   "name": "Scene06va",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/cyclopsisland/scene68u_cyclops.enc",
+   "name": "Scene68u_Cyclops",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/cyclopsisland/scene69u_series.enc",
+   "name": "Scene69u_series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 4
+   }
+  },
+  {
+   "path": "nordagh/cyclopsisland/scene69u_series1.enc",
+   "name": "Scene69u_series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/cyclopsisland/scene69u_series2.enc",
+   "name": "Scene69u_series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/cyclopsisland/scene69u_series3.enc",
+   "name": "Scene69u_series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/cyclopsisland/scene69u_series4.enc",
+   "name": "Scene69u_series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/cyclopsisland/scene69u_series5.enc",
+   "name": "Scene69u_series5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/darkgod/darkgoddragon.enc",
+   "name": "DarkGodDragon",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/darkgod/darkgodface.enc",
+   "name": "DarkGodFace",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/darkgod/darkgodknight.enc",
+   "name": "DarkGodKnight",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 9
+   }
+  },
+  {
+   "path": "nordagh/darkgod/darkgodshiva.enc",
+   "name": "DarkGodShiva",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/circleofelites1vargen1.enc",
+   "name": "CircleOfElites1Vargen1",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/circleofelites1vargen2.enc",
+   "name": "CircleOfElites1Vargen2",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/circleofelites1vargen3.enc",
+   "name": "CircleOfElites1Vargen3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/circleofelites2vargen1.enc",
+   "name": "CircleOfElites2Vargen1",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/circleofelites2vargen2.enc",
+   "name": "CircleOfElites2Vargen2",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/circleofelites2vargen3.enc",
+   "name": "CircleOfElites2Vargen3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/fjord of the fallen battle.enc",
+   "name": "Fjord of the Fallen Battle",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/hordesofthenorth_series.enc",
+   "name": "HordesOfTheNorth_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/hordesofthenorth_series1.enc",
+   "name": "HordesOfTheNorth_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/hordesofthenorth_series2.enc",
+   "name": "HordesOfTheNorth_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/hordesofthenorth_series3.enc",
+   "name": "HordesOfTheNorth_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/milehighcircuit1.enc",
+   "name": "MileHighCircuit1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/milehighcircuit2.enc",
+   "name": "MileHighCircuit2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/milehighcircuit3.enc",
+   "name": "MileHighCircuit3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/milehighcircuit4.enc",
+   "name": "MileHighCircuit4",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/milehighcircuit5.enc",
+   "name": "MileHighCircuit5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/milehighcircuit6.enc",
+   "name": "MileHighCircuit6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/scene14u_series.enc",
+   "name": "Scene14U_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/scene14u_series1.enc",
+   "name": "Scene14U_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/scene14u_series2.enc",
+   "name": "Scene14U_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/scene14u_series3.enc",
+   "name": "Scene14U_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/scene29v_series.enc",
+   "name": "Scene29v_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/scene29v_series1.enc",
+   "name": "Scene29v_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/scene29v_series2.enc",
+   "name": "Scene29v_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/scene29v_series3.enc",
+   "name": "Scene29v_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/trialoftheelders1.enc",
+   "name": "TrialOfTheElders1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/trialoftheelders2.enc",
+   "name": "TrialOfTheElders2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/trialoftheelders3.enc",
+   "name": "TrialOfTheElders3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/vargen_2p.enc",
+   "name": "Vargen_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/vargen_3p.enc",
+   "name": "Vargen_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/vargen_4p.enc",
+   "name": "Vargen_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/fjordfallen/vargen_tournament.enc",
+   "name": "Vargen_Tournament",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/circleofelites1mordare1.enc",
+   "name": "CircleOfElites1Mordare1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/circleofelites1mordare2.enc",
+   "name": "CircleOfElites1Mordare2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/circleofelites1mordare3.enc",
+   "name": "CircleOfElites1Mordare3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/circleofelites2mordare1.enc",
+   "name": "CircleOfElites2Mordare1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/circleofelites2mordare2.enc",
+   "name": "CircleOfElites2Mordare2",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/circleofelites2mordare3.enc",
+   "name": "CircleOfElites2Mordare3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/dragonheartopen1.enc",
+   "name": "DragonheartOpen1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/dragonheartopen2.enc",
+   "name": "DragonheartOpen2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/dragonheartopen3.enc",
+   "name": "DragonheartOpen3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/dragonheartopen4.enc",
+   "name": "DragonheartOpen4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/dragonheartopen5.enc",
+   "name": "DragonheartOpen5",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/dragonheartopen6.enc",
+   "name": "DragonheartOpen6",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/mordare_tournament1.enc",
+   "name": "Mordare_Tournament1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/scene13u.enc",
+   "name": "Scene13U",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/scene26v.enc",
+   "name": "Scene26v",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/testofthetribes2.enc",
+   "name": "TestOfTheTribes2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/testofthetribes3.enc",
+   "name": "TestOfTheTribes3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/testvalens2.enc",
+   "name": "TestValens2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/testvalens3.enc",
+   "name": "TestValens3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thedeadofnight_series.enc",
+   "name": "TheDeadOfNight_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thedeadofnight_series1.enc",
+   "name": "TheDeadOfNight_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thedeadofnight_series2.enc",
+   "name": "TheDeadOfNight_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thedeadofnight_series3.enc",
+   "name": "TheDeadOfNight_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thewyrd1.enc",
+   "name": "TheWyrd1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 5
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thewyrd2.enc",
+   "name": "TheWyrd2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thewyrd3.enc",
+   "name": "TheWyrd3",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thewyrd4.enc",
+   "name": "TheWyrd4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thewyrd5.enc",
+   "name": "TheWyrd5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/mordaresden/thewyrd6.enc",
+   "name": "TheWyrd6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/nordaghfieldencounter01.enc",
+   "name": "NordaghFieldEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/nordaghfieldencounter02.enc",
+   "name": "NordaghFieldEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/nordaghfieldencounter03.enc",
+   "name": "NordaghFieldEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/nordaghfieldencounter04.enc",
+   "name": "NordaghFieldEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/nordaghfieldencounterendgame.enc",
+   "name": "NordaghFieldEncounterEndGame",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/qstdecay.enc",
+   "name": "qstDecay",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 6,
+    "-1": 1
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/qstsarenenutetnorfield.enc",
+   "name": "qstSarenenutetNorField",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/qstunlife.enc",
+   "name": "qstUnlife",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/scene68u_series.enc",
+   "name": "Scene68u_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/scene68u_series1.enc",
+   "name": "Scene68u_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghfield/scene68u_series2.enc",
+   "name": "Scene68u_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghforest/nordaghforestencounter01.enc",
+   "name": "NordaghForestEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghforest/nordaghforestencounter02.enc",
+   "name": "NordaghForestEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghforest/nordaghforestencounter03.enc",
+   "name": "NordaghForestEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghforest/nordaghforestencounter04.enc",
+   "name": "NordaghForestEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghforest/nordaghforestencounterendgame.enc",
+   "name": "NordaghForestEncounterEndGame",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/nordaghforest/qstbear.enc",
+   "name": "qstBear",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/nordaghforest/qstsarenenutetnorforest.enc",
+   "name": "qstSarenenutetNorForest",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/nordaghforest/scene64ub.enc",
+   "name": "Scene64ub",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/nordaghroadencounter01.enc",
+   "name": "NordaghRoadEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/nordaghroadencounter02.enc",
+   "name": "NordaghRoadEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/nordaghroadencounter03.enc",
+   "name": "NordaghRoadEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/nordaghroadencounter04.enc",
+   "name": "NordaghRoadEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/nordaghroadencounterendgame.enc",
+   "name": "NordaghRoadEncounterEndGame",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/nordaghroadrivalschool.enc",
+   "name": "NordaghRoadRivalSchool",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/qstsarenenutetnorroad.enc",
+   "name": "qstSarenenutetNorRoad",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/scene22v.enc",
+   "name": "Scene22v",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 2,
+    "1": 4,
+    "2": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/scene68u_undead.enc",
+   "name": "Scene68u_Undead",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/scene71u_series.enc",
+   "name": "Scene71u_series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 5
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/scene71u_series1.enc",
+   "name": "Scene71u_series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/scene71u_series2.enc",
+   "name": "Scene71u_series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/scene71u_series3.enc",
+   "name": "Scene71u_series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/nordaghroad/scene73ua.enc",
+   "name": "Scene73ua",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghroadsnow/ice_2p.enc",
+   "name": "Ice_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/nordaghroadsnow/ice_3p.enc",
+   "name": "Ice_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghroadsnow/ice_4p.enc",
+   "name": "Ice_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghroadsnow/nordaghiceencounter01.enc",
+   "name": "NordaghIceEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghroadsnow/nordaghiceencounter02.enc",
+   "name": "NordaghIceEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/nordaghroadsnow/nordaghiceencounter03.enc",
+   "name": "NordaghIceEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghroadsnow/nordaghiceencounter04.enc",
+   "name": "NordaghIceEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/nordaghroadsnow/nordaghiceencounterendgame.enc",
+   "name": "NordaghIceEncounterEndGame",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/circleofeliteschampionship1.enc",
+   "name": "CircleOfElitesChampionship1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/kingdomopen1.enc",
+   "name": "KingdomOpen1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/kingdomopen2.enc",
+   "name": "KingdomOpen2",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/kingdomopen3.enc",
+   "name": "KingdomOpen3",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/kingdomopen4.enc",
+   "name": "KingdomOpen4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/kingdomopen5.enc",
+   "name": "KingdomOpen5",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/kingdomopen6.enc",
+   "name": "KingdomOpen6",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/leagueofnorthernpride1.enc",
+   "name": "LeagueOfNorthernPride1",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/leagueofnorthernpride2.enc",
+   "name": "LeagueOfNorthernPride2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/leagueofnorthernpride3.enc",
+   "name": "LeagueOfNorthernPride3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/leagueofnorthernpride4.enc",
+   "name": "LeagueOfNorthernPride4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/leagueofnorthernpride5.enc",
+   "name": "LeagueOfNorthernPride5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 5
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/nordagh_regional1.enc",
+   "name": "Nordagh_Regional1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/orinskeep_tournament.enc",
+   "name": "OrinsKeep_Tournament",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/scene04u.enc",
+   "name": "Scene04U",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/orinskeep/scene06u.enc",
+   "name": "Scene06U",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/orinsthroneroom/orins throne room battle.enc",
+   "name": "Orins Throne Room Battle",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/orinsthroneroom/scene61u.enc",
+   "name": "Scene61U",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/roanortemple/scene76u.enc",
+   "name": "Scene76u",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/roanortemple/scene76v.enc",
+   "name": "Scene76V",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/circleofelites1sloan1.enc",
+   "name": "CircleOfElites1Sloan1",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/circleofelites1sloan2.enc",
+   "name": "CircleOfElites1Sloan2",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/circleofelites1sloan3.enc",
+   "name": "CircleOfElites1Sloan3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/circleofelites2sloan1.enc",
+   "name": "CircleOfElites2Sloan1",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/circleofelites2sloan2.enc",
+   "name": "CircleOfElites2Sloan2",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/circleofelites2sloan3.enc",
+   "name": "CircleOfElites2Sloan3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/dreas_2p.enc",
+   "name": "Dreas_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/dreas_3p.enc",
+   "name": "Dreas_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/dreas_4p.enc",
+   "name": "Dreas_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/fightthebear1.enc",
+   "name": "FightTheBear1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/fightthebear2.enc",
+   "name": "FightTheBear2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/fightthebear3.enc",
+   "name": "FightTheBear3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/fightthebear4.enc",
+   "name": "FightTheBear4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/fightthebear5.enc",
+   "name": "FightTheBear5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/manandbeast1.enc",
+   "name": "ManAndBeast1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/manandbeast2.enc",
+   "name": "ManAndBeast2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/manandbeast3.enc",
+   "name": "ManAndBeast3",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/manandbeast4.enc",
+   "name": "ManAndBeast4",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/manandbeast5.enc",
+   "name": "ManAndBeast5",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/scene12u.enc",
+   "name": "Scene12U",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/scene27v.enc",
+   "name": "Scene27V",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/sloan_tournament1.enc",
+   "name": "Sloan_Tournament1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/sx_dreasopenleague2.enc",
+   "name": "Sx_DreasOpenLeague2",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/sx_dreasopenleague3.enc",
+   "name": "Sx_DreasOpenLeague3",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/sx_dreasopenleague4.enc",
+   "name": "Sx_DreasOpenLeague4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/sx_dreasopenvalens2.enc",
+   "name": "Sx_DreasOpenValens2",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/sx_dreasopenvalens3.enc",
+   "name": "Sx_DreasOpenValens3",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/sx_dreasopenvalens4.enc",
+   "name": "Sx_DreasOpenValens4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/tothewolves1.enc",
+   "name": "ToTheWolves1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/tothewolves2.enc",
+   "name": "ToTheWolves2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5
+   }
+  },
+  {
+   "path": "nordagh/stadiumdreas/tothewolves3.enc",
+   "name": "ToTheWolves3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/thefen/circleofelites1fliuch1.enc",
+   "name": "CircleOfElites1Fliuch1",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/thefen/circleofelites1fliuch2.enc",
+   "name": "CircleOfElites1Fliuch2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/circleofelites1fliuch3.enc",
+   "name": "CircleOfElites1Fliuch3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/thefen/circleofelites2fliuch1.enc",
+   "name": "CircleOfElites2Fliuch1",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/circleofelites2fliuch2.enc",
+   "name": "CircleOfElites2Fliuch2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/thefen/circleofelites2fliuch3.enc",
+   "name": "CircleOfElites2Fliuch3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/thefen/contestoffreepeoples1.enc",
+   "name": "ContestOfFreePeoples1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "nordagh/thefen/contestoffreepeoples2.enc",
+   "name": "ContestOfFreePeoples2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 2
+   }
+  },
+  {
+   "path": "nordagh/thefen/contestoffreepeoples3.enc",
+   "name": "ContestOfFreePeoples3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/contestoffreepeoples4.enc",
+   "name": "ContestOfFreePeoples4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/contestoffreepeoples5.enc",
+   "name": "ContestOfFreePeoples5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/thefen/contestoffreepeoples6.enc",
+   "name": "ContestOfFreePeoples6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/thefen/fliuch_tournament1.enc",
+   "name": "Fliuch_Tournament1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/thefen/leagueofredemption1.enc",
+   "name": "LeagueOfRedemption1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/leagueofredemption2.enc",
+   "name": "LeagueOfRedemption2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "nordagh/thefen/leagueofredemption3.enc",
+   "name": "LeagueOfRedemption3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/lightningcircuit1.enc",
+   "name": "LightningCircuit1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/lightningcircuit2.enc",
+   "name": "LightningCircuit2",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "nordagh/thefen/lightningcircuit3.enc",
+   "name": "LightningCircuit3",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2
+   }
+  },
+  {
+   "path": "nordagh/thefen/lightningcircuit4.enc",
+   "name": "LightningCircuit4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/lightningcircuit5.enc",
+   "name": "LightningCircuit5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/lightningcircuit6.enc",
+   "name": "LightningCircuit6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/practice.enc",
+   "name": "practice",
+   "teams": [
+    0,
+    -1
+   ],
+   "units": {
+    "0": 1,
+    "-1": 1
+   }
+  },
+  {
+   "path": "nordagh/thefen/scene07u.enc",
+   "name": "Scene07U",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "nordagh/thefen/sx_arenacert2.enc",
+   "name": "Sx_ArenaCert2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "nordagh/thefen/sx_arenacert3.enc",
+   "name": "Sx_ArenaCert3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "nordagh/thefen/sx_arenacert4.enc",
+   "name": "Sx_ArenaCert4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "nordagh/thefen/sx_arenacert5.enc",
+   "name": "Sx_ArenaCert5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 1,
+    "1": 2,
+    "-1": 1
+   }
+  },
+  {
+   "path": "nordagh/thefen/sx_arenacert6.enc",
+   "name": "Sx_ArenaCert6",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3
+   }
+  },
+  {
+   "path": "nordagh/thefen/thefenbattle.enc",
+   "name": "thefenbattle",
+   "teams": [
+    1,
+    2
+   ],
+   "units": {
+    "1": 4,
+    "2": 4
+   }
+  },
+  {
+   "path": "nordagh/thepit/circleofelites1roanor1.enc",
+   "name": "CircleOfElites1Roanor1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/circleofelites1roanor2.enc",
+   "name": "CircleOfElites1Roanor2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/circleofelites1roanor3.enc",
+   "name": "CircleOfElites1Roanor3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/circleofelites2roanor1.enc",
+   "name": "CircleOfElites2Roanor1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/duelpart1.enc",
+   "name": "DuelPart1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/duelpart2.enc",
+   "name": "DuelPart2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/duelpart3.enc",
+   "name": "DuelPart3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/duelpart4.enc",
+   "name": "DuelPart4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/lastonestanding1.enc",
+   "name": "LastOneStanding1",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/lastonestanding2.enc",
+   "name": "LastOneStanding2",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/lastonestanding3.enc",
+   "name": "LastOneStanding3",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/lords1.enc",
+   "name": "Lords1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/lords2.enc",
+   "name": "Lords2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/lords3.enc",
+   "name": "Lords3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/mixedpair1.enc",
+   "name": "MixedPair1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/mixedpair2.enc",
+   "name": "MixedPair2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/mixedpair3.enc",
+   "name": "MixedPair3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/mixedpair4.enc",
+   "name": "MixedPair4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/oneagainstmany_series.enc",
+   "name": "OneAgainstMany_Series",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/oneagainstmany_series1.enc",
+   "name": "OneAgainstMany_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/oneagainstmany_series2.enc",
+   "name": "OneAgainstMany_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/oneagainstmany_series3.enc",
+   "name": "OneAgainstMany_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 1,
+    "1": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/roanor_2p.enc",
+   "name": "Roanor_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/roanor_3p.enc",
+   "name": "Roanor_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "2": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/roanor_4p.enc",
+   "name": "Roanor_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1
+   }
+  },
+  {
+   "path": "nordagh/thepit/roanor_tournament1.enc",
+   "name": "Roanor_Tournament1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "nordagh/thepit/talismanleague1.enc",
+   "name": "TalismanLeague1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/allhischildrenga.enc",
+   "name": "AllHisChildrenGa",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/altahrun_2p.enc",
+   "name": "Altahrun_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/altahrun_3p.enc",
+   "name": "Altahrun_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/altahrun_4p.enc",
+   "name": "Altahrun_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/battleforhabaasriver.enc",
+   "name": "BattleForHabaasRiver",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/battleforvolcanoaduro.enc",
+   "name": "BattleForVolcanoAduro",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/battleoverultasangorge.enc",
+   "name": "BattleOverUltasanGorge",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/beastscontrastza.enc",
+   "name": "BeastsContrastZa",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 3,
+    "2": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/bigandsmallbu.enc",
+   "name": "BigAndSmallBu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/bumblingbears.enc",
+   "name": "BumblingBears",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/callofthewildpe.enc",
+   "name": "CallOfTheWildPe",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/channeledbeasts.enc",
+   "name": "ChanneledBeasts",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/cretinmo.enc",
+   "name": "CretinMo",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/cretinrya.enc",
+   "name": "CretinRya",
+   "teams": [
+    0,
+    1,
+    3
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "3": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/darkbeastshyu.enc",
+   "name": "DarkBeastsHyu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/darkmilitiabu.enc",
+   "name": "DarkMilitiaBu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/darkmilitiaji.enc",
+   "name": "DarkMilitiaJi",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/darkmilitiatya.enc",
+   "name": "DarkMilitiaTya",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/daysofdarkness_series.enc",
+   "name": "DaysOfDarkness_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/daysofdarkness_series1.enc",
+   "name": "DaysOfDarkness_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/daysofdarkness_series2.enc",
+   "name": "DaysOfDarkness_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/daysofdarkness_series3.enc",
+   "name": "DaysOfDarkness_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/daysofdarkness_series4.enc",
+   "name": "DaysOfDarkness_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/daysofdarkness_series5.enc",
+   "name": "DaysOfDarkness_Series5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/desertscorchers.enc",
+   "name": "DesertScorchers",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/doubleedgedko.enc",
+   "name": "DoubleEdgedKo",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/fireearthopen_series.enc",
+   "name": "FireEarthOpen_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/fireearthopen_series1.enc",
+   "name": "FireEarthOpen_Series1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/fireearthopen_series2.enc",
+   "name": "FireEarthOpen_Series2",
+   "teams": [
+    0,
+    1,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/fireearthopen_series3.enc",
+   "name": "FireEarthOpen_Series3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/freeofthedarkgodpe.enc",
+   "name": "FreeOfTheDarkGodPe",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/hamitupku.enc",
+   "name": "HamItUpKu",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 2,
+    "2": 4,
+    "3": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/hitandrunya.enc",
+   "name": "HitAndRunYa",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/jochiaffinity_series.enc",
+   "name": "JochiAffinity_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/jochiaffinity_series1.enc",
+   "name": "JochiAffinity_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/jochiaffinity_series2.enc",
+   "name": "JochiAffinity_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/jochiaffinity_series3.enc",
+   "name": "JochiAffinity_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 1
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/jochiaffinity_series4.enc",
+   "name": "JochiAffinity_Series4",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 2,
+    "2": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/jochiaffinity_series5.enc",
+   "name": "JochiAffinity_Series5",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 2,
+    "2": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/lightweightsgwa.enc",
+   "name": "LightweightsGwa",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/likeagoodneighborsyu.enc",
+   "name": "LikeAGoodNeighborSyu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/magnasteppes1.enc",
+   "name": "MagnaSteppes1",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/magnasteppes2.enc",
+   "name": "MagnaSteppes2",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/magnasteppes3.enc",
+   "name": "MagnaSteppes3",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/magnasteppes4.enc",
+   "name": "MagnaSteppes4",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/militiahu.enc",
+   "name": "MilitiaHu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/militiarya.enc",
+   "name": "MilitiaRya",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/mutationswo.enc",
+   "name": "MutationsWo",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/mysticalzo1.enc",
+   "name": "MysticalZo1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/mysticalzo2.enc",
+   "name": "MysticalZo2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/mysticalzo3.enc",
+   "name": "MysticalZo3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/mysticalzo4.enc",
+   "name": "MysticalZo4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/mysticalzo5.enc",
+   "name": "MysticalZo5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/mysticszi.enc",
+   "name": "MysticsZi",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 2,
+    "2": 2
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/qstringersursula.enc",
+   "name": "qstRingersUrsula",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 2,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/qstringersvalens.enc",
+   "name": "qstRingersValens",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 2,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/raisetheroofra.enc",
+   "name": "RaiseTheRoofRa",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/repeltheyetis.enc",
+   "name": "RepelTheYetis",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/thehumantouchdyu.enc",
+   "name": "TheHumanTouchDyu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 6
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/thehumantouchri.enc",
+   "name": "TheHumanTouchRi",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 6
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/undeadcasterorigins.enc",
+   "name": "UndeadCasterOrigins",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/wideandlongbe.enc",
+   "name": "WideAndLongBe",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/altahrunruins/wideandlongga.enc",
+   "name": "WideAndLongGa",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/archernya_battle1.enc",
+   "name": "ArcherNya_Battle1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/archernya_battle2.enc",
+   "name": "ArcherNya_Battle2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/archernya_battle3.enc",
+   "name": "ArcherNya_Battle3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 6
+   }
+  },
+  {
+   "path": "steppes/arenasuren/beastza_circusbears.enc",
+   "name": "BeastZa_CircusBears",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/beastza_friskycats.enc",
+   "name": "BeastZa_FriskyCats",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/beastza_greaterbeastschi.enc",
+   "name": "BeastZa_GreaterBeastsChi",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2
+   }
+  },
+  {
+   "path": "steppes/arenasuren/beastza_wearywolves.enc",
+   "name": "BeastZa_WearyWolves",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/beastza_wildbeasts.enc",
+   "name": "BeastZa_WildBeasts",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 2,
+    "2": 3,
+    "3": 2
+   }
+  },
+  {
+   "path": "steppes/arenasuren/berserkersbu.enc",
+   "name": "BerserkersBu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/darklegionnairesbu.enc",
+   "name": "DarkLegionnairesBu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/fireenduranceki_series.enc",
+   "name": "FireEnduranceKi_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/fireenduranceki_series1.enc",
+   "name": "FireEnduranceKi_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/fireenduranceki_series2.enc",
+   "name": "FireEnduranceKi_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/fireenduranceki_series3.enc",
+   "name": "FireEnduranceKi_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "steppes/arenasuren/fireenduranceki_series4.enc",
+   "name": "FireEnduranceKi_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "steppes/arenasuren/fireenduranceki_series5.enc",
+   "name": "FireEnduranceKi_Series5",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 4,
+    "1": 2,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/arenasuren/heavyhittersra.enc",
+   "name": "HeavyHittersRa",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "steppes/arenasuren/kingofthehillke1.enc",
+   "name": "KingOfTheHillKe1",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/kingofthehillke2.enc",
+   "name": "KingOfTheHillKe2",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/kingofthehillke3.enc",
+   "name": "KingOfTheHillKe3",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/kingofthehillke4.enc",
+   "name": "KingOfTheHillKe4",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/kingofthehillke5.enc",
+   "name": "KingOfTheHillKe5",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/legacyoftahn_series.enc",
+   "name": "LegacyOfTahn_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/legacyoftahn_series1.enc",
+   "name": "LegacyOfTahn_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/legacyoftahn_series2.enc",
+   "name": "LegacyOfTahn_Series2",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/legacyoftahn_series3.enc",
+   "name": "LegacyOfTahn_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/legacyoftahn_series4.enc",
+   "name": "LegacyOfTahn_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/limelightni.enc",
+   "name": "LimelightNi",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "steppes/arenasuren/mongrelshamanbu.enc",
+   "name": "MongrelShamanBu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/monstermayhem.enc",
+   "name": "MonsterMayhem",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/murmillobu.enc",
+   "name": "MurmilloBu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/ogresbu.enc",
+   "name": "OgresBu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 6
+   }
+  },
+  {
+   "path": "steppes/arenasuren/openseasonbya.enc",
+   "name": "OpenSeasonBya",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/arenasuren/qstbeastkiller.enc",
+   "name": "qstBeastKiller",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 8
+   }
+  },
+  {
+   "path": "steppes/arenasuren/quietriotingtu.enc",
+   "name": "QuietRiotingTu",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/quietriotingzo.enc",
+   "name": "QuietRiotingZo",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/raisetheroofmu.enc",
+   "name": "RaiseTheRoofMu",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "steppes/arenasuren/samnitebu.enc",
+   "name": "SamniteBu",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/ssimastoysgwa.enc",
+   "name": "SsimasToysGwa",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/arenasuren/yuset_2p.enc",
+   "name": "Yuset_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/arenasuren/yuset_3p.enc",
+   "name": "Yuset_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "steppes/arenasuren/yuset_4p.enc",
+   "name": "Yuset_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "steppes/ononhaar/arcanehu.enc",
+   "name": "ArcaneHu",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 2
+   }
+  },
+  {
+   "path": "steppes/ononhaar/banditbrigade.enc",
+   "name": "BanditBrigade",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/beastsghazan.enc",
+   "name": "BeastsGhazan",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/ononhaar/catfightsho_series.enc",
+   "name": "CatFightSho_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 5
+   }
+  },
+  {
+   "path": "steppes/ononhaar/catfightsho_series1.enc",
+   "name": "CatFightSho_Series1",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/catfightsho_series2.enc",
+   "name": "CatFightSho_Series2",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "steppes/ononhaar/catfightsho_series3.enc",
+   "name": "CatFightSho_Series3",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/catfightsho_series4.enc",
+   "name": "CatFightSho_Series4",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/catfightsho_series5.enc",
+   "name": "CatFightSho_Series5",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3
+   }
+  },
+  {
+   "path": "steppes/ononhaar/circusprosze1.enc",
+   "name": "CircusProsZe1",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/ononhaar/circusprosze2.enc",
+   "name": "CircusProsZe2",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/ononhaar/circusprosze3.enc",
+   "name": "CircusProsZe3",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/ononhaar/circusprosze4.enc",
+   "name": "CircusProsZe4",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/ononhaar/fierysteel.enc",
+   "name": "FierySteel",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/firingrange_series.enc",
+   "name": "FiringRange_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 5
+   }
+  },
+  {
+   "path": "steppes/ononhaar/firingrange_series1.enc",
+   "name": "FiringRange_Series1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 2,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/ononhaar/firingrange_series2.enc",
+   "name": "FiringRange_Series2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/firingrange_series3.enc",
+   "name": "FiringRange_Series3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/ononhaar/firingrange_series4.enc",
+   "name": "FiringRange_Series4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/heavyweightghazan.enc",
+   "name": "HeavyweightGhazan",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/ononhaar/humanssmellnya.enc",
+   "name": "HumansSmellNya",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 2
+   }
+  },
+  {
+   "path": "steppes/ononhaar/lightweightghazan.enc",
+   "name": "LightweightGhazan",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/ononhaar/middleweightghazan.enc",
+   "name": "MiddleweightGhazan",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/ononhaar/mysticsghazan.enc",
+   "name": "MysticsGhazan",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/ononhaar/rainoffire.enc",
+   "name": "RainOfFire",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/redeyes.enc",
+   "name": "RedEyes",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/sandstorm.enc",
+   "name": "Sandstorm",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 2
+   }
+  },
+  {
+   "path": "steppes/ononhaar/scorchedsamnites.enc",
+   "name": "ScorchedSamnites",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/ononhaar/thinair.enc",
+   "name": "ThinAir",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 2
+   }
+  },
+  {
+   "path": "steppes/ononhaar/unholyalliances_series.enc",
+   "name": "UnholyAlliances_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/unholyalliances_series1.enc",
+   "name": "UnholyAlliances_Series1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/unholyalliances_series2.enc",
+   "name": "UnholyAlliances_Series2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/unholyalliances_series3.enc",
+   "name": "UnholyAlliances_Series3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/unholyalliances_series4.enc",
+   "name": "UnholyAlliances_Series4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/ononhaar/unholyalliances_series5.enc",
+   "name": "UnholyAlliances_Series5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/steppescliff/cliff_2p.enc",
+   "name": "Cliff_2P",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/steppescliff/cliff_3p.enc",
+   "name": "Cliff_3P",
+   "teams": [
+    0,
+    1,
+    2
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   }
+  },
+  {
+   "path": "steppes/steppescliff/cliff_4p.enc",
+   "name": "Cliff_4P",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  {
+   "path": "steppes/steppescliff/cliffencounter01.enc",
+   "name": "CliffEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/steppescliff/cliffencounter02.enc",
+   "name": "CliffEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/steppescliff/cliffencounter03.enc",
+   "name": "CliffEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 3
+   }
+  },
+  {
+   "path": "steppes/steppescliff/cliffencounter04.enc",
+   "name": "CliffEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 7
+   }
+  },
+  {
+   "path": "steppes/steppescliff/qstsarenenutetstecliff.enc",
+   "name": "qstSarenenutetSteCliff",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "steppes/steppeshills/qstsarenenutetstehills.enc",
+   "name": "qstSarenenutetSteHills",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "steppes/steppeshills/steppeshillsencounter01.enc",
+   "name": "SteppesHillsEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/steppeshills/steppeshillsencounter02.enc",
+   "name": "SteppesHillsEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3
+   }
+  },
+  {
+   "path": "steppes/steppeshills/steppeshillsencounter03.enc",
+   "name": "SteppesHillsEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 3
+   }
+  },
+  {
+   "path": "steppes/steppeshills/steppeshillsencounter04.enc",
+   "name": "SteppesHillsEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/steppesplains/qstsarenenutetsteplains.enc",
+   "name": "qstSarenenutetStePlains",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "steppes/steppesplains/steppesplainsencounter01.enc",
+   "name": "SteppesPlainsEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/steppesplains/steppesplainsencounter02.enc",
+   "name": "SteppesPlainsEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2
+   }
+  },
+  {
+   "path": "steppes/steppesplains/steppesplainsencounter03.enc",
+   "name": "SteppesPlainsEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 2
+   }
+  },
+  {
+   "path": "steppes/steppesplains/steppesplainsencounter04.enc",
+   "name": "SteppesPlainsEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/steppesroad/qstsarenenutetsteroad.enc",
+   "name": "qstSarenenutetSteRoad",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 1
+   }
+  },
+  {
+   "path": "steppes/steppesroad/steppes wilderness road battle.enc",
+   "name": "Steppes Wilderness Road Battle",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/steppesroad/steppesroadencounter01.enc",
+   "name": "SteppesRoadEncounter01",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4
+   }
+  },
+  {
+   "path": "steppes/steppesroad/steppesroadencounter02.enc",
+   "name": "SteppesRoadEncounter02",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/steppesroad/steppesroadencounter03.enc",
+   "name": "SteppesRoadEncounter03",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 5,
+    "1": 1
+   }
+  },
+  {
+   "path": "steppes/steppesroad/steppesroadencounter04.enc",
+   "name": "SteppesRoadEncounter04",
+   "teams": [
+    0,
+    1
+   ],
+   "units": {
+    "0": 6,
+    "1": 5
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/blitzingbandits.enc",
+   "name": "BlitzingBandits",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/breakthebank1.enc",
+   "name": "BreakTheBank1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/breakthebank2.enc",
+   "name": "BreakTheBank2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/breakthebank3.enc",
+   "name": "BreakTheBank3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/breakthebank4.enc",
+   "name": "BreakTheBank4",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/breakthebank5.enc",
+   "name": "BreakTheBank5",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/circusopenhu.enc",
+   "name": "CircusOpenHu",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/cretin_series.enc",
+   "name": "Cretin_Series",
+   "teams": [
+    0
+   ],
+   "units": {
+    "0": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/cretin_series1.enc",
+   "name": "Cretin_Series1",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5,
+    "-1": 6
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/cretin_series2.enc",
+   "name": "Cretin_Series2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/cretin_series3.enc",
+   "name": "Cretin_Series3",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5,
+    "-1": 6
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/cretin_series4.enc",
+   "name": "Cretin_Series4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 5,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/cretin_series5.enc",
+   "name": "Cretin_Series5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/desertwanderers.enc",
+   "name": "DesertWanderers",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/earthscore.enc",
+   "name": "EarthsCore",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/expansealliancero.enc",
+   "name": "ExpanseAllianceRo",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/femmefatalezo1.enc",
+   "name": "FemmeFataleZo1",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/femmefatalezo2.enc",
+   "name": "FemmeFataleZo2",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/femmefatalezo3.enc",
+   "name": "FemmeFataleZo3",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/femmefatalezo4.enc",
+   "name": "FemmeFataleZo4",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/femmefatalezo5.enc",
+   "name": "FemmeFataleZo5",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 5,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/homebase.enc",
+   "name": "Homebase",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/imperialro.enc",
+   "name": "ImperialRo",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/lightmyfire.enc",
+   "name": "LightMyFire",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 4,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/limitedrange.enc",
+   "name": "LimitedRange",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 4,
+    "1": 4,
+    "2": 4,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/mountainrangers.enc",
+   "name": "MountainRangers",
+   "teams": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/movingmountains.enc",
+   "name": "MovingMountains",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/mudslingers.enc",
+   "name": "MudSlingers",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/nevnizsamnites.enc",
+   "name": "NevnizSamnites",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/nordaghalliancehi.enc",
+   "name": "NordaghAllianceHi",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/oftheearth.enc",
+   "name": "OfTheEarth",
+   "teams": [
+    0,
+    1,
+    2,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 6,
+    "2": 3,
+    "-1": 5
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/openbattleku.enc",
+   "name": "OpenBattleKu",
+   "teams": [
+    0,
+    1,
+    2,
+    3,
+    -1
+   ],
+   "units": {
+    "0": 3,
+    "1": 3,
+    "2": 4,
+    "3": 2,
+    "-1": 4
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/petmykitty.enc",
+   "name": "PetMyKitty",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/qstqorin.enc",
+   "name": "qstQorin",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 7,
+    "-1": 3
+   }
+  },
+  {
+   "path": "steppes/wanderingsoul/secularsecutors.enc",
+   "name": "SecularSecutors",
+   "teams": [
+    0,
+    1,
+    -1
+   ],
+   "units": {
+    "0": 5,
+    "1": 5,
+    "-1": 3
+   }
+  }
+ ]
+}
