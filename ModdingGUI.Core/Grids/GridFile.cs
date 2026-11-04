@@ -56,6 +56,8 @@ namespace ModdingGUI.Core.Grids
 
         private readonly int[] _data = new int[ArenaSize * ArenaSize]; // Raw grid cell data
         private readonly int[] _originalData = new int[ArenaSize * ArenaSize]; // For dirty checking
+        private byte[] _trailingData = Array.Empty<byte>(); // Bytes past the 1024 cells (version 1 carries
+                                                            // an unmodelled block here; preserved verbatim)
         private bool _hasBaseline = false;
 
         public bool IsDirty { get; private set; }
@@ -318,6 +320,15 @@ namespace ModdingGUI.Core.Grids
                         {
                             g._data[i] = br.ReadInt32();
                         }
+
+                        // Anything after the cells belongs to a layout we do not model yet (27 version-1
+                        // grids carry 3.2 kB extra). Keeping the bytes makes those maps editable without
+                        // pretending to understand them - the original Java tool silently truncated them.
+                        long remaining = fs.Length - fs.Position;
+                        if (remaining > 0)
+                        {
+                            g._trailingData = br.ReadBytes(checked((int)remaining));
+                        }
                     }
                 }
                 Array.Copy(g._data, g._originalData, g._data.Length);
@@ -349,9 +360,11 @@ namespace ModdingGUI.Core.Grids
             if (!IsWritableLayout)
             {
                 throw new NotSupportedException(
-                    $"Grid format version {_fileHeaderValue} is read-only: '{Path.GetFileName(fileName)}' has a " +
-                    "body layout we have not mapped yet (the 27 version-1 files are larger than the version-2 " +
-                    "ones), so writing it could corrupt the map. Reading its tags is supported.");
+                    $"Grid format version {_fileHeaderValue} is read-only: '{Path.GetFileName(fileName)}' " +
+                    "has a body layout we have not mapped (its size implies two 32x32 layers behind a " +
+                    "4-slot tag header, which does not fit all 27 version-1 files), so writing it could " +
+                    "corrupt the map. The original Java tool wrote these files as version 2 and silently " +
+                    "dropped the extra 3.2 kB. Reading the tags is supported.");
             }
             using (var fs = File.Create(fileName))
             using (var bw = new BinaryWriter(fs, Encoding.UTF8, false))
@@ -397,6 +410,12 @@ namespace ModdingGUI.Core.Grids
                 foreach (int v in _data)
                 {
                     bw.Write(v);
+                }
+
+                // Trailing block last: version-1 files carry an unmodelled block after the cells.
+                if (_trailingData.Length > 0)
+                {
+                    bw.Write(_trailingData);
                 }
             }
             Array.Copy(_data, _originalData, _data.Length); // Update baseline
