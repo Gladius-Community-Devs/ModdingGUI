@@ -700,12 +700,12 @@ def mark_unsupported_rules(
 # ---------------------------------------------------------------------------
 # Engine truth (extracted from the GameCube DOL)
 # ---------------------------------------------------------------------------
-# dol_skill_fields.json is produced from the boot DOL: every field name the
+# dol/skills_fields.json is produced from the boot DOL: every field name the
 # engine's tokenizer recognises, its internal id, argument shape and repeat
 # behaviour, read out of SkillLoadTokenFile (runtime record) and FUN_80026ec0
 # (battle/effect record). It is the authority on legality — the corpus cannot
 # be, because a modded file happily repeats a field the engine merely overwrites.
-DOL_FIELDS_FILENAME = "dol_skill_fields.json"
+DOL_FIELDS_FILENAME = "../dol/skills_fields.json"
 
 # "bit-set (OR)", "class set" and "conditional slot" all accumulate; scalar and
 # "status slot N" fields are last-wins (the status pairs simply give two slots).

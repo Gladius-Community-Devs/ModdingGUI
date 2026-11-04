@@ -106,9 +106,9 @@ Resolved at runtime from the project, not from the catalog:
 - `SKILLLEVEL` — integer (1–30; vanilla also uses 0 for innates)
 - `SKILLJOBPOINTCOST` — integer; -1 hidden, 0 free, ≥1 costs that many JP
 
-## Engine truth: `dol_skill_fields.json` (authority on legality)
+## Engine truth: `dol/skills_fields.json` (authority on legality)
 
-`dol_skill_fields.json` is extracted from the GameCube boot DOL (`SkillLoadTokenFile`
+`../dol/skills_fields.json` is extracted from the GameCube boot DOL (`SkillLoadTokenFile`
 and its battle-data sibling `FUN_80026ec0`): every field name the engine's tokenizer
 recognises, its internal id, its argument shape, and how repeated lines behave. The
 generator folds all of it into the catalog, so nothing about repetition is guessed

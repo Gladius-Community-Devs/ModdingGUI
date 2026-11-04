@@ -1,0 +1,110 @@
+[
+ {
+  "name": "CREATECLASS",
+  "id": 12
+ },
+ {
+  "name": "NUMCLASSDEFS",
+  "id": 13
+ },
+ {
+  "name": "MESH",
+  "id": 14
+ },
+ {
+  "name": "UNITSETNAME",
+  "id": 15
+ },
+ {
+  "name": "SKILLUSENAME",
+  "id": 16
+ },
+ {
+  "name": "BASECLASSNAME",
+  "id": 17
+ },
+ {
+  "name": "DERIVATIONCLASSNAME",
+  "id": 18
+ },
+ {
+  "name": "ATTRIBUTE",
+  "id": 19
+ },
+ {
+  "name": "ROCKSCISSORSPAPER",
+  "id": 20
+ },
+ {
+  "name": "CLASSICON",
+  "id": 21
+ },
+ {
+  "name": "HEADICON",
+  "id": 22
+ },
+ {
+  "name": "SHADOWSET",
+  "id": 23
+ },
+ {
+  "name": "GRIDSIZE",
+  "id": 24
+ },
+ {
+  "name": "XPAWARD",
+  "id": 25
+ },
+ {
+  "name": "ITEMSIZES",
+  "id": 26
+ },
+ {
+  "name": "ITEMCAT",
+  "id": 27
+ },
+ {
+  "name": "ITEMINDIV",
+  "id": 28
+ },
+ {
+  "name": "DESCRIPTIONID",
+  "id": 29
+ },
+ {
+  "name": "DISPLAYNAMEID",
+  "id": 30
+ },
+ {
+  "name": "AFFINITY",
+  "id": 35
+ },
+ {
+  "name": "FX",
+  "id": 36
+ },
+ {
+  "name": "VOICELINEPREFIX",
+  "id": 37
+ },
+ {
+  "name": "SOUNDTABLENAME",
+  "id": 38
+ },
+ {
+  "name": "LEVELUPXPNEEDED",
+  "id": 31
+ },
+ {
+  "name": "LEVELUPJPGIVEN",
+  "id": 32
+ },
+ {
+  "name": "LEVELSTATAWARDS",
+  "id": 33
+ },
+ {
+  "name": "LEVELZEROSTATS",
+  "id": 34
+ }
+]
