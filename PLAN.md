@@ -276,11 +276,14 @@ build straight into a fight instead of replaying the tutorial:
 1. Unpack once: `ModdingGUI --unpack <vanilla.iso> Scratch` (no GUI needed).
 2. Edit what the phase is about (skills, class definitions, encounters, units, …).
 3. **Override the tutorial fights** so the campaign drops into the test encounter:
-   - `data/encounters/nordagh/orinskeep/Scene04U.enc` and `Scene06U.enc` take the arena
-     encounter's content but keep their own `ENCOUNTERNAME`, and the `CUTSCENE:` line is
-     removed so Scene 7's cinematic does not fire.
-   - In `data/towns/leagues/orinskeep_leagues.tok`, those two entries carry the test
-     encounter's `TEAMS` line (e.g. `2 2 3 0 0`) so the second player unit is not dropped.
+   `IEncountersApi.ReplaceWith(arenaPath, tutorialPath, "Scene04U", stripCutscene: true)` — the
+   source fight is copied in, the destination keeps its own `ENCOUNTERNAME`, and the source's
+   `CUTSCENE` is dropped so the wrong cinematic cannot fire.
+   **Do not repoint the league's `ENCFILE` for these.** Story battles are started by the compiled
+   game-flow script (`gameflow*.scp`) by encounter *name*; the engine resolves that name by scanning
+   `data/encounters` for a matching `ENCOUNTERNAME`, so `towns/leagues/*.tok` only drives the league
+   menu. A league `ENCFILE` edit on a story bout is silently inert — confirmed in game.
+
 4. Give the hero room to experiment: `CORESTATSCOMP2` in the school file is
    **`CON, PWR, ACC, DEF, INI, MOVE`** (the comment in the file says `INT`; the value is
    initiative). A large CON/INI lets turns be passed while arranging units.
