@@ -195,7 +195,6 @@ namespace ModdingGUI.Core.Grids
         {
             if (value == 0) return "(empty)";
             var tagStringsInCell = new List<string>();
-            bool unknownBitsPresent = false;
 
             for (int i = 0; i < NumSlots; i++) // Check bits 0-29
             {
@@ -217,7 +216,6 @@ namespace ModdingGUI.Core.Grids
                     {
                         // Bit 'i' is set, but the slot 'i' is NOT active (e.g., "E" prefix in file or no tag defined for it)
                         tagStringsInCell.Add($"Bit {i} (Inactive Slot)");
-                        unknownBitsPresent = true;
                     }
                 }
             }
@@ -227,7 +225,6 @@ namespace ModdingGUI.Core.Grids
             if ((value & higherBitsMask) != 0)
             {
                 tagStringsInCell.Add($"Other Flags (0x{(value & higherBitsMask):X})");
-                unknownBitsPresent = true;
             }
 
 
