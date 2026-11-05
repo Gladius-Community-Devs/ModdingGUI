@@ -2,6 +2,7 @@ namespace ModdingGUI.Core.Randomizer;
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using ModdingGUI.Core.Api;
 using ModdingGUI.Core.Logging;
@@ -83,12 +84,23 @@ public sealed record RandomizerResult(string Seed, IReadOnlyList<string> Steps, 
 public sealed class RandomizerService
 {
     private readonly IGladiatorsApi _gladiators;
+    private readonly IStatSetsApi _statSets;
+    private readonly IItemSetsApi _itemSets;
+    private readonly ISkillSetsApi _skillSets;
     private readonly IAppLog? _log;
 
     /// <summary>Create the service; every dependency is injectable for tests.</summary>
-    public RandomizerService(IGladiatorsApi? gladiators = null, IAppLog? log = null)
+    public RandomizerService(
+        IGladiatorsApi? gladiators = null,
+        IStatSetsApi? statSets = null,
+        IItemSetsApi? itemSets = null,
+        ISkillSetsApi? skillSets = null,
+        IAppLog? log = null)
     {
         _gladiators = gladiators ?? new GladiatorsApi();
+        _statSets = statSets ?? new StatSetsApi();
+        _itemSets = itemSets ?? new ItemSetsApi();
+        _skillSets = skillSets ?? new SkillSetsApi();
         _log = log;
     }
 
@@ -129,7 +141,14 @@ public sealed class RandomizerService
             steps.Add("itemsets");
             _log?.Write(LogLevel.Success, $"Item sets reassigned: {regeared} changed.", "randomizer");
         }
-        if (options.RandomizeTeam) steps.Add("team (not yet implemented)");
+        if (options.RandomizeTeam)
+        {
+            int team = RandomizeTeam(projectRoot, options, random);
+            changed += team;
+            steps.Add("team");
+            _log?.Write(LogLevel.Success, $"Team units appended: {team}.", "randomizer");
+        }
+
         if (options.RemoveRecruits) steps.Add("recruits (not yet implemented)");
 
         _log?.Write(LogLevel.Info, $"Randomizer run finished: {changed} record(s) changed.", "randomizer");
@@ -163,6 +182,151 @@ public sealed class RandomizerService
         }
 
         return patches.Count == 0 ? 0 : _gladiators.ApplyMany(projectRoot, patches);
+    }
+
+    /// <summary>The campaign rosters the team step appends to, matching the old randomizer.</summary>
+    private static readonly string[] CampaignRosters =
+    {
+        "data/school/valensimperia.tok",
+        "data/school/ursulanordagh.tok",
+    };
+
+    /// <summary>
+    /// Build a randomized starting roster and append it to both campaign files, copying the old
+    /// <c>RandomizeTeam</c>: names are <c>&lt;gladiator&gt;_random</c>, the class pool is every class that has a
+    /// gladiator record, and each block carries that class's stat, item and skill set contents.
+    /// </summary>
+    /// <remarks>
+    /// With <see cref="RandomizerOptions.WeightedClasses"/> the selection takes one of each base class first and
+    /// only then duplicates from what was already picked, so a team is varied before it repeats.
+    /// </remarks>
+    private int RandomizeTeam(string projectRoot, RandomizerOptions options, RandomizerRandom random)
+    {
+        int teamSize = options.FortyGladiators ? 34 : 14;
+
+        var records = _gladiators.GetAll(projectRoot);
+        if (records.Count < teamSize) return 0;
+
+        var classes = records
+            .Select(dto => dto.Class)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(c => c, StringComparer.Ordinal)
+            .ToList();
+
+        if (classes.Count == 0) return 0;
+
+        var memberNames = random.Shuffled(records.Select(dto => dto.Name))
+            .Take(teamSize)
+            .Select(name => name + "_random")
+            .ToList();
+
+        List<string> chosenClasses = options.WeightedClasses
+            ? WeightedClasses(classes, teamSize, random)
+            : Enumerable.Range(0, teamSize).Select(_ => random.Pick(classes)).ToList();
+
+        var units = new List<SchoolUnitDto>(teamSize);
+        for (int i = 0; i < teamSize; i++)
+        {
+            string className = chosenClasses[i];
+            var source = random.Pick(records.Where(dto => dto.Class == className).ToList());
+            units.Add(BuildTeamUnit(memberNames[i], className, source, projectRoot));
+        }
+
+        var schools = new SchoolsApi();
+        int added = 0;
+        foreach (string roster in CampaignRosters)
+        {
+            added += schools.AddUnits(projectRoot, roster, units);
+        }
+
+        return added;
+    }
+
+    /// <summary>One <c>CREATEUNIT</c> block built from the class's shipped sets.</summary>
+    private SchoolUnitDto BuildTeamUnit(
+        string name, string className, GladiatorDto source, string projectRoot)
+    {
+        var statRow = _statSets.Get(projectRoot, source.StatSet)?.Row(1);
+        string stats = statRow is null
+            ? "0, 0, 0, 0, 0"
+            : string.Create(CultureInfo.InvariantCulture,
+                $"{statRow.Con}, {statRow.Pow}, {statRow.Acc}, {statRow.Def}, {statRow.IniMov}");
+
+        // ITEMSCOMP is exactly five slots (weapon, armor, shield, helmet, accessory). An item set lists level
+        // windows per slot, so take the row that covers level 1 - writing every row would malform the block.
+        var rows = _itemSets.Get(projectRoot, source.ItemSet)?.Rows ?? Array.Empty<ItemSetRow>();
+        var items = new List<string>(5);
+        foreach (string slot in new[] { "Weapon", "Armor", "Shield", "Helmet", "Accessory" })
+        {
+            var candidates = rows
+                .Where(row => row.Note is not null
+                              && row.Note.Contains(slot, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+
+            var chosen = candidates.FirstOrDefault(row => row.MinLevel <= 1 && row.MaxLevel >= 1)
+                         ?? candidates.FirstOrDefault();
+
+            items.Add(chosen?.ItemName ?? string.Empty);
+        }
+
+        string itemList = string.Join(", ", items.Select(item => $"\"{item}\""));
+
+        var skills = _skillSets.Get(projectRoot, source.SkillSet)?.Rows
+            .Select(row => row.SkillName)
+            .Where(skill => !string.IsNullOrWhiteSpace(skill))
+            .ToArray() ?? Array.Empty<string>();
+
+        var fields = new List<SchoolFieldDto>
+        {
+            new("LEVEL", "1"),
+            new("EXPERIENCE", "0"),
+            new("JOBPOINTS", "8"),
+            new("CUSTOMIZE", "0, \"\""),
+            new("CORESTATSCOMP2", stats),
+            new("ITEMSCOMP", itemList),
+        };
+
+        foreach (string skill in skills) fields.Add(new SchoolFieldDto("SKILL", $"\"{skill}\""));
+
+        return new SchoolUnitDto { Name = name, ClassName = className, Fields = fields };
+    }
+
+    /// <summary>
+    /// Pick classes with diversity first: one of each base class (variants such as <c>BanditAF</c> and
+    /// <c>BanditA</c> collapse to <c>BanditA</c>'s base), then pad by repeating already-selected classes.
+    /// </summary>
+    private static List<string> WeightedClasses(IReadOnlyList<string> classes, int teamSize, RandomizerRandom random)
+    {
+        var available = random.Shuffled(classes);
+        var selected = new List<string>();
+
+        foreach (string candidate in available)
+        {
+            if (selected.Count >= teamSize) break;
+            if (!selected.Any(chosen => BaseClass(chosen) == BaseClass(candidate))) selected.Add(candidate);
+        }
+
+        while (selected.Count < teamSize) selected.Add(selected[random.NextInt(0, selected.Count)]);
+
+        random.Shuffle(selected);
+        return selected;
+    }
+
+    /// <summary>Strip the gender and regional variant suffixes the class list uses.</summary>
+    internal static string BaseClass(string className)
+    {
+        string result = className;
+        if (result.EndsWith("F", StringComparison.Ordinal) && result.Length > 1) result = result[..^1];
+        foreach (string suffix in new[] { "Imp", "Nor", "Ste", "Exp" })
+        {
+            if (result.EndsWith(suffix, StringComparison.Ordinal) && result.Length > suffix.Length)
+            {
+                result = result[..^suffix.Length];
+                break;
+            }
+        }
+        return result;
     }
 
     /// <summary>

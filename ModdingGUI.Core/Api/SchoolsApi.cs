@@ -117,6 +117,12 @@ public interface ISchoolsApi
     /// <summary>Add one granted skill to a unit.</summary>
     void AddUnitSkill(string projectPath, string relativePath, string unitName, string skill);
 
+    /// <summary>
+    /// Append new unit blocks to a roster (the randomizer builds a team this way). One read, one write, one
+    /// backup for the whole batch; returns how many blocks were added. The unit name must not already exist.
+    /// </summary>
+    int AddUnits(string projectPath, string relativePath, IReadOnlyList<SchoolUnitDto> units);
+
     /// <summary>Advisory checks against the generated schools catalog.</summary>
     IReadOnlyList<SchoolValidationIssue> Validate(string projectPath, string relativePath);
 }
@@ -231,6 +237,48 @@ public sealed class SchoolsApi : ISchoolsApi
             lines.InsertRange(Math.Clamp(insertAt, 0, lines.Count), replacement);
             return true;
         });
+    }
+
+    /// <inheritdoc />
+    public int AddUnits(string projectPath, string relativePath, IReadOnlyList<SchoolUnitDto> units)
+    {
+        ArgumentNullException.ThrowIfNull(units);
+        if (units.Count == 0) return 0;
+
+        int added = 0;
+        Edit(projectPath, relativePath, lines =>
+        {
+            var existing = UnitBlocks(lines)
+                .Select(block => block.Name)
+                .ToHashSet(StringComparer.Ordinal);
+
+            foreach (var unit in units)
+            {
+                if (unit is null) continue;
+                if (string.IsNullOrWhiteSpace(unit.Name) || string.IsNullOrWhiteSpace(unit.ClassName)) continue;
+                if (!existing.Add(unit.Name)) continue;
+
+                // Append after any trailing blank line so blocks stay separated the way vanilla writes them.
+                int at = lines.Count;
+                while (at > 0 && string.IsNullOrWhiteSpace(lines[at - 1])) at--;
+
+                lines.Insert(at, $"CREATEUNIT: \"{unit.Name}\", \"{unit.ClassName}\"    // Name, class");
+
+                int cursor = at + 1;
+                foreach (var field in unit.Fields)
+                {
+                    if (string.IsNullOrWhiteSpace(field.Key)) continue;
+                    lines.Insert(cursor++, $"\t{field.Key}: {field.RawValue}");
+                }
+
+                lines.Insert(cursor, string.Empty);
+                added++;
+            }
+
+            return added > 0;
+        });
+
+        return added;
     }
 
     /// <inheritdoc />

@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 537 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (521 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 544 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (528 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -431,6 +431,12 @@ support: `classdefs.tok` maps a class only to `SKILLUSENAME` (animations), never
 so choosing those independently would be invention. A bundle copied from another gladiator is a loadout the
 designers actually shipped. Name and school are never part of the bundle — the hero keeps its identity and
 the school that puts it in a roster. Vanilla offers 1,743 distinct bundles across 2,170 records.
+
+**Team step: append a roster to both campaign files.** Copied from the old `RandomizeTeam`: 14 members (34 with
+`FortyGladiators`), named `<gladiator>_random`, appended to `data/school/valensimperia.tok` and
+`data/school/ursulanordagh.tok`. Each block carries the class's level-1 stat row, the level-1 row of each of the
+five equipment slots, and the class's granted skills — a set lists level windows per slot, so writing every row
+would malform `ITEMSCOMP`. `WeightedClasses` takes one of each base class before repeating one.
 
 **Slices:**
 
