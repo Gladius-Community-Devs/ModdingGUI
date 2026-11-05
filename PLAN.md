@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 528 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (512 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 537 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (521 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -418,10 +418,12 @@ record — hero records included — and nothing filters them out.
 `statSets[random.Next(statSets.Count)]` per gladiator): only the index in `gladiators.txt` changes, the tables
 themselves are untouched, and heroes are restatted like everyone else.
 
-**Item sets: affinity-matched, as the old code did.** `RandomizeItemsets` was not a uniform pick — it worked out
-which affinity each itemset's weapons grant, pooled the sets by affinity, and gave each gladiator a set from
-the pool matching its own `Affinity`. That matters because the equipped weapon is what lets a unit use affinity
-skills, which is the same reason a change to the `Affinity` field alone looks inert in game.
+**Item sets: affinity-matched, as the old code did** — implemented. `RandomizeItemsets` was not a uniform
+pick: it read which affinity each itemset's last weapon grants from `items.tok`, pooled the sets by affinity,
+and gave each gladiator a set from its own affinity's pool plus the universal **Light** pool (a unit with no
+affinity may take anything). That matters because the equipped weapon is what lets a unit use affinity skills,
+which is why changing the `Affinity` field alone looks inert in game. `ItemSetAffinityMap` reproduces the
+mapping: vanilla has 404 sets, and a Fire unit may only draw Fire or Light sets.
 
 **Loadouts are swapped as bundles, not field by field.** A gladiator's class, outfit, affinity, tint, skill,
 stat and item sets are taken together from a **real record**, and that is the cross-reference the files

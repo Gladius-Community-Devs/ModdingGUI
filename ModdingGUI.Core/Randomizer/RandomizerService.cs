@@ -122,7 +122,13 @@ public sealed class RandomizerService
             _log?.Write(LogLevel.Success, $"Stat sets reassigned: {restatted} changed.", "randomizer");
         }
 
-        if (options.RandomizeItemsets) steps.Add("itemsets (not yet implemented)");
+        if (options.RandomizeItemsets)
+        {
+            int regeared = RandomizeItemSetAssignments(projectRoot, random);
+            changed += regeared;
+            steps.Add("itemsets");
+            _log?.Write(LogLevel.Success, $"Item sets reassigned: {regeared} changed.", "randomizer");
+        }
         if (options.RandomizeTeam) steps.Add("team (not yet implemented)");
         if (options.RemoveRecruits) steps.Add("recruits (not yet implemented)");
 
@@ -154,6 +160,35 @@ public sealed class RandomizerService
             if (next == dto.StatSet) continue;
 
             patches.Add((dto.Name, new GladiatorPatch { StatSet = next }));
+        }
+
+        return patches.Count == 0 ? 0 : _gladiators.ApplyMany(projectRoot, patches);
+    }
+
+    /// <summary>
+    /// Give each gladiator an item set whose weapons grant its own affinity, which is what the old
+    /// <c>RandomizeItemsets</c> did: a Fire unit needs Fire-affinity gear (or the universal Light pool) or it
+    /// cannot use its affinity skills.
+    /// </summary>
+    private int RandomizeItemSetAssignments(string projectRoot, RandomizerRandom random)
+    {
+        var map = ItemSetAffinityMap.Build(projectRoot);
+        if (map.Count == 0)
+        {
+            _log?.Write(LogLevel.Warning, "No item sets found; skipping the itemset step.", "randomizer");
+            return 0;
+        }
+
+        var patches = new List<(string Name, GladiatorPatch Patch)>();
+        foreach (var dto in _gladiators.GetAll(projectRoot))
+        {
+            var candidates = map.CandidatesFor(dto.Affinity);
+            if (candidates.Count == 0) continue;
+
+            int next = random.Pick(candidates);
+            if (next == dto.ItemSet) continue;
+
+            patches.Add((dto.Name, new GladiatorPatch { ItemSet = next }));
         }
 
         return patches.Count == 0 ? 0 : _gladiators.ApplyMany(projectRoot, patches);

@@ -30,6 +30,12 @@ public interface IItemSetsApi
     /// <summary>One set, or null when the index does not exist.</summary>
     ItemSetDto? Get(string projectRoot, int index);
 
+    /// <summary>
+    /// Every set in one pass. Use this instead of calling <see cref="Get"/> in a loop: each call re-reads and
+    /// re-parses the whole file (404 sets in vanilla).
+    /// </summary>
+    IReadOnlyList<ItemSetDto> GetAll(string projectRoot);
+
     /// <summary>Replace one row by position.</summary>
     void SetRow(string projectRoot, int index, int ordinal, ItemSetRow row);
 
@@ -71,6 +77,17 @@ public sealed class ItemSetsApi : IItemSetsApi
 
     /// <inheritdoc />
     public ItemSetDto? Get(string projectRoot, int index) => ToDto(Load(projectRoot), index);
+
+    /// <inheritdoc />
+    public IReadOnlyList<ItemSetDto> GetAll(string projectRoot)
+    {
+        var file = Load(projectRoot);
+        return file.Indexes
+            .Select(index => ToDto(file, index))
+            .Where(dto => dto is not null)
+            .Select(dto => dto!)
+            .ToArray();
+    }
 
     /// <inheritdoc />
     public void SetRow(string projectRoot, int index, int ordinal, ItemSetRow row)
