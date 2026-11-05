@@ -239,6 +239,16 @@ that, all 834 vanilla encounters validate clean.
 
 Manual QA plan: `MANUAL_TESTING_PHASE_4.md` at the workspace root.
 
+**Manual QA, confirmed in the app.** Grid Builder: legacy (version-1) maps list their real tags and
+paint regions; a save overwrites the file, writes a `.mod-history` backup and reports its path; a
+second save without edits leaves the bytes untouched; a version-2 map round-trips byte for byte.
+Skill Editor: field help shows a one-line summary with the full derivation behind "Full details".
+Item Editor: an item edit saved and was confirmed in game. Two defects surfaced during this QA and are
+fixed: the Grid Builder save resolved the project from the edited file's own path (producing
+"Cannot create ... because a file or directory with the same name already exists"), and the form's
+`.resx` had lost the window icon and a help string while the designer kept regenerating it with the
+ResX template (see the build notes in `AGENTS.md`).
+
 **Status: done.** All four families landed; `ITownsApi` folded into `IConfigTableApi`.
 
 - **Done — `IEncountersApi`** over `.enc`: an encounter is a header section plus `TEAM:`
@@ -302,10 +312,45 @@ Expose the `.mod-history` archive as a first-class feature.
 
 **Exit:** user can browse and restore any prior backup from within the GUI; restoring is itself undoable (creates a new `.bak` of the pre-restore state).
 
+### Phase 7.8 — Output and log sink (prerequisite for Phase 8)
+
+Today every user-visible message goes into a WinForms control: **267 `AppendLog(` call sites** across
+12 shell files funnel into `rtbUnpackOutput` / `rtbPackOutput` / `rtbItemEditor` /
+`rtbPatchingApplicationOutput`, and the Grid Builder has a second private logger writing to its own
+box. `ModdingGUI.Core` has no logging abstraction at all. Consequences:
+
+- an MCP client (headless, Phase 8) can see **none** of it — not validation notes, not pack/unpack
+  output, not why a run failed;
+- pack/unpack is a shell-owned batch runner whose child-process stdout only ever reaches a RichTextBox,
+  so nothing outside the GUI can report a packing failure;
+- nothing to assert on in tests (log content is invisible to the suite).
+
+**Deliverable: `IAppLog` in Core.**
+
+- `LogLevel` (Debug/Info/Success/Warning/Error), `LogEntry(At, Level, Source, Message, Detail)`.
+- `IAppLog.Write`, `Tail(count)`, `Clear`, `Scope(source)` (an idisposable tag so a view or tool owns
+  its lines), and a `Written` event the GUI renders and MCP streams.
+- Ring buffer in memory plus an optional file sink (`%LOCALAPPDATA%/GladiusModding/last-run.log`) so a
+  headless run leaves evidence.
+- The shell's existing `AppendLog(message, color, targetRtb)` becomes a **thin adapter**: it forwards
+  to `IAppLog` and then renders. All 267 call sites keep working unchanged — the migration is one
+  method, not a sweep. The Grid Builder's private logger forwards the same way.
+- Pack/unpack/script-compile move behind Core services (`PackService`/`UnpackService`) that emit
+  `LogEntry`s from the child processes, so the GUI and MCP see identical output.
+
+**Why it sits here.** Phase 6 (randomizer) needs progress reporting that works without a form, and
+Phase 8 cannot expose output that does not exist as data. One adapter now, versus a 267-site sweep
+plus a second bridge later. No behaviour changes: the GUI looks the same; it just stops being the only
+place the text exists.
+
+**MCP surface (Phase 8).** `logs_tail(count, level?)`, `logs_clear`, `logs_subscribe` (streams lines
+over stdio); every write tool's result envelope carries `warnings[]` and the log range it produced, so
+an AI reads validation output structurally instead of scraping text.
+
 ### Phase 8 — `ModdingGUI.Mcp` stdio server
 Thin tools-over-stdio bridge. One tool per Core method.
 
-- Tool families: `items_*`, `skills_*`, `lookup_*`, `classes_*`, `encounters_*`, `leagues_*`, `schools_*`, `grids_*`, `gladiators_*`, `statsets_*`, `itemsets_*`, `skillsets_*`, `shops_*` (when built), `randomizer_*`, `project_*`.
+- Tool families: `items_*`, `skills_*`, `lookup_*`, `classes_*`, `encounters_*`, `leagues_*`, `schools_*`, `grids_*`, `gladiators_*`, `statsets_*`, `itemsets_*`, `skillsets_*`, `shops_*` (when built), `randomizer_*`, `project_*`, and `logs_*` over `IAppLog` (Phase 7.8).
 - All write tools accept `strict: bool = false`. `false` = `WarnInLog`/`None` (matches GUI). `true` = `RejectOnError`.
 - `skills_catalog_describe_field(fieldName)` returns slot types, enums, notes — so AIs can construct valid `SkillDto`s without guessing.
 - Trust model: stdio only, no network, no auth beyond OS process trust.
@@ -394,7 +439,12 @@ fields accumulate rather than overwrite; there are exactly two status slots and 
 15. **Field help is a summary plus a toggle.** One line in the form (first sentence, ≤ 140 chars) with
     the derivation behind "Full details". The methodology of how a value is resolved is developer
     knowledge; a modder choosing a value needs the gist.
-16. **A rule that vanilla violates is suspect.** `start-slot-overflow` was first written as "duplicate
+16. **Output is data, not UI.** Anything the user needs to see (progress, validation, child-process
+    output, failures) is written through `IAppLog` in Core and rendered by the shell; a RichTextBox is a
+    consumer, never the store. This is what lets the same run be observed by the GUI, by tests, and by
+    an MCP client, and it is why pack/unpack must move behind Core services rather than staying a
+    shell-owned batch runner.
+17. **A rule that vanilla violates is suspect.** `start-slot-overflow` was first written as "duplicate
     start slot = warning" and flagged 4 working encounters; investigating those is what produced the
     region semantics and the summon exception. Before pinning a rule, check the corpus for false
     positives and explain every one.
