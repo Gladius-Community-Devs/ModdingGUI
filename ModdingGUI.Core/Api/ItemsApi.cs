@@ -139,6 +139,9 @@ public sealed class ItemsApi : IItemsApi
 
     private (TokDocument doc, RecordSet<Item> set) Open(string projectPath)
     {
+        // Accept a project root or its _BEC folder, like every other API (ProjectRoots is file-aware and
+        // returns a _BEC path unchanged).
+        projectPath = ProjectRoots.ResolveBecFolder(projectPath);
         string path = Path.Combine(projectPath, RelativePath.Replace('/', Path.DirectorySeparatorChar));
         if (!File.Exists(path))
             throw new FileNotFoundException("items.tok not found.", path);
@@ -150,6 +153,7 @@ public sealed class ItemsApi : IItemsApi
 
     private static void WriteBack(string projectPath, TokDocument doc)
     {
+        projectPath = ProjectRoots.ResolveBecFolder(projectPath);
         string path = Path.Combine(projectPath, RelativePath.Replace('/', Path.DirectorySeparatorChar));
         ChangeHistoryService.Backup(projectPath, path);
         byte[] output = TokWriter.Write(doc);

@@ -115,6 +115,13 @@ public interface ILeaguesApi
     /// <summary>Replace a file-level field (<c>OFFICENAME</c>, <c>OFFICER</c>, …).</summary>
     void SetHeaderField(string projectPath, string relativePath, string key, string rawValue);
 
+    /// <summary>
+    /// Remove every <c>RECRUIT</c> line from every league file, which is how the randomizer's "no recruits"
+    /// option empties the recruiting pool. Each changed file is written once, with its own backup; returns the
+    /// number of files changed.
+    /// </summary>
+    int RemoveRecruits(string projectPath);
+
     /// <summary>Replace a league-level field (<c>LEAGUEDESC</c>, <c>LEAGUEPTS</c>, <c>HERO</c>, …).</summary>
     void SetLeagueField(string projectPath, string relativePath, string leagueName, string key, string rawValue);
 
@@ -196,6 +203,31 @@ public sealed class LeaguesApi : ILeaguesApi
             for (int i = matches.Count - 1; i >= 1; i--) lines.RemoveAt(matches[i]);
             return true;
         });
+
+    /// <inheritdoc />
+    public int RemoveRecruits(string projectPath)
+    {
+        string bec = ProjectRoots.ResolveBecFolder(projectPath);
+        var files = ListFiles(bec);
+        int changed = 0;
+
+        foreach (string relativePath in files)
+        {
+            bool modified = false;
+            Edit(bec, relativePath, lines =>
+            {
+                int removed = lines.RemoveAll(line =>
+                    line.TrimStart().StartsWith("RECRUIT", StringComparison.OrdinalIgnoreCase));
+
+                modified = removed > 0;
+                return modified;
+            });
+
+            if (modified) changed++;
+        }
+
+        return changed;
+    }
 
     /// <inheritdoc />
     public void SetLeagueField(

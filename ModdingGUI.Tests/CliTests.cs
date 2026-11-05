@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using ModdingGUI;
 using Xunit;
+using ModdingGUI.Core.Tools;
 
 namespace ModdingGUI.Tests;
 

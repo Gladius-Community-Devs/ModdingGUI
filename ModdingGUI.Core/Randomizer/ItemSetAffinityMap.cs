@@ -48,8 +48,12 @@ public sealed class ItemSetAffinityMap
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(projectRoot);
 
+        // ItemsApi addresses data/config/items.tok directly, so hand it the _BEC folder rather than the project
+        // root the caller passes to the rest of the API surface.
+        string bec = ProjectRoots.ResolveBecFolder(projectRoot);
+
         var weaponAffinity = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var item in (items ?? new ItemsApi()).GetAll(projectRoot))
+        foreach (var item in (items ?? new ItemsApi()).GetAll(bec))
         {
             if (!string.Equals(item.Type, "Weapon", StringComparison.OrdinalIgnoreCase)) continue;
             if (item.Affinity is not var (element, _)) continue;
@@ -62,7 +66,7 @@ public sealed class ItemSetAffinityMap
         var pools = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
         var all = new List<int>();
 
-        foreach (var set in (itemSets ?? new ItemSetsApi()).GetAll(projectRoot))
+        foreach (var set in (itemSets ?? new ItemSetsApi()).GetAll(bec))
         {
             all.Add(set.Index);
 

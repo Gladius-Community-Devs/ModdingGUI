@@ -87,6 +87,7 @@ public sealed class RandomizerService
     private readonly IStatSetsApi _statSets;
     private readonly IItemSetsApi _itemSets;
     private readonly ISkillSetsApi _skillSets;
+    private readonly ILeaguesApi _leagues;
     private readonly IAppLog? _log;
 
     /// <summary>Create the service; every dependency is injectable for tests.</summary>
@@ -95,12 +96,14 @@ public sealed class RandomizerService
         IStatSetsApi? statSets = null,
         IItemSetsApi? itemSets = null,
         ISkillSetsApi? skillSets = null,
+        ILeaguesApi? leagues = null,
         IAppLog? log = null)
     {
         _gladiators = gladiators ?? new GladiatorsApi();
         _statSets = statSets ?? new StatSetsApi();
         _itemSets = itemSets ?? new ItemSetsApi();
         _skillSets = skillSets ?? new SkillSetsApi();
+        _leagues = leagues ?? new LeaguesApi();
         _log = log;
     }
 
@@ -120,7 +123,7 @@ public sealed class RandomizerService
 
         if (options.RandomizeHeroes)
         {
-            int heroes = RandomizeHeroes(projectRoot, random);
+            int heroes = RandomizeHeroes(projectRoot, random, options.Version);
             changed += heroes;
             steps.Add("heroes");
             _log?.Write(LogLevel.Success, $"Hero loadouts reassigned: {heroes} changed.", "randomizer");
@@ -149,7 +152,14 @@ public sealed class RandomizerService
             _log?.Write(LogLevel.Success, $"Team units appended: {team}.", "randomizer");
         }
 
-        if (options.RemoveRecruits) steps.Add("recruits (not yet implemented)");
+        if (options.RemoveRecruits)
+        {
+            int files = _leagues.RemoveRecruits(projectRoot);
+            changed += files;
+            steps.Add("recruits");
+            _log?.Write(LogLevel.Success, $"Recruit lines removed from {files} league file(s).", "randomizer");
+        }
+
 
         _log?.Write(LogLevel.Info, $"Randomizer run finished: {changed} record(s) changed.", "randomizer");
         return new RandomizerResult(random.SeedText, steps, changed);
@@ -207,9 +217,11 @@ public sealed class RandomizerService
         var records = _gladiators.GetAll(projectRoot);
         if (records.Count < teamSize) return 0;
 
+        var blacklist = ClassEligibility.BlacklistFor(options.Version);
         var classes = records
             .Select(dto => dto.Class)
             .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Where(c => ClassEligibility.IsEligible(c, options.Version, blacklist))
             .Distinct(StringComparer.Ordinal)
             .OrderBy(c => c, StringComparer.Ordinal)
             .ToList();
@@ -363,13 +375,18 @@ public sealed class RandomizerService
     /// school; the bundle keeps the class consistent with its stats, skills and gear because it came from a
     /// real record.
     /// </summary>
-    private int RandomizeHeroes(string projectRoot, RandomizerRandom random)
+    private int RandomizeHeroes(string projectRoot, RandomizerRandom random, GameVersion version)
     {
         var records = _gladiators.GetAll(projectRoot);
 
-        // The pool is every record: a hero may take any shipped loadout, including another hero's class
-        // (harmless in game as long as the scripts are recompiled, and the user asked for it).
-        var pool = records.Select(GladiatorLoadout.From).ToList();
+        // The pool is every record except the classes this game version does not let a player use (bosses and
+        // summon creatures). Hero classes are deliberately included: a unit may wear one as long as the scripts
+        // are recompiled, which the build step does.
+        var blacklist = ClassEligibility.BlacklistFor(version);
+        var pool = records
+            .Where(dto => ClassEligibility.IsEligible(dto.Class, version, blacklist))
+            .Select(GladiatorLoadout.From)
+            .ToList();
 
         if (pool.Count == 0) return 0;
 

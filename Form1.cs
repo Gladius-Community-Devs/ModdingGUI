@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ModdingGUI.Models;
+using ModdingGUI.Core.Tools;
 
 namespace ModdingGUI
 {

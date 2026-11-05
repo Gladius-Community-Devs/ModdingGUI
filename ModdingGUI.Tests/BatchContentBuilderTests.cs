@@ -1,5 +1,6 @@
 using ModdingGUI;
 using Xunit;
+using ModdingGUI.Core.Tools;
 
 namespace ModdingGUI.Tests;
 

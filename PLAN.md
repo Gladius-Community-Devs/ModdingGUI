@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 544 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (528 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 557 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (541 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -437,6 +437,25 @@ the school that puts it in a roster. Vanilla offers 1,743 distinct bundles acros
 `data/school/ursulanordagh.tok`. Each block carries the class's level-1 stat row, the level-1 row of each of the
 five equipment slots, and the class's granted skills — a set lists level windows per slot, so writing every row
 would malform `ITEMSCOMP`. `WeightedClasses` takes one of each base class before repeating one.
+
+**Recruit removal** deletes every `RECRUIT` line from every league file (`ILeaguesApi.RemoveRecruits`), one write
+per changed file with its own backup — vanilla has 21 league files carrying recruit entries.
+
+**Build lives in Core.** `BatchContentBuilder` and `PathHelper` moved from the shell into
+`ModdingGUI.Core.Tools`, so `ProjectBuildService` can run the same chain the app runs: script compile through
+`DOGCodeCompiler.exe`, then pack through `bec-tool-all.py` and `ngciso-tool.py`. Output streams into `IAppLog`
+as it arrives, because a pack takes minutes and silence looks like a hang. `RandomizerRunner` composes the two
+(randomize → compile → pack), which is the single entry point the GUI, the CLI and the MCP server all use.
+
+**A CLI verb makes it QA-able.** `ModdingGUI --randomize <project> --seed <text> [steps] [--pack]` runs the
+pipeline headlessly and prints the seed, the steps and the record count. Adding it exposed a real API
+inconsistency: `ItemsApi` was the only API that did not resolve a project root to its `_BEC` folder, so the
+item-set step failed with "items.tok not found" on a project path. It now resolves like the rest.
+
+**Reproducibility is verified, not assumed.** Running the full pipeline (heroes, statsets, itemsets, team,
+recruits) twice with seed `alpha` on a fresh project produces byte-identical `gladiators.txt` and both campaign
+rosters; seed `beta` changes them. The league files hash the same across seeds, as they should: recruit removal
+is seed-independent.
 
 **Slices:**
 
