@@ -104,8 +104,9 @@ public sealed class RandomizerRosterHeroTests : IDisposable
             Assert.Equal("1", block.Value("LEVEL"));
             Assert.NotNull(block.Value("CUSTOMIZE"));
 
-            // Skills come from the new skill set.
+            // Skills come from the new skill set, filtered to what level 1 may actually learn.
             var expected = new SkillSetsApi().Get(_bec, table.SkillSet)!.Rows
+                .Where(r => r.MinLevel <= 1 && 1 <= r.MaxLevel)
                 .Select(r => r.SkillName)
                 .Where(n => !string.IsNullOrWhiteSpace(n))
                 .ToArray();

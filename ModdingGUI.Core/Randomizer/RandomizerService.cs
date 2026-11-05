@@ -191,8 +191,10 @@ public sealed class RandomizerService
                     BuildStatLine(projectRoot, loadout.StatSet));
                 schools.SetUnitField(projectRoot, roster, unit.Name, "ITEMSCOMP",
                     BuildItemLine(projectRoot, loadout.ItemSet));
+                int level = int.TryParse(unit.Value("LEVEL"), NumberStyles.Integer,
+                    CultureInfo.InvariantCulture, out int parsed) ? parsed : 1;
                 schools.SetUnitSkills(projectRoot, roster, unit.Name,
-                    SkillNames(projectRoot, loadout.SkillSet));
+                    SkillNames(projectRoot, loadout.SkillSet, level));
                 changed++;
             }
         }
@@ -238,9 +240,13 @@ public sealed class RandomizerService
         return string.Join(", ", items.Select(item => $"\"{item}\""));
     }
 
-    /// <summary>The skills a skill set grants.</summary>
-    private IReadOnlyList<string> SkillNames(string projectRoot, int skillSet) =>
+    /// <summary>
+    /// The skills a set grants a unit of the given level. A skill set is a list of level windows, so granting
+    /// every row would hand a level-1 hero Combo IV and every shape-shift tier; the old code did exactly that.
+    /// </summary>
+    private IReadOnlyList<string> SkillNames(string projectRoot, int skillSet, int level) =>
         _skillSets.Get(projectRoot, skillSet)?.Rows
+            .Where(row => row.MinLevel <= level && level <= row.MaxLevel)
             .Select(row => row.SkillName)
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .ToArray() ?? Array.Empty<string>();
@@ -386,10 +392,8 @@ public sealed class RandomizerService
 
         string itemList = string.Join(", ", items.Select(item => $"\"{item}\""));
 
-        var skills = _skillSets.Get(projectRoot, source.SkillSet)?.Rows
-            .Select(row => row.SkillName)
-            .Where(skill => !string.IsNullOrWhiteSpace(skill))
-            .ToArray() ?? Array.Empty<string>();
+        // Team members are created at level 1, so only the skills a level-1 unit may actually learn are granted.
+        var skills = SkillNames(projectRoot, source.SkillSet, 1);
 
         var fields = new List<SchoolFieldDto>
         {
