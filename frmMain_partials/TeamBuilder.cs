@@ -1442,7 +1442,11 @@ namespace ModdingGUI
             {
                 if (!string.IsNullOrEmpty(projectPath) && Directory.Exists(projectPath))
                 {
-                    itemSets = ParseItemSets(projectPath);
+                    // One pass over the item sets, then index -> item names, which is what the builder wants.
+                    itemSets = new ModdingGUI.Core.Api.ItemSetsApi().GetAll(projectPath)
+                        .ToDictionary(
+                            set => set.Index,
+                            set => set.Rows.Select(row => row.ItemName).ToList());
                     AppendLog($"Loaded {itemSets.Count} item sets for class-based equipment assignment.", Color.Blue);
                 }
             }

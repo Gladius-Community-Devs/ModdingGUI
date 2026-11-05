@@ -77,20 +77,20 @@ public sealed record RandomizerOptions
     /// </summary>
     public bool RandomizeEnemies { get; init; }
 
+    /// <summary>
+    /// School name written to both rosters. Null keeps whatever the project already has; the panel exposes a text
+    /// box for it, so it has to travel with the options.
+    /// </summary>
+    public string? SchoolName { get; init; }
+
     /// <summary>Randomize the stat tables.</summary>
     public bool RandomizeStatsets { get; init; }
 
     /// <summary>Randomize the item tables.</summary>
     public bool RandomizeItemsets { get; init; }
 
-    /// <summary>Randomize the school name table as well.</summary>
-    public bool RandomizeSchools { get; init; }
-
     /// <summary>Apply the "no recruits" style toggles that the gecko codes provide.</summary>
     public bool PermaDeath { get; init; }
-
-    /// <summary>Apply the in-game randomization patches.</summary>
-    public bool InGameRandomization { get; init; }
 
     /// <summary>Enable the 40-gladiator option.</summary>
     public bool FortyGladiators { get; init; }
@@ -107,7 +107,6 @@ public sealed record RandomizerOptions
     /// <summary>True when nothing would be changed.</summary>
     public bool IsEmpty =>
         !RandomizeHeroes && !RandomizeTeam && !RemoveRecruits && !RandomizeStatsets && !PermaDeath
-        && !RandomizeItemsets && !RandomizeSchools && !InGameRandomization && !FortyGladiators
-        && !RandomizeEnemies
+        && !RandomizeItemsets && !FortyGladiators && !RandomizeEnemies
         && Cash == CashMode.Unchanged;
 }

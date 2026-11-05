@@ -77,6 +77,8 @@ public sealed class CliInvocation
           --itemsets       Give every gladiator an affinity-compatible item set
           --team           Append a randomized roster to both campaigns
           --recruits       Remove every RECRUIT line from the leagues
+          --enemies        Randomize enemy teams (Boss/Prop/DarkGod/AffinityBeastGreater prohibited)
+          --perma-death    Add the CANDIE: line the perma-death mode needs
           --forty          Use the 40-gladiator team size
           --weighted       Prefer class diversity for the team
           --hero-name <ursula|valens>
@@ -149,6 +151,14 @@ public sealed class CliInvocation
 
                 case "--recruits":
                     randomizer = (randomizer ?? new RandomizerOptions()) with { RemoveRecruits = true };
+                    break;
+
+                case "--enemies":
+                    randomizer = (randomizer ?? new RandomizerOptions()) with { RandomizeEnemies = true };
+                    break;
+
+                case "--perma-death":
+                    randomizer = (randomizer ?? new RandomizerOptions()) with { PermaDeath = true };
                     break;
 
                 case "--forty":

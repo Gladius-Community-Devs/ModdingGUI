@@ -221,7 +221,9 @@ public sealed class RandomizerService
             var existing = schools.Get(projectRoot, roster);
             if (existing is null) continue;
 
-            string name = string.IsNullOrWhiteSpace(existing.Name) ? "Gladius" : existing.Name;
+            string name = !string.IsNullOrWhiteSpace(options.SchoolName)
+                ? options.SchoolName!.Trim()
+                : string.IsNullOrWhiteSpace(existing.Name) ? "Gladius" : existing.Name;
 
             var units = new List<SchoolUnitDto>(StoryHeroes.Names.Length);
             foreach (string heroName in StoryHeroes.Names)

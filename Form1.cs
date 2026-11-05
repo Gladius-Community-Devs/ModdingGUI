@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using ModdingGUI.Models;
 using ModdingGUI.Core.Tools;
+using ModdingGUI.Core.Logging;
+using ModdingGUI.Core.Randomizer;
 
 namespace ModdingGUI
 {
@@ -546,225 +548,158 @@ namespace ModdingGUI
             }
         }
 
+        /// <summary>
+        /// Build <see cref="RandomizerOptions"/> from the panel. Every control here is a parameter for Core; the
+        /// shell itself no longer edits a single game file.
+        /// </summary>
+        private RandomizerOptions ReadRandomizerOptions()
+        {
+            var cash = CashMode.Unchanged;
+            int cashAmount = 15000;
+
+            if (chbRandomCustomCash.Checked)
+            {
+                if (txtRandomCustomCash.Text.Equals("RANDOM", StringComparison.OrdinalIgnoreCase))
+                {
+                    cash = CashMode.Random;
+                }
+                else if (int.TryParse(txtRandomCustomCash.Text, out int parsed) && parsed >= 0 && parsed <= 999999)
+                {
+                    cash = CashMode.Fixed;
+                    cashAmount = parsed;
+                }
+            }
+
+            return new RandomizerOptions
+            {
+                Seed = txtSeed.Text,
+                Hero = rbnValens.Checked ? HeroChoice.Valens : HeroChoice.Ursula,
+                Version = rbnRagnaroks.Checked
+                    ? GameVersion.Ragnaroks
+                    : rbnLeonarths.Checked ? GameVersion.Leonarths : GameVersion.Vanilla,
+                SchoolName = txtRandomCustomSchoolName.Text,
+                RandomizeHeroes = chbRandomHeroes.Checked,
+                RandomizeTeam = chbRandomTeam.Checked,
+                RemoveRecruits = chbRandomNoRecruits.Checked,
+                RandomizeStatsets = chbRandomStatsets.Checked,
+                RandomizeItemsets = chbRandomItemsets.Checked,
+                RandomizeEnemies = chbRandomizedEnemies.Checked,
+                PermaDeath = chbRandomPermaDeath.Checked,
+                FortyGladiators = chbRandom40Glads.Checked,
+                WeightedClasses = chbRandomWeighted.Checked,
+                Cash = cash,
+                CashAmount = cashAmount,
+            };
+        }
+
         private async void btnRandomize_Click(object sender, EventArgs e)
         {
-            // Disable the randomize button to prevent multiple clicks during processing
             btnRandomize.Enabled = false;
-
-            // Initialize the random number generator based on user input
-            InitializeRandom();
-
-            // Clear any existing log messages to start fresh
-            randomizerLogBuffer.Clear();
 
             try
             {
-                // Trim and validate the project folder path from user input
                 string projectFolder = txtRandomizerPath.Text.Trim();
                 if (string.IsNullOrEmpty(projectFolder) || !Directory.Exists(projectFolder))
                 {
-                    MessageBox.Show("Please select a valid project folder.", "Invalid Path", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Please select a valid project folder.", "Invalid Path",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     AppendLog("Invalid project folder selected.", WarningColor, rtbPackOutput);
                     return;
                 }
 
-                // Save the current randomizer settings before proceeding
                 SaveRandomizerSettings(projectFolder);
 
-                // Capture all UI values on the UI thread before any background work
-                var ctx = ReadRandomizerUIContext();
-
-                // Parse shared data files once (used by both heroes and team randomization)
-                var gladiatorEntries = ParseGladiators(projectFolder);
-                var statSets = ParseStatSets(projectFolder);
-                var itemSets = ParseItemSets(projectFolder);
-                var skillSets = ParseSkillSets(projectFolder);
-
-                // 1. Randomize Heroes if the corresponding checkbox is checked
-                if (chbRandomHeroes.Checked)
+                var options = ReadRandomizerOptions();
+                if (options.IsEmpty)
                 {
-                    lblRandomizeStatus.Text = "Randomizing heroes...";
-                    AppendLog("Starting hero randomization...", InfoColor, rtbPackOutput);
-                    await Task.Run(() => RandomizeHeroes(projectFolder, ctx, gladiatorEntries, statSets, itemSets, skillSets));
-                    AppendLog("Heroes randomized successfully.", SuccessColor, rtbPackOutput);
+                    AppendLog("Nothing selected: pick at least one randomizer option.", WarningColor, rtbPackOutput);
+                    return;
                 }
 
-                // 2. Randomize Team if the corresponding checkbox is checked
-                if (chbRandomTeam.Checked)
+                lblRandomizeStatus.Text = "Randomizing...";
+                pgbRandomizeStatus.Style = ProgressBarStyle.Marquee;
+                AppendLog($"Randomizing with seed '{options.Seed}'.", InfoColor, rtbPackOutput);
+
+                // Core logs as it works; mirror those entries into the panel while the run is going.
+                void Mirror(object? sender, LogEntry entry)
                 {
-                    lblRandomizeStatus.Text = "Randomizing team...";
-                    AppendLog("Starting team randomization...", InfoColor, rtbPackOutput);
-                    await Task.Run(() => RandomizeTeam(projectFolder, ctx, gladiatorEntries, statSets, itemSets, skillSets));
-                    AppendLog("Team randomized successfully.", SuccessColor, rtbPackOutput);
-                }
+                    if (IsDisposed) return;
 
-                // 3. Remove All Recruits if the corresponding checkbox is checked
-                if (chbRandomNoRecruits.Checked)
-                {
-                    lblRandomizeStatus.Text = "Removing all recruits...";
-                    AppendLog("Starting removal of all recruits...", InfoColor, rtbPackOutput);
-
-                    // Setup progress bar for recruit removal
-                    pgbRandomizeStatus.Minimum = 0;
-                    pgbRandomizeStatus.Value = 0;
-
-                    // Define the path to the leagues directory
-                    string leaguesPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "towns", "leagues");
-
-                    // Retrieve all .tok files within the leagues directory and its subdirectories
-                    var tokFiles = Directory.GetFiles(leaguesPath, "*.tok", SearchOption.AllDirectories);
-                    pgbRandomizeStatus.Maximum = tokFiles.Length;
-
-                    // Setup progress reporting for recruit removal
-                    var removeRecruitsProgress = new Progress<int>(value =>
+                    try
                     {
-                        pgbRandomizeStatus.Value = value;
-                    });
-
-                    // Initialize a concurrent queue to collect log messages from the background thread
-                    ConcurrentQueue<(string message, Color color)> removeRecruitsLogMessages = new ConcurrentQueue<(string, Color)>();
-
-                    // Execute the recruit removal process asynchronously
-                    await Task.Run(() => RemoveAllRecruits(projectFolder, removeRecruitsProgress, removeRecruitsLogMessages));
-
-                    // If logging is enabled, process and display the collected log messages
-                    if (randomizerLogsMenuItem.Checked)
-                    {
-                        while (removeRecruitsLogMessages.TryDequeue(out var logMessage))
-                        {
-                            AppendLog(logMessage.message, logMessage.color, rtbPackOutput);
-                        }
+                        BeginInvoke(() => AppendLog(entry.Message, ColorFor(entry.Level), rtbPackOutput));
                     }
-
-                    AppendLog("All recruits removed successfully.", SuccessColor, rtbPackOutput);
-                }
-
-                // 4. Edit Encounter Files
-                lblRandomizeStatus.Text = "Editing encounter files...";
-                AppendLog("Starting editing of encounter files...", InfoColor, rtbPackOutput);
-
-                // Setup progress bar for encounter file editing
-                pgbRandomizeStatus.Minimum = 0;
-                pgbRandomizeStatus.Value = 0;
-
-                // Define the path to the encounters directory
-                string encountersPath = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder)}_BEC", "data", "encounters");
-
-                // Retrieve all .enc files within the encounters directory and its subdirectories
-                var encFiles = Directory.GetFiles(encountersPath, "*.enc", SearchOption.AllDirectories);
-                pgbRandomizeStatus.Maximum = encFiles.Length;
-
-                // Setup progress reporting for encounter file editing
-                var editEncountersProgress = new Progress<int>(value =>
-                {
-                    pgbRandomizeStatus.Value = value;
-                });
-
-                // Initialize a concurrent queue to collect log messages from the background thread
-                ConcurrentQueue<(string message, Color color)> editEncountersLogMessages = new ConcurrentQueue<(string, Color)>();
-
-                // Execute the encounter file editing process asynchronously
-                await Task.Run(() => EditEncounterFiles(projectFolder, chbRandomPermaDeath.Checked, editEncountersProgress, editEncountersLogMessages));
-
-                // Add the randomized menu entry after editing encounter files
-                AddMenuEntry(projectFolder, "Game is Randomized!");
-                AppendLog("Encounter files edited and menu entry added successfully.", SuccessColor, rtbPackOutput);
-
-                // 5. Edit and Compile .scp Files
-                AppendLog("Starting .scp files editing and compilation...", InfoColor, rtbPackOutput);
-                AppendLog("Editing and compiling .scp files...", InfoColor, rtbPackOutput);
-                await Task.Run(() => EditScpFilesAndCompileAsync(projectFolder, ctx.ValensSelected));
-                AppendLog(".scp files edited and compiled successfully.", SuccessColor, rtbPackOutput);
-
-                // 6. Apply In-Game Randomization if the checkbox is checked
-                if (chbIngameRandom.Checked)
-                {
-                    AppendLog("Applying in-game randomization...", InfoColor, rtbPackOutput);
-                    await Task.Run(() => ApplyIngameRandomAsync(projectFolder));
-                    AppendLog("In-game randomization applied successfully.", SuccessColor, rtbPackOutput);
-                }
-
-                // 7. Randomize Statsets if the corresponding checkbox is checked
-                if (chbRandomStatsets.Checked)
-                {
-                    lblRandomizeStatus.Text = "Randomizing statsets...";
-                    AppendLog("Starting statset randomization...", InfoColor, rtbPackOutput);
-
-                    pgbRandomizeStatus.Minimum = 0;
-                    pgbRandomizeStatus.Value = 0;
-                    pgbRandomizeStatus.Maximum = gladiatorEntries.Count;
-
-                    var statSetKeys = statSets?.Keys.ToList();
-                    if (statSetKeys == null || statSetKeys.Count == 0)
+                    catch (InvalidOperationException)
                     {
-                        MessageBox.Show("No statsets available to randomize.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        AppendLog("No statsets available to randomize.", ErrorColor, rtbPackOutput);
-                    }
-                    else
-                    {
-                        var statsetProgress = new Progress<int>(value =>
-                        {
-                            pgbRandomizeStatus.Value = value;
-                        });
-
-                        await Task.Run(() => RandomizeStatsets(projectFolder, statsetProgress));
-                        AppendLog("Statsets randomized successfully.", SuccessColor, rtbPackOutput);
+                        // The form went away mid-run; the log file still has everything.
                     }
                 }
 
-                // 8. Randomize Itemsets if the corresponding checkbox is checked
-                if (chbRandomItemsets.Checked)
+                var log = Output;
+                int before = log.Tail(1).Count;
+                log.Written += Mirror;
+
+                try
                 {
-                    lblRandomizeStatus.Text = "Randomizing itemsets...";
-                    AppendLog("Starting itemset randomization...", InfoColor, rtbPackOutput);
+                    var result = await Task.Run(() => new RandomizerRunner(log: log).Run(projectFolder, options));
 
-                    pgbRandomizeStatus.Minimum = 0;
-                    pgbRandomizeStatus.Value = 0;
-                    pgbRandomizeStatus.Maximum = gladiatorEntries.Count;
+                    AppendLog($"Seed: {result.Randomize.Seed}", SuccessColor, rtbPackOutput);
+                    AppendLog($"Steps: {string.Join(", ", result.Randomize.Steps)}", InfoColor, rtbPackOutput);
+                    AppendLog($"Records changed: {result.Randomize.ChangedRecords}", SuccessColor, rtbPackOutput);
 
-                    // Execute itemset randomization asynchronously
-                    var itemsetProgress = new Progress<int>(value =>
+                    // Patched campaign scripts have to be compiled, or the edits never reach the game.
+                    if (result.Randomize.ModifiedScripts.Count > 0)
                     {
-                        pgbRandomizeStatus.Value = value;
-                    });
+                        var build = new BuildOptions(
+                            projectFolder, Path.Combine(GetAppDirectory(), "tools"), "py -3");
+                        var compiled = await Task.Run(() => new ProjectBuildService(log)
+                            .CompileScripts(build, result.Randomize.ModifiedScripts));
 
-                    await Task.Run(() => RandomizeItemsets(projectFolder, itemsetProgress));
-                    AppendLog("Itemsets randomized successfully.", SuccessColor, rtbPackOutput);
-                }
-
-
-                // If logging is enabled, process and display the collected log messages
-                if (randomizerLogsMenuItem.Checked)
-                {
-                    // Append general log entries
-                    foreach (var logEntry in randomizerLogBuffer)
-                    {
-                        AppendLog(logEntry.message, logEntry.color, rtbPackOutput);
+                        AppendLog(compiled.Succeeded
+                                ? $"Compiled {result.Randomize.ModifiedScripts.Count} campaign script(s)."
+                                : "Script compilation failed - pack anyway?",
+                            compiled.Succeeded ? SuccessColor : ErrorColor,
+                            rtbPackOutput);
                     }
 
-                    // Append encounter-specific log entries
-                    while (editEncountersLogMessages.TryDequeue(out var logMessage))
-                    {
-                        AppendLog(logMessage.message, logMessage.color, rtbPackOutput);
-                    }
-
-                    // Clear the log buffer after processing
-                    randomizerLogBuffer.Clear();
+                    AddMenuEntry(projectFolder, "Game is Randomized!");
                 }
-                // Update the status label to indicate completion
+                finally
+                {
+                    log.Written -= Mirror;
+                    _ = before;
+                }
+
                 lblRandomizeStatus.Text = "Ready";
-                pgbRandomizeStatus.Value = 0;
-            }
-            finally
-            {
-                btnRandomize.Enabled = true;
-                randomizerLogBuffer.Clear();
-                AppendLog("Randomization completed. (That was snappy!)", SuccessColor, rtbPackOutput);
-                MessageBox.Show("Click the Pack button to build your ISO!", "Packing step", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                AppendLog("Randomization completed.", SuccessColor, rtbPackOutput);
+                MessageBox.Show("Click the Pack button to build your ISO!", "Packing step",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 tabContainer.SelectedTab = tabPacking;
                 await FlashButtonAsync(btnPack, Color.LightGreen, 10, 300);
             }
+            catch (Exception ex)
+            {
+                AppendLog($"Randomization failed: {ex.Message}", ErrorColor, rtbPackOutput);
+                MessageBox.Show($"Randomization failed:\n\n{ex.Message}", "Randomizer",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                pgbRandomizeStatus.Style = ProgressBarStyle.Blocks;
+                pgbRandomizeStatus.Value = 0;
+                lblRandomizeStatus.Text = "Ready";
+                btnRandomize.Enabled = true;
+            }
         }
+
+        /// <summary>Log level to the panel's colour convention.</summary>
+        private static Color ColorFor(LogLevel level) => level switch
+        {
+            LogLevel.Error => ErrorColor,
+            LogLevel.Warning => WarningColor,
+            LogLevel.Success => SuccessColor,
+            _ => InfoColor,
+        };
 
         private void txtUnpackPath_Click(object sender, EventArgs e)
         {
@@ -1138,47 +1073,21 @@ namespace ModdingGUI
             }
         }
 
+        /// <summary>
+        /// The old randomizer test harness drove the shell's pipeline N times; that pipeline is gone, so the item
+        /// is hidden rather than left pointing at deleted code.
+        /// </summary>
+        private void HideRetiredRandomizerTesting()
+        {
+            randomizerTestingMenuItem.Visible = false;
+            randomizerTestingMenuItem.Enabled = false;
+        }
+
         private void chbRandomMaxMoney_MouseHover(object sender, EventArgs e)
         {
             ttpInform.SetToolTip(chbRandomCustomCash, "Customize your starting cash! Try: RANDOM\nDefault: 15000\nDefault 40 glads: 75000");
         }
 
-        private void randomizerTestingMenuItem_Click(object sender, EventArgs e)
-        {
-            // Check if randomizer testing is already running
-            if (randomizerTestingMenuItem.Checked)
-            {
-                MessageBox.Show("Randomizer testing is already running. Please wait for it to complete.",
-                    "Testing In Progress", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            // Enable the menu item to indicate testing is in progress
-            randomizerTestingMenuItem.Checked = true;
-
-            try
-            {
-                // Configure progress bar for visibility
-                pgbRandomizeStatus.Visible = true;
-                pgbRandomizeStatus.Value = 0;
-                lblRandomizeStatus.Text = "Initializing randomizer testing...";
-
-                // Launch randomizer testing
-                HandleRandomizerTesting();
-            }
-            catch (Exception ex)
-            {
-                AppendLog($"Error during randomizer testing: {ex.Message}", ErrorColor, rtbPackOutput);
-                MessageBox.Show($"Error during randomizer testing: {ex.Message}", "Testing Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                // Uncheck the menu item after testing is complete or if it errors out
-                randomizerTestingMenuItem.Checked = false;
-                lblRandomizeStatus.Text = "Ready";
-                pgbRandomizeStatus.Value = 0;
-            }
-        }
 
         private void chbRandomCustomCash_CheckedChanged(object sender, EventArgs e)
         {

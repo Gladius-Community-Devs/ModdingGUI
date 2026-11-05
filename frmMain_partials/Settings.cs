@@ -85,7 +85,6 @@ namespace ModdingGUI
             
             // Apply randomizer settings
             randomizerLogsMenuItem.Checked = appSettings.EnableRandomizerLogs;
-            testIterations = appSettings.DefaultRandomIterations;
             
             // Apply patching settings
             // (Apply any patching settings here)

@@ -316,7 +316,6 @@ namespace ModdingGUI
             randomizerTestingMenuItem.Name = "randomizerTestingMenuItem";
             randomizerTestingMenuItem.Size = new Size(269, 34);
             randomizerTestingMenuItem.Text = "Randomizer Testing";
-            randomizerTestingMenuItem.Click += randomizerTestingMenuItem_Click;
             // 
             // funOptionsToolStripMenuItem
             // 
