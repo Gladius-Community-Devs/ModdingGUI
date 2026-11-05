@@ -369,13 +369,50 @@ Gladiators, statsets, itemsets, skillsets. Tab/space-delimited, NOT tok.
 - Must ship before Phase 6 (randomizer rewrite depends on these).
 
 ### Phase 6 — Randomizer rewrite
-Move all `Randomizer.cs` logic into `ModdingGUI.Core.Randomizer`.
+Move all `Randomizer.cs` logic (1,914 lines) into `ModdingGUI.Core.Randomizer`.
 
-- Pure pipeline: `RandomizerOptions` + project path → patches via the Apis above → applied via the same Apis.
+- Pure pipeline: `RandomizerOptions` + project path → patches via the Apis → applied via the same Apis.
 - GUI settings panel becomes a parameter builder over `RandomizerOptions`.
 - Eliminates the last "shell edits files directly" code.
 
-**Exit:** randomization is reproducible (seeded), reviewable (every change is a `.bak`), and works through the same code path the MCP server will use.
+**Scope decisions (2026-11-05):**
+
+- **Script compilation and packing are in scope.** The randomizer edits `.scp` files and recompiles before
+  packing, so `ProjectBuildService` (script compile + the pack chain) lands in Core as part of this phase.
+  Without it the pipeline could randomise but not produce a playable ISO, and Phase 8's MCP could not run
+  a complete randomization.
+- **No value parity with the old implementation.** Nobody depends on today's exact picks, so the rewrite
+  defines its own choice logic. What must survive is *feature* parity — the same options and the same
+  things randomised:
+
+  | Option | Effect |
+  |---|---|
+  | `RandomizeHeroes` | gladiator class / statset / skillset / itemset / tint assignment |
+  | `RandomizeTeam` | the starting roster in the school file |
+  | `RemoveRecruits` | strips recruitable units from encounters |
+  | `RandomizeStatsets` / `RandomizeItemsets` | stat and equipment tables |
+  | `NoRecruits` / `PermaDeath` / `InGameRandomization` / `FortyGladiators` | the existing toggles |
+  | `Cash` | fixed or random starting gold |
+  | `WeightedClasses` | class diversity weighting |
+  | `Hero` (Ursula/Valens) and `GameVersion` (Vanilla/Ragnaroks/Leonarths) | which campaign files are touched |
+
+**Acceptance for the rewrite** (replaces "matches the old output"): the same seed produces an identical
+project across runs; a different seed differs; every validator still passes on the result; the randomised
+project packs and plays.
+
+**Slices:**
+
+1. `RandomizerOptions` + seeded `RandomizerRandom` (one RNG, explicit string seed hashed stably so it
+   survives processes) + result types.
+2. **Batch mutation on the APIs** — the current per-record calls reload and back up the whole file each
+   time; randomising 2,170 gladiators that way would write ~560 MB of backups. `ApplyMany` opens once,
+   mutates many, writes once (one `.bak` per run).
+3. `RandomizerService.Randomize(options, IAppLog)` applying through the APIs, emitting progress.
+4. `ProjectBuildService`: script compile + pack in Core.
+5. GUI becomes a parameter builder; the shell's direct `File.Write*` calls in `Randomizer.cs` are deleted.
+
+**Exit:** randomization is reproducible (seeded), reviewable (one `.bak` per run through the Apis), packs,
+and works through the same code path the MCP server will use.
 
 ### Phase 7 — Team Builder real implementation
 Replace mockup with real implementation backed by `IClassesApi` + `ISkillsApi` + `IItemsApi` + `ISchoolsApi` + `IGladiatorsApi`.
