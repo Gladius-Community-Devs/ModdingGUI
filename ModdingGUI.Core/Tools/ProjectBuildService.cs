@@ -101,8 +101,15 @@ public sealed class ProjectBuildService
         var builder = new StringBuilder("@echo off" + Environment.NewLine);
         foreach (string script in scripts)
         {
+            // The compiler takes an input .scp and an output .scb in data/script/bin, which is what the game
+            // loads; the original randomizer passed both paths and so must this.
+            string source = Path.Combine(scriptFolder, script);
+            string binary = Path.Combine(scriptFolder, "bin",
+                Path.GetFileNameWithoutExtension(script) + ".scb");
+
             builder.Append('"').Append(compiler).Append('"')
-                   .Append(' ').Append('"').Append(Path.Combine(scriptFolder, script)).Append('"')
+                   .Append(' ').Append('"').Append(source).Append('"')
+                   .Append(' ').Append('"').Append(binary).Append('"')
                    .Append(Environment.NewLine);
         }
 

@@ -71,7 +71,12 @@ public static class StoryHeroes
 /// <param name="Seed">The seed in use, for reproducing the run.</param>
 /// <param name="Steps">Named steps that ran, in order.</param>
 /// <param name="ChangedRecords">Records actually written across every step.</param>
-public sealed record RandomizerResult(string Seed, IReadOnlyList<string> Steps, int ChangedRecords);
+/// <param name="ModifiedScripts">Campaign scripts the run edited, which therefore need compiling before packing.</param>
+public sealed record RandomizerResult(
+    string Seed,
+    IReadOnlyList<string> Steps,
+    int ChangedRecords,
+    IReadOnlyList<string> ModifiedScripts);
 
 /// <summary>
 /// Runs a randomization pass over a project through the Core APIs.
@@ -121,12 +126,28 @@ public sealed class RandomizerService
 
         _log?.Write(LogLevel.Info, $"Randomizer run started with seed '{random.SeedText}'.", "randomizer");
 
+        var modifiedScripts = new List<string>();
+
         if (options.RandomizeHeroes)
         {
             int heroes = RandomizeHeroes(projectRoot, random, options.Version);
             changed += heroes;
             steps.Add("heroes");
             _log?.Write(LogLevel.Success, $"Hero loadouts reassigned: {heroes} changed.", "randomizer");
+
+            // Randomizing a hero's class invalidates the campaign scripts that branch on the original heroes:
+            // costume-change tests and the later removal of Ludo and Gwazi. The original randomizer edited these
+            // every run, and the edited scripts must be compiled or the change never reaches the game.
+            var patched = new ScriptPatcher().Apply(projectRoot, options.Hero);
+            modifiedScripts.AddRange(patched.Modified);
+            steps.Add("scripts");
+            _log?.Write(LogLevel.Success,
+                $"Campaign scripts patched: {patched.Modified.Count} file(s).", "randomizer");
+
+            foreach (string missing in patched.Missing)
+            {
+                _log?.Write(LogLevel.Warning, $"Script not found, skipped: {missing}", "randomizer");
+            }
         }
 
         if (options.RandomizeStatsets)
@@ -163,7 +184,7 @@ public sealed class RandomizerService
 
 
         _log?.Write(LogLevel.Info, $"Randomizer run finished: {changed} record(s) changed.", "randomizer");
-        return new RandomizerResult(random.SeedText, steps, changed);
+        return new RandomizerResult(random.SeedText, steps, changed, modifiedScripts);
     }
 
     /// <summary>
@@ -181,6 +202,28 @@ public sealed class RandomizerService
         {
             var file = schools.Get(projectRoot, roster);
             if (file is null) continue;
+
+            // The original randomizer wrote all six heroes into both campaign files, creating the blocks for
+            // Eiji and Gwazi too. Keep that: a hero the script later adds by name is then already a member and
+            // arrives with the randomized kit instead of the class the script assumed.
+            var present = file.Units
+                .Select(unit => unit.Name)
+                .ToHashSet(StringComparer.Ordinal);
+
+            var additions = new List<SchoolUnitDto>();
+            foreach (string hero in StoryHeroes.Names)
+            {
+                if (present.Contains(hero)) continue;
+                if (!assigned.TryGetValue(hero, out var heroLoadout)) continue;
+
+                additions.Add(BuildHeroUnit(hero, heroLoadout, projectRoot));
+            }
+
+            if (additions.Count > 0)
+            {
+                changed += schools.AddUnits(projectRoot, roster, additions);
+                file = schools.Get(projectRoot, roster) ?? file;
+            }
 
             foreach (var unit in file.Units)
             {
@@ -200,6 +243,27 @@ public sealed class RandomizerService
         }
 
         return changed;
+    }
+
+    /// <summary>A hero block for a roster that does not list that hero yet.</summary>
+    private SchoolUnitDto BuildHeroUnit(string hero, GladiatorLoadout loadout, string projectRoot)
+    {
+        var fields = new List<SchoolFieldDto>
+        {
+            new("LEVEL", "1"),
+            new("EXPERIENCE", "0"),
+            new("JOBPOINTS", "5"),
+            new("CUSTOMIZE", "0, \"\""),
+            new("CORESTATSCOMP2", BuildStatLine(projectRoot, loadout.StatSet)),
+            new("ITEMSCOMP", BuildItemLine(projectRoot, loadout.ItemSet)),
+        };
+
+        foreach (string skill in SkillNames(projectRoot, loadout.SkillSet, 1))
+        {
+            fields.Add(new SchoolFieldDto("SKILL", $"\"{skill}\""));
+        }
+
+        return new SchoolUnitDto { Name = hero, ClassName = loadout.ClassName, Fields = fields };
     }
 
     /// <summary>

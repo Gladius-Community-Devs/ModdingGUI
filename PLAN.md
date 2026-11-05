@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 564 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (548 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 573 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (557 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -456,6 +456,23 @@ item-set step failed with "items.tok not found" on a project path. It now resolv
 recruits) twice with seed `alpha` on a fresh project produces byte-identical `gladiators.txt` and both campaign
 rosters; seed `beta` changes them. The league files hash the same across seeds, as they should: recruit removal
 is seed-independent.
+
+**All six heroes are written as blocks into both campaigns, and the scripts are patched.** The original
+randomizer wrote Valens, Ursula, Ludo, Urlan, Eiji and Gwazi into *both* roster files — creating the Eiji and Gwazi
+blocks rather than relying on the script to add them — and then edited and compiled the campaign scripts. That is
+now what the hero step does: existing blocks are rewritten, missing ones are created, and `ScriptPatcher` applies
+the same edits the old code did:
+
+| Script | Edit |
+|---|---|
+| `gameflow{valens,ursula}{steppes,expanse}.scp` | `CostumeChange != 1` → `!= 0`; delete `SchoolRemoveCharacter("Ludo")` / `("Gwazi")` |
+| `gameflow{valens,ursula}endgame.scp` | both `EndGameCostumeChange` / `…Again` tests → `!= 0` |
+| `leaguefjordfallen.scp` (Valens only) | the `School.IsMember("Urlan")` league branch → the `name == "PackValens"` branch |
+
+Six `IsMember("Urlan")` branches exist in that league file and five are talk boxes, so the patcher finds the one
+whose body returns `greyleague` and closes it by counting `if`/`endif` depth rather than matching text. Edited
+scripts are reported in the run result and compiled before packing (`.scp` → `bin/<name>.scb`), because an
+uncompiled script edit never reaches the game.
 
 **The campaign starts from the roster blocks, not the gladiator table.** Only four heroes appear in the starting
 rosters (`Valens` + `Ludo` in `valensimperia.tok`, `Urlan` + `Ursula` in `ursulanordagh.tok`; Eiji and Gwazi join

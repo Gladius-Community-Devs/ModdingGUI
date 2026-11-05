@@ -2,6 +2,7 @@ namespace ModdingGUI.Core.Randomizer;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ModdingGUI.Core.Logging;
 using ModdingGUI.Core.Tools;
 
@@ -54,9 +55,15 @@ public sealed class RandomizerRunner
 
         if (buildOptions is null) return new RandomizerRunResult(randomized, null);
 
-        if (scriptsToCompile is not null)
+        // Scripts the run patched have to be compiled before packing, or the edits stay text on disk.
+        var toCompile = (scriptsToCompile ?? Array.Empty<string>())
+            .Concat(randomized.ModifiedScripts)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (toCompile.Length > 0)
         {
-            var compiled = _build.CompileScripts(buildOptions, scriptsToCompile);
+            var compiled = _build.CompileScripts(buildOptions, toCompile);
             if (!compiled.Succeeded)
             {
                 _log?.Write(LogLevel.Error, "Script compilation failed; stopping before the pack.", "randomizer");
