@@ -62,6 +62,12 @@ public interface IStatSetsApi
     /// <summary>Replace the values of one level row (the level comes from <paramref name="row"/>).</summary>
     void SetRow(string projectRoot, int index, StatSetRow row);
 
+    /// <summary>
+    /// Replace many rows in one pass (one read, one write, one backup). Rows whose level is not in the set,
+    /// or that are already identical, are skipped; returns how many were written.
+    /// </summary>
+    int ApplyMany(string projectRoot, IEnumerable<(int Index, StatSetRow Row)> rows);
+
     /// <summary>Append a row to a set.</summary>
     void AddRow(string projectRoot, int index, StatSetRow row);
 
@@ -143,6 +149,44 @@ public sealed class StatSetsApi : IStatSetsApi
             file.ReplaceRow(index, ordinal, row.ToLine());
             file.Save(bec, RelativePath);
         }
+    }
+
+    /// <inheritdoc />
+    public int ApplyMany(string projectRoot, IEnumerable<(int Index, StatSetRow Row)> rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        var list = rows as ICollection<(int Index, StatSetRow Row)> ?? rows.ToList();
+        if (list.Count == 0) return 0;
+
+        string bec = ProjectRoots.ResolveBecFolder(projectRoot);
+        int written = 0;
+
+        using (ProjectLock.Acquire(bec))
+        {
+            var file = Load(bec);
+            foreach (var (index, row) in list)
+            {
+                if (row is null) continue;
+                if (!file.Indexes.Contains(index)) continue;
+
+                var current = file.Rows(index)
+                    .Select(line => StatSetRow.TryParse(line, out StatSetRow parsed) ? parsed : null)
+                    .Where(parsed => parsed is not null)
+                    .Select(parsed => parsed!)
+                    .ToList();
+
+                int ordinal = current.FindIndex(r => r.Level == row.Level);
+                if (ordinal < 0) continue;
+                if (current[ordinal] == row) continue;
+
+                file.ReplaceRow(index, ordinal, row.ToLine());
+                written++;
+            }
+
+            if (file.IsModified) file.Save(bec, RelativePath);
+        }
+
+        return written;
     }
 
     /// <inheritdoc />

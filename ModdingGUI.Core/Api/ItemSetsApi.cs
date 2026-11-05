@@ -33,6 +33,12 @@ public interface IItemSetsApi
     /// <summary>Replace one row by position.</summary>
     void SetRow(string projectRoot, int index, int ordinal, ItemSetRow row);
 
+    /// <summary>
+    /// Replace many rows in one pass (one read, one write, one backup). Out-of-range positions and rows that
+    /// are already identical are skipped; returns how many were written.
+    /// </summary>
+    int ApplyMany(string projectRoot, IEnumerable<(int Index, int Ordinal, ItemSetRow Row)> rows);
+
     /// <summary>Add a row, inserted in (minLevel, maxLevel, name) order.</summary>
     void AddRow(string projectRoot, int index, ItemSetRow row);
 
@@ -82,6 +88,43 @@ public sealed class ItemSetsApi : IItemSetsApi
             file.ReplaceRow(index, ordinal, row.ToLine());
             file.Save(bec, RelativePath);
         }
+    }
+
+    /// <inheritdoc />
+    public int ApplyMany(string projectRoot, IEnumerable<(int Index, int Ordinal, ItemSetRow Row)> rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        var list = rows as ICollection<(int Index, int Ordinal, ItemSetRow Row)> ?? rows.ToList();
+        if (list.Count == 0) return 0;
+
+        string bec = ProjectRoots.ResolveBecFolder(projectRoot);
+        int written = 0;
+
+        using (ProjectLock.Acquire(bec))
+        {
+            var file = Load(bec);
+            foreach (var (index, ordinal, row) in list)
+            {
+                if (row is null) continue;
+                if (!file.Indexes.Contains(index)) continue;
+
+                var current = file.Rows(index)
+                    .Select(line => ItemSetRow.TryParse(line, out ItemSetRow parsed) ? parsed : null)
+                    .Where(parsed => parsed is not null)
+                    .Select(parsed => parsed!)
+                    .ToList();
+
+                if (ordinal < 0 || ordinal >= current.Count) continue;
+                if (current[ordinal] == row) continue;
+
+                file.ReplaceRow(index, ordinal, row.ToLine());
+                written++;
+            }
+
+            if (file.IsModified) file.Save(bec, RelativePath);
+        }
+
+        return written;
     }
 
     /// <inheritdoc />

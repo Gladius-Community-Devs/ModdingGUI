@@ -141,12 +141,14 @@ public sealed class GladiatorsFile
     public GladiatorDto? Get(string name) => Find(name)?.Dto;
 
     /// <summary>Apply a partial update, rewriting only the changed lines.</summary>
-    public void Patch(string name, GladiatorPatch patch)
+    /// <summary>Apply a partial update; returns false when every value already matched.</summary>
+    public bool Patch(string name, GladiatorPatch patch)
     {
         ArgumentNullException.ThrowIfNull(patch);
-        if (patch.IsEmpty) return;
+        if (patch.IsEmpty) return false;
 
         var record = Find(name) ?? throw new InvalidOperationException($"No gladiator named '{name}'.");
+        bool changed = false;
         var values = new Dictionary<GladiatorField, string>(record.Values);
 
         if (patch.Class is not null) values[GladiatorField.Class] = patch.Class;
@@ -166,9 +168,11 @@ public sealed class GladiatorsFile
 
             _file.ReplaceLine(line, $"{label}: {newValue}");
             record.Values[field] = newValue;
+            changed = true;
         }
 
         record.Dto = BuildDto(record.Values);
+        return changed;
     }
 
     /// <summary>Rename a gladiator, refusing a name that already exists.</summary>

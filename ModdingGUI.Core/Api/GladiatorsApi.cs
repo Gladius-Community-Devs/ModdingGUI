@@ -77,6 +77,13 @@ public interface IGladiatorsApi
     /// <summary>Change any subset of the eight mutable values.</summary>
     void Patch(string projectRoot, string name, GladiatorPatch patch);
 
+    /// <summary>
+    /// Apply many patches in one pass: the file is read once, every patch is applied, and the result is
+    /// written once — so a randomization run produces <b>one</b> backup instead of one per gladiator.
+    /// Returns the number of records that actually changed; names that do not exist are ignored.
+    /// </summary>
+    int ApplyMany(string projectRoot, IEnumerable<(string Name, GladiatorPatch Patch)> patches);
+
     /// <summary>Rename a gladiator, refusing a name that is already taken.</summary>
     void Rename(string projectRoot, string name, string newName);
 
@@ -121,6 +128,33 @@ public sealed class GladiatorsApi : IGladiatorsApi
             file.Patch(name, patch);
             if (file.IsModified) file.Save(bec);
         }
+    }
+
+    /// <inheritdoc />
+    public int ApplyMany(string projectRoot, IEnumerable<(string Name, GladiatorPatch Patch)> patches)
+    {
+        ArgumentNullException.ThrowIfNull(patches);
+        var list = patches as ICollection<(string Name, GladiatorPatch Patch)> ?? patches.ToList();
+        if (list.Count == 0) return 0;
+
+        string bec = ProjectRoots.ResolveBecFolder(projectRoot);
+        int changed = 0;
+
+        using (ProjectLock.Acquire(bec))
+        {
+            var file = GladiatorsFile.LoadProject(bec);
+            foreach (var (name, patch) in list)
+            {
+                if (patch is null || patch.IsEmpty) continue;
+                if (file.Get(name) is null) continue;
+
+                if (file.Patch(name, patch)) changed++;
+            }
+
+            if (file.IsModified) file.Save(bec);
+        }
+
+        return changed;
     }
 
     /// <inheritdoc />
