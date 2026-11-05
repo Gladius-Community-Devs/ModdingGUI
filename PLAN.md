@@ -461,7 +461,8 @@ is seed-independent.
 rosters (`Valens` + `Ludo` in `valensimperia.tok`, `Urlan` + `Ursula` in `ursulanordagh.tok`; Eiji and Gwazi join
 later by script), and each block spells out class, stats, items and skills. Randomizing the table alone therefore
 left those four walking into the first bout with the vanilla kit — Machera, Short Cape and a badge. The hero step
-now rewrites their blocks too (class line, six core stats, five item slots, granted skills) and keeps level,
+now rewrites their blocks too (class line, six core stats, five item slots, and the skills the set grants **at that
+level** - a skill set is level-windowed, so writing every row handed a level-1 hero Combo IV) and keeps level,
 experience, job points and `CUSTOMIZE`. `ISchoolsApi.SetUnitClass` exists because the class is the second
 argument of `CREATEUNIT`, not a field.
 
