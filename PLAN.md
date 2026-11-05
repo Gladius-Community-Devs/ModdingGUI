@@ -457,11 +457,21 @@ recruits) twice with seed `alpha` on a fresh project produces byte-identical `gl
 rosters; seed `beta` changes them. The league files hash the same across seeds, as they should: recruit removal
 is seed-independent.
 
-**Rosters are rewritten wholesale, and that is safe.** `SchoolLoad` reads `$d\School\<name>` — it has no "Saved"
-component — while `SchoolSave` writes `<name>Saved.tok`, so an in-progress run keeps its own snapshot and never
-re-reads the roster. A roster is therefore a new-game artefact, which is why the randomizer can replace it
-outright (header `NAME`/`HERO`/`GOLD` plus the hero blocks) exactly as the original did, instead of editing blocks
-in place. `GOLD` follows the original's rules: the chosen amount, a random one, 75000 in 40-gladiator mode and
+**Rosters are rewritten wholesale, and that is safe.** A roster is a new-game artefact: `SchoolLoad` (callers:
+`GameStartup`, the `gb.SchoolLoad` script global, `FinishMenu`, `HandleState`) reads `$d\School\<name>` when a
+campaign starts, and **no campaign flow script calls it mid-run** — the twelve scripts that do are demos, the leak
+track and a memory test. Only one caller of `SchoolLoad` reloads a roster during play, and the campaign flows are
+not among them.
+
+An in-game save is **not** a `.tok` file: `Storage::SaveGameData` writes a `File.bin` block on the memory card
+(slot offset table, `msHeaderSize`/`msSaveGameSize`), and on the PC build `MemCard::PCCard` implements that card
+with `CreateFileA`. `SchoolSave`, which writes `$d\School\<name>Saved.tok`, has exactly one caller — `_WinMain@16`,
+the PC entry point — so it is a desktop convenience, not the console save path. (An earlier note in this file
+claimed a run "keeps its own `<name>Saved.tok`"; that conflated the two mechanisms and was wrong. The conclusion
+stands, for the reasons above.)
+
+A roster can therefore be replaced outright (header `NAME`/`HERO`/`GOLD` plus the hero blocks) exactly as the
+original did, instead of editing blocks in place. `GOLD` follows the original's rules: the chosen amount, a random one, 75000 in 40-gladiator mode and
 15000 otherwise. Level, experience, job points and `CUSTOMIZE` are carried over from the block that was there.
 
 **All six heroes are written as blocks into both campaigns, and the scripts are patched.** The original
