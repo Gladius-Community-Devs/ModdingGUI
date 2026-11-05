@@ -457,22 +457,25 @@ recruits) twice with seed `alpha` on a fresh project produces byte-identical `gl
 rosters; seed `beta` changes them. The league files hash the same across seeds, as they should: recruit removal
 is seed-independent.
 
-**Rosters are rewritten wholesale, and that is safe.** A roster is a new-game artefact: `SchoolLoad` (callers:
-`GameStartup`, the `gb.SchoolLoad` script global, `FinishMenu`, `HandleState`) reads `$d\School\<name>` when a
-campaign starts, and **no campaign flow script calls it mid-run** — the twelve scripts that do are demos, the leak
-track and a memory test. Only one caller of `SchoolLoad` reloads a roster during play, and the campaign flows are
-not among them.
+**Rosters are rewritten wholesale, and that is safe.** A roster is read by `SchoolReallyLoad`
+(`FUN_800f5244`, which joins `$d\School\` with the name and parses the block), and its callers in `bootfile.dol`
+are: `GameStartup`, the two script globals `SchoolLoad` / `SchoolReallyLoad` (`FUN_8011c8ec`, `FUN_8011c81c`),
+`FinishMenu`, and `FUN_801cd51c`. So a roster is read when a campaign starts and at those script/menu
+transitions — never by the save system.
 
-An in-game save is **not** a `.tok` file: `Storage::SaveGameData` writes a `File.bin` block on the memory card
-(slot offset table, `msHeaderSize`/`msSaveGameSize`), and on the PC build `MemCard::PCCard` implements that card
-with `CreateFileA`. `SchoolSave`, which writes `$d\School\<name>Saved.tok`, has exactly one caller — `_WinMain@16`,
-the PC entry point — so it is a desktop convenience, not the console save path. (An earlier note in this file
-claimed a run "keeps its own `<name>Saved.tok`"; that conflated the two mechanisms and was wrong. The conclusion
-stands, for the reasons above.)
+An in-game save is a **memory card** write, not a `.tok`: `bootfile.dol` has the full memory-card UI
+(`"Saving game to Memory Card in Slot %s"`, `"requires 1 file and %d blocks to save"`, `"Manage Memory Card"`,
+card sizes 59-2043) and a `SaveGame::Save()` that allocates a **header and a game-data block** ("Out of memory
+SaveGame::Save() allocating pHeader / pGameData"). There is **no `Saved.tok` string anywhere in `bootfile.dol`**,
+so the school-to-text-file path does not exist in the retail build.
 
-A roster can therefore be replaced outright (header `NAME`/`HERO`/`GOLD` plus the hero blocks) exactly as the
-original did, instead of editing blocks in place. `GOLD` follows the original's rules: the chosen amount, a random one, 75000 in 40-gladiator mode and
-15000 otherwise. Level, experience, job points and `CUSTOMIZE` are carried over from the block that was there.
+Together: rewriting a roster cannot disturb a save, and the roster it replaces is re-read only at a campaign
+start or a scripted school transition.
+
+> Evidence rule: `protius.exe` is a **developer artifact**, not a PC port. Its code (e.g. `SchoolSave` writing
+> `<name>Saved.tok` from `_WinMain`, `MemCard::PCCard` doing `CreateFileA`, `Storage::SaveGameData` writing
+> `File.bin`) describes a debug build and must not be used as evidence for retail behaviour. Behaviour is checked
+> in `bootfile.dol`; protius is only useful for confirming codegen details the DOL shares.
 
 **All six heroes are written as blocks into both campaigns, and the scripts are patched.** The original
 randomizer wrote Valens, Ursula, Ludo, Urlan, Eiji and Gwazi into *both* roster files — creating the Eiji and Gwazi
