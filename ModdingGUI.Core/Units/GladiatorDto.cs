@@ -42,7 +42,28 @@ public sealed record GladiatorPatch
         && SkillSet is null && StatSet is null && ItemSet is null && School is null;
 }
 
-/// <summary>The affinity values the files actually use (from the compiled index table).</summary>
+/// <summary>
+/// The affinity values the files use, and what the field is actually for.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Purpose: this is the unit's affinity for <b>slot eligibility</b>. An encounter UNITDB row can require an
+/// affinity (index 7) or prohibit one (index 16), and the matcher FUN_8010ad40 compares that requirement
+/// against this value. It is not the affinity a unit fights with - that comes from its equipped weapon
+/// (offense) and armour/accessories (defense), which is why changing this field looks inert in the unit
+/// panel.
+/// </para>
+/// <para>
+/// Two numberings, one name: the file uses names, the pack chain turns the name into this order's index and
+/// packs it into three bits of unitunits.idx, and FUN_800dfac4 remaps that index onto the engine ids -
+/// Earth 1, Water 2, Dark 3, Air 4, Fire 5, Light 6 (remap 1-4, 2-3, 3-1, 4-5, 5-6, 6-2). So an encounter
+/// requirement of 5 means Fire, while Fire is index 4 here.
+/// </para>
+/// <para>
+/// Slot 5 is a deliberate hole in the repack table and "Light" has no name there, so neither a made-up
+/// value nor Light can be repacked today even though the engine knows six affinities.
+/// </para>
+/// </remarks>
 public static class GladiatorAffinity
 {
     /// <summary>Accepted spellings, in the order the engine enumerates them.</summary>

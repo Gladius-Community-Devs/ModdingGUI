@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 464 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (448 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 477 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (461 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -316,13 +316,18 @@ end to end.
 
 **What the QA taught us about the fields** (all now in code comments and validators):
 
-- **`Affinity` is packed, not decorative.** The repack chain writes it into `unitunits.idx` as the low three
-  bits of a byte shared with `Outfit` (`5 bits outfit | 3 bits affinity`), and the unit builder
-  `FUN_800dfac4` decodes `record+3 & 7` and maps the file index onto the engine ids before creating the
-  unit. It *looks* inert in game because affinity as played comes from equipment: the weapon supplies
-  offense affinity and armour/accessories supply defence. An unknown name still breaks the repack, so the
-  validator keeps it a Warning, and the enum's order is documented as load-bearing (`5` is a deliberate
-  hole in the repack table; the engine's light-affinity icons have no name there).
+- **`Affinity` is the slot-eligibility affinity** — the one unknown that stayed open for several rounds,
+  now closed. It is packed into `unitunits.idx` (low three bits of a byte shared with `Outfit`:
+  `5 bits outfit | 3 bits affinity`) and remapped by `FUN_800dfac4` onto the engine ids
+  (**1 Earth, 2 Water, 3 Dark, 4 Air, 5 Fire, 6 Light**; the file order is None, Air, Dark, Earth, Fire,
+  Water, so Fire is file index 4 but engine id 5). The matcher `FUN_8010ad40` then compares that value with
+  a `UNITDB` slot's affinity requirement (index 7) — or, with the prohibit flag (index 16), rejects a
+  match — which is what the field is *for*. It is not the affinity a unit fights with: offense affinity is
+  the weapon's and defence comes from armour/accessories, which is why changing it looks inert in the unit
+  panel. `EncounterValidation` now rejects a requirement outside -1..6 (`affinity-requirement`), since
+  such a slot can never be filled. Vanilla: -1 on 6,302 rows, 1-5 on 400 rows, prohibit set on 34.
+  The enum's order is documented as load-bearing (`5` is a deliberate hole in the repack table, and
+  "Light" has no name there even though the engine knows it).
 - **`Outfit` is zero-indexed per class** and nothing lists the valid set; an invalid value has been
   reported to crash the game (research log: "Outfit 1 is not valid … default to 0, hope it prevents
   crashes"). `ISchoolsApi` now validates the matching `CUSTOMIZE` outfit for starting units, which was

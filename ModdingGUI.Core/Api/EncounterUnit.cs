@@ -58,16 +58,24 @@ public sealed class EncounterUnit
     public int PositionJitter { get; init; }
 
     /// <summary>
-    /// Slot 7 — attribute requirement for the player's unit (bit flags; the engine stores it on the
-    /// unit spec it builds for the slot). Reported by a modder; vanilla values are flag-like
-    /// (1, 2, 4, 8, 16, 24, 32, 56, 64, 4224).
+    /// Slot 7 — attribute requirement as a bitmask over the unit's class tags (vanilla uses 1, 2, 4, 8,
+    /// 16, 32, 256, 512, 1056, 4224 …). <c>FUN_8010ad40</c> tests it against the candidate's class tag
+    /// bits (<c>classdef &amp; 0xf00</c>), and slot 15 flips it to "must NOT have".
     /// </summary>
     public int AttributeRequirement { get; init; }
 
     /// <summary>
-    /// Slot 8 — affinity requirement (<c>-1</c> = none, otherwise an affinity id; vanilla uses 1-5).
-    /// Reported by a modder; the engine copies it into the unit spec unchanged, which matches.
+    /// Slot 8 — affinity requirement in <b>engine</b> affinity ids: <c>-1</c> = none, otherwise
+    /// 1 Earth, 2 Water, 3 Dark, 4 Air, 5 Fire, 6 Light. Vanilla uses <c>-1</c> (6,302 rows) or 1-5
+    /// (400 rows).
     /// </summary>
+    /// <remarks>
+    /// Checked against the candidate unit's affinity, which comes from its <c>gladiators.txt</c> record:
+    /// <c>FUN_8010ad40</c> compares this value with the byte at unit +0x82 and rejects a mismatch, unless
+    /// slot 16 (<see cref="ProhibitAffinity"/>) is set, in which case a match is rejected instead. This is
+    /// what the gladiator <c>Affinity</c> field is for — it decides whether a unit may fill a slot, not
+    /// how it fights.
+    /// </remarks>
     public int AffinityRequirement { get; init; }
 
     /// <summary>Slot 9 — first extra class tag added to the unit (accumulates, like skill classes).</summary>
@@ -89,15 +97,21 @@ public sealed class EncounterUnit
     public int FlagA { get; init; }
 
     /// <summary>
-    /// Slot 14 — flips the class list from "required" to "prohibited" (modder-reported). Consistent with
-    /// the engine writing it as a byte next to the class names it just parsed.
+    /// Slot 14 — flips the class list from "required" to "prohibited". <c>FUN_8010ad40</c> reads it as the
+    /// byte at requirement +0x12 and inverts the class-tag test.
     /// </summary>
     public int ProhibitClasses { get; init; }
 
-    /// <summary>Slot 15 — flips <see cref="AttributeRequirement"/> to "prohibited" (modder-reported).</summary>
+    /// <summary>
+    /// Slot 15 — flips <see cref="AttributeRequirement"/> to "prohibited"; the engine reads it as the byte
+    /// at requirement +0x10 and inverts the attribute-tag test.
+    /// </summary>
     public int ProhibitAttribute { get; init; }
 
-    /// <summary>Slot 16 — flips <see cref="AffinityRequirement"/> to "prohibited" (modder-reported).</summary>
+    /// <summary>
+    /// Slot 16 — flips <see cref="AffinityRequirement"/> to "prohibited". 34 vanilla rows use it: the unit
+    /// filling that slot must NOT have the listed affinity.
+    /// </summary>
     public int ProhibitAffinity { get; init; }
 
     /// <summary>

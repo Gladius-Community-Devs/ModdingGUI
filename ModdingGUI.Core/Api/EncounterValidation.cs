@@ -76,6 +76,13 @@ public static class EncounterValidationCodes
 
     /// <summary>The <c>TEAM</c> line's index does not parse, so the team cannot be identified.</summary>
     public const string TeamIndex = "team-index";
+
+    /// <summary>
+    /// The affinity requirement is not an engine affinity id. The matcher (<c>FUN_8010ad40</c>) compares it
+    /// with the candidate unit's affinity byte, so anything outside -1 and 1-6 either excludes every unit
+    /// or, with the prohibit flag set, excludes none of them.
+    /// </summary>
+    public const string AffinityRequirement = "affinity-requirement";
 }
 
 /// <summary>One finding about one encounter.</summary>
@@ -464,6 +471,24 @@ public static class EncounterValidator
                             $"{count} units share start slot '{slot}' but the grid paints only {cells} " +
                             $"cell(s) for it; the surplus cannot be placed"));
                     }
+                }
+            }
+
+            // The affinity requirement is compared with the candidate unit's affinity byte by FUN_8010ad40,
+            // so a value outside the engine ids can never match anything.
+            foreach (string raw in team.Units)
+            {
+                var unit = EncounterUnit.TryParse(raw);
+                if (unit is null) continue;
+
+                int required = unit.AffinityRequirement;
+                if (required is < -1 or > 6)
+                {
+                    issues.Add(new EncounterValidationIssue(
+                        EncounterValidationSeverity.Warning,
+                        EncounterValidationCodes.AffinityRequirement, site, "UNITDB",
+                        $"affinity requirement {required} is not an engine affinity id " +
+                        "(-1 = none, 1 Earth, 2 Water, 3 Dark, 4 Air, 5 Fire, 6 Light)"));
                 }
             }
         }
