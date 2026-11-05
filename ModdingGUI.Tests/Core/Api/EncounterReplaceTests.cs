@@ -132,7 +132,7 @@ public sealed class EncounterReplaceTests : IDisposable
         api.SetTeamUnit(_projectDir, Arena, 1, 0, team.Unit(0)!.WithStartSlot(occupied));
 
         var issues = api.Validate(_projectDir, Arena);
-        var issue = Assert.Single(issues.Where(i => i.Code == EncounterValidationCodes.DuplicateStartSlot));
+        var issue = Assert.Single(issues, i => i.Code == EncounterValidationCodes.DuplicateStartSlot);
         // Information, not a warning: vanilla itself shares slots 4171 times.
         Assert.Equal(EncounterValidationSeverity.Info, issue.Severity);
     }
@@ -168,7 +168,7 @@ public sealed class EncounterReplaceTests : IDisposable
         api.SetTeamUnit(_projectDir, Arena, 1, 0, team.Unit(0)!.WithStartSlot("Start9"));
 
         var issues = api.Validate(_projectDir, Arena);
-        var issue = Assert.Single(issues.Where(i => i.Code == EncounterValidationCodes.StartSlotUnknown));
+        var issue = Assert.Single(issues, i => i.Code == EncounterValidationCodes.StartSlotUnknown);
         // Info: vanilla itself has 72 units on slots their grid does not paint.
         Assert.Equal(EncounterValidationSeverity.Info, issue.Severity);
     }

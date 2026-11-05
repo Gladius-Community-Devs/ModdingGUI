@@ -2,7 +2,14 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
+    <!-- Nullable: "annotations" here, "enable" in Core and the test project.
+         This project is the WinForms shell: thin glue plus legacy editors that are still being
+         ported onto Core APIs (Randomizer and Team Builder move in Phases 6-7). WinForms event
+         handlers and designer fields are not nullable-aware, so flow analysis here produced 107
+         warnings that described the framework, not defects — the type declarations on public
+         members are still annotated for callers. Logic belongs in Core, where nullability is
+         enforced as an error; a shell file flips to "#nullable enable" when it is ported. -->
+    <Nullable>annotations</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>ludo.ico</ApplicationIcon>

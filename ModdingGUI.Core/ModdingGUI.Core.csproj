@@ -8,6 +8,9 @@
     <RootNamespace>ModdingGUI.Core</RootNamespace>
     <AssemblyName>ModdingGUI.Core</AssemblyName>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- Core is the source of truth, so nullability is enforced here: these are errors, not noise.
+         Everything else stays a warning so an unrelated analyzer cannot block a build. -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8619;CS8625;CS8622;CS8629</WarningsAsErrors>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 

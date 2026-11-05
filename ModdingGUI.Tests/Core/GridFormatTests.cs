@@ -147,8 +147,8 @@ public sealed class GridFormatTests : IDisposable
                      Path.Combine(CleanBecCorpus.Root!, "data"), "*.grd", SearchOption.AllDirectories))
         {
             using var stream = File.OpenRead(file);
-            Span<byte> header = stackalloc byte[4];
-            if (stream.Read(header) < 4) continue;
+            var header = new byte[4];
+            if (stream.Read(header, 0, 4) < 4) continue;
             if (BitConverter.ToInt32(header) == version) return file;
         }
 

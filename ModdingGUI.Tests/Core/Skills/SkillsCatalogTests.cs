@@ -69,7 +69,7 @@ public sealed class SkillsCatalogTests
         // "teleport" — translateanim is valid too), and the rule is strict/clean.
         var moverange = catalog.Find("SKILLMOVERANGE");
         Assert.NotNull(moverange);
-        var requirement = Assert.Single(moverange!.Requirements.Where(r => r.IsEnforceable));
+        var requirement = Assert.Single(moverange!.Requirements, r => r.IsEnforceable);
         Assert.Equal("SKILLATTRIBUTE", requirement.Field);
         Assert.Null(requirement.Value);
         Assert.True(requirement.Strict);

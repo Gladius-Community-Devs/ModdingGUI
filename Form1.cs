@@ -269,8 +269,10 @@ namespace ModdingGUI
                     Environment.Exit(0); // Exit the application
                 }
 
-                // Proceed with loading the file list asynchronously
-                LoadFileListAsync();
+                // Proceed with loading the file list asynchronously. Fire-and-forget on purpose: this runs
+                // during form load and the tree fills in when the scan finishes; the discard says so
+                // instead of leaving the compiler to guess.
+                _ = LoadFileListAsync();
 
                 // Remove specific tabs on load
                 // tabContainer.TabPages.Remove(tabRandomizer);
