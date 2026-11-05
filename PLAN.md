@@ -396,6 +396,12 @@ Move all `Randomizer.cs` logic (1,914 lines) into `ModdingGUI.Core.Randomizer`.
   | `WeightedClasses` | class diversity weighting |
   | `Hero` (Ursula/Valens) and `GameVersion` (Vanilla/Ragnaroks/Leonarths) | which campaign files are touched |
 
+**Why the seeding has to be rebuilt, not reused.** The old code seeds only two steps
+(`RandomizeHeroes`, `RandomizeTeam` call `InitializeRandom(ctx.SeedText)`); `RandomizeStatsets`,
+`RandomizeItemsets`, `RemoveAllRecruits` and `EditEncounterFiles` never do — they run on whatever `random`
+instance the previous step left behind, so a displayed seed covers part of the run and the rest depends on
+call order. The new pipeline takes one `RandomizerRandom` per run and every step draws from it.
+
 **Acceptance for the rewrite** (replaces "matches the old output"): the same seed produces an identical
 project across runs; a different seed differs; every validator still passes on the result; the randomised
 project packs and plays.
