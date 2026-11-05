@@ -75,7 +75,7 @@ dol/                        Engine field tables extracted from the DOL (authorit
 
 ```
 dotnet build ModdingGUI.sln          # whole solution (shell + Core + Mcp + Tests)
-dotnet test ModdingGUI.sln           # xUnit suite (475 pass / 0 fail / 16 gated skips without real-data fixtures; 491/0/0 with them)
+dotnet test ModdingGUI.sln           # xUnit suite (564 pass / 0 fail / 16 gated skips without real-data fixtures; 590/0/0 with them)
 .\run-tests.ps1                      # colored runner w/ TRX, filters, -ProjectFolder
 .\run-tests.ps1 -Filter RealGameDataTests
 .\run-tests.ps1 -ProjectFolder REALDATA_v2
@@ -87,7 +87,7 @@ All commands run from inside `ModdingGUI/` (that is where the `.sln` and the git
 ### Test bar (mandatory, from PLAN.md)
 
 - `dotnet test -c Release` green at the end of every phase. No phase merges with failing tests.
-- Baseline is **491 passed / 0 failed / 0 skipped** with real-data fixtures present, or **475 passed / 0 failed / 16 skipped** without them. Every phase ends green.
+- Baseline is **590 passed / 0 failed / 0 skipped** with real-data fixtures present, or **564 passed / 0 failed / 16 skipped** without them. Every phase ends green.
 - `ModdingGUI.Tests/Core/Tok/TokRoundTripTests.cs` is the **corpus gate**: it parses and re-serializes every `.tok`/`.enc` in `clean-bec-unpacked/` (977 files) and fails on any byte diff. Never break this.
 - 16 `RealGameDataTests` are gated behind a `REALDATA_*` project folder + `vanilla.iso`; they skip in CI without it. To enable them locally, run **`ModdingGUI/setup-realdata.ps1`** — it breaks the vanilla ISO down from scratch using the app's own unpack toolchain (`ngciso-tool.py` → `bec-tool-all.py` → `Gladius_Units_IDX_Unpack.py`, the same commands `BatchContentBuilder` emits), byte-verifies the result against `clean-bec-unpacked` (0 missing / 0 extra / 0 diffs), and installs it into `bin/{Debug|Release}/net8.0-windows/win-x64/REALDATA_<name>/` plus a `vanilla.iso` hardlink. The vanilla ISO + `clean-bec-unpacked` are outside the repo; `bin/` is gitignored.
 - Integration fixture: `ModdingGUI.Tests/Integration/GameDataFixture.cs` points at `clean-bec-unpacked/`. Do not check large new fixtures into the repo.

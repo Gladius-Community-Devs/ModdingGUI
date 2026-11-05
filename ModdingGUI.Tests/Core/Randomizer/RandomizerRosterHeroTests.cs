@@ -215,6 +215,37 @@ public sealed class RandomizerRosterHeroTests : IDisposable
     }
 
     [Fact]
+    public void TheSixHeroesGetDistinctClasses()
+    {
+        if (!Ready) return;
+
+        // The original dealt classes off a shuffled list, so no two heroes shared one.
+        new RandomizerService().Randomize(_bec, new RandomizerOptions { Seed = "distinct", RandomizeHeroes = true });
+
+        var classes = _schools.Get(_bec, ValensRoster)!.Units
+            .Select(unit => unit.ClassName)
+            .ToArray();
+
+        Assert.Equal(classes.Length, classes.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+    }
+
+    [Fact]
+    public void TheSchoolNameComesFromTheOptions()
+    {
+        if (!Ready) return;
+
+        new RandomizerService().Randomize(_bec, new RandomizerOptions
+        {
+            Seed = "named",
+            RandomizeHeroes = true,
+            SchoolName = "QA School",
+        });
+
+        Assert.Equal("QA School", _schools.Get(_bec, ValensRoster)!.Name);
+        Assert.Equal("QA School", _schools.Get(_bec, UrsulaRoster)!.Name);
+    }
+
+    [Fact]
     public void RewrittenRostersStillValidate()
     {
         if (!Ready) return;

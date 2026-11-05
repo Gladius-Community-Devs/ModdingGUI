@@ -577,7 +577,11 @@ namespace ModdingGUI
                 Version = rbnRagnaroks.Checked
                     ? GameVersion.Ragnaroks
                     : rbnLeonarths.Checked ? GameVersion.Leonarths : GameVersion.Vanilla,
-                SchoolName = txtRandomCustomSchoolName.Text,
+                // The old randomizer treated an empty box as "Random's School"; keep that so the roster header
+                // matches what modders are used to seeing.
+                SchoolName = string.IsNullOrWhiteSpace(txtRandomCustomSchoolName.Text)
+                    ? "Random's School"
+                    : txtRandomCustomSchoolName.Text.Trim(),
                 RandomizeHeroes = chbRandomHeroes.Checked,
                 RandomizeTeam = chbRandomTeam.Checked,
                 RemoveRecruits = chbRandomNoRecruits.Checked,

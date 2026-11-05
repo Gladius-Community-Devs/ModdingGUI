@@ -578,19 +578,32 @@ public sealed class RandomizerService
 
         if (pool.Count == 0) return 0;
 
+        // One loadout per class, and the classes are dealt out shuffled so the six heroes never share one - the
+        // original took each class off a shuffled list the same way.
+        var classes = pool
+            .GroupBy(loadout => loadout.ClassName, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(group => group.Key, StringComparer.Ordinal)
+            .ToList();
+        random.Shuffle(classes);
+
         var patches = new List<(string Name, GladiatorPatch Patch)>();
         var assigned = new Dictionary<string, GladiatorLoadout>(StringComparer.Ordinal);
+        int dealt = 0;
 
         foreach (string hero in StoryHeroes.Names)
         {
             var current = records.FirstOrDefault(dto => dto.Name == hero);
             if (current is null) continue;
 
-            var loadout = random.Pick(pool);
+            // classes[dealt] is an IGrouping, not a list, so materialise it before picking from it.
+            var loadout = dealt < classes.Count
+                ? random.Pick(classes[dealt++].ToList())
+                : random.Pick(pool);
             assigned[hero] = loadout;
             if (loadout.Matches(current)) continue;
 
             patches.Add((hero, loadout.ToPatch()));
+
         }
 
         int changed = patches.Count == 0 ? 0 : _gladiators.ApplyMany(projectRoot, patches);
