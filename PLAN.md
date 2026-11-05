@@ -457,6 +457,8 @@ recruits) twice with seed `alpha` on a fresh project produces byte-identical `gl
 rosters; seed `beta` changes them. The league files hash the same across seeds, as they should: recruit removal
 is seed-independent.
 
+**`CUSTOMIZE` is always written as `0`.** It selects `data/characters/<mesh>/<mesh>_varNN.ptx`, and asking for a variant the class does not ship **locks the game up** — 99 of the 182 mesh folders ship no variants at all. Since the randomizer changes a hero's class, the previous outfit cannot be carried over, so every block it writes asks for the default look. `SchoolValidator` also checks a `CUSTOMIZE` index against the class's real variant count when the characters tree is available, which catches hand edits and other tools.
+
 **Rosters are rewritten wholesale, and that is safe.** A roster is read by `SchoolReallyLoad`
 (`FUN_800f5244`, which joins `$d\School\` with the name and parses the block), and its callers in `bootfile.dol`
 are: `GameStartup`, the two script globals `SchoolLoad` / `SchoolReallyLoad` (`FUN_8011c8ec`, `FUN_8011c81c`),
