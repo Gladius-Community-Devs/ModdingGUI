@@ -44,7 +44,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="ludo.ico" />
+    <Content Include="ludo.ico">
+      <!-- Embedded in the exe via ApplicationIcon for the window icon; also copied loose so a dev
+           build can fall back to it if the executable icon cannot be read. -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="skills\skills_catalog.json">
       <Link>skills\skills_catalog.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -96,5 +100,16 @@
   <ItemGroup>
     <Folder Include="maps\" />
   </ItemGroup>
+
+  <!-- Defence in depth for MSB3821. Resource files pick up a zone identifier when the repo is copied
+       from a zip or a network share, and VS's MSBuild refuses to process a marked .resx even though the
+       SDK's MSBuild tolerates it. The script clears that stream before the build, so a marked file can
+       never make "builds here, fails there". Windows-only; a failure is logged but not fatal. -->
+  <Target Name="UnblockDesignerResourceFiles" BeforeTargets="BeforeBuild" Condition="'$(OS)' == 'Windows_NT'">
+    <Exec Command="powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\build\unblock-resources.ps1&quot; -Directory &quot;$(MSBuildProjectDirectory)&quot;"
+          ContinueOnError="true"
+          StandardOutputImportance="low"
+          StandardErrorImportance="normal" />
+  </Target>
 
 </Project>

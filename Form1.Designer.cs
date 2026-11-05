@@ -1,4 +1,4 @@
-﻿namespace ModdingGUI
+namespace ModdingGUI
 {
     partial class frmMain
     {
@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            // Resource manager kept for the one real designer resource (richTextBox1.Text). The window
+            // icon is not one of them: it comes from the executable, see frmMain.ApplyLudoIcon.
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             mnuMain = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
@@ -2267,7 +2269,9 @@
             ClientSize = new Size(2127, 1295);
             Controls.Add(mnuMain);
             Controls.Add(splitContainer1);
-            Icon = (Icon)resources.GetObject("$this.Icon");
+            // The window icon is applied in code (frmMain's constructor) rather than through a
+            // designer resource: this form's .resx held nothing but the icon, and keeping it forced
+            // MSBuild to process a binary resource it would occasionally refuse (MSB3821).
             MainMenuStrip = mnuMain;
             Margin = new Padding(4, 5, 4, 5);
             Name = "frmMain";

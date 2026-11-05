@@ -1,4 +1,6 @@
-﻿using ModdingGUI.Models;
+﻿using System.Drawing;
+using System.IO;
+using ModdingGUI.Models;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -11,6 +13,42 @@ namespace ModdingGUI
         private static readonly Color ErrorColor = Color.Red;     // Color for error messages
         private static readonly Color InfoColor = Color.Blue;     // Color for informational messages
         private static readonly Color WarningColor = Color.Orange; // Assuming WarningColor was intended
+        /// <summary>
+        /// Window and taskbar icon. Read from the icon embedded in the executable (the project sets
+        /// <c>ApplicationIcon=ludo.ico</c>), falling back to a loose <c>ludo.ico</c> beside the exe and
+        /// then to the framework default.
+        /// </summary>
+        /// <remarks>
+        /// Deliberately not a designer resource. This form's .resx existed only to carry the icon, and
+        /// the WinForms designer kept rewriting it with the full ResX template, which VS's MSBuild then
+        /// refused when the file carried a mark-of-the-web ("MSB3821 ... Internet or Restricted zone").
+        /// Setting it here means the build never has to process that resource, and the icon survives a
+        /// designer save.
+        /// </remarks>
+        private void ApplyLudoIcon()
+        {
+            try
+            {
+                Icon? embedded = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+                if (embedded is not null)
+                {
+                    Icon = embedded;
+                    return;
+                }
+
+                string loose = Path.Combine(GetAppDirectory(), "ludo.ico");
+                if (File.Exists(loose))
+                {
+                    Icon = new Icon(loose);
+                }
+            }
+            catch (Exception ex)
+            {
+                // A missing icon must never stop the app from opening.
+                Debug.WriteLine($"Could not load the application icon: {ex.Message}");
+            }
+        }
+
         // Method to check if Python 3 is installed
         private bool IsPythonInstalled()
         {

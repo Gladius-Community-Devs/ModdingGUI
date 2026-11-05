@@ -21,6 +21,8 @@ namespace ModdingGUI
         {
             InitializeComponent(); // Initialize form components
 
+            ApplyLudoIcon();
+
             // Check if Python 3 is installed on the system
             if (!IsPythonInstalled())
             {
