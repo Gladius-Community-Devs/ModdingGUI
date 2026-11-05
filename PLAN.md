@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 358 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (342 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 461 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (445 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -276,6 +276,41 @@ ResX template (see the build notes in `AGENTS.md`).
 **Exit:** all `.tok`/`.enc` formats with mod relevance have an Api. Round-trip gate stays green.
 
 ### Phase 5 — Units `.txt` family
+
+**Status: APIs delivered, in-game QA pending.** Six APIs over the family, all with lock + `.mod-history`
+backup + byte-identical no-op saves + advisory validation:
+
+| File | Records | API |
+|---|---|---|
+| `gladiators.txt` | 2,170 × 9 labelled lines | `IGladiatorsApi` |
+| `statsets.txt` | 169 sets × 30 level rows | `IStatSetsApi` |
+| `skillsets.txt` | 230 sets of `min max SkillName` | `ISkillSetsApi` |
+| `itemsets.txt` | 404 sets of `min max ItemName [note]` | `IItemSetsApi` |
+| `tints.txt` | 196 sets × 6 RGB channels | `ITintSetsApi` |
+| `schools.txt` | 144-entry name table | `ISchoolNamesApi` |
+
+**The abstraction is two types, not the planned `DelimitedRecordSchema<T>`.** These files are not
+delimited records: `gladiators.txt` is labelled blocks and the rest are numbered sections. `UnitTextFile`
+carries the line/terminator fidelity (gladiators.txt is LF-only while the other five are CRLF, so a
+CRLF-normalising writer would rewrite 21,700 line endings) and `SectionedFile` locates sections and rows
+for the four sectioned files. `DelimitedRecordSchema<T>` remains the right tool for a genuinely
+delimiter-based format; it was not the right tool here.
+
+**Corpus findings folded into the validators** (each one corrected a rule that would otherwise have
+produced false warnings): vanilla leaves `schools.txt` entry 0 blank; `tints.txt` set 0 is a paragraph of
+prose rather than colours; skillset windows reach `0 232` and `0 30` (level 0 means "from the start");
+skillset 144 lists `Summoner SummonAffinityPower` twice, so duplicates are Info; `gladiators.txt` contains
+one malformed record (`Name: Muduk` followed by a stray duplicate line) that must round-trip untouched;
+and `NUMENTRIES` is bookkeeping — the pack chain reads it but never enforces or rewrites it, so the APIs
+recompute it only when the section count changes.
+
+**Cross-file validation is real, not decorative:** class names are checked against `classdefs.tok`, skill
+names against `skills.tok`, item names against `items.tok`, and every gladiator's five set indexes are
+bounded by counts read out of the other units files (169/230/404/144/196), so a mod that adds a set
+widens the range by itself.
+
+**QA artifact:** Bjolf's tint set 0 → 155 (all six channels 196,0,0 — vanilla set 0 means default colours)
+and stat set 71 level 1 CON/POW 3/3 → 150/120, applied through the APIs and packed.
 Gladiators, statsets, itemsets, skillsets. Tab/space-delimited, NOT tok.
 
 - New `DelimitedRecordSchema<T>` peer abstraction (sibling of `RecordSchema<T>`).
