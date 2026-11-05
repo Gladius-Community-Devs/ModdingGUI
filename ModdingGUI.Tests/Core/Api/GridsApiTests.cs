@@ -110,4 +110,64 @@ public sealed class GridsApiTests : IDisposable
         Assert.Throws<InvalidOperationException>(
             () => new GridsApi().Get(_projectRoot, "../../outside.grd"));
     }
+
+    /// <summary>First cell whose value does not already include <paramref name="slot"/>.</summary>
+    private static (int Row, int Col) FindCellWithout(GridFile grid, int slot)
+    {
+        for (int row = 0; row < GridFile.ArenaSize; row++)
+        {
+            for (int col = 0; col < GridFile.ArenaSize; col++)
+            {
+                if ((grid.GetValue(row, col) & (1 << slot)) == 0) return (row, col);
+            }
+        }
+
+        throw new InvalidOperationException("every cell already carries that slot");
+    }
+
+    [Fact]
+    public void Save_WithTheGridsAbsolutePath_OverwritesItAndKeepsABackup()
+    {
+        if (!Ready) return;
+
+        // This is how the Grid Builder saves: it knows the file it opened, not the project layout.
+        string full = Path.Combine(_bec, Relative.Replace('/', Path.DirectorySeparatorChar));
+        byte[] before = File.ReadAllBytes(full);
+
+        var api = new GridsApi();
+        var grid = api.Get(_projectRoot, Relative)!;
+        int slot = Enumerable.Range(0, GridFile.NumSlots)
+            .First(s => grid.IsSlotActive(s) && grid.GetTagNameForSlot(s) != GridFile.NO_VALUE);
+
+        // Paint a cell that does not already carry this slot, so the bytes must change.
+        var (row, col) = FindCellWithout(grid, slot);
+        grid.SetValue(row, col, grid.GetValue(row, col) | (1 << slot));
+
+        string? backup = api.Save(full, grid);
+
+        Assert.NotNull(backup);
+        Assert.Equal(before, File.ReadAllBytes(backup!));
+        Assert.True(File.Exists(full), "the grid must be overwritten, not recreated elsewhere");
+        Assert.NotEqual(before, File.ReadAllBytes(full));
+
+        // Saving a second time must overwrite again rather than fail on an existing file.
+        string? second = api.Save(full, api.Get(_projectRoot, Relative)!);
+        Assert.NotNull(second);
+        Assert.NotEqual(backup, second);
+    }
+
+    [Fact]
+    public void Save_WhenTheGridPathIsAFile_DoesNotTryToCreateADirectoryOverIt()
+    {
+        if (!Ready) return;
+
+        // The reported failure: "Cannot create '<...>.grd' because a file or directory with the same
+        // name already exists." It came from resolving the project root out of the file's own path.
+        string full = Path.Combine(_bec, Relative.Replace('/', Path.DirectorySeparatorChar));
+        var api = new GridsApi();
+
+        var exception = Record.Exception(() => api.Save(full, api.Get(_projectRoot, Relative)!));
+
+        Assert.Null(exception);
+    }
 }

@@ -654,9 +654,8 @@ namespace ModdingGUI
             {
                 // No GUI bypass: the write goes through Core, which takes the project lock and writes a
                 // timestamped .mod-history backup first, exactly like every other edit in the app.
-                string root = ProjectRoots.ResolveBecFolder(_currentArenaPath);
-                string relative = Path.GetRelativePath(root, _currentArenaPath);
-                string? backup = new GridsApi().Save(root, relative, CurrentGrid);
+                // The grid's own path is enough: the API resolves the enclosing project from it.
+                string? backup = new GridsApi().Save(_currentArenaPath, CurrentGrid);
 
                 AppendLog($"Arena saved: {_currentArenaPath}", "Green", isDetail: false);
                 if (backup is not null)

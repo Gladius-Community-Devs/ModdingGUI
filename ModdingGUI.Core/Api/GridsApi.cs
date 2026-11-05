@@ -111,16 +111,30 @@ public sealed class GridsApi : IGridsApi
         ArgumentException.ThrowIfNullOrWhiteSpace(projectRoot);
         ArgumentNullException.ThrowIfNull(grid);
 
-        string full = Resolve(projectRoot, relativePath);
-        string root = ProjectRoots.ResolveBecFolder(projectRoot);
+        // An absolute path is accepted here on purpose: the Grid Builder knows the file it opened, and
+        // making every caller derive the project root by hand is how it ended up asking to create a
+        // directory where the .grd already lived. One resolver, used the same way everywhere.
+        string root = ProjectRoots.ResolveBecFolder(
+            Path.IsPathRooted(relativePath) ? relativePath : projectRoot);
+
+        string full = Path.IsPathRooted(relativePath)
+            ? Path.GetFullPath(relativePath)
+            : Resolve(projectRoot, relativePath);
 
         using (ProjectLock.Acquire(root))
         {
             string? backup = ChangeHistoryService.Backup(root, full);
             Directory.CreateDirectory(Path.GetDirectoryName(full)!);
-            grid.Save(full);
+            grid.Save(full);   // overwrites: the backup above holds the previous bytes
             return backup;
         }
+    }
+
+    /// <summary>Save a grid addressed by its own absolute path.</summary>
+    public string? Save(string gridFilePath, GridFile grid)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(gridFilePath);
+        return Save(ProjectRoots.ResolveBecFolder(gridFilePath), gridFilePath, grid);
     }
 
     /// <summary>Absolute path of a project-relative grid, rejecting paths that escape the project.</summary>

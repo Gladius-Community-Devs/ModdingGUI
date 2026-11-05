@@ -31,6 +31,14 @@ public static class ProjectRoots
         string full = Path.GetFullPath(path).TrimEnd(
             Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
+        // A path to a file inside the project (the Grid Builder hands over the .grd it is editing)
+        // must resolve to the project, not to the file. Without this, the caller derives a relative
+        // path of "." and ends up trying to create a directory where the file already lives.
+        if (File.Exists(full))
+        {
+            full = Path.GetDirectoryName(full) ?? full;
+        }
+
         // Already a BEC folder: data/config is the giveaway, and it is what every Api needs.
         if (Directory.Exists(Path.Combine(full, "data", "config"))) return full;
 
@@ -46,6 +54,21 @@ public static class ProjectRoots
         {
             var candidates = Directory.EnumerateDirectories(full, "*_BEC").Take(2).ToArray();
             if (candidates.Length == 1) return candidates[0];
+        }
+
+        // Walk up: any path inside a project (data/encounters/..., data/levels/...) resolves to the
+        // enclosing BEC folder, which is the only answer an Api can use.
+        string current = full;
+        for (int depth = 0; depth < 16; depth++)
+        {
+            string? parent = Path.GetDirectoryName(current);
+            if (string.IsNullOrEmpty(parent) || parent.Length >= current.Length) break;
+            current = parent;
+
+            if (Directory.Exists(Path.Combine(current, "data", "config"))) return current;
+
+            var nested = Directory.EnumerateDirectories(current, "*_BEC").Take(2).ToArray();
+            if (nested.Length == 1) return nested[0];
         }
 
         return full;
