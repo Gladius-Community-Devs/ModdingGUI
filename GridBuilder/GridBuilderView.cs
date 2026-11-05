@@ -1,5 +1,6 @@
 using System;
 using ModdingGUI.Core;
+using ModdingGUI.Core.Logging;
 using ModdingGUI.Core.Api;
 using ModdingGUI.Core.Grids;
 using System.IO;
@@ -119,8 +120,28 @@ namespace ModdingGUI
             }
         }
 
+        /// <summary>
+        /// The application output stream. The main form assigns its own instance so one run is one log;
+        /// debug detail still only reaches the on-screen box (it is noise for a log consumer).
+        /// </summary>
+        public IAppLog? Log { get; set; }
+
+        /// <summary>Map the legacy colour names this view passes around onto a log level.</summary>
+        private static LogLevel LevelForColorName(string colorName) => colorName switch
+        {
+            "Red" or "Crimson" or "Firebrick" => LogLevel.Error,
+            "Orange" or "OrangeRed" or "DarkOrange" => LogLevel.Warning,
+            "Green" or "DarkGreen" or "ForestGreen" or "LimeGreen" => LogLevel.Success,
+            "Gray" or "DimGray" or "DarkGray" => LogLevel.Debug,
+            _ => LogLevel.Info,
+        };
+
         private void AppendLog(string message, string colorName, bool isDetail = true)
         {
+            // Record before any early exit: a consumer should see the run even when the on-screen
+            // verbose filter hides the line.
+            Log?.Write(LevelForColorName(colorName), message, "grid-builder");
+
             if (isDetail && (_chkVerboseLoggingRegular == null || !_chkVerboseLoggingRegular.Checked))
             {
                 return;

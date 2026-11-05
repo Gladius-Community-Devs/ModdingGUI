@@ -30,7 +30,7 @@ namespace ModdingGUI
                 MessageBox.Show("Python is either not installed or not in PATH. Please fix this to use the program!\nhttps://www.python.org/downloads/ \nDuring install, check the box labelled 'Add python.exe to PATH'");
                 Environment.Exit(0); // Exit the application
             }
-            _gridBuilderView = new GridBuilderView();
+            _gridBuilderView = new GridBuilderView { Log = _log };
             tabGridBuilder.Controls.Add(_gridBuilderView);
 
             _skillEditorView = new SkillEditorView();

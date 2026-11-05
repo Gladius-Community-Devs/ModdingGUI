@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.IO;
+using ModdingGUI.Core.Logging;
 using ModdingGUI.Models;
 using System.Diagnostics;
 using System.Text.Json;
@@ -8,6 +9,15 @@ namespace ModdingGUI
 {
     public partial class frmMain
     {
+        /// <summary>
+        /// The application's output stream. Everything AppendLog receives is stored here before it is
+        /// rendered, so the same run is observable by the GUI, by tests and by the MCP server.
+        /// </summary>
+        private readonly AppLog _log = AppLog.CreateForRun();
+
+        /// <summary>Read access for anything that needs the stream (future MCP bridge, tests).</summary>
+        public IAppLog Output => _log;
+
         // Define static readonly colors for use in logging messages
         private static readonly Color SuccessColor = Color.Green; // Color for success messages
         private static readonly Color ErrorColor = Color.Red;     // Color for error messages
@@ -75,11 +85,14 @@ namespace ModdingGUI
                 return false;
             }
         }
-        // Method to append a message to the log with optional color and target (unpack or pack)
+        // Method to append a message to the log with optional color and target (unpack or pack).
+        // The message is recorded in the Core log first, then rendered: the RichTextBox is a viewer,
+        // not the store, so headless runs (tests, MCP) see the same output.
         private void AppendLog(string message, Color? color = null, RichTextBox targetRtb = null)
         {
             targetRtb ??= rtbUnpackOutput;
             color ??= Color.Black;
+            _log.Write(LevelFor(color.Value), message ?? string.Empty);
             if (targetRtb.InvokeRequired)
             {
                 targetRtb.Invoke(new Action(() => AppendLog(message, color, targetRtb)));
@@ -93,6 +106,19 @@ namespace ModdingGUI
             }
         }
 
+
+        /// <summary>
+        /// The log level a legacy colour implies. The shell has always signalled severity by colour;
+        /// this keeps that mapping in one place while the stream itself carries a real level.
+        /// </summary>
+        private static LogLevel LevelFor(Color color)
+        {
+            if (color.R > 150 && color.G < 100 && color.B < 100) return LogLevel.Error;      // red
+            if (color.R > 150 && color.G is > 100 and < 200 && color.B < 80) return LogLevel.Warning; // orange
+            if (color.G > 100 && color.R < 120 && color.B < 120) return LogLevel.Success;     // green
+            if (color.B > 120 && color.R < 120) return LogLevel.Info;                          // blue
+            return LogLevel.Info;
+        }
 
         // Method to handle process output data and log it appropriately
         private void LogProcessOutput(DataReceivedEventArgs e, Color? color = null, RichTextBox targetRtb = null)

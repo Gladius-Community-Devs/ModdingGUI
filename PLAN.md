@@ -325,6 +325,15 @@ box. `ModdingGUI.Core` has no logging abstraction at all. Consequences:
   so nothing outside the GUI can report a packing failure;
 - nothing to assert on in tests (log content is invisible to the suite).
 
+**Status: the sink itself is done** (`ModdingGUI.Core.Logging`: `LogLevel`, `LogEntry`, `IAppLog`,
+`AppLog` — ring buffer, per-subscriber-isolated `Written` event, `Scope`, file sink at
+`%LOCALAPPDATA%\GladiusModding\last-run.log`, 11 tests). The shell's `AppendLog` is now a thin
+adapter that records first and renders second, so all ~270 call sites already feed the stream without
+being touched, and the Grid Builder shares the same instance via `GridBuilderView.Log`. Still open from
+this slice: moving pack/unpack/script-compile behind Core services (`PackService`/`UnpackService`) so
+child-process output is emitted as `LogEntry`s rather than only rendered — needed before Phase 8
+exposes it, and it is the natural home for the Phase 6 progress reporting too.
+
 **Deliverable: `IAppLog` in Core.**
 
 - `LogLevel` (Debug/Info/Success/Warning/Error), `LogEntry(At, Level, Source, Message, Detail)`.
