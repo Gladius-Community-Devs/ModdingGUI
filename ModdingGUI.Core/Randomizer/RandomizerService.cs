@@ -150,6 +150,7 @@ public sealed class RandomizerService
             changed += team;
             steps.Add("team");
             _log?.Write(LogLevel.Success, $"Team units appended: {team}.", "randomizer");
+            ValidateRosters(projectRoot);
         }
 
         if (options.RemoveRecruits)
@@ -200,6 +201,24 @@ public sealed class RandomizerService
         "data/school/valensimperia.tok",
         "data/school/ursulanordagh.tok",
     };
+
+    /// <summary>
+    /// Validate the rosters just written. A block the engine cannot fully parse (a short CORESTATSCOMP2, an
+    /// item count the loader rejects) silently loses its gear and skills, so surfacing the warnings in the run
+    /// log is the difference between finding that here and finding it in game.
+    /// </summary>
+    private void ValidateRosters(string projectRoot)
+    {
+        var schools = new SchoolsApi();
+        foreach (string roster in CampaignRosters)
+        {
+            foreach (var issue in schools.Validate(projectRoot, roster))
+            {
+                if (issue.Severity == SchoolValidationSeverity.Info) continue;
+                _log?.Write(LogLevel.Warning, $"{roster}: {issue.Unit} {issue.Key}: {issue.Message}", "randomizer");
+            }
+        }
+    }
 
     /// <summary>
     /// Build a randomized starting roster and append it to both campaign files, copying the old
@@ -259,11 +278,15 @@ public sealed class RandomizerService
     private SchoolUnitDto BuildTeamUnit(
         string name, string className, GladiatorDto source, string projectRoot)
     {
+        // CORESTATSCOMP2 is six values (CON, PWR, ACC, DEF, INT, MOVE). Writing five makes SchoolLoad stop
+        // parsing the block at the missing value - it sets its error flag and leaves the token loop - so the
+        // ITEMSCOMP and SKILL lines after it are never read and the unit arrives with no gear. Verified in the
+        // DOL: case 0x16 reads six ints into offsets 0x70-0x88 and copies MOVE from INT.
         var statRow = _statSets.Get(projectRoot, source.StatSet)?.Row(1);
         string stats = statRow is null
-            ? "0, 0, 0, 0, 0"
+            ? "0, 0, 0, 0, 0, 0"
             : string.Create(CultureInfo.InvariantCulture,
-                $"{statRow.Con}, {statRow.Pow}, {statRow.Acc}, {statRow.Def}, {statRow.IniMov}");
+                $"{statRow.Con}, {statRow.Pow}, {statRow.Acc}, {statRow.Def}, {statRow.IniMov}, 1");
 
         // ITEMSCOMP is exactly five slots (weapon, armor, shield, helmet, accessory). An item set lists level
         // windows per slot, so take the row that covers level 1 - writing every row would malform the block.

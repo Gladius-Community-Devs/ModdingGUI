@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 557 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (541 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 558 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (542 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -456,6 +456,16 @@ item-set step failed with "items.tok not found" on a project path. It now resolv
 recruits) twice with seed `alpha` on a fresh project produces byte-identical `gladiators.txt` and both campaign
 rosters; seed `beta` changes them. The league files hash the same across seeds, as they should: recruit removal
 is seed-independent.
+
+**School blocks are parsed by a loader that gives up silently.** `SchoolLoad` reads the unit block token by
+token; `CORESTATSCOMP2` expects **six** integers (CON, PWR, ACC, DEF, INT, MOVE) and on a short line it sets its
+error flag and leaves the loop, so every later line in that block — `ITEMSCOMP` and all `SKILL`s — is never
+parsed. A unit written with five stats therefore arrives with correct stats and **no equipment and no skills**,
+which is exactly what a first in-game check showed. `ITEMSCOMP` is five words applied through
+`CharacterChangeItem` in the order weapon, armor, shield, helmet, accessory, and a unit's `CUSTOMIZE` name loads
+a `tintsets/<name>.tint`. The randomizer now writes six stats and **validates the rosters it wrote**, logging
+the school validator's warnings, so a block the engine cannot fully read is reported in the run log instead of
+being discovered in game.
 
 **Slices:**
 

@@ -86,8 +86,17 @@ public sealed class RandomizerTeamTests : IDisposable
             Assert.NotNull(unit.Value("CORESTATSCOMP2"));
             Assert.NotNull(unit.Value("ITEMSCOMP"));
 
-            // Five stats and five item slots, matching the block template.
-            Assert.Equal(5, unit.Value("CORESTATSCOMP2")!.Split(',').Length);
+            // Six stats: the engine's loader reads six and stops parsing the block when one is missing, which
+            // is what silently dropped every ITEMSCOMP line before this was fixed.
+            Assert.Equal(6, unit.Value("CORESTATSCOMP2")!.Split(',').Length);
+
+            // The whole block must parse. Before the arity fix the loader stopped at the short stats line and
+            // every slot came out empty, so this asserts real gear survived the round trip.
+            var equipped = System.Text.RegularExpressions.Regex
+                .Matches(unit.Value("ITEMSCOMP")!, "\"([^\"]*)\"")
+                .Select(m => m.Groups[1].Value)
+                .Count(name => !string.IsNullOrWhiteSpace(name));
+            Assert.True(equipped >= 3, $"only {equipped} of 5 slots equipped");
 
             // Five quoted item names: count quote pairs rather than commas, which also separate nothing here.
             string items = unit.Value("ITEMSCOMP")!;
@@ -167,6 +176,20 @@ public sealed class RandomizerTeamTests : IDisposable
             Assert.True(Directory.Exists(dir), $"no backup for {roster}");
             Assert.Single(Directory.GetFiles(dir));
         }
+    }
+
+    [Fact]
+    public void AppendedUnitsPassSchoolValidation()
+    {
+        if (!Ready) return;
+
+        new RandomizerService().Randomize(_bec, new RandomizerOptions { Seed = "validated", RandomizeTeam = true });
+
+        var warnings = _schools.Validate(_bec, Rosters[0])
+            .Where(i => i.Severity == SchoolValidationSeverity.Warning)
+            .ToArray();
+
+        Assert.Empty(warnings);
     }
 
     [Fact]
