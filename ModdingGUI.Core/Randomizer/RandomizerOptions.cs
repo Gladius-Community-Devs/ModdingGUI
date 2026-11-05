@@ -71,6 +71,12 @@ public sealed record RandomizerOptions
     /// <summary>Remove recruitable units from the encounters.</summary>
     public bool RemoveRecruits { get; init; }
 
+    /// <summary>
+    /// Randomize enemy teams: an empty enemy row becomes a randomizable slot that prohibits <c>Boss</c>,
+    /// <c>Prop</c>, <c>DarkGod</c> and <c>AffinityBeastGreater</c>. The player's team is always opened up.
+    /// </summary>
+    public bool RandomizeEnemies { get; init; }
+
     /// <summary>Randomize the stat tables.</summary>
     public bool RandomizeStatsets { get; init; }
 
@@ -100,7 +106,8 @@ public sealed record RandomizerOptions
 
     /// <summary>True when nothing would be changed.</summary>
     public bool IsEmpty =>
-        !RandomizeHeroes && !RandomizeTeam && !RemoveRecruits && !RandomizeStatsets
+        !RandomizeHeroes && !RandomizeTeam && !RemoveRecruits && !RandomizeStatsets && !PermaDeath
         && !RandomizeItemsets && !RandomizeSchools && !InGameRandomization && !FortyGladiators
+        && !RandomizeEnemies
         && Cash == CashMode.Unchanged;
 }

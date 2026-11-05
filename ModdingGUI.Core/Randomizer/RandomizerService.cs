@@ -174,6 +174,18 @@ public sealed class RandomizerService
             ValidateRosters(projectRoot);
         }
 
+        if (options.RandomizeEnemies || options.PermaDeath)
+        {
+            var encounters = new EncounterRandomizer(log: _log).Apply(
+                projectRoot, options.RandomizeEnemies, options.PermaDeath);
+
+            changed += encounters.FilesChanged;
+            steps.Add("encounters");
+            _log?.Write(LogLevel.Success,
+                $"Encounters rewritten: {encounters.FilesChanged} file(s), " +
+                $"{encounters.EnemiesRandomized} enemy slot(s).", "randomizer");
+        }
+
         if (options.RemoveRecruits)
         {
             int files = _leagues.RemoveRecruits(projectRoot);

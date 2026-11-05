@@ -86,6 +86,15 @@ public interface IEncountersApi
         bool stripCutscene = true);
 
     /// <summary>
+    /// Read an encounter as raw lines, preserving per-line terminators and trailing data. Line-level access exists
+    /// for the randomizer, which rewrites whole <c>UNITDB</c> rows instead of setting field values.
+    /// </summary>
+    (IReadOnlyList<string> Lines, int Trailing) ReadLines(string projectPath, string relativePath);
+
+    /// <summary>Replace an encounter with the given lines: one write, one backup, terminators preserved.</summary>
+    void WriteLines(string projectPath, string relativePath, IReadOnlyList<string> lines);
+
+    /// <summary>
     /// Advisory checks: unknown header keys, teams with no units or no start grid,
     /// <c>UNITDB</c> rows with the wrong argument count, and duplicate start slots.
     /// </summary>

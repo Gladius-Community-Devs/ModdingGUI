@@ -34,6 +34,27 @@ public sealed class EncountersApi : IEncountersApi
     public IReadOnlyList<string> ListFiles(string projectPath) => ListFilesCore(projectPath);
 
     /// <inheritdoc />
+    public (IReadOnlyList<string> Lines, int Trailing) ReadLines(string projectPath, string relativePath)
+    {
+        string bec = ProjectRoots.ResolveBecFolder(projectPath);
+        var (lines, trailing) = RawLineFile.Read(bec, relativePath, Path.GetFileName(relativePath));
+        return (lines, trailing);
+    }
+
+    /// <inheritdoc />
+    public void WriteLines(string projectPath, string relativePath, IReadOnlyList<string> lines)
+    {
+        ArgumentNullException.ThrowIfNull(lines);
+
+        string bec = ProjectRoots.ResolveBecFolder(projectPath);
+        using (ProjectLock.Acquire(bec))
+        {
+            var (_, trailing) = RawLineFile.Read(bec, relativePath, Path.GetFileName(relativePath));
+            RawLineFile.Write(bec, relativePath, lines.ToList(), trailing);
+        }
+    }
+
+    /// <inheritdoc />
     public IReadOnlyList<string> List(string projectPath)
     {
         string bec = ProjectRoots.ResolveBecFolder(projectPath);
