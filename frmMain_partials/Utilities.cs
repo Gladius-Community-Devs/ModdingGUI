@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.IO;
 using ModdingGUI.Core.Logging;
 using ModdingGUI.Models;
@@ -141,14 +141,48 @@ namespace ModdingGUI
         // Method to open a folder location in Windows Explorer
         private void OpenLocation(string path)
         {
-            AppendLog($"Opening location: {path}", InfoColor, rtbPackOutput); // Log the opening of the location
-            if (Directory.Exists(path)) // Check if the directory exists
+            if (!Directory.Exists(path)) // Check if the directory exists
             {
-                Process.Start("explorer.exe", PathHelper.QuotePath(path)); // Open the folder in Explorer
-            }
-            else
-            {
+                AppendLog($"Cannot open '{path}': not a folder.", WarningColor, rtbPackOutput);
                 MessageBox.Show("Selected location does not exist."); // Show an error message
+                return;
+            }
+
+            AppendLog($"Opening location: {path}", InfoColor, rtbPackOutput);
+
+            // Ask the shell to open the folder instead of spawning explorer.exe ourselves. A directly
+            // spawned explorer.exe inherits this process's working directory and DLL search path, and
+            // started from the build output folder that can die at load time with 0xC0000142 (DLL
+            // initialisation failed) before any window appears. ShellExecute hands the job to the
+            // running shell, and the path travels as a file name rather than as command-line text, so
+            // quoting, carets and parentheses in the path stop mattering.
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+                return;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Shell could not open '{path}': {ex.Message}", WarningColor, rtbPackOutput);
+            }
+
+            // Fallback: explorer.exe as a shell verb, with a system working directory so the loader does
+            // not search our output folder for DLLs.
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"\"{path}\"",
+                    UseShellExecute = true,
+                    WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                });
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Explorer fallback failed for '{path}': {ex.Message}", ErrorColor, rtbPackOutput);
+                MessageBox.Show($"Could not open the folder:\n{path}\n\n{ex.Message}",
+                    "Open folder", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
         private void LoadProjects()
