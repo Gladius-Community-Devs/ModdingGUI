@@ -130,7 +130,7 @@ public sealed class RandomizerService
 
         if (options.RandomizeHeroes)
         {
-            int heroes = RandomizeHeroes(projectRoot, random, options.Version);
+            int heroes = RandomizeHeroes(projectRoot, random, options);
             changed += heroes;
             steps.Add("heroes");
             _log?.Write(LogLevel.Success, $"Hero loadouts reassigned: {heroes} changed.", "randomizer");
@@ -188,77 +188,78 @@ public sealed class RandomizerService
     }
 
     /// <summary>
-    /// Rewrite each roster hero's <c>CREATEUNIT</c> block from its new loadout: class, six core stats, five item
-    /// slots and the granted skills. Level, experience, job points and CUSTOMIZE are left alone.
+    /// Write both campaign rosters from scratch: header (<c>NAME</c>, <c>HERO</c>, gold) followed by a block for
+    /// every story hero. This is what the original randomizer did, and it is safe because a roster is only read
+    /// when a new game starts — an in-progress run keeps its own <c>&lt;name&gt;Saved.tok</c>, written by the
+    /// engine's <c>SchoolSave</c>, so rewriting a roster cannot disturb a game in progress.
     /// </summary>
-    private int RewriteRosterHeroes(string projectRoot, IReadOnlyDictionary<string, GladiatorLoadout> assigned)
+    private int WriteRosters(
+        string projectRoot, IReadOnlyDictionary<string, GladiatorLoadout> assigned, RandomizerOptions options,
+        RandomizerRandom random)
     {
         if (assigned.Count == 0) return 0;
 
         var schools = new SchoolsApi();
-        int changed = 0;
+        int gold = GoldFor(options, random);
+        string hero = options.Hero == HeroChoice.Valens ? "Valens" : "Ursula";
+        int written = 0;
 
         foreach (string roster in CampaignRosters)
         {
-            var file = schools.Get(projectRoot, roster);
-            if (file is null) continue;
+            var existing = schools.Get(projectRoot, roster);
+            if (existing is null) continue;
 
-            // The original randomizer wrote all six heroes into both campaign files, creating the blocks for
-            // Eiji and Gwazi too. Keep that: a hero the script later adds by name is then already a member and
-            // arrives with the randomized kit instead of the class the script assumed.
-            var present = file.Units
-                .Select(unit => unit.Name)
-                .ToHashSet(StringComparer.Ordinal);
+            string name = string.IsNullOrWhiteSpace(existing.Name) ? "Gladius" : existing.Name;
 
-            var additions = new List<SchoolUnitDto>();
-            foreach (string hero in StoryHeroes.Names)
+            var units = new List<SchoolUnitDto>(StoryHeroes.Names.Length);
+            foreach (string heroName in StoryHeroes.Names)
             {
-                if (present.Contains(hero)) continue;
-                if (!assigned.TryGetValue(hero, out var heroLoadout)) continue;
-
-                additions.Add(BuildHeroUnit(hero, heroLoadout, projectRoot));
+                if (!assigned.TryGetValue(heroName, out var loadout)) continue;
+                units.Add(BuildHeroUnit(heroName, loadout, projectRoot, existing.Unit(heroName)));
             }
 
-            if (additions.Count > 0)
-            {
-                changed += schools.AddUnits(projectRoot, roster, additions);
-                file = schools.Get(projectRoot, roster) ?? file;
-            }
-
-            foreach (var unit in file.Units)
-            {
-                if (!assigned.TryGetValue(unit.Name, out var loadout)) continue;
-
-                schools.SetUnitClass(projectRoot, roster, unit.Name, loadout.ClassName);
-                schools.SetUnitField(projectRoot, roster, unit.Name, "CORESTATSCOMP2",
-                    BuildStatLine(projectRoot, loadout.StatSet));
-                schools.SetUnitField(projectRoot, roster, unit.Name, "ITEMSCOMP",
-                    BuildItemLine(projectRoot, loadout.ItemSet));
-                int level = int.TryParse(unit.Value("LEVEL"), NumberStyles.Integer,
-                    CultureInfo.InvariantCulture, out int parsed) ? parsed : 1;
-                schools.SetUnitSkills(projectRoot, roster, unit.Name,
-                    SkillNames(projectRoot, loadout.SkillSet, level));
-                changed++;
-            }
+            schools.ReplaceRoster(projectRoot, roster, name, hero, gold, units);
+            written++;
         }
 
-        return changed;
+        return written;
     }
 
-    /// <summary>A hero block for a roster that does not list that hero yet.</summary>
-    private SchoolUnitDto BuildHeroUnit(string hero, GladiatorLoadout loadout, string projectRoot)
+    /// <summary>
+    /// Starting gold, matching the original randomizer: the chosen amount, a random one, 75000 in the
+    /// 40-gladiator mode and 15000 otherwise.
+    /// </summary>
+    private static int GoldFor(RandomizerOptions options, RandomizerRandom random) => options.Cash switch
     {
+        CashMode.Fixed => options.CashAmount,
+        CashMode.Random => random.NextInt(0, 1_000_000),
+        _ => options.FortyGladiators ? 75_000 : 15_000,
+    };
+
+    /// <summary>
+    /// A hero block built from its loadout. Level, experience, job points and CUSTOMIZE are carried over from the
+    /// block the roster already had, so a hero keeps its progression and outfit.
+    /// </summary>
+    private SchoolUnitDto BuildHeroUnit(
+        string hero, GladiatorLoadout loadout, string projectRoot, SchoolUnitDto? previous)
+    {
+        string level = previous?.Value("LEVEL") ?? "1";
+
         var fields = new List<SchoolFieldDto>
         {
-            new("LEVEL", "1"),
-            new("EXPERIENCE", "0"),
-            new("JOBPOINTS", "5"),
-            new("CUSTOMIZE", "0, \"\""),
+            new("LEVEL", level),
+            new("EXPERIENCE", previous?.Value("EXPERIENCE") ?? "0"),
+            new("JOBPOINTS", previous?.Value("JOBPOINTS") ?? "5"),
+            new("CUSTOMIZE", previous?.Value("CUSTOMIZE") ?? "0, \"\""),
             new("CORESTATSCOMP2", BuildStatLine(projectRoot, loadout.StatSet)),
             new("ITEMSCOMP", BuildItemLine(projectRoot, loadout.ItemSet)),
         };
 
-        foreach (string skill in SkillNames(projectRoot, loadout.SkillSet, 1))
+        int parsedLevel = int.TryParse(level, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
+            ? value
+            : 1;
+
+        foreach (string skill in SkillNames(projectRoot, loadout.SkillSet, parsedLevel))
         {
             fields.Add(new SchoolFieldDto("SKILL", $"\"{skill}\""));
         }
@@ -545,16 +546,16 @@ public sealed class RandomizerService
     /// school; the bundle keeps the class consistent with its stats, skills and gear because it came from a
     /// real record.
     /// </summary>
-    private int RandomizeHeroes(string projectRoot, RandomizerRandom random, GameVersion version)
+    private int RandomizeHeroes(string projectRoot, RandomizerRandom random, RandomizerOptions options)
     {
         var records = _gladiators.GetAll(projectRoot);
 
         // The pool is every record except the classes this game version does not let a player use (bosses and
         // summon creatures). Hero classes are deliberately included: a unit may wear one as long as the scripts
         // are recompiled, which the build step does.
-        var blacklist = ClassEligibility.BlacklistFor(version);
+        var blacklist = ClassEligibility.BlacklistFor(options.Version);
         var pool = records
-            .Where(dto => ClassEligibility.IsEligible(dto.Class, version, blacklist))
+            .Where(dto => ClassEligibility.IsEligible(dto.Class, options.Version, blacklist))
             .Select(GladiatorLoadout.From)
             .ToList();
 
@@ -580,7 +581,7 @@ public sealed class RandomizerService
         // The gladiator table is not what the campaign starts from: the starting units are the CREATEUNIT blocks
         // in the roster files, which spell out class, stats, items and skills. A hero whose table entry changed
         // but whose block did not would still walk into the first bout with the vanilla kit.
-        changed += RewriteRosterHeroes(projectRoot, assigned);
+        changed += WriteRosters(projectRoot, assigned, options, random);
 
         return changed;
     }

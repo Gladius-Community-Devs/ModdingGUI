@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using ModdingGUI.Core.Tok;
+using System.Globalization;
 
 /// <summary>One <c>KEY: value</c> line of a school file.</summary>
 /// <param name="Key">Key as written.</param>
@@ -128,6 +129,16 @@ public interface ISchoolsApi
     /// backup for the whole batch; returns how many blocks were added. The unit name must not already exist.
     /// </summary>
     int AddUnits(string projectPath, string relativePath, IReadOnlyList<SchoolUnitDto> units);
+
+    /// <summary>
+    /// Replace a whole roster: header fields (<paramref name="name"/>, <paramref name="hero"/>, gold) followed by
+    /// the given unit blocks in order. This is how the randomizer writes a campaign, and it is safe to discard a
+    /// roster's contents because a roster is only read when a new game starts (an in-progress run keeps its own
+    /// <c>&lt;name&gt;Saved.tok</c>, written by the engine's <c>SchoolSave</c>).
+    /// </summary>
+    void ReplaceRoster(
+        string projectPath, string relativePath, string name, string hero, int gold,
+        IReadOnlyList<SchoolUnitDto> units);
 
     /// <summary>Advisory checks against the generated schools catalog.</summary>
     IReadOnlyList<SchoolValidationIssue> Validate(string projectPath, string relativePath);
@@ -261,6 +272,42 @@ public sealed class SchoolsApi : ISchoolsApi
                 .Select(s => $"{indent}SKILL: \"{s.Trim().Trim('"')}\"")
                 .ToList();
             lines.InsertRange(Math.Clamp(insertAt, 0, lines.Count), replacement);
+            return true;
+        });
+    }
+
+    /// <inheritdoc />
+    public void ReplaceRoster(
+        string projectPath, string relativePath, string name, string hero, int gold,
+        IReadOnlyList<SchoolUnitDto> units)
+    {
+        ArgumentNullException.ThrowIfNull(units);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(hero);
+
+        Edit(projectPath, relativePath, lines =>
+        {
+            lines.Clear();
+            lines.Add($"NAME:\t\"{name}\"");
+            lines.Add($"HERO:\t\"{hero}\"");
+            lines.Add($"GOLD:\t{gold.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add(string.Empty);
+
+            foreach (var unit in units)
+            {
+                if (unit is null || string.IsNullOrWhiteSpace(unit.Name)) continue;
+
+                lines.Add(string.Empty);
+                lines.Add($"CREATEUNIT:\t\t\"{unit.Name}\", \"{unit.ClassName}\"\t\t// Name, class");
+
+                foreach (var field in unit.Fields)
+                {
+                    if (string.IsNullOrWhiteSpace(field.Key)) continue;
+                    lines.Add($"\t{field.Key}:\t{field.RawValue}");
+                }
+            }
+
+            lines.Add(string.Empty);
             return true;
         });
     }

@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 573 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (557 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 580 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (564 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -456,6 +456,13 @@ item-set step failed with "items.tok not found" on a project path. It now resolv
 recruits) twice with seed `alpha` on a fresh project produces byte-identical `gladiators.txt` and both campaign
 rosters; seed `beta` changes them. The league files hash the same across seeds, as they should: recruit removal
 is seed-independent.
+
+**Rosters are rewritten wholesale, and that is safe.** `SchoolLoad` reads `$d\School\<name>` — it has no "Saved"
+component — while `SchoolSave` writes `<name>Saved.tok`, so an in-progress run keeps its own snapshot and never
+re-reads the roster. A roster is therefore a new-game artefact, which is why the randomizer can replace it
+outright (header `NAME`/`HERO`/`GOLD` plus the hero blocks) exactly as the original did, instead of editing blocks
+in place. `GOLD` follows the original's rules: the chosen amount, a random one, 75000 in 40-gladiator mode and
+15000 otherwise. Level, experience, job points and `CUSTOMIZE` are carried over from the block that was there.
 
 **All six heroes are written as blocks into both campaigns, and the scripts are patched.** The original
 randomizer wrote Valens, Ursula, Ludo, Urlan, Eiji and Gwazi into *both* roster files — creating the Eiji and Gwazi

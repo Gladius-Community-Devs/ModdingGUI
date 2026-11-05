@@ -115,6 +115,88 @@ public sealed class RandomizerRosterHeroTests : IDisposable
     }
 
     [Fact]
+    public void BothRostersListAllSixHeroes()
+    {
+        if (!Ready) return;
+
+        new RandomizerService().Randomize(_bec, new RandomizerOptions { Seed = "six", RandomizeHeroes = true });
+
+        var expected = new[] { "Valens", "Ursula", "Ludo", "Urlan", "Eiji", "Gwazi" };
+        foreach (string roster in new[] { ValensRoster, UrsulaRoster })
+        {
+            var names = _schools.Get(_bec, roster)!.Units.Select(u => u.Name).ToArray();
+            Assert.Equal(expected, names);
+        }
+    }
+
+    [Fact]
+    public void DefaultGoldMatchesTheOriginal()
+    {
+        if (!Ready) return;
+
+        new RandomizerService().Randomize(_bec, new RandomizerOptions { Seed = "gold", RandomizeHeroes = true });
+
+        Assert.Equal(15000, _schools.Get(_bec, ValensRoster)!.Gold);
+    }
+
+    [Fact]
+    public void FortyGladiatorsUsesTheHigherGold()
+    {
+        if (!Ready) return;
+
+        new RandomizerService().Randomize(_bec,
+            new RandomizerOptions { Seed = "gold40", RandomizeHeroes = true, FortyGladiators = true });
+
+        Assert.Equal(75000, _schools.Get(_bec, ValensRoster)!.Gold);
+    }
+
+    [Fact]
+    public void FixedCashIsWritten()
+    {
+        if (!Ready) return;
+
+        new RandomizerService().Randomize(_bec,
+            new RandomizerOptions { Seed = "cash", RandomizeHeroes = true, Cash = CashMode.Fixed, CashAmount = 123456 });
+
+        Assert.Equal(123456, _schools.Get(_bec, ValensRoster)!.Gold);
+    }
+
+    [Fact]
+    public void RandomCashStaysInRange()
+    {
+        if (!Ready) return;
+
+        new RandomizerService().Randomize(_bec,
+            new RandomizerOptions { Seed = "cashrandom", RandomizeHeroes = true, Cash = CashMode.Random });
+
+        int gold = _schools.Get(_bec, ValensRoster)!.Gold ?? -1;
+        Assert.InRange(gold, 0, 999_999);
+    }
+
+    [Fact]
+    public void HeroProgressionIsCarriedOver()
+    {
+        if (!Ready) return;
+
+        // Ludo starts with 450 experience in vanilla; a rewrite must not reset it.
+        new RandomizerService().Randomize(_bec, new RandomizerOptions { Seed = "exp", RandomizeHeroes = true });
+
+        Assert.Equal("450", Unit(ValensRoster, "Ludo").Value("EXPERIENCE"));
+    }
+
+    [Fact]
+    public void TheHeroLineNamesTheChosenCampaign()
+    {
+        if (!Ready) return;
+
+        new RandomizerService().Randomize(_bec,
+            new RandomizerOptions { Seed = "hero", RandomizeHeroes = true, Hero = HeroChoice.Valens });
+
+        Assert.Equal("Valens", _schools.Get(_bec, ValensRoster)!.Hero);
+        Assert.Equal("Valens", _schools.Get(_bec, UrsulaRoster)!.Hero);
+    }
+
+    [Fact]
     public void RewrittenRostersStillValidate()
     {
         if (!Ready) return;
