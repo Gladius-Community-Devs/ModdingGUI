@@ -114,13 +114,49 @@ public sealed class RandomizerService
             _log?.Write(LogLevel.Success, $"Hero loadouts reassigned: {heroes} changed.", "randomizer");
         }
 
-        if (options.RandomizeStatsets) steps.Add("statsets (not yet implemented)");
+        if (options.RandomizeStatsets)
+        {
+            int restatted = RandomizeStatSetAssignments(projectRoot, random);
+            changed += restatted;
+            steps.Add("statsets");
+            _log?.Write(LogLevel.Success, $"Stat sets reassigned: {restatted} changed.", "randomizer");
+        }
+
         if (options.RandomizeItemsets) steps.Add("itemsets (not yet implemented)");
         if (options.RandomizeTeam) steps.Add("team (not yet implemented)");
         if (options.RemoveRecruits) steps.Add("recruits (not yet implemented)");
 
         _log?.Write(LogLevel.Info, $"Randomizer run finished: {changed} record(s) changed.", "randomizer");
         return new RandomizerResult(random.SeedText, steps, changed);
+    }
+
+    /// <summary>
+    /// Give every gladiator a random stat set index — the same thing the old randomizer did, and what the user
+    /// asked for: "each unit getting a completely random statset".
+    /// </summary>
+    /// <remarks>
+    /// Only the index in <c>gladiators.txt</c> changes; the stat tables themselves are untouched. Heroes are
+    /// included because they are ordinary records in the same table.
+    /// </remarks>
+    private int RandomizeStatSetAssignments(string projectRoot, RandomizerRandom random)
+    {
+        var catalog = UnitCatalogLoader.Load(projectRoot);
+        if (catalog.StatSets <= 0)
+        {
+            _log?.Write(LogLevel.Warning, "No stat sets found; skipping the statset step.", "randomizer");
+            return 0;
+        }
+
+        var patches = new List<(string Name, GladiatorPatch Patch)>();
+        foreach (var dto in _gladiators.GetAll(projectRoot))
+        {
+            int next = random.NextInt(0, catalog.StatSets);
+            if (next == dto.StatSet) continue;
+
+            patches.Add((dto.Name, new GladiatorPatch { StatSet = next }));
+        }
+
+        return patches.Count == 0 ? 0 : _gladiators.ApplyMany(projectRoot, patches);
     }
 
     /// <summary>
@@ -132,11 +168,9 @@ public sealed class RandomizerService
     {
         var records = _gladiators.GetAll(projectRoot);
 
-        // Pool = everyone who is not a hero, so a hero cannot be given another hero's bespoke class.
-        var pool = records
-            .Where(dto => !StoryHeroes.IsHero(dto.Name))
-            .Select(GladiatorLoadout.From)
-            .ToList();
+        // The pool is every record: a hero may take any shipped loadout, including another hero's class
+        // (harmless in game as long as the scripts are recompiled, and the user asked for it).
+        var pool = records.Select(GladiatorLoadout.From).ToList();
 
         if (pool.Count == 0) return 0;
 
@@ -148,6 +182,7 @@ public sealed class RandomizerService
 
             var loadout = random.Pick(pool);
             if (loadout.Matches(current)) continue;
+
 
             patches.Add((hero, loadout.ToPatch()));
         }

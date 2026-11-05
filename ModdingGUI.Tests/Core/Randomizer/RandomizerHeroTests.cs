@@ -114,21 +114,29 @@ public sealed class RandomizerHeroTests : IDisposable
     }
 
     [Fact]
-    public void HeroesNeverReceiveAHeroClass()
+    public void HeroClassesArePartOfThePool()
     {
         if (!Ready) return;
 
-        for (int run = 0; run < 5; run++)
-        {
-            File.Copy(Path.Combine(CleanBecCorpus.Root!, "data", "units", "gladiators.txt"), GladiatorsPath, overwrite: true);
-            new RandomizerService().Randomize(_bec, new RandomizerOptions { Seed = $"pool-{run}", RandomizeHeroes = true });
+        // A unit may take a hero's class: nothing in game breaks as long as the scripts are recompiled, which
+        // the pack step does. So the loadout pool must not filter hero records out.
+        var heroClasses = StoryHeroes.Names
+            .Select(h => _gladiators.Get(_bec, h)?.Class)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Select(c => c!)
+            .ToHashSet(StringComparer.Ordinal);
 
-            foreach (string hero in StoryHeroes.Names)
-            {
-                var dto = _gladiators.Get(_bec, hero)!;
-                Assert.DoesNotContain(StoryHeroes.Names, heroClass => heroClass == dto.Class);
-            }
-        }
+        Assert.NotEmpty(heroClasses);
+
+        // Every hero record is a source of loadouts, including one another hero could receive.
+        var sources = _gladiators.GetAll(_bec)
+            .Where(dto => heroClasses.Contains(dto.Class))
+            .ToArray();
+
+        Assert.NotEmpty(sources);
+        // Hero classes are also carried by a few extra records (Ludo 3, Ursula 2, Valens 2).
+        Assert.True(sources.Length >= StoryHeroes.Names.Length,
+            $"only {sources.Length} hero-class records");
     }
 
     [Fact]

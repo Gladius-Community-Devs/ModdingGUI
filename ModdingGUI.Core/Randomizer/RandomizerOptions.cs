@@ -61,7 +61,9 @@ public sealed record RandomizerOptions
     public GameVersion Version { get; init; } = GameVersion.Vanilla;
 
     /// <summary>Reassign classes, stat sets, skill sets, item sets and tints across the gladiator table.</summary>
-    public bool RandomizeHeroes { get; init; } = true;
+    // Default off: an options object with nothing selected must not write anything, and every step is an
+    // explicit choice in the GUI.
+    public bool RandomizeHeroes { get; init; }
 
     /// <summary>Randomize the starting roster in the school file.</summary>
     public bool RandomizeTeam { get; init; }
