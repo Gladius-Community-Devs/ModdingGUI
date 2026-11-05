@@ -20,13 +20,23 @@ public static class GladiatorValidationCodes
     /// <summary>The class name is not a record in <c>classdefs.tok</c>.</summary>
     public const string UnknownClass = "unknown-class";
 
-    /// <summary>The affinity is not one of the six the engine knows.</summary>
+    /// <summary>
+    /// The affinity name is not one of the six the repack table knows. That breaks the repack (the script
+    /// looks the name up in a fixed array), and the value is not inert: it is packed into
+    /// <c>unitunits.idx</c> as the low three bits of a byte shared with <c>Outfit</c>, and the unit builder
+    /// (<c>FUN_800dfac4</c>) decodes it to an engine affinity id when it creates a unit. What the player
+    /// sees still comes from equipment — offense affinity is the weapon's and defense comes from
+    /// armour/accessories — which is why changing it here looks like it does nothing.
+    /// </summary>
     public const string UnknownAffinity = "unknown-affinity";
 
     /// <summary>A set index points past the end of its file.</summary>
     public const string SetOutOfRange = "set-out-of-range";
 
-    /// <summary>The outfit index is outside the seven the corpus uses.</summary>
+    /// <summary>
+    /// The outfit index is outside the range the corpus uses. Outfits are zero-indexed per class, nothing
+    /// lists the valid set, and an invalid value has been reported to crash the game.
+    /// </summary>
     public const string OutfitOutOfRange = "outfit-out-of-range";
 
     /// <summary>Two records share a name.</summary>
@@ -207,9 +217,14 @@ public sealed class GladiatorsApi : IGladiatorsApi
 
             if (!GladiatorAffinity.IsKnown(record.Affinity))
             {
+                // Warning: the repack script maps this name through a fixed table and reports anything else
+                // as an invalid entry, so an unknown affinity breaks the pack rather than merely looking
+                // odd. Runtime affinity is gear-derived, which is why a change here is invisible in game.
                 issueList.Add(new GladiatorValidationIssue(GladiatorValidationSeverity.Warning,
                     GladiatorValidationCodes.UnknownAffinity, record.Name, "Affinity",
-                    $"affinity '{record.Affinity}' is not one of {string.Join(", ", GladiatorAffinity.Values)}"));
+                    $"affinity '{record.Affinity}' is not one of {string.Join(", ", GladiatorAffinity.Values)}; " +
+                    "the pack chain cannot repack an unknown name (runtime affinity comes from the equipped " +
+                    "weapon and accessories)"));
             }
 
             CheckSet(issueList, record.Name, "Tint set", record.TintSet, catalog.Tints);
@@ -222,7 +237,8 @@ public sealed class GladiatorsApi : IGladiatorsApi
             {
                 issueList.Add(new GladiatorValidationIssue(GladiatorValidationSeverity.Warning,
                     GladiatorValidationCodes.OutfitOutOfRange, record.Name, "Outfit",
-                    $"outfit {record.Outfit} is outside the 0-6 the corpus uses"));
+                    $"outfit {record.Outfit} is outside the 0-6 the corpus uses; outfits are zero-indexed " +
+                    "per class and an invalid one can crash the game"));
             }
         }
 

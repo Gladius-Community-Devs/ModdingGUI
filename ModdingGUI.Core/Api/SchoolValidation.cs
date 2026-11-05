@@ -32,6 +32,13 @@ public static class SchoolValidationCodes
     /// <summary><c>ITEMSCOMP</c> does not have the five equipment columns.</summary>
     public const string ItemsArity = "items-arity";
 
+    /// <summary>
+    /// A <c>CUSTOMIZE</c> outfit index is outside the range the corpus uses. Outfits are zero-indexed per
+    /// class, nothing in the files lists the valid set, and an invalid value has been reported to crash
+    /// the game (research log: "Outfit 1 is not valid … default to 0, hope it prevents crashes").
+    /// </summary>
+    public const string OutfitRange = "outfit-range";
+
     /// <summary>The roster declares no <c>HERO</c>.</summary>
     public const string MissingHero = "missing-hero";
 
@@ -133,6 +140,7 @@ public static class SchoolValidator
     private const int CoreStatsCompactCount = 6;  // CORESTATSCOMP2: CON, PWR, ACC, DEF, INI, MOVE
     private const int CoreStatsLegacyCount = 7;   // CORESTATSCOMP: CON, PWR, ACC, DEF, INT, INI, MOVE
     private const int ItemSlotCount = 5;    // weapon, armor, shield, helmet, accessory
+    private const int MaxOutfit = 6;        // highest outfit index the vanilla corpus uses
 
     /// <summary>Validate a parsed roster (a null catalog skips the key checks).</summary>
     public static IReadOnlyList<SchoolValidationIssue> Validate(SchoolDto school, SchoolsCatalog? catalog)
@@ -198,6 +206,31 @@ public static class SchoolValidator
                     issues.Add(new SchoolValidationIssue(SchoolValidationSeverity.Warning,
                         SchoolValidationCodes.CoreStatsArity, unit.Name, statsKey,
                         $"{statsKey} has {count} values; it is {layout} ({expected})"));
+                }
+            }
+
+            string? customize = unit.Value("CUSTOMIZE");
+            if (customize is not null)
+            {
+                // CUSTOMIZE: <outfit>, "<name>" - the outfit is the same zero-indexed value a gladiator
+                // record's "Outfit" holds, so it carries the same crash risk when it points at a look the
+                // class does not have.
+                if (CountArguments(customize) == 0)
+                {
+                    issues.Add(new SchoolValidationIssue(SchoolValidationSeverity.Warning,
+                        SchoolValidationCodes.OutfitRange, unit.Name, "CUSTOMIZE",
+                        "CUSTOMIZE is empty; expected '<outfit>, \"<name>\"'"));
+                }
+                else
+                {
+                    string first = customize.Split(',')[0].Trim();
+                    if (!int.TryParse(first, out int outfit) || outfit < 0 || outfit > MaxOutfit)
+                    {
+                        issues.Add(new SchoolValidationIssue(SchoolValidationSeverity.Warning,
+                            SchoolValidationCodes.OutfitRange, unit.Name, "CUSTOMIZE",
+                            $"CUSTOMIZE outfit '{first}' is not an outfit index in 0-{MaxOutfit}; outfits are " +
+                            "zero-indexed per class and an invalid one can crash the game"));
+                    }
                 }
             }
 

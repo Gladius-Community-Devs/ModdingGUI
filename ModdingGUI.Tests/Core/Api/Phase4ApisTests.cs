@@ -139,6 +139,30 @@ public sealed class Phase4ApisTests : IDisposable
     }
 
     [Fact]
+    public void Schools_CustomizeOutfitOutOfRange_IsReported()
+    {
+        if (!Ready) return;
+
+        // An invalid outfit index has been reported to crash the game ("Outfit 1 is not valid … default to
+        // 0, hope it prevents crashes"), and CUSTOMIZE carries the same value for a starting unit.
+        string path = FilePath(School);
+        string text = File.ReadAllText(path);
+        Assert.Contains("CUSTOMIZE", text);
+
+        // Replace the whole line. A group reference written as "$1" + "42" is parsed as group 142, i.e.
+        // nothing, which silently deletes the field instead of changing it.
+        string corrupted = System.Text.RegularExpressions.Regex.Replace(
+            text, @"(?im)^.*CUSTOMIZE.*$", "        \tCUSTOMIZE:\t42, \"\"");
+        File.WriteAllText(path, corrupted);
+
+        var school = new SchoolsApi().Get(_projectDir, School)!;
+        var issues = SchoolValidator.Validate(school, SchoolsCatalog.Shipped());
+
+        Assert.Contains(issues, i => i.Code == SchoolValidationCodes.OutfitRange
+                                     && i.Severity == SchoolValidationSeverity.Warning);
+    }
+
+    [Fact]
     public void Schools_Validate_EveryVanillaRoster_HasNoWarnings()
     {
         if (!Ready) return;
