@@ -30,7 +30,7 @@ Realistic schemas/Apis to build:
   and, before naming anything, the same DOL pass `UNITDB` got: `Shop`/`GetShopName` are script
   bindings, not the reader, so the 12 `ITEM` values are still unverified |
 | Schools | `data/school/*.tok` | `ISchoolsApi` (Phase 4) |
-| Units (txt) | `data/units/*.txt` (gladiators, statsets, itemsets, skillsets) | `IGladiatorsApi`, `IStatSetsApi`, `IItemSetsApi`, `ISkillSetsApi` — separate delimited backend (Phase 5) |
+| Units (txt) | `data/units/*.txt` (gladiators, statsets, skillsets, itemsets, tints, schools) | **done (Phase 5):** `IGladiatorsApi`, `IStatSetsApi`, `ISkillSetsApi`, `IItemSetsApi`, `ITintSetsApi`, `ISchoolNamesApi`, over `UnitTextFile` + `SectionedFile` |
 | Worldmap / fonts / hotkeys / options | `data/config/*.tok` | **Not built, deliberately.** No consumer
   needs them yet; Phase 6 (randomizer) will name the ones it actually reads rather than growing four
   speculative Apis |
