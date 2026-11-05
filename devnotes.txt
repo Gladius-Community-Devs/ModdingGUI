@@ -1,0 +1,49 @@
+Current changes:
+[DONE]Team Builder - Campaign mode - lets you select up to a max sized team, select their classes, and their names. 
+-> blacklist names that are found in enc and script files
+Team Builder - Campaign Mode - lets you input the amount of cash you want to start with
+Validation - check for if someone has entered a unit that has impossible values, like itemsets or statsets that don't exist
+[DONE]Item editor - lets you edit the deccription and values of items and saves them to correct file
+skill editor - lets you edit the description and values of skills and saves them to correct file
+[DONE]Backups - add right click context menu to make a copy of the current project in tvwProjects
+Auto updater - check for updates on app start, confirm before updating
+Randomizer - decouple school name and money adding from randomizing heroes
+Randomizer/Team Builder - add some repeat functionality so that people can add things like perma death to a normal run (just recycle the functions)
+
+Fixes:
+Auto updater - fix the auto updater not loading settings on initial restart, requiring a manual restart of app to grab settings
+
+
+
+Link to enc UNITDB line rules
+https://discord.com/channels/717135591279689819/717135591279689822/1015627622497144984
+
+UNITDB:     "", 100, "Start1", 1, 3, 0, 4, 5, "Archer", "Amazon", "Bandit", "Yeti", 6, 7, 8, 9, 10, 11, 12, 13, 14
+
+So going left to right, some of this i think is already known.
+"" - character autofills that slot. if you don't have that character, it's just locked out (you could fill it with anything, like require barbeeleen in every battle)
+100 - i believe the %chance for an enemy to appear (or in the player case, whether or not that is a required spot)
+Start1 - what "starting area" you get to choose for that character.
+1 - character must be higher than or equal to this level
+2 - character must be lower than or equal to this level
+0 - this is 0 or 1; sets whether or not character must be equal to your school level (so if your school level is 5, it'll make the rquirement "level 5 to 5")
+4 - attribute requirement, so 4 would be "heavy" required.
+5 - sets affnity requirement, so 5 would be fire
+"Archer, "Amazon", "Bandit", "Yeti" - sets class requirements. So this would require you to pick an archer, amazon, bandit, or yeti.
+
+6-14 are usually just set to 0 or 1 (slot 12 being an exception, 6, 10, 13, and 14 might also be exceptions but i'm unsure of what they do), i just gave them those numbers to make them easier to point out.
+
+6 - unsure
+7 - flips the classess to prohibited instead of required (so archer, amazon, bandit, yeti would be prohibited in the example)
+8 - flips the attribute to prohibited instead of required, so heavy would be prohibited instead of required in the example
+9 - flips the affinity to prohibited
+10 - unsure
+11 - requires a mercenary (temp recruit)
+12 - chance per item to drop chest
+13 - unsure
+14 - unsure
+
+
+
+
+`CUSTOMIZE:` line in a school file information: Max outfit = number of <mesh>_varNN.ptx files in data/characters/<mesh>/. Every skeleton mesh (skeletonSpl1/2, skeletonNor1/2, skeletonImp1/2, skeletonSte1/2, skeletonExp1/2) has no var files, so any undead unit must use CUSTOMIZE: 0, "".

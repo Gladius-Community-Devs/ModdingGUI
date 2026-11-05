@@ -27,7 +27,6 @@ publish/
 *.Publish.xml
 *.pubxml
 
-devnotes.txt
 CLAUDE.md
 *.nupkg / *.snupkg
 # Skills catalog sources (copyrighted game data — never commit)

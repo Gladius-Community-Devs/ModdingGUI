@@ -253,7 +253,7 @@ the cells painted for their slot (the case that silently dropped a unit in QA). 
 (empty-name) units are auto-placed and neutral team `-1` is engine-managed, so neither counts — with
 that, all 834 vanilla encounters validate clean.
 
-Manual QA plan: `MANUAL_TESTING_PHASE_4.md` at the workspace root.
+Manual QA plan: `docs/testing/MANUAL_TESTING_PHASE_4.md`.
 
 **Manual QA, confirmed in the app.** Grid Builder: legacy (version-1) maps list their real tags and
 paint regions; a save overwrites the file, writes a `.mod-history` backup and reports its path; a

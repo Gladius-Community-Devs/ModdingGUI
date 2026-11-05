@@ -1,0 +1,16 @@
+## Baseline Results
+
+| # | Test | Status | Observed (log lines, paths, diffs) | Notes |
+|---|---|---|---|---|
+| 1 | Launch, app dir, Info version, update check | Finished - success | All passed | No problems here |
+| 2 | Project detection (+ `_ISO`-only folder skipped) | Finished - failed(?) | Directory 'REALDATA_vanilla' is not a valid project. Skipping... | baseline_breakdown_test appears in the project folder, maybe REALDATA_vanilla was malformed |
+| 3 | Settings persist across restart; corrupt settings don't crash | Finished - success | `Always validate before packaging` setting turned on and stayed on | |
+| 4 | Unpack produces `_ISO` + `_BEC` + file list, no red errors | Finished - success | baseline_breakdown_test is proof of success | |
+| 5 | Pack produces `.iso`; validation blocks then force-packs | | | |
+| 6 | `.mod-history` backups created on Core-backed saves | | | |
+| 7 | Skill Editor load/edit/save round-trips | | | |
+| 8 | Grid Builder load/edit/save round-trips | | | |
+| 9 | Randomizer runs, seeded reproducible | | | |
+| 10 | Team Builder writes without crashing | | | |
+| 11 | xDelta create/apply (optional) | | | |
+| 12 | Error/edge cases behave cleanly | | | |

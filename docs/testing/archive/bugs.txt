@@ -1,0 +1,6 @@
+If Dolphin has an application path, repacking an ISO always launches it even when the user unchecks the option to auto launch with Dolphin on repack
+If the user starts an unpack, they can still select a project while it is in-process, causing weird lockouts. There should be some global app halt while the unpack is happening.
+Unpacking seems to be getting stuck at the first phase after bat creation
+
+[Known, deferred] Item Editor save is not atomic: ItemEditor writes lookuptext_eng.txt (via ILookupTextApi) BEFORE the items.tok patch. If the patch throws, the lookup text is already committed -> partial save. Re-evaluate when ILookupApi lands (Phase 3); manual failure-case test only covers the inverse.
+[Known, deferred] Release/updater version coupling: the GitHub release tag must EXACTLY equal ProgramInfo.Version (ProgramInfo.cs:17) and the asset must be ModdingGUI-<tag>.zip, or the updater 404s / shows a permanent update prompt. A "v" prefix on the tag breaks the compare. Also string.Compare is lexicographic, so a future 4.10.0 compares LOWER than 4.2.0 and the updater would stop prompting. Fix by parsing into Version once double-digit minors are reached.
