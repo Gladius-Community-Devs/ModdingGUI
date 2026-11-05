@@ -317,12 +317,6 @@ public sealed class GladiatorsFile
     {
         string bec = ProjectRoots.ResolveBecFolder(projectRootOrBec);
         _file.Save(bec, RelativePath);
-        Rebind(n: 0);
-    }
-
-    private void Rebind(int n)
-    {
-        // No-op today; kept so a future re-parse cannot silently drift from the live line indices.
     }
 
     private Record? Find(string name) =>
