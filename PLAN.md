@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 477 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (461 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 491 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (475 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -230,6 +230,22 @@ that, so the notes are not treated as authoritative where the code disagrees.
 Also recorded: `EncounterSetup` forces `Summoner`/`UndeadCaster` on the second and later unit of
 a team, which is the summon behaviour behind Hall of Titans and Summoner's Endurance — those
 extra units on one slot are engine-generated, not placements.
+
+**Two more unknowns closed with data rather than guesses.**
+
+- **`Header (…): 205` in `schools.txt` and `tints.txt` is a real byte.** `Gladius_Units_IDX_Unpack.py` writes
+  it into the text from byte 0 of `unitschools.idx` / `unittints.idx`, and `Gladius_Units_IDX_Repack.py`
+  writes it back into that byte (`f.write(int(schoolsHeader).to_bytes(1, "big"))`). Its meaning is still
+  unknown, but it is data the game reads, and the repack parses it from the first line with a regex — so a
+  file without it cannot be packed at all. `UnitHeader` and both validators now require a numeric 0-255
+  header.
+- **`Outfit` indexes `data/characters/<mesh>/<mesh>_varNN.ptx`.** 83 classes ship variants (68 with four, 7
+  with five, 8 with six; Amazon has `var01`-`var04`); 0 is the plain model and 1..N the variants. Every one
+  of the 2,170 vanilla gladiators stays inside its class's variant count, which is why an invalid outfit is
+  a crash risk rather than a cosmetic oddity (research log: "Outfit 1 is not valid … default to 0, hope it
+  prevents crashes"). `GladiatorsApi.Validate` now resolves class → `MESH` → variant count
+  (`OutfitVariants`) and reports an outfit the class does not have, falling back to the corpus range 0-6 when
+  the mesh folder cannot be read. `CUSTOMIZE` in a school file carries the same value.
 
 A slot may paint many tiles — that is how the player chooses where to stand — so one cell per slot
 was wrong. Validation enforces the real rule: `start-slot-overflow` warns when named units outnumber

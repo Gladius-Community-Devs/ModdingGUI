@@ -104,6 +104,12 @@ public static class SetValidationCodes
 
     /// <summary>NUMENTRIES disagrees with the number of sections.</summary>
     public const string CountMismatch = "count-mismatch";
+
+    /// <summary>
+    /// The <c>Header (…): n</c> line is missing or out of range. The repack writes that value into byte 0 of
+    /// the compiled index, and fails outright when it cannot read a number from the first line.
+    /// </summary>
+    public const string Header = "header-line";
 }
 
 /// <summary>How serious a set finding is.</summary>

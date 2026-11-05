@@ -91,10 +91,12 @@ public sealed class EncounterUnit
     public string ClassTag4 { get; init; } = string.Empty;
 
     /// <summary>
-    /// Slot 13 — boolean flag (0/1). Purpose unknown: the engine stores it as a byte on the unit spec
-    /// and nothing in vanilla distinguishes it from the three flags that follow.
+    /// Slot 13 — flips the class-tag bitmask (the <c>0xf00</c> bits of <see cref="AttributeRequirement"/>)
+    /// to "prohibited". This is the flag the modder notes listed as "unsure": vanilla's 40 rows that set it
+    /// all carry class-tag bits and none carry an affinity requirement, and <c>FUN_8010ad40</c> inverts the
+    /// tag test on it.
     /// </summary>
-    public int FlagA { get; init; }
+    public int ProhibitClassTags { get; init; }
 
     /// <summary>
     /// Slot 14 — flips the class list from "required" to "prohibited". <c>FUN_8010ad40</c> reads it as the
@@ -103,8 +105,9 @@ public sealed class EncounterUnit
     public int ProhibitClasses { get; init; }
 
     /// <summary>
-    /// Slot 15 — flips <see cref="AttributeRequirement"/> to "prohibited"; the engine reads it as the byte
-    /// at requirement +0x10 and inverts the attribute-tag test.
+    /// Slot 15 — flips the attribute bits (the <c>0x103f</c> range of
+    /// <see cref="AttributeRequirement"/>) to "prohibited"; the engine reads it as the byte at
+    /// requirement +0x10 and inverts that test. Vanilla's 235 rows that set it all carry such bits.
     /// </summary>
     public int ProhibitAttribute { get; init; }
 
@@ -193,7 +196,7 @@ public sealed class EncounterUnit
             ClassTag2 = Unquote(slots[9]),
             ClassTag3 = Unquote(slots[10]),
             ClassTag4 = Unquote(slots[11]),
-            FlagA = numbers[12],
+            ProhibitClassTags = numbers[12],
             ProhibitClasses = numbers[13],
             ProhibitAttribute = numbers[14],
             ProhibitAffinity = numbers[15],
@@ -229,7 +232,7 @@ public sealed class EncounterUnit
         slots[9] = Quote(ClassTag2);
         slots[10] = Quote(ClassTag3);
         slots[11] = Quote(ClassTag4);
-        slots[12] = FlagA.ToString(CultureInfo.InvariantCulture);
+        slots[12] = ProhibitClassTags.ToString(CultureInfo.InvariantCulture);
         slots[13] = ProhibitClasses.ToString(CultureInfo.InvariantCulture);
         slots[14] = ProhibitAttribute.ToString(CultureInfo.InvariantCulture);
         slots[15] = ProhibitAffinity.ToString(CultureInfo.InvariantCulture);
@@ -269,7 +272,7 @@ public sealed class EncounterUnit
             ClassTag2 = ClassTag2,
             ClassTag3 = ClassTag3,
             ClassTag4 = ClassTag4,
-            FlagA = FlagA,
+            ProhibitClassTags = ProhibitClassTags,
             ProhibitClasses = ProhibitClasses,
             ProhibitAttribute = ProhibitAttribute,
             ProhibitAffinity = ProhibitAffinity,

@@ -182,6 +182,7 @@ public sealed class GladiatorsApi : IGladiatorsApi
             classes = Array.Empty<string>();
         }
         var classSet = new HashSet<string>(classes, StringComparer.OrdinalIgnoreCase);
+        var variants = new OutfitVariants(bec, _classes);
 
         var records = file.Records;
         var duplicates = records
@@ -233,7 +234,20 @@ public sealed class GladiatorsApi : IGladiatorsApi
             CheckSet(issueList, record.Name, "Item set", record.ItemSet, catalog.ItemSets);
             CheckSet(issueList, record.Name, "School", record.School, catalog.Schools);
 
-            if (record.Outfit is < 0 or > 6)
+            // Outfit selects data/characters/<mesh>/<mesh>_varNN.ptx: 0 is the plain model and 1..N the
+            // variants. Nothing lists the valid set, so the mesh folder is the authority; when it cannot be
+            // read, fall back to the range the whole corpus stays inside.
+            bool? outfitOk = variants?.IsValid(record.Class, record.Outfit);
+            if (outfitOk == false)
+            {
+                int count = variants!.TryGetVariantCount(record.Class) ?? 0;
+                issueList.Add(new GladiatorValidationIssue(GladiatorValidationSeverity.Warning,
+                    GladiatorValidationCodes.OutfitOutOfRange, record.Name, "Outfit",
+                    $"outfit {record.Outfit} does not exist for class '{record.Class}': its mesh has " +
+                    $"{count} variant(s), so 0 (default) or 1-{count} are valid, and an invalid outfit " +
+                    "can crash the game"));
+            }
+            else if (outfitOk is null && record.Outfit is < 0 or > 6)
             {
                 issueList.Add(new GladiatorValidationIssue(GladiatorValidationSeverity.Warning,
                     GladiatorValidationCodes.OutfitOutOfRange, record.Name, "Outfit",

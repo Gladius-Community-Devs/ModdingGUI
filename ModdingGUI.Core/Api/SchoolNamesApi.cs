@@ -32,6 +32,12 @@ public static class SchoolNameValidationCodes
 
     /// <summary>An entry has no name (entry 0 is blank in vanilla, so this can be legitimate).</summary>
     public const string EmptyName = "empty-name";
+
+    /// <summary>
+    /// The <c>Header (…): n</c> line is missing or out of range: the repack writes it into byte 0 of
+    /// <c>unitschools.idx</c> and fails when it cannot read a number from the first line.
+    /// </summary>
+    public const string Header = "header-line";
 }
 
 /// <summary>One advisory finding about the school name table.</summary>
@@ -154,6 +160,14 @@ public sealed class SchoolNamesApi : ISchoolNamesApi
         var file = Load(bec);
         var parsed = Parse(file);
         var issues = new List<SchoolNameValidationIssue>();
+
+        var fileLines = File.ReadAllLines(Path.Combine(bec, RelativePath));
+        string? headerProblem = UnitHeader.Validate(fileLines, "schools.txt");
+        if (headerProblem is not null)
+        {
+            issues.Add(new SchoolNameValidationIssue(SchoolNameValidationSeverity.Warning,
+                SchoolNameValidationCodes.Header, -1, headerProblem));
+        }
 
         if (parsed.DeclaredCount is int declared && declared != parsed.Entries.Count)
         {

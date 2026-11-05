@@ -200,6 +200,13 @@ public sealed class TintSetsApi : ITintSetsApi
                 $"NUMENTRIES says {declared} but the file has {file.Count} sets"));
         }
 
+        string? headerProblem = UnitHeader.Validate(File.ReadAllLines(Path.Combine(bec, RelativePath)), "tints.txt");
+        if (headerProblem is not null)
+        {
+            issues.Add(new SetValidationIssue(SetValidationSeverity.Warning,
+                SetValidationCodes.Header, -1, headerProblem));
+        }
+
         foreach (int setIndex in file.Indexes)
         {
             if (index is not null && setIndex != index) continue;
