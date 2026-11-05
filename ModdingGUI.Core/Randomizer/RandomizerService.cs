@@ -250,7 +250,10 @@ public sealed class RandomizerService
             new("LEVEL", level),
             new("EXPERIENCE", previous?.Value("EXPERIENCE") ?? "0"),
             new("JOBPOINTS", previous?.Value("JOBPOINTS") ?? "5"),
-            new("CUSTOMIZE", previous?.Value("CUSTOMIZE") ?? "0, \"\""),
+            // Always the default look. CUSTOMIZE selects data/characters/<mesh>/<mesh>_varNN.ptx and asking for a
+            // variant the class does not ship locks the game up; 99 of the 182 mesh folders ship no variants at
+            // all, and a hero's class changes here, so the previous outfit cannot be trusted.
+            new("CUSTOMIZE", "0, \"\""),
             new("CORESTATSCOMP2", BuildStatLine(projectRoot, loadout.StatSet)),
             new("ITEMSCOMP", BuildItemLine(projectRoot, loadout.ItemSet)),
         };

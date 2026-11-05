@@ -197,6 +197,24 @@ public sealed class RandomizerRosterHeroTests : IDisposable
     }
 
     [Fact]
+    public void EveryHeroBlockAsksForTheDefaultLook()
+    {
+        if (!Ready) return;
+
+        new RandomizerService().Randomize(_bec, new RandomizerOptions { Seed = "outfit", RandomizeHeroes = true });
+
+        foreach (string roster in new[] { ValensRoster, UrsulaRoster })
+        {
+            foreach (var unit in _schools.Get(_bec, roster)!.Units)
+            {
+                // CUSTOMIZE selects data/characters/<mesh>/<mesh>_varNN.ptx; a variant the new class does not ship
+                // locks the game up, so every block written by the randomizer asks for the default (0).
+                Assert.Equal("0, \"\"", unit.Value("CUSTOMIZE")!.Trim());
+            }
+        }
+    }
+
+    [Fact]
     public void RewrittenRostersStillValidate()
     {
         if (!Ready) return;

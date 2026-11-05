@@ -143,7 +143,8 @@ public static class SchoolValidator
     private const int MaxOutfit = 6;        // highest outfit index the vanilla corpus uses
 
     /// <summary>Validate a parsed roster (a null catalog skips the key checks).</summary>
-    public static IReadOnlyList<SchoolValidationIssue> Validate(SchoolDto school, SchoolsCatalog? catalog)
+    public static IReadOnlyList<SchoolValidationIssue> Validate(
+        SchoolDto school, SchoolsCatalog? catalog, ModdingGUI.Core.Units.OutfitVariants? variants = null)
     {
         ArgumentNullException.ThrowIfNull(school);
 
@@ -224,6 +225,22 @@ public static class SchoolValidator
                 else
                 {
                     string first = customize.Split(',')[0].Trim();
+                    // A roster CUSTOMIZE selects data/characters/<mesh>/<mesh>_varNN.ptx. Asking for a variant the
+                    // class does not ship is not a cosmetic problem - the game locks up - so check it against the
+                    // class's real files when the characters tree is available.
+                    if (variants is not null && int.TryParse(first, out int customization))
+                    {
+                        int? available = variants.TryGetVariantCount(unit.ClassName);
+                        if (available is not null && (customization < 0 || customization > available.Value))
+                        {
+                            issues.Add(new SchoolValidationIssue(SchoolValidationSeverity.Warning,
+                                SchoolValidationCodes.OutfitRange, unit.Name, "CUSTOMIZE",
+                                $"CUSTOMIZE outfit {customization} does not exist for class '{unit.ClassName}': " +
+                                $"its mesh ships {available.Value} variant(s), so 0 or 1-{available.Value} are safe; " +
+                                "asking for a missing variant locks the game up"));
+                        }
+                    }
+
                     if (!int.TryParse(first, out int outfit) || outfit < 0 || outfit > MaxOutfit)
                     {
                         issues.Add(new SchoolValidationIssue(SchoolValidationSeverity.Warning,

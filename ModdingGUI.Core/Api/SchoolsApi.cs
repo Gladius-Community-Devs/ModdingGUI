@@ -364,7 +364,10 @@ public sealed class SchoolsApi : ISchoolsApi
         var school = Get(projectPath, relativePath)
             ?? throw new FileNotFoundException($"school not found: {relativePath}");
 
-        return SchoolValidator.Validate(school, SchoolsCatalog.Shipped());
+        // The per-class CUSTOMIZE check needs the characters tree; it is skipped when the mesh cannot be read.
+        var school_1 = SchoolValidator.Validate(school, SchoolsCatalog.Shipped(),
+            new ModdingGUI.Core.Units.OutfitVariants(ProjectRoots.ResolveBecFolder(projectPath), new ClassDefsApi()));
+        return school_1;
     }
 
     // ---- editing plumbing ---------------------------------------------------
