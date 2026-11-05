@@ -102,6 +102,12 @@ public interface ISchoolsApi
     /// <summary>Replace a header field (<c>NAME</c>, <c>HERO</c>, <c>GOLD</c>).</summary>
     void SetHeaderField(string projectPath, string relativePath, string key, string rawValue);
 
+    /// <summary>
+    /// Replace the class on a unit's <c>CREATEUNIT</c> line, keeping the trailing comment. The class is the second
+    /// argument, so it is not a field and cannot go through <see cref="SetUnitField"/>.
+    /// </summary>
+    void SetUnitClass(string projectPath, string relativePath, string unitName, string className);
+
     /// <summary>Replace a single-valued field of a unit block (<c>LEVEL</c>, <c>CORESTATSCOMP2</c>, …).</summary>
     void SetUnitField(string projectPath, string relativePath, string unitName, string key, string rawValue);
 
@@ -183,6 +189,26 @@ public sealed class SchoolsApi : ISchoolsApi
 
             TokLineEditing.ReplaceValue(lines, matches[0], rawValue);
             for (int i = matches.Count - 1; i >= 1; i--) lines.RemoveAt(matches[i]);
+            return true;
+        });
+
+    /// <inheritdoc />
+    public void SetUnitClass(string projectPath, string relativePath, string unitName, string className) =>
+        EditUnit(projectPath, relativePath, unitName, (lines, block) =>
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+
+            string line = lines[block.Start];
+            var match = CreateUnitRx.Match(line);
+            if (!match.Success) return false;
+
+            string replaced = line[..match.Groups["class"].Index]
+                              + className
+                              + line[(match.Groups["class"].Index + match.Groups["class"].Length)..];
+
+            if (string.Equals(replaced, line, StringComparison.Ordinal)) return false;
+
+            lines[block.Start] = replaced;
             return true;
         });
 

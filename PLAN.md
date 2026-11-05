@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 558 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (542 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 564 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (548 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -456,6 +456,19 @@ item-set step failed with "items.tok not found" on a project path. It now resolv
 recruits) twice with seed `alpha` on a fresh project produces byte-identical `gladiators.txt` and both campaign
 rosters; seed `beta` changes them. The league files hash the same across seeds, as they should: recruit removal
 is seed-independent.
+
+**The campaign starts from the roster blocks, not the gladiator table.** Only four heroes appear in the starting
+rosters (`Valens` + `Ludo` in `valensimperia.tok`, `Urlan` + `Ursula` in `ursulanordagh.tok`; Eiji and Gwazi join
+later by script), and each block spells out class, stats, items and skills. Randomizing the table alone therefore
+left those four walking into the first bout with the vanilla kit — Machera, Short Cape and a badge. The hero step
+now rewrites their blocks too (class line, six core stats, five item slots, granted skills) and keeps level,
+experience, job points and `CUSTOMIZE`. `ISchoolsApi.SetUnitClass` exists because the class is the second
+argument of `CREATEUNIT`, not a field.
+
+**Chaos is the policy.** Two QA questions were settled deliberately rather than "fixed": a level-1 unit may draw a
+boss-scale stat set, and a unit may be handed a weapon its class cannot normally use (`CharacterChangeItem` in the
+engine just stores whatever item name it is given, with no category check — such gear works, it just looks odd).
+Both are randomizer behaviour by choice, so neither is filtered.
 
 **School blocks are parsed by a loader that gives up silently.** `SchoolLoad` reads the unit block token by
 token; `CORESTATSCOMP2` expects **six** integers (CON, PWR, ACC, DEF, INT, MOVE) and on a short line it sets its

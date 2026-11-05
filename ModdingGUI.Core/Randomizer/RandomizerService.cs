@@ -167,6 +167,85 @@ public sealed class RandomizerService
     }
 
     /// <summary>
+    /// Rewrite each roster hero's <c>CREATEUNIT</c> block from its new loadout: class, six core stats, five item
+    /// slots and the granted skills. Level, experience, job points and CUSTOMIZE are left alone.
+    /// </summary>
+    private int RewriteRosterHeroes(string projectRoot, IReadOnlyDictionary<string, GladiatorLoadout> assigned)
+    {
+        if (assigned.Count == 0) return 0;
+
+        var schools = new SchoolsApi();
+        int changed = 0;
+
+        foreach (string roster in CampaignRosters)
+        {
+            var file = schools.Get(projectRoot, roster);
+            if (file is null) continue;
+
+            foreach (var unit in file.Units)
+            {
+                if (!assigned.TryGetValue(unit.Name, out var loadout)) continue;
+
+                schools.SetUnitClass(projectRoot, roster, unit.Name, loadout.ClassName);
+                schools.SetUnitField(projectRoot, roster, unit.Name, "CORESTATSCOMP2",
+                    BuildStatLine(projectRoot, loadout.StatSet));
+                schools.SetUnitField(projectRoot, roster, unit.Name, "ITEMSCOMP",
+                    BuildItemLine(projectRoot, loadout.ItemSet));
+                schools.SetUnitSkills(projectRoot, roster, unit.Name,
+                    SkillNames(projectRoot, loadout.SkillSet));
+                changed++;
+            }
+        }
+
+        return changed;
+    }
+
+    /// <summary>
+    /// <c>CORESTATSCOMP2</c> is six numbers (CON, PWR, ACC, DEF, INT, MOVE); a short line makes the loader stop
+    /// and silently drop the rest of the block. MOVE is written as 1, the way vanilla blocks do.
+    /// </summary>
+    private string BuildStatLine(string projectRoot, int statSet)
+    {
+        var row = _statSets.Get(projectRoot, statSet)?.Row(1);
+        return row is null
+            ? "0, 0, 0, 0, 0, 1"
+            : string.Create(CultureInfo.InvariantCulture,
+                $"{row.Con}, {row.Pow}, {row.Acc}, {row.Def}, {row.IniMov}, 1");
+    }
+
+    /// <summary>
+    /// <c>ITEMSCOMP</c> is five quoted names in the order weapon, armor, shield, helmet, accessory; each slot
+    /// takes the row of the set that covers level 1.
+    /// </summary>
+    private string BuildItemLine(string projectRoot, int itemSet)
+    {
+        var rows = _itemSets.Get(projectRoot, itemSet)?.Rows ?? Array.Empty<ItemSetRow>();
+        var items = new List<string>(5);
+
+        foreach (string slot in new[] { "Weapon", "Armor", "Shield", "Helmet", "Accessory" })
+        {
+            var candidates = rows
+                .Where(row => row.Note is not null
+                              && row.Note.Contains(slot, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+
+            var chosen = candidates.FirstOrDefault(row => row.MinLevel <= 1 && row.MaxLevel >= 1)
+                         ?? candidates.FirstOrDefault();
+
+            items.Add(chosen?.ItemName ?? string.Empty);
+        }
+
+        return string.Join(", ", items.Select(item => $"\"{item}\""));
+    }
+
+    /// <summary>The skills a skill set grants.</summary>
+    private IReadOnlyList<string> SkillNames(string projectRoot, int skillSet) =>
+        _skillSets.Get(projectRoot, skillSet)?.Rows
+            .Select(row => row.SkillName)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .ToArray() ?? Array.Empty<string>();
+
+    /// <summary>
     /// Give every gladiator a random stat set index — the same thing the old randomizer did, and what the user
     /// asked for: "each unit getting a completely random statset".
     /// </summary>
@@ -414,19 +493,27 @@ public sealed class RandomizerService
         if (pool.Count == 0) return 0;
 
         var patches = new List<(string Name, GladiatorPatch Patch)>();
+        var assigned = new Dictionary<string, GladiatorLoadout>(StringComparer.Ordinal);
+
         foreach (string hero in StoryHeroes.Names)
         {
             var current = records.FirstOrDefault(dto => dto.Name == hero);
             if (current is null) continue;
 
             var loadout = random.Pick(pool);
+            assigned[hero] = loadout;
             if (loadout.Matches(current)) continue;
-
 
             patches.Add((hero, loadout.ToPatch()));
         }
 
-        if (patches.Count == 0) return 0;
-        return _gladiators.ApplyMany(projectRoot, patches);
+        int changed = patches.Count == 0 ? 0 : _gladiators.ApplyMany(projectRoot, patches);
+
+        // The gladiator table is not what the campaign starts from: the starting units are the CREATEUNIT blocks
+        // in the roster files, which spell out class, stats, items and skills. A hero whose table entry changed
+        // but whose block did not would still walk into the first bout with the vanilla kit.
+        changed += RewriteRosterHeroes(projectRoot, assigned);
+
+        return changed;
     }
 }
