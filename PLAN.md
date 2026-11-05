@@ -8,7 +8,7 @@
 - **Round-trip fidelity:** every `.tok`/`.enc` re-serializes byte-for-byte on no-op. Unknown tags + comments preserved.
 - **JSON:** `System.Text.Json` only.
 - **Tok I/O:** ISO-8859-1, for `.tok` *and* every `data/**/*.txt` table. The pack tools read them as ANSI (`Update_Strings_Bin.py` uses `encoding="ansi"`), so UTF-8 is never correct: reading a Latin-1 table as UTF-8 replaces high bytes with U+FFFD and writing re-encodes them as three bytes (this corrupted 456 bytes of `lookuptext_eng.txt` before it was fixed).
-- **Test bar:** 461 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (445 passed / 0 failed / 16 skipped). Every phase ends with green tests.
+- **Test bar:** 464 passed / 0 failed / 0 skipped with real-data fixtures present (a `vanilla.iso` plus a `REALDATA_*` project folder in the build output — see `AGENTS.md`); the 16 `RealGameDataTests` skip without them (448 passed / 0 failed / 16 skipped). Every phase ends with green tests.
 
 ## 1. Format coverage (final scope)
 
@@ -309,8 +309,32 @@ names against `skills.tok`, item names against `items.tok`, and every gladiator'
 bounded by counts read out of the other units files (169/230/404/144/196), so a mod that adds a set
 widens the range by itself.
 
-**QA artifact:** Bjolf's tint set 0 → 155 (all six channels 196,0,0 — vanilla set 0 means default colours)
-and stat set 71 level 1 CON/POW 3/3 → 150/120, applied through the APIs and packed.
+**QA artifact — passed in game.** Bjolf's tint set 0 → 155 (all six channels 196,0,0) and stat set 71
+level 1 CON/POW 3/3 → 150/120, applied through `ITintSetsApi`/`IGladiatorsApi`/`IStatSetsApi` and packed.
+In game he is **fully red** with **905 HP** at level 1, so the tint path and the stat path are both proven
+end to end.
+
+**What the QA taught us about the fields** (all now in code comments and validators):
+
+- **`Affinity` is packed, not decorative.** The repack chain writes it into `unitunits.idx` as the low three
+  bits of a byte shared with `Outfit` (`5 bits outfit | 3 bits affinity`), and the unit builder
+  `FUN_800dfac4` decodes `record+3 & 7` and maps the file index onto the engine ids before creating the
+  unit. It *looks* inert in game because affinity as played comes from equipment: the weapon supplies
+  offense affinity and armour/accessories supply defence. An unknown name still breaks the repack, so the
+  validator keeps it a Warning, and the enum's order is documented as load-bearing (`5` is a deliberate
+  hole in the repack table; the engine's light-affinity icons have no name there).
+- **`Outfit` is zero-indexed per class** and nothing lists the valid set; an invalid value has been
+  reported to crash the game (research log: "Outfit 1 is not valid … default to 0, hope it prevents
+  crashes"). `ISchoolsApi` now validates the matching `CUSTOMIZE` outfit for starting units, which was
+  previously unvalidated.
+- **Tints are gladiator-only** (nothing else in the game uses them), and they are forgiving: six RGB slots,
+  a blank set defaults to zeros — which is why set 0 is a note rather than colours.
+- **Skillsets/itemsets are what actually make a unit do things** — the skill list it can cast and the
+  equipment it wears by level — confirming that the five set indexes, not the affinity label, are the
+  meaningful cross-file references.
+- **The engine never parses the units `.txt` labels.** `FUN_800dffb8` loads the seven compiled `.idx`
+  files and `FUN_800dfac4`/`FUN_800dfe1c` read those, so the pack chain is the only consumer of the text
+  files — which is why its own tables are the authority for names like the affinity list.
 Gladiators, statsets, itemsets, skillsets. Tab/space-delimited, NOT tok.
 
 - New `DelimitedRecordSchema<T>` peer abstraction (sibling of `RecordSchema<T>`).
