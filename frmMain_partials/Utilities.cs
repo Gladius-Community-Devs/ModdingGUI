@@ -141,6 +141,14 @@ namespace ModdingGUI
         // Method to open a folder location in Windows Explorer
         private void OpenLocation(string path)
         {
+            // The tool's folder fields hold names relative to the app directory (the project folder sits
+            // next to the exe). Handing a relative path to the shell would resolve it against whatever
+            // working directory the shell happens to use, so make it absolute first.
+            if (!string.IsNullOrWhiteSpace(path) && !Path.IsPathRooted(path))
+            {
+                path = Path.Combine(GetAppDirectory(), path);
+            }
+
             if (!Directory.Exists(path)) // Check if the directory exists
             {
                 AppendLog($"Cannot open '{path}': not a folder.", WarningColor, rtbPackOutput);
