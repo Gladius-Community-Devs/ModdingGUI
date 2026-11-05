@@ -406,6 +406,18 @@ call order. The new pipeline takes one `RandomizerRandom` per run and every step
 project across runs; a different seed differs; every validator still passes on the result; the randomised
 project packs and plays.
 
+**Heroes are gladiators, and the options apply to them.** The six story heroes are ordinary
+`gladiators.txt` records (`Ursula` is class `Ursula`, stat set 163, skill set 225 …), so the rule is: whatever
+an option does to any other gladiator, it does to the heroes too. Their classes are bespoke (one to three
+records each), so hero classes are excluded from the pool other units draw from.
+
+**Loadouts are swapped as bundles, not field by field.** A gladiator's class, outfit, affinity, tint, skill,
+stat and item sets are taken together from a **real record**, and that is the cross-reference the files
+support: `classdefs.tok` maps a class only to `SKILLUSENAME` (animations), never to its stat/skill/item sets,
+so choosing those independently would be invention. A bundle copied from another gladiator is a loadout the
+designers actually shipped. Name and school are never part of the bundle — the hero keeps its identity and
+the school that puts it in a roster. Vanilla offers 1,743 distinct bundles across 2,170 records.
+
 **Slices:**
 
 1. `RandomizerOptions` + seeded `RandomizerRandom` (one RNG, explicit string seed hashed stably so it
@@ -576,7 +588,11 @@ fields accumulate rather than overwrite; there are exactly two status slots and 
     consumer, never the store. This is what lets the same run be observed by the GUI, by tests, and by
     an MCP client, and it is why pack/unpack must move behind Core services rather than staying a
     shell-owned batch runner.
-17. **A rule that vanilla violates is suspect.** `start-slot-overflow` was first written as "duplicate
+17. **Never loop a file-backed API.** Every `Get` re-reads and re-parses the whole file, so a per-record loop
+    turns a two-second job into minutes: reading the gladiator table record by record took **210 s** for six
+    hero lookups, and the same read through `GetAll` took **1.3 s**. Use the one-pass accessor (`GetAll`) or a
+    batch write (`ApplyMany`); if one does not exist, add it before writing the loop.
+18. **A rule that vanilla violates is suspect.** `start-slot-overflow` was first written as "duplicate
     start slot = warning" and flagged 4 working encounters; investigating those is what produced the
     region semantics and the summon exception. Before pinning a rule, check the corpus for false
     positives and explain every one.

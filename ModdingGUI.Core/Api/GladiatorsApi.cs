@@ -74,6 +74,12 @@ public interface IGladiatorsApi
     /// <summary>One record, or null when the name is unknown.</summary>
     GladiatorDto? Get(string projectRoot, string name);
 
+    /// <summary>
+    /// Every record in one pass. Callers that need more than a handful of records should use this instead of
+    /// <see cref="Get"/> in a loop: each <c>Get</c> re-reads and re-parses the whole table (2,170 records).
+    /// </summary>
+    IReadOnlyList<GladiatorDto> GetAll(string projectRoot);
+
     /// <summary>Change any subset of the eight mutable values.</summary>
     void Patch(string projectRoot, string name, GladiatorPatch patch);
 
@@ -115,6 +121,10 @@ public sealed class GladiatorsApi : IGladiatorsApi
     /// <inheritdoc />
     public GladiatorDto? Get(string projectRoot, string name) =>
         GladiatorsFile.LoadProject(projectRoot).Get(name);
+
+    /// <inheritdoc />
+    public IReadOnlyList<GladiatorDto> GetAll(string projectRoot) =>
+        GladiatorsFile.LoadProject(projectRoot).Records;
 
     /// <inheritdoc />
     public void Patch(string projectRoot, string name, GladiatorPatch patch)
