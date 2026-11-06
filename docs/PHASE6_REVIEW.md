@@ -44,6 +44,9 @@ Comparing `frmMain_partials/Randomizer.cs` as it shipped (2,166 lines, deleted i
 | `CUSTOMIZE` carried over on a class change | preserved the old outfit | `varNN.ptx` that the new class does not ship ⇒ **lockup** (14 reachable classes ship none) | always `0` |
 | Team read stats/items/skills before they were randomized | order was heroes → team → … → statsets | teams always got vanilla curves | deliberate change: teams now reflect the randomized tables |
 | One backup per record | every `Patch` wrote a `.bak` | 2,170 patches ≈ 550 MB of history | one batch write, one backup |
+| Prop teams randomized | — (the old code guarded on `team > 0`) | props replaced by gladiators that sit on a team which never gets a turn | fixed after QA: only `team > 0` is touched, count-0 rows refused |
+| `TEAM: -1` misparsed | — | the prop team's header was not recognised, so its `SCHOOL: "PropSchool"` was dropped | fixed after QA: team index is `int?`, -1 and "not a team line" are distinct |
+| Empty item sets assigned | — | 28 sets have no rows and 45 more have no level-1 row; a unit on one of them has no gear at all | fixed after QA: the map offers only the 331 sets with a level-1 row |
 | Slow reads | `Get` per record | 2,170 parses for one hero step (210 s measured) | `GetAll`, 1.3 s |
 
 ## Structural gains

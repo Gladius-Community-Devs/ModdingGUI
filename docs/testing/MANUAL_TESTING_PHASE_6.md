@@ -1,6 +1,6 @@
 # Manual QA — Phase 6 randomizer
 
-Build under test: `qa-pack/qa-pack.iso` (packed 12:40), seed **`phase6-qa`**, steps run:
+Build under test: `qa-pack/qa-pack.iso` (packed 16:49), seed **`phase6-qa2`**, steps run:
 `heroes, scripts, statsets, itemsets, team, encounters, recruits`, `--hero-name valens --cash 25000`.
 
 That build changed 5,178 records. What it contains, verified from the packed project:
@@ -13,6 +13,9 @@ That build changed 5,178 records. What it contains, verified from the packed pro
 | Units table | 2,170 records, stat/item sets reassigned |
 | Encounters | 834 files, **3,174** randomizable enemy rows, **0** `SCHOOL:` lines inside teams, 116 `CANDIE:` lines |
 | Scripts | 6 flow scripts patched, Fjord league switched to the Valens branch, all `.scb` recompiled |
+| Prop teams | `battle1.enc`'s `TEAM: -1` block is **byte-identical** to vanilla, `SCHOOL: "PropSchool"` kept |
+| Item sets | only sets with a level-1 row are assigned (331 of 404); 0 gladiators on an unusable set |
+| Team gear | 14 team units, none bare |
 
 Run with Dolphin against that ISO. Report each step as **PASS / FAIL / NA**, and note anything that looks odd even
 if it passes.
@@ -67,6 +70,14 @@ Open the school and inspect each hero's panel.
    - [ ] No barrels, statues, tombstones or other props appear as fighters.
    - [ ] No boss-class enemies appear in ordinary bouts.
    - [ ] Enemy levels track your school level within a couple of levels (the row asks for −2..+2).
+
+## 4b. The three bugs from the previous pass
+
+- [ ] **Props stay props** — in `battle1.enc` (Pirgos arena) the two prop slots still hold props, not
+      gladiators, and nothing appears where they stand (they are on the prop team with count 0).
+- [ ] **No bare units** — every team member and hero has at least one item equipped; specifically no Ogre with
+      an empty equipment panel.
+- [ ] **Encounters with a prop team** load and play normally.
 
 ## 5. Recruits
 
