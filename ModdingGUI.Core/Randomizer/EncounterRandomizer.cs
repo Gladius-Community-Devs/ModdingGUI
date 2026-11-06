@@ -85,10 +85,10 @@ public sealed class EncounterRandomizer
             {
                 string trimmed = line.Trim();
 
-                int teamLine = ReadTeamIndex(trimmed);
-                if (teamLine >= 0)
+                int? teamLine = ReadTeamIndex(trimmed);
+                if (teamLine is not null)
                 {
-                    team = teamLine;
+                    team = teamLine.Value;
                     inTeamZero = team == 0;
 
                     if (permaDeath && team == 0 && !candiePresent)
@@ -117,9 +117,11 @@ public sealed class EncounterRandomizer
                     continue;
                 }
 
+                // SCHOOL: is dropped from player and opponent teams, but the prop team's school is what makes
+                // its scenery work: the old randomizer skipped the line only when the team was not -1.
                 if (trimmed.StartsWith("SCHOOL:", StringComparison.OrdinalIgnoreCase) && team >= 0)
                 {
-                    modified = true;   // dropped: a prop team must not carry a school
+                    modified = true;
                     continue;
                 }
 
@@ -158,7 +160,11 @@ public sealed class EncounterRandomizer
                         continue;
                     }
 
-                    if (!inTeamZero && randomizeEnemies && string.IsNullOrEmpty(unitName))
+                    // Only real opponent teams are randomized. Team -1 is the prop/neutral team, whose
+                    // rows carry count 0 and exist to give a match its scenery - replacing those with
+                    // gladiators puts fighters on a team that never gets a turn, and the old randomizer
+                    // guarded this the same way (`currentTeamNumber > 0`).
+                    if (team > 0 && randomizeEnemies && string.IsNullOrEmpty(unitName) && !IsDisabledRow(trimmed))
                     {
                         string randomizable = RandomizableRow(slot);
                         if (randomizable == line)
@@ -190,6 +196,16 @@ public sealed class EncounterRandomizer
         return new EncounterEditResult(changed, blanked, enemies, candie);
     }
 
+    /// <summary>
+    /// A row whose count (second argument) is 0. Vanilla only uses these on the prop team, where they mean
+    /// "nothing spawns here"; they must never be turned into a random unit.
+    /// </summary>
+    private static bool IsDisabledRow(string trimmed)
+    {
+        var parts = SplitArguments(trimmed);
+        return parts.Count > 1 && parts[1].Trim() == "0";
+    }
+
     /// <summary>True when every special hero already appears on a <c>UNITDB</c> row.</summary>
     private static bool HasSpecialRows(IReadOnlyList<string> lines) =>
         SpecialRows.All(row => lines.Any(line =>
@@ -213,15 +229,18 @@ public sealed class EncounterRandomizer
         string.Join(", ", ProhibitedEnemyClasses.Select(name => $"\"{name}\"")) +
         ", 0, 1, 0, 0, 0, 0, 25, 0, 0";
 
-    /// <summary>Team index of a <c>TEAM:</c> line, or -1.</summary>
-    private static int ReadTeamIndex(string trimmed)
+    /// <summary>
+    /// Team index of a <c>TEAM:</c> line, or null when the line is not one. Null and -1 must be distinguishable:
+    /// -1 is the prop team, whose rows and school have to survive untouched.
+    /// </summary>
+    private static int? ReadTeamIndex(string trimmed)
     {
-        if (!trimmed.StartsWith("TEAM:", StringComparison.OrdinalIgnoreCase)) return -1;
+        if (!trimmed.StartsWith("TEAM:", StringComparison.OrdinalIgnoreCase)) return null;
 
         string rest = trimmed["TEAM:".Length..];
         int comma = rest.IndexOf(',');
         string value = (comma >= 0 ? rest[..comma] : rest).Trim();
-        return int.TryParse(value, out int index) ? index : -1;
+        return int.TryParse(value, out int index) ? index : null;
     }
 
     /// <summary>Third argument of a <c>UNITDB</c> row (the start slot), or Start1 when absent.</summary>

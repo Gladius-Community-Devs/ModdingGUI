@@ -57,7 +57,9 @@ public sealed class RandomizerItemSetTests : IDisposable
 
         var map = ItemSetAffinityMap.Build(_bec);
 
-        Assert.Equal(404, map.Count);
+        // 404 sets exist, but 73 carry no row covering level 1 (28 are completely empty), so only 331 can
+        // equip anything and only those are offered.
+        Assert.Equal(331, map.Count);
         Assert.Contains(map.CandidatesFor("Fire").ToList(), index => map.AffinityOf(index) == "Fire");
         Assert.All(map.CandidatesFor("Fire"), index =>
             Assert.True(map.AffinityOf(index) is "Fire" or "Light", $"set {index} is {map.AffinityOf(index)}"));
@@ -69,8 +71,8 @@ public sealed class RandomizerItemSetTests : IDisposable
         if (!Ready) return;
 
         var map = ItemSetAffinityMap.Build(_bec);
-        Assert.Equal(404, map.CandidatesFor("None").Count);
-        Assert.Equal(404, map.CandidatesFor(null).Count);
+        Assert.Equal(331, map.CandidatesFor("None").Count);
+        Assert.Equal(331, map.CandidatesFor(null).Count);
     }
 
     [Fact]

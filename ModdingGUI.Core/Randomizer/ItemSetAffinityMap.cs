@@ -68,6 +68,12 @@ public sealed class ItemSetAffinityMap
 
         foreach (var set in (itemSets ?? new ItemSetsApi()).GetAll(bec))
         {
+            // A set that carries no row covering level 1 equips nothing at all, and 28 of vanilla's 404 sets
+            // are completely empty. Handing one to a unit produces a gladiator with no gear and, for a team
+            // member, a block with an empty ITEMSCOMP.
+            bool usable = set.Rows.Any(row => row.MinLevel <= 1 && row.MaxLevel >= 1);
+            if (!usable) continue;
+
             all.Add(set.Index);
 
             // The old randomizer read the last weapon line of the set; typed rows make that explicit.

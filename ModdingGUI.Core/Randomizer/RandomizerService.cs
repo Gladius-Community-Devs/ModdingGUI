@@ -472,6 +472,13 @@ public sealed class RandomizerService
             items.Add(chosen?.ItemName ?? string.Empty);
         }
 
+        // Defensive: if no slot matched, fall back to the set's first row so the unit is not left bare.
+        if (items.All(item => item.Length == 0))
+        {
+            var first = rows.FirstOrDefault();
+            if (first is not null) items[0] = first.ItemName;
+        }
+
         string itemList = string.Join(", ", items.Select(item => $"\"{item}\""));
 
         // Team members are created at level 1, so only the skills a level-1 unit may actually learn are granted.
