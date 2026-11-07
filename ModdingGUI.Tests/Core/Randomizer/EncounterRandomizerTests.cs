@@ -145,10 +145,10 @@ public sealed class EncounterRandomizerTests : IDisposable
         new EncounterRandomizer().Apply(_bec, randomizeEnemies: false, permaDeath: false);
 
         var lines = Lines("scene47u.enc");
-        Assert.Single(lines.Where(l => l.Contains("\"Ursula\"")));
-        Assert.Single(lines.Where(l => l.Contains("\"Valens\"")));
-        Assert.Single(lines.Where(l => l.Contains("\"Urlan\"")));
-        Assert.Single(lines.Where(l => l.Contains("\"Eiji\"")));
+        Assert.Single(lines, l => l.Contains("\"Ursula\""));
+        Assert.Single(lines, l => l.Contains("\"Valens\""));
+        Assert.Single(lines, l => l.Contains("\"Urlan\""));
+        Assert.Single(lines, l => l.Contains("\"Eiji\""));
     }
 
     [Fact]
