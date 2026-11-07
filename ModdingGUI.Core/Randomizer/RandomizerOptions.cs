@@ -83,6 +83,12 @@ public sealed record RandomizerOptions
     /// </summary>
     public string? SchoolName { get; init; }
 
+    /// <summary>
+    /// Start from the pinned vanilla baseline: the first run captures one, every later run restores it first so
+    /// runs never stack. Turn this off only when randomizing on top of an existing run on purpose.
+    /// </summary>
+    public bool ResetToBaseline { get; init; } = true;
+
     /// <summary>Randomize the stat tables.</summary>
     public bool RandomizeStatsets { get; init; }
 

@@ -36,6 +36,16 @@ the ISO this produces.
    **Weighted OFF**, **Perma-death OFF**.
    - [ ] Every checkbox stays ticked after clicking elsewhere (settings round-trip on selection change).
 
+## 3b. Baseline behaviour
+
+- [ ] Before any run, the status line beside the button reads Baseline: not pinned yet (the first run pins it).
+- [ ] After the first run it reads Baseline: pinned (N files) - every run starts from it.
+- [ ] Running a second time logs Restored the vanilla baseline (N file(s)) and the result is byte-identical to
+      the first run (same seed).
+- [ ] **Reset to Vanilla** asks for confirmation, restores, and logs Reset to vanilla: N file(s) restored.
+- [ ] After a reset, the rosters and gladiators table match a fresh unpack, and the reset itself left a .bak per
+      restored file.
+
 ## 4. Run it
 
 6. Press **Randomize**. Watch the pack output.

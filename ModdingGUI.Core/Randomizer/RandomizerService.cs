@@ -122,6 +122,20 @@ public sealed class RandomizerService
         var steps = new List<string>();
         int changed = 0;
 
+        // Runs must not stack. The first run pins the project's current state as the baseline; every later run
+        // restores it first, so the same seed reproduces the run and a second pass is not applied on top of the
+        // first. This happens before any step reads a file.
+        if (options.ResetToBaseline)
+        {
+            var baseline = new RandomizerBaseline(_log, "randomizer");
+
+            bool hadBaseline = baseline.Exists(projectRoot);
+            if (hadBaseline) baseline.Restore(projectRoot);
+            else baseline.Capture(projectRoot);
+
+            steps.Add(hadBaseline ? "baseline-restored" : "baseline-captured");
+        }
+
         using var scope = _log?.Scope("randomizer");
 
         _log?.Write(LogLevel.Info, $"Randomizer run started with seed '{random.SeedText}'.", "randomizer");

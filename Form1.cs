@@ -7,6 +7,8 @@ using ModdingGUI.Models;
 using ModdingGUI.Core.Tools;
 using ModdingGUI.Core.Logging;
 using ModdingGUI.Core.Randomizer;
+using ModdingGUI.Core;
+using ModdingGUI.Core.Api;
 
 namespace ModdingGUI
 {
@@ -39,6 +41,8 @@ namespace ModdingGUI
 
             _skillEditorView = new SkillEditorView();
             tabEditorSkills.Controls.Add(_skillEditorView);
+
+            BuildBaselineControls();
 
             tabContainer.SelectedIndexChanged += TabContainer_SelectedIndexChanged;
         }
@@ -546,6 +550,118 @@ namespace ModdingGUI
                         }
                     }
                 }
+            }
+        }
+
+        private Button? _btnResetToVanilla;
+        private Label? _lblBaselineStatus;
+
+        /// <summary>
+        /// The reset controls live beside the Randomize button: the baseline is what makes repeat runs honest, and a
+        /// modder needs to throw the randomization away without unpacking again.
+        /// </summary>
+        private void BuildBaselineControls()
+        {
+            _btnResetToVanilla = new Button
+            {
+                Text = "Reset to Vanilla",
+                Location = new Point(200, 542),
+                Size = new Size(150, 38),
+                UseVisualStyleBackColor = true,
+            };
+            _btnResetToVanilla.Click += (_, _) => ResetToVanilla();
+            tabRandomizer.Controls.Add(_btnResetToVanilla);
+
+            _lblBaselineStatus = new Label
+            {
+                Text = "Baseline: not pinned yet",
+                Location = new Point(370, 552),
+                Size = new Size(430, 22),
+                AutoEllipsis = true,
+            };
+            tabRandomizer.Controls.Add(_lblBaselineStatus);
+
+            tabRandomizer.Enter += (_, _) => RefreshBaselineStatus();
+            RefreshBaselineStatus();
+        }
+
+        /// <summary>Show whether this project has a pinned baseline and how many files it covers.</summary>
+        private void RefreshBaselineStatus()
+        {
+            if (_lblBaselineStatus is null) return;
+
+            try
+            {
+                string project = txtRandomizerPath.Text.Trim();
+                if (string.IsNullOrEmpty(project) || !Directory.Exists(project))
+                {
+                    _lblBaselineStatus.Text = "Baseline: no project selected";
+                    _lblBaselineStatus.ForeColor = WarningColor;
+                    return;
+                }
+
+                var baseline = new RandomizerBaseline();
+                string bec = ProjectRoots.ResolveBecFolder(project);
+
+                if (!baseline.Exists(project))
+                {
+                    _lblBaselineStatus.Text = "Baseline: not pinned yet (the first run pins it)";
+                    _lblBaselineStatus.ForeColor = WarningColor;
+                    return;
+                }
+
+                int files = baseline.RandomizerFiles(bec).Count(path =>
+                    File.Exists(Path.Combine(bec, path.Replace('/', Path.DirectorySeparatorChar))));
+
+                _lblBaselineStatus.Text = $"Baseline: pinned ({files} files) - every run starts from it";
+                _lblBaselineStatus.ForeColor = SuccessColor;
+            }
+            catch (Exception ex)
+            {
+                _lblBaselineStatus.Text = $"Baseline: {ex.Message}";
+                _lblBaselineStatus.ForeColor = ErrorColor;
+            }
+        }
+
+        /// <summary>Put the project back to the pinned vanilla state, no unpack required.</summary>
+        private void ResetToVanilla()
+        {
+            string project = txtRandomizerPath.Text.Trim();
+            if (string.IsNullOrEmpty(project) || !Directory.Exists(project))
+            {
+                MessageBox.Show("Select a valid project folder first.", "Reset to Vanilla",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var baseline = new RandomizerBaseline();
+            if (!baseline.Exists(project))
+            {
+                MessageBox.Show(
+                    "This project has no pinned baseline yet. Run the randomizer once and it will pin the state " +
+                    "it started from.",
+                    "Reset to Vanilla", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                "Restore every file the randomizer touches to the pinned vanilla state?\n\n" +
+                "The current files are backed up first, so this is undoable from .mod-history.",
+                "Reset to Vanilla", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (confirm != DialogResult.Yes) return;
+
+            try
+            {
+                var result = baseline.Restore(project);
+                AppendLog($"Reset to vanilla: {result.Files} file(s) restored.", SuccessColor, rtbPackOutput);
+                RefreshBaselineStatus();
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Reset failed: {ex.Message}", ErrorColor, rtbPackOutput);
+                MessageBox.Show($"Reset failed:\n\n{ex.Message}", "Reset to Vanilla",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

@@ -65,6 +65,21 @@ there is not a fourth waiting.
   new one additionally allows a unit's level-appropriate ones.
 - **Seeding**: blank seed → generated value, reported in the log, in both.
 
+## Baseline: repeat runs without unpacking
+
+The old tool told modders to unpack again before randomizing with new options, and its label claimed a second click
+reproduced the run — which was never true, since every step re-drew from the current tables. The new pipeline pins a
+**baseline** on the first run: every file the randomizer touches (gladiator table, both campaign rosters, all 1,270
+encounters, the 44 league files, the seven patched scripts — about 5 MB) is copied to
+.mod-history/_randomizer-baseline/. Each later run restores it first, so:
+
+- runs never stack, and the same seed reproduces the run;
+- **Reset to Vanilla** in the panel (or RandomizerBaseline.Restore) returns the project to vanilla in one click;
+- the restore backs up what it overwrites, so a reset is undoable through the normal history.
+
+RandomizerOptions.ResetToBaseline defaults to true; turn it off only to randomize on top of an existing run on
+purpose. The baseline is captured once and never overwritten, so a second capture cannot pin a randomized project.
+
 ## What the new code does that the old could not
 
 - One deterministic RNG per run (the old seeded two of six steps).

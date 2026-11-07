@@ -991,7 +991,7 @@ namespace ModdingGUI
             label15.Name = "label15";
             label15.Size = new Size(1076, 25);
             label15.TabIndex = 12;
-            label15.Text = "Randomizing stacks on top of the last run, so the same seed will not reproduce it. Unpack again (or restore the files from .mod-history) before randomizing with new options.";
+            label15.Text = "The first run pins the vanilla files as a baseline; every later run restores it first, so runs never stack and the same seed reproduces the run. Use Reset to Vanilla to throw the randomization away.";
             // 
             // grpGameVersion
             // 
