@@ -92,6 +92,17 @@ the ISO this produces.
 13. Fresh unpack, tick **only Randomize Enemies**, run.
     - [ ] Enemy rows become randomizable slots; player-team slots opened; no CANDIE lines added.
 
+## 6b. Project context menu
+
+- [ ] Right-click a project → it becomes the selected node (highlighted).
+- [ ] **Delete Project** asks for confirmation, shows the progress dialog, and the project disappears from the tree.
+- [ ] Delete a **second** project immediately after, without clicking anything in between.
+- [ ] Delete a third while a fourth is selected — the delete acts on the one right-clicked, not the selected one.
+- [ ] Cancel during a delete: the dialog closes, the project stays.
+- [ ] Right-click **empty space** below the tree → Delete/Load/Copy say "Right-click a project first" instead of
+      doing nothing.
+- [ ] **Launch with Dolphin** and **Copy Project** act on the right-clicked project too.
+
 ## 7. Failure table
 
 | Symptom | Most likely cause |

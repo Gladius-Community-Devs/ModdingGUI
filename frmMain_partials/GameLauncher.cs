@@ -85,20 +85,11 @@ namespace ModdingGUI
             launchMenuItem.Click += (sender, e) => 
             {
                 // Check if a node is selected
-                if (tvwProjects.SelectedNode == null || tvwProjects.SelectedNode.Parent != null)
+                if (!TryGetSelectedProject(out string projectFolder, out string projectName))
                 {
                     return;
                 }
 
-                // Get the project folder
-                string projectFolder = tvwProjects.SelectedNode.Tag as string;
-                if (string.IsNullOrEmpty(projectFolder) || !Directory.Exists(projectFolder))
-                {
-                    return;
-                }
-
-                // Construct the ISO path
-                string projectName = tvwProjects.SelectedNode.Text;
                 string isoPath = Path.Combine(projectFolder, $"{projectName}.iso");
 
                 // Launch the game with Dolphin if the ISO exists
@@ -133,21 +124,11 @@ namespace ModdingGUI
             ToolStripMenuItem copyMenuItem = new ToolStripMenuItem("Copy Project");
             copyMenuItem.Click += async (sender, e) =>
             {
-                // Check if a node is selected
-                if (tvwProjects.SelectedNode == null || tvwProjects.SelectedNode.Parent != null)
+                if (!TryGetSelectedProject(out string projectFolder, out string originalName))
                 {
                     return;
                 }
 
-                // Get the project folder
-                string projectFolder = tvwProjects.SelectedNode.Tag as string;
-                if (string.IsNullOrEmpty(projectFolder) || !Directory.Exists(projectFolder))
-                {
-                    return;
-                }
-
-                // Get the original project name
-                string originalName = tvwProjects.SelectedNode.Text;
                 
                 // Create and show the project copy dialog but don't start copying yet
                 using (var progressDialog = new ProjectCopyDialog(originalName, projectFolder))
@@ -169,6 +150,57 @@ namespace ModdingGUI
             tvwProjects.ContextMenuStrip = projectContextMenu;
         }
 
+        /// <summary>
+        /// A right-click does not move the TreeView selection on its own, and <see cref="LoadProjects"/> clears the
+        /// tree (and therefore the selection) after every delete. Without this the second delete found
+        /// <c>SelectedNode == null</c> and silently did nothing.
+        /// </summary>
+        private void SelectNodeUnderCursor(object? sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Right) return;
+
+            TreeNode? node = tvwProjects.GetNodeAt(e.X, e.Y);
+            if (node is not null) tvwProjects.SelectedNode = node;
+        }
+
+        /// <summary>
+        /// Resolve the project behind the tree selection, telling the user why nothing happens when it cannot.
+        /// The menus used to return silently, which made a stale tree look like a broken feature.
+        /// </summary>
+        private bool TryGetSelectedProject(out string projectFolder, out string projectName)
+        {
+            projectFolder = string.Empty;
+            projectName = string.Empty;
+
+            TreeNode? node = tvwProjects.SelectedNode;
+            if (node is null)
+            {
+                MessageBox.Show("Right-click a project first.", "Project",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            if (node.Parent is not null)
+            {
+                MessageBox.Show("Select the project itself, not one of its folders.", "Project",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            string? folder = node.Tag as string;
+            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+            {
+                MessageBox.Show("That project folder no longer exists; refreshing the list.", "Project",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadProjects();
+                return false;
+            }
+
+            projectFolder = folder;
+            projectName = node.Text;
+            return true;
+        }
+
         // Add a context menu item to delete a project when right-clicking in the project tree
         private void AddDeleteContextMenuToProjectTree()
         {
@@ -180,21 +212,34 @@ namespace ModdingGUI
             deleteMenuItem.ForeColor = System.Drawing.Color.Red;  // Visual indicator for destructive action
             deleteMenuItem.Click += async (sender, e) =>
             {
-                // Check if a node is selected
-                if (tvwProjects.SelectedNode == null || tvwProjects.SelectedNode.Parent != null)
+                // Prefer the node under the cursor: right-click selection can still race with a tree reload.
+                TreeNode? node = tvwProjects.SelectedNode;
+                if (node is null)
                 {
+                    MessageBox.Show("Right-click a project to delete it.", "Delete Project",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
-                // Get the project folder
-                string projectFolder = tvwProjects.SelectedNode.Tag as string;
+                if (node.Parent is not null)
+                {
+                    MessageBox.Show("Select the project itself, not one of its folders.", "Delete Project",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                string? projectFolder = node.Tag as string;
                 if (string.IsNullOrEmpty(projectFolder) || !Directory.Exists(projectFolder))
                 {
+                    // The tree is stale (the folder went away behind the app): refresh instead of doing nothing.
+                    MessageBox.Show("That project folder no longer exists; refreshing the list.", "Delete Project",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadProjects();
                     return;
                 }
 
                 // Get the project name
-                string projectName = tvwProjects.SelectedNode.Text;
+                string projectName = node.Text;
 
                 // Show confirmation dialog
                 if (MessageBox.Show(
@@ -208,7 +253,21 @@ namespace ModdingGUI
                     {
                         if (deleteDialog.ShowDialog(this) == DialogResult.OK)
                         {
-                            // Deletion was successful, refresh the project tree
+                            // Deletion was successful: forget the project anywhere it was selected.
+                            if (string.Equals(txtRandomizerPath.Text.Trim(), projectFolder,
+                                    StringComparison.OrdinalIgnoreCase))
+                            {
+                                txtRandomizerPath.Text = string.Empty;
+                                btnRandomize.Enabled = false;
+                            }
+
+                            if (string.Equals(txtPackPath.Text.Trim(), projectFolder,
+                                    StringComparison.OrdinalIgnoreCase))
+                            {
+                                txtPackPath.Text = string.Empty;
+                                btnPack.Enabled = false;
+                            }
+
                             LoadProjects();
                         }
                     }
@@ -684,15 +743,18 @@ namespace ModdingGUI
 
                     SetStatus("Project deleted successfully.");
                     btnCancel.Text = "Close";
-                    DialogResult = DialogResult.OK;
-                    await Task.Delay(1000); // Brief pause to show success
-                    Close();
+
+                    // Setting DialogResult closes a modal dialog, so it has to be the last thing that happens:
+                    // the old code set it first and then touched a disposed form.
+                    await Task.Delay(600);
+                    if (!IsDisposed) DialogResult = DialogResult.OK;
                 }
                 catch (OperationCanceledException)
                 {
+                    isDeleting = false;
                     SetStatus("Deletion cancelled.");
                     btnCancel.Text = "Close";
-                    DialogResult = DialogResult.Cancel;
+                    if (!IsDisposed) DialogResult = DialogResult.Cancel;
                 }
                 catch (Exception ex)
                 {
@@ -739,9 +801,14 @@ namespace ModdingGUI
                     if (MessageBox.Show("Are you sure you want to cancel the deletion?",
                         "Cancel Deletion", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     {
+                        // Cancel and let the form go: the deletion task reports back through DialogResult.
+                        isDeleting = false;
                         cancellationTokenSource.Cancel();
                     }
-                    e.Cancel = true;
+                    else
+                    {
+                        e.Cancel = true;
+                    }
                 }
                 base.OnFormClosing(e);
             }
