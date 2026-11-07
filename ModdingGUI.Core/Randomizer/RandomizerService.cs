@@ -134,10 +134,12 @@ public sealed class RandomizerService
             changed += heroes;
             steps.Add("heroes");
             _log?.Write(LogLevel.Success, $"Hero loadouts reassigned: {heroes} changed.", "randomizer");
+        }
 
-            // Randomizing a hero's class invalidates the campaign scripts that branch on the original heroes:
-            // costume-change tests and the later removal of Ludo and Gwazi. The original randomizer edited these
-            // every run, and the edited scripts must be compiled or the change never reaches the game.
+        // The campaign scripts branch on the original heroes: costume-change tests and the later removal of Ludo
+        // and Gwazi. The old flow patched them on every run, not only when heroes were randomized, and the edits
+        // have to be compiled or they never reach the game.
+        {
             var patched = new ScriptPatcher().Apply(projectRoot, options.Hero);
             modifiedScripts.AddRange(patched.Modified);
             steps.Add("scripts");
@@ -174,7 +176,8 @@ public sealed class RandomizerService
             ValidateRosters(projectRoot);
         }
 
-        if (options.RandomizeEnemies || options.PermaDeath)
+        // Always runs: opening the player's team slots is what lets the randomized school fight at all, so it
+        // cannot be tied to the enemy-randomization option. Enemy rows and CANDIE stay behind their own flags.
         {
             var encounters = new EncounterRandomizer(log: _log).Apply(
                 projectRoot, options.RandomizeEnemies, options.PermaDeath);
@@ -562,20 +565,30 @@ public sealed class RandomizerService
         return selected;
     }
 
-    /// <summary>Strip the gender and regional variant suffixes the class list uses.</summary>
+    /// <summary>
+    /// The base class behind a variant name, using the same cascade the old randomizer used: every undead melee
+    /// variant collapses to <c>UndeadMelee</c>, then regional and A/B/F suffixes are stripped, then a lone F.
+    /// </summary>
     internal static string BaseClass(string className)
     {
-        string result = className;
-        if (result.EndsWith("F", StringComparison.Ordinal) && result.Length > 1) result = result[..^1];
-        foreach (string suffix in new[] { "Imp", "Nor", "Ste", "Exp" })
+        if (string.IsNullOrWhiteSpace(className)) return string.Empty;
+
+        var undead = System.Text.RegularExpressions.Regex.Match(
+            className, "^(.+?)(?:Exp|Imp|Nor|Ste)[AB]F?$", System.Text.RegularExpressions.RegexOptions.None,
+            TimeSpan.FromSeconds(1));
+        if (undead.Success && className.StartsWith("UndeadMelee", StringComparison.Ordinal))
         {
-            if (result.EndsWith(suffix, StringComparison.Ordinal) && result.Length > suffix.Length)
-            {
-                result = result[..^suffix.Length];
-                break;
-            }
+            return "UndeadMelee";
         }
-        return result;
+
+        var regional = System.Text.RegularExpressions.Regex.Match(
+            className, "^(.+?)(?:Imp|Nor|Ste|Exp|[AB])F?$");
+        if (regional.Success) return regional.Groups[1].Value;
+
+        var gender = System.Text.RegularExpressions.Regex.Match(className, "^(.+)F$");
+        if (gender.Success) return gender.Groups[1].Value;
+
+        return className;
     }
 
     /// <summary>

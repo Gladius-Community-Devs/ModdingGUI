@@ -14,6 +14,7 @@ That build changed 5,178 records. What it contains, verified from the packed pro
 | Encounters | 834 files, **3,174** randomizable enemy rows, **0** `SCHOOL:` lines inside teams, 116 `CANDIE:` lines |
 | Scripts | 6 flow scripts patched, Fjord league switched to the Valens branch, all `.scb` recompiled |
 | Prop teams | `battle1.enc`'s `TEAM: -1` block is **byte-identical** to vanilla, `SCHOOL: "PropSchool"` kept |
+| Team 0 slots | 2,844 of 2,852 opened as placeholders (the 8 exceptions are the two scripted encounters' named hero rows) |
 | Item sets | only sets with a level-1 row are assigned (331 of 404); 0 gladiators on an unusable set |
 | Team gear | 14 team units, none bare |
 | Ranged classes | Archer/ArcherF/Amazon all carry a Bow (verified across every record) |
