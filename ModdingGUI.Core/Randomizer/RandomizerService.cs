@@ -285,6 +285,48 @@ public sealed class RandomizerService
     }
 
     /// <summary>
+    /// For each class, the ranged weapon subtype it cannot fight without, derived from the project's own records:
+    /// when every level-1 weapon its gladiators carry is one ranged subtype (a bow or a javelin), that subtype is
+    /// required. Vanilla makes this Archer, ArcherF and Amazon bows; a Peltast carries javelins and spears, so it
+    /// is not constrained.
+    /// </summary>
+    private Dictionary<string, string> RequiredRangedWeapons(string projectRoot, ItemSetAffinityMap map) =>
+        DeriveRequiredRangedWeapons(_gladiators.GetAll(projectRoot), map);
+
+    /// <summary>
+    /// The derivation itself, split out so it can be asserted without running a whole pass.
+    /// </summary>
+    internal static Dictionary<string, string> DeriveRequiredRangedWeapons(
+        IReadOnlyList<GladiatorDto> records, ItemSetAffinityMap map)
+    {
+        var seenByClass = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var dto in records)
+        {
+            string? subtype = map.WeaponSubtypeOf(dto.ItemSet);
+            if (subtype is null) continue;
+
+            if (!seenByClass.TryGetValue(dto.Class, out var seen))
+            {
+                seenByClass[dto.Class] = seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            seen.Add(subtype);
+        }
+
+        var required = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (className, subtypes) in seenByClass)
+        {
+            if (subtypes.Count != 1) continue;
+
+            string only = subtypes.First();
+            if (ItemSetAffinityMap.IsRanged(only)) required[className] = only;
+        }
+
+        return required;
+    }
+
+    /// <summary>
     /// <c>CORESTATSCOMP2</c> is six numbers (CON, PWR, ACC, DEF, INT, MOVE); a short line makes the loader stop
     /// and silently drop the rest of the block. MOVE is written as 1, the way vanilla blocks do.
     /// </summary>
@@ -544,6 +586,7 @@ public sealed class RandomizerService
     private int RandomizeItemSetAssignments(string projectRoot, RandomizerRandom random)
     {
         var map = ItemSetAffinityMap.Build(projectRoot);
+        var required = RequiredRangedWeapons(projectRoot, map);
         if (map.Count == 0)
         {
             _log?.Write(LogLevel.Warning, "No item sets found; skipping the itemset step.", "randomizer");
@@ -553,7 +596,26 @@ public sealed class RandomizerService
         var patches = new List<(string Name, GladiatorPatch Patch)>();
         foreach (var dto in _gladiators.GetAll(projectRoot))
         {
-            var candidates = map.CandidatesFor(dto.Affinity);
+            // A bow class handed a sword passes every turn: the engine's attack follows the equipped weapon. So
+            // a class that carries exactly one ranged subtype in the corpus only receives sets with that weapon.
+            required.TryGetValue(dto.Class, out string? requiredSubtype);
+
+            // A usable weapon matters more than affinity: try the affinity pool, then any set with the required
+            // subtype, and only then fall back to the affinity pool with a warning.
+            var candidates = map.CandidatesFor(dto.Affinity, requiredSubtype);
+            if (candidates.Count == 0 && requiredSubtype is not null)
+            {
+                candidates = map.CandidatesFor(null, requiredSubtype);
+            }
+
+            if (candidates.Count == 0 && requiredSubtype is not null)
+            {
+                candidates = map.CandidatesFor(dto.Affinity);
+                _log?.Write(LogLevel.Warning,
+                    $"{dto.Name} ({dto.Class}) found no {requiredSubtype} set; falling back to any set, so it may " +
+                    "not be able to attack.", "randomizer");
+            }
+
             if (candidates.Count == 0) continue;
 
             int next = random.Pick(candidates);

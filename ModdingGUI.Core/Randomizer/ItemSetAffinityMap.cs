@@ -28,13 +28,20 @@ public sealed class ItemSetAffinityMap
     /// <summary>The affinity every unit can use, on top of its own.</summary>
     public const string UniversalAffinity = "Light";
 
+    /// <summary>Weapon subtypes that a class can only fight with when it has no melee option.</summary>
+    private static readonly string[] RangedSubtypes = { "Bow", "Javelin" };
+
     private readonly Dictionary<int, string> _bySet;
+    private readonly Dictionary<int, string> _weaponSubtypeBySet;
     private readonly Dictionary<string, List<int>> _pools;
     private readonly int[] _all;
 
-    private ItemSetAffinityMap(Dictionary<int, string> bySet, Dictionary<string, List<int>> pools, int[] all)
+    private ItemSetAffinityMap(
+        Dictionary<int, string> bySet, Dictionary<string, List<int>> pools, int[] all,
+        Dictionary<int, string> weaponSubtypeBySet)
     {
         _bySet = bySet;
+        _weaponSubtypeBySet = weaponSubtypeBySet;
         _pools = pools;
         _all = all;
     }
@@ -62,6 +69,14 @@ public sealed class ItemSetAffinityMap
             weaponAffinity[item.Name] = element;
         }
 
+        // Item subtype (Bow, Sword, …) per name, so a set's level-1 weapon can be classified.
+        var subtypeOfItem = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in (items ?? new ItemsApi()).GetAll(bec))
+        {
+            if (!string.IsNullOrWhiteSpace(item.SubType)) subtypeOfItem[item.Name] = item.SubType!;
+        }
+
+        var weaponSubtypeBySet = new Dictionary<int, string>();
         var bySet = new Dictionary<int, string>();
         var pools = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
         var all = new List<int>();
@@ -86,6 +101,16 @@ public sealed class ItemSetAffinityMap
                 ? element
                 : NoAffinity;
 
+            var levelOneWeapon = set.Rows.FirstOrDefault(row =>
+                row.MinLevel <= 1 && row.MaxLevel >= 1
+                && row.Note is not null
+                && row.Note.Contains("Weapon", StringComparison.OrdinalIgnoreCase));
+
+            if (levelOneWeapon is not null && subtypeOfItem.TryGetValue(levelOneWeapon.ItemName, out string? sub))
+            {
+                weaponSubtypeBySet[set.Index] = sub;
+            }
+
             bySet[set.Index] = affinity;
             if (!pools.TryGetValue(affinity, out var pool)) pools[affinity] = pool = new List<int>();
             pool.Add(set.Index);
@@ -94,20 +119,39 @@ public sealed class ItemSetAffinityMap
         all.Sort();
         foreach (var pool in pools.Values) pool.Sort();
 
-        return new ItemSetAffinityMap(bySet, pools, all.ToArray());
+        return new ItemSetAffinityMap(bySet, pools, all.ToArray(), weaponSubtypeBySet);
     }
 
     /// <summary>The affinity a set grants (<see cref="NoAffinity"/> when it has no weapon).</summary>
     public string AffinityOf(int index) => _bySet.TryGetValue(index, out string? affinity) ? affinity : NoAffinity;
 
-    /// <summary>Sets a gladiator with the given affinity may use, in ascending order.</summary>
-    public IReadOnlyList<int> CandidatesFor(string? gladiatorAffinity)
+    /// <summary>The level-1 weapon subtype a set carries, or null when it has no weapon.</summary>
+    public string? WeaponSubtypeOf(int index) =>
+        _weaponSubtypeBySet.TryGetValue(index, out string? subtype) ? subtype : null;
+
+    /// <summary>True when the subtype is one a class cannot fight without (bow or javelin).</summary>
+    public static bool IsRanged(string? subtype) =>
+        subtype is not null && RangedSubtypes.Contains(subtype, StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Sets a gladiator with the given affinity may use, in ascending order. When
+    /// <paramref name="requiredWeaponSubtype"/> is given, only sets whose level-1 weapon is that subtype are
+    /// returned — a bow class with a sword is a class that passes every turn.
+    /// </summary>
+    public IReadOnlyList<int> CandidatesFor(string? gladiatorAffinity, string? requiredWeaponSubtype = null)
     {
         // No affinity, or "None": anything goes (vanilla's own comment says a None unit can equip any).
+        IReadOnlyList<int> Filter(IReadOnlyList<int> indexes) =>
+            requiredWeaponSubtype is null
+                ? indexes
+                : indexes.Where(index =>
+                    string.Equals(WeaponSubtypeOf(index), requiredWeaponSubtype, StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+
         if (string.IsNullOrWhiteSpace(gladiatorAffinity)
             || gladiatorAffinity.Trim().Equals(NoAffinity, StringComparison.OrdinalIgnoreCase))
         {
-            return _all;
+            return Filter(_all);
         }
 
         string affinity = gladiatorAffinity.Trim();
@@ -116,6 +160,6 @@ public sealed class ItemSetAffinityMap
         if (_pools.TryGetValue(affinity, out var own)) result.UnionWith(own);
         if (_pools.TryGetValue(UniversalAffinity, out var universal)) result.UnionWith(universal);
 
-        return result.ToArray();
+        return Filter(result.ToArray());
     }
 }
