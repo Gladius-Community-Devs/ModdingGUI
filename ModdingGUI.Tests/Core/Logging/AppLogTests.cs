@@ -27,6 +27,28 @@ public sealed class AppLogTests : IDisposable
     }
 
     [Fact]
+    public void AHandlerThatLogsDoesNotRecurse()
+    {
+        // The shell's AppendLog wrote to the log in order to display a line that came from the log, which recursed
+        // until the UI thread was pinned. A nested write must be stored without raising Written again.
+        var log = AppLog.CreateForRun(sinkPath: null);
+        int raised = 0;
+
+        log.Written += (_, entry) =>
+        {
+            raised++;
+            if (raised > 5) throw new InvalidOperationException("runaway recursion");
+            log.Write(LogLevel.Info, "from the handler");
+        };
+
+        log.Write(LogLevel.Info, "first");
+
+        Assert.Equal(1, raised);
+        Assert.Contains(log.Tail(10), entry => entry.Message == "first");
+        Assert.Contains(log.Tail(10), entry => entry.Message == "from the handler");
+    }
+
+    [Fact]
     public void Write_KeepsOrderAndLevels()
     {
         var log = new AppLog();

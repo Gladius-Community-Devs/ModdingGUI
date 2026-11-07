@@ -93,9 +93,20 @@ namespace ModdingGUI
             targetRtb ??= rtbUnpackOutput;
             color ??= Color.Black;
             _log.Write(LevelFor(color.Value), message ?? string.Empty);
+            AppendLogText(message, color, targetRtb);
+        }
+
+        /// <summary>
+        /// Render a line without writing it to <see cref="IAppLog"/>. Use this to *display* entries that came from
+        /// the log: <see cref="AppendLog"/> writes back into it, which would raise Written again and loop.
+        /// </summary>
+        private void AppendLogText(string message, Color? color = null, RichTextBox? targetRtb = null)
+        {
+            targetRtb ??= rtbUnpackOutput;
+            color ??= Color.Black;
             if (targetRtb.InvokeRequired)
             {
-                targetRtb.Invoke(new Action(() => AppendLog(message, color, targetRtb)));
+                targetRtb.Invoke(new Action(() => AppendLogText(message, color, targetRtb)));
             }
             else
             {

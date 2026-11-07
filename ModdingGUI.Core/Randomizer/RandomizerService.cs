@@ -476,11 +476,21 @@ public sealed class RandomizerService
             units.Add(BuildTeamUnit(memberNames[i], className, source, projectRoot));
         }
 
+        int unitCount = units.Count;
         var schools = new SchoolsApi();
         int added = 0;
         foreach (string roster in CampaignRosters)
         {
             added += schools.AddUnits(projectRoot, roster, units);
+        }
+
+        // Names are <gladiator>_random and duplicates are refused, so a second run on the same project adds
+        // nothing. Say so instead of silently doing less than the options asked for.
+        if (added == 0 && unitCount > 0)
+        {
+            _log?.Write(LogLevel.Warning,
+                "Team units already exist in both rosters; nothing was added. Unpack again for a clean run.",
+                "randomizer");
         }
 
         return added;

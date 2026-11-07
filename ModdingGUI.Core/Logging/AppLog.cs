@@ -19,6 +19,9 @@ public sealed class AppLog : IAppLog
     private readonly Queue<LogEntry> _entries;
     private readonly int _capacity;
     private readonly AsyncLocal<string?> _scope = new();
+
+    /// <summary>Depth of the Written handlers on this logical call; guards against a handler that logs.</summary>
+    private readonly AsyncLocal<int> _handling = new();
     private bool _sinkUnavailable;
 
     /// <summary>Create a log.</summary>
@@ -86,21 +89,34 @@ public sealed class AppLog : IAppLog
 
         AppendToSink(entry);
 
+        // A handler that logs again must not re-enter this method: the shell's AppendLog used to write to the log
+        // to print a line that came *from* the log, which recursed until the UI thread was pinned. Nested writes
+        // are still stored (and still sink), they just do not raise Written again.
+        if (_handling.Value > 0) return;
+
         // Each subscriber is isolated: a renderer that throws must not starve the MCP bridge (or the
         // other way round), and a logging failure must never break the operation that logged.
         var handlers = Written;
         if (handlers is null) return;
 
-        foreach (var handler in handlers.GetInvocationList())
+        _handling.Value++;
+        try
         {
-            try
+            foreach (var handler in handlers.GetInvocationList())
             {
-                ((EventHandler<LogEntry>)handler).Invoke(this, entry);
+                try
+                {
+                    ((EventHandler<LogEntry>)handler).Invoke(this, entry);
+                }
+                catch (Exception)
+                {
+                    // Swallowed on purpose; see above.
+                }
             }
-            catch (Exception)
-            {
-                // Swallowed on purpose; see above.
-            }
+        }
+        finally
+        {
+            _handling.Value--;
         }
     }
 

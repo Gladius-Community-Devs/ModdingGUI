@@ -991,7 +991,7 @@ namespace ModdingGUI
             label15.Name = "label15";
             label15.Size = new Size(1076, 25);
             label15.TabIndex = 12;
-            label15.Text = "To re-randomize with different options, you will need to unpack again. To randomize with the same options, just click randomize again!";
+            label15.Text = "Randomizing stacks on top of the last run, so the same seed will not reproduce it. Unpack again (or restore the files from .mod-history) before randomizing with new options.";
             // 
             // grpGameVersion
             // 

@@ -623,16 +623,35 @@ namespace ModdingGUI
 
                 lblRandomizeStatus.Text = "Randomizing...";
                 pgbRandomizeStatus.Style = ProgressBarStyle.Marquee;
+                pgbRandomizeStatus.MarqueeAnimationSpeed = 30;
                 AppendLog($"Randomizing with seed '{options.Seed}'.", InfoColor, rtbPackOutput);
 
-                // Core logs as it works; mirror those entries into the panel while the run is going.
+                // Core logs as it works; mirror those entries into the panel while the run is going. The entries
+                // are rendered with AppendLogText, never AppendLog: AppendLog writes back into the same log, which
+                // raised Written again and pinned the UI thread in an endless loop.
+                var pending = new ConcurrentQueue<LogEntry>();
+                int draining = 0;
+
+                void Drain()
+                {
+                    Interlocked.Exchange(ref draining, 0);
+                    while (pending.TryDequeue(out LogEntry entry))
+                    {
+                        AppendLogText(entry.Message, ColorFor(entry.Level), rtbPackOutput);
+                    }
+                }
+
                 void Mirror(object? sender, LogEntry entry)
                 {
-                    if (IsDisposed) return;
+                    pending.Enqueue(entry);
+                    if (IsDisposed || IsHandleCreated is false) return;
+
+                    // One queued drain at a time, so a chatty step cannot flood the message pump.
+                    if (Interlocked.CompareExchange(ref draining, 1, 0) != 0) return;
 
                     try
                     {
-                        BeginInvoke(() => AppendLog(entry.Message, ColorFor(entry.Level), rtbPackOutput));
+                        BeginInvoke(Drain);
                     }
                     catch (InvalidOperationException)
                     {
@@ -641,7 +660,6 @@ namespace ModdingGUI
                 }
 
                 var log = Output;
-                int before = log.Tail(1).Count;
                 log.Written += Mirror;
 
                 try
@@ -672,7 +690,7 @@ namespace ModdingGUI
                 finally
                 {
                     log.Written -= Mirror;
-                    _ = before;
+                    pending.Clear();
                 }
 
                 lblRandomizeStatus.Text = "Ready";
