@@ -16,6 +16,7 @@ That build changed 5,178 records. What it contains, verified from the packed pro
 | Prop teams | `battle1.enc`'s `TEAM: -1` block is **byte-identical** to vanilla, `SCHOOL: "PropSchool"` kept |
 | Item sets | only sets with a level-1 row are assigned (331 of 404); 0 gladiators on an unusable set |
 | Team gear | 14 team units, none bare |
+| Ranged classes | Archer/ArcherF/Amazon all carry a Bow (verified across every record) |
 
 Run with Dolphin against that ISO. Report each step as **PASS / FAIL / NA**, and note anything that looks odd even
 if it passes.
@@ -78,6 +79,12 @@ Open the school and inspect each hero's panel.
 - [ ] **No bare units** — every team member and hero has at least one item equipped; specifically no Ogre with
       an empty equipment panel.
 - [ ] **Encounters with a prop team** load and play normally.
+
+## 4c. Ranged classes
+
+- [ ] An Archer, ArcherF or Amazon **attacks** on its turn (it has a bow by construction now).
+- [ ] A Peltast with a javelin **or** a spear can attack — both are allowed for that class.
+- [ ] No unit is stuck passing turns because its weapon cannot be used.
 
 ## 5. Recruits
 
