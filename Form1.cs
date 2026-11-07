@@ -85,8 +85,9 @@ namespace ModdingGUI
 
             try
             {
-                // Create the top-level folder based on the sanitized user input
-                string topLevelFolder = Path.Combine(Directory.GetCurrentDirectory(), userInput);
+                // Create the top-level folder beside the executable: that is the folder LoadProjects scans and
+                // where tools/ lives, which the generated batch file also references.
+                string topLevelFolder = Path.Combine(GetAppDirectory(), userInput);
 
                 // Ensure the top-level folder exists
                 if (!Directory.Exists(topLevelFolder))
@@ -408,12 +409,7 @@ namespace ModdingGUI
         {
             // Check if a valid project path is already selected
             string currentPath = txtRandomizerPath.Text.Trim();
-            bool hasValidProject = !string.IsNullOrEmpty(currentPath) &&
-                                  Directory.Exists(currentPath) &&
-                                  Directory.GetDirectories(currentPath)
-                                          .Any(d => d.Contains("_ISO")) &&
-                                  Directory.GetDirectories(currentPath)
-                                          .Any(d => d.Contains("_BEC"));
+            bool hasValidProject = IsProjectFolder(currentPath);
 
             if (!hasValidProject)
             {
@@ -472,8 +468,8 @@ namespace ModdingGUI
                                     txtISOPath.Text = isoPath;
                                     txtUnpackPath.Text = userInput;
 
-                                    // Create the top-level folder based on the sanitized user input
-                                    string topLevelFolder = Path.Combine(Directory.GetCurrentDirectory(), userInput);
+                                    // Same base as the unpack tab: beside the executable, next to tools/.
+                                    string topLevelFolder = Path.Combine(GetAppDirectory(), userInput);
 
                                     // Ensure the top-level folder exists
                                     if (!Directory.Exists(topLevelFolder))
@@ -534,10 +530,9 @@ namespace ModdingGUI
                     if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                     {
                         string selectedPath = folderBrowserDialog.SelectedPath;
-                        var directories = Directory.GetDirectories(selectedPath);
 
-                        // Check if there are folders containing '_ISO' and '_BEC'
-                        if (directories.Any(d => d.Contains("_ISO")) && directories.Any(d => d.Contains("_BEC")))
+                        // Check for the project layout, tolerating a folder that disappears mid-dialog.
+                        if (IsProjectFolder(selectedPath))
                         {
                             txtRandomizerPath.Text = selectedPath;
                             btnRandomize.Enabled = true;
@@ -586,6 +581,30 @@ namespace ModdingGUI
 
             tabRandomizer.Enter += (_, _) => RefreshBaselineStatus();
             RefreshBaselineStatus();
+        }
+
+        /// <summary>
+        /// True when the folder holds a <c>_BEC</c> and an <c>_ISO</c> folder. Uses exact suffixes rather than a
+        /// substring test, and tolerates the folder vanishing between the check and the enumeration.
+        /// </summary>
+        private static bool IsProjectFolder(string? folder)
+        {
+            if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder)) return false;
+
+            try
+            {
+                var names = Directory.GetDirectories(folder).Select(Path.GetFileName).ToArray();
+                return names.Any(name => name is not null && name.EndsWith("_BEC", StringComparison.OrdinalIgnoreCase))
+                       && names.Any(name => name is not null && name.EndsWith("_ISO", StringComparison.OrdinalIgnoreCase));
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
         }
 
         /// <summary>Show whether this project has a pinned baseline and how many files it covers.</summary>

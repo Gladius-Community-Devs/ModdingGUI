@@ -26,8 +26,45 @@ namespace ModdingGUI
             // editor uses the API layer. Idempotent and thread-safe.
             ModdingGUI.Core.Core.Initialize();
 
+            // Several handlers are async event handlers, where a thrown exception has nowhere to go: the process
+            // dies with no log and the user just sees the window vanish. Route both kinds of failure through the
+            // app log and a message box instead.
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (_, e) => ReportUnhandled("UI thread", e.Exception);
+            AppDomain.CurrentDomain.UnhandledException +=
+                (_, e) => ReportUnhandled("background thread", e.ExceptionObject as Exception);
+
             Application.Run(new frmMain());
             return 0;
+        }
+
+        /// <summary>
+        /// Log an exception that reached the top of the stack and show it once. Never rethrows: the alternative is
+        /// the silent exit this is here to prevent.
+        /// </summary>
+        private static void ReportUnhandled(string origin, Exception? exception)
+        {
+            if (exception is null) return;
+
+            string detail = exception.ToString();
+
+            try
+            {
+                var log = ModdingGUI.Core.Logging.AppLog.CreateForRun();
+                log.Write(ModdingGUI.Core.Logging.LogLevel.Error,
+                    $"Unhandled exception on the {origin}: {detail}", "app");
+
+                MessageBox.Show(
+                    $"Something went wrong on the {origin}:\n\n{exception.Message}\n\n" +
+                    "The details were written to the application log.",
+                    "Unexpected Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception)
+            {
+                // Reporting must not become its own failure; the message box below is the last resort.
+                MessageBox.Show($"Something went wrong:\n\n{detail}", "Unexpected Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private static int RunCli(CliInvocation? invocation, string? error)

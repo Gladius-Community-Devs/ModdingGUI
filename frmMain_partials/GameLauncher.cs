@@ -56,8 +56,7 @@ namespace ModdingGUI
         private void btnLaunchPatchedGame_Click(object sender, EventArgs e)
         {
             string patchedIsoPath = "Gladius_Patched.ISO";
-            string currentDirectory = Directory.GetCurrentDirectory();
-            string fullPath = Path.Combine(currentDirectory, patchedIsoPath);
+            string fullPath = Path.Combine(GetAppDirectory(), patchedIsoPath);
 
             // Check if the patched ISO exists
             if (!File.Exists(fullPath))
@@ -122,17 +121,18 @@ namespace ModdingGUI
 
             // Add a menu item to copy the project
             ToolStripMenuItem copyMenuItem = new ToolStripMenuItem("Copy Project");
-            copyMenuItem.Click += async (sender, e) =>
+            copyMenuItem.Click += (sender, e) =>
             {
                 if (!TryGetSelectedProject(out string projectFolder, out string originalName))
                 {
                     return;
                 }
 
-                
-                // Create and show the project copy dialog but don't start copying yet
-                using (var progressDialog = new ProjectCopyDialog(originalName, projectFolder))
+                try
                 {
+                    // Create and show the project copy dialog but don't start copying yet
+                    using var progressDialog = new ProjectCopyDialog(originalName, projectFolder);
+
                     // Show dialog and wait for the user to press Start Copy or Cancel
                     if (progressDialog.ShowDialog(this) == DialogResult.OK)
                     {
@@ -140,6 +140,13 @@ namespace ModdingGUI
                         // After the copy completes successfully, refresh the project tree
                         LoadProjects();
                     }
+                }
+                catch (Exception ex)
+                {
+                    // Copying is a lot of file I/O; a failure here must be reported, not thrown into the void.
+                    AppendLog($"Copy project failed: {ex.Message}", ErrorColor);
+                    MessageBox.Show($"Copy project failed:\n\n{ex.Message}", "Copy Project",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             };
 
