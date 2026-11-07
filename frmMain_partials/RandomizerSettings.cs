@@ -12,7 +12,11 @@ namespace ModdingGUI
             public bool RandomTeam { get; set; }
             public bool NoRecruits { get; set; }
             public bool PermaDeath { get; set; }
-            public bool IngameRandom { get; set; }
+            /// <summary>Randomize enemy teams (Boss/Prop/DarkGod/AffinityBeastGreater are prohibited per row).</summary>
+    public bool RandomizedEnemies { get; set; }
+
+    /// <summary>School name written to both rosters; empty keeps whatever the project has.</summary>
+    public string? SchoolName { get; set; }
             public bool RandomStatsets { get; set; }
             public bool RandomItemsets { get; set; }
             public bool Random40Glads { get; set; }
@@ -39,7 +43,8 @@ namespace ModdingGUI
                 this.RandomTeam = form.chbRandomTeam.Checked;
                 this.NoRecruits = form.chbRandomNoRecruits.Checked;
                 this.PermaDeath = form.chbRandomPermaDeath.Checked;
-                this.IngameRandom = form.chbIngameRandom.Checked;
+                this.RandomizedEnemies = form.chbRandomizedEnemies.Checked;
+            this.SchoolName = form.txtRandomCustomSchoolName.Text;
                 this.RandomStatsets = form.chbRandomStatsets.Checked;
                 this.RandomItemsets = form.chbRandomItemsets.Checked;
                 this.Random40Glads = form.chbRandom40Glads.Checked;
@@ -94,7 +99,8 @@ namespace ModdingGUI
                 form.chbRandomTeam.Checked = this.RandomTeam;
                 form.chbRandomNoRecruits.Checked = this.NoRecruits;
                 form.chbRandomPermaDeath.Checked = this.PermaDeath;
-                form.chbIngameRandom.Checked = this.IngameRandom;
+                form.chbRandomizedEnemies.Checked = this.RandomizedEnemies;
+                form.txtRandomCustomSchoolName.Text = this.SchoolName ?? string.Empty;
                 form.chbRandomStatsets.Checked = this.RandomStatsets;
                 form.chbRandomItemsets.Checked = this.RandomItemsets;
                 form.chbRandom40Glads.Checked = this.Random40Glads;

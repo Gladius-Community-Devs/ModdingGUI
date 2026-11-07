@@ -25,6 +25,7 @@ namespace ModdingGUI
             InitializeComponent(); // Initialize form components
 
             ApplyLudoIcon();
+            HideRetiredRandomizerTesting();
 
             // Check if Python 3 is installed on the system
             if (!IsPythonInstalled())
@@ -655,7 +656,7 @@ namespace ModdingGUI
                     if (result.Randomize.ModifiedScripts.Count > 0)
                     {
                         var build = new BuildOptions(
-                            projectFolder, Path.Combine(GetAppDirectory(), "tools"), "py -3");
+                            projectFolder, Path.Combine(GetAppDirectory(), "tools"), "python");
                         var compiled = await Task.Run(() => new ProjectBuildService(log)
                             .CompileScripts(build, result.Randomize.ModifiedScripts));
 
