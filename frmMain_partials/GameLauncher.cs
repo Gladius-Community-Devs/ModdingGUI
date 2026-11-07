@@ -1,8 +1,11 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
+using ModdingGUI.Core.Tools;
 
 namespace ModdingGUI
 {
@@ -171,6 +174,78 @@ namespace ModdingGUI
         }
 
         /// <summary>
+        /// The editors that currently have this project open, by name. Used to warn before deleting and to release
+        /// them afterwards.
+        /// </summary>
+        private List<string> EditorsHoldingProject(string projectFolder)
+        {
+            string folder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            bool Holds(string? path) =>
+                !string.IsNullOrEmpty(path) &&
+                path!.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    .StartsWith(folder, StringComparison.OrdinalIgnoreCase);
+
+            var holders = new List<string>();
+            if (Holds(_becFolder)) holders.Add("Item editor");
+            if (Holds(_skillEditorView?.ProjectFolder)) holders.Add("Skill editor");
+            if (Holds(_gridBuilderView?.ProjectRoot)) holders.Add("Grid builder");
+            if (Holds(txtPackPath.Text)) holders.Add("Team builder");
+            return holders;
+        }
+
+        /// <summary>True when an open editor has edits that deleting the project would throw away.</summary>
+        private bool EditorsHaveUnsavedWork(string projectFolder)
+        {
+            string folder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            bool Holds(string? path) =>
+                !string.IsNullOrEmpty(path) &&
+                path!.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    .StartsWith(folder, StringComparison.OrdinalIgnoreCase);
+
+            return (_gridBuilderView is not null && Holds(_gridBuilderView.ProjectRoot) &&
+                    _gridBuilderView.HasUnsavedChanges)
+                   || (!string.IsNullOrEmpty(_currentDto?.Name) && Holds(_becFolder));
+        }
+
+        /// <summary>
+        /// Clear every editor bound to a project, so no view keeps a path into a folder that is gone.
+        /// </summary>
+        private void ReleaseEditorsForProject(string projectFolder)
+        {
+            string folder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            bool Holds(string? path) =>
+                !string.IsNullOrEmpty(path) &&
+                path!.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    .StartsWith(folder, StringComparison.OrdinalIgnoreCase);
+
+            if (Holds(_becFolder))
+            {
+                ClearEditorFields();
+                ddlItemEditorAllItems.DataSource = null;
+                _bindingListOfItems = new BindingList<ItemRow>();
+                _becFolder = string.Empty;
+                AppendLog("Item editor released: its project was deleted.", WarningColor);
+            }
+
+            if (Holds(_skillEditorView?.ProjectFolder)) _skillEditorView.ReleaseProject();
+            if (Holds(_gridBuilderView?.ProjectRoot)) _gridBuilderView.ReleaseProject();
+
+            if (Holds(txtPackPath.Text))
+            {
+                teamUnits.Clear();
+                classDefinitions.Clear();
+                gladiatorEntries.Clear();
+                statSets.Clear();
+                ddlTeamClasses.Items.Clear();
+                ClearPreview();
+                AppendLog("Team builder released: its project was deleted.", WarningColor);
+            }
+        }
+
+        /// <summary>
         /// Resolve the project behind the tree selection, telling the user why nothing happens when it cannot.
         /// The menus used to return silently, which made a stale tree look like a broken feature.
         /// </summary>
@@ -249,6 +324,26 @@ namespace ModdingGUI
                 string projectName = node.Text;
 
                 // Show confirmation dialog
+                // An open editor loses its subject with the folder: say so before anything is deleted.
+                var holders = EditorsHoldingProject(projectFolder);
+                if (holders.Count > 0)
+                {
+                    bool unsaved = EditorsHaveUnsavedWork(projectFolder);
+                    string warning = $"The {string.Join(" and ", holders)} currently "
+                                     + (holders.Count == 1 ? "has" : "have")
+                                     + $" '{projectName}' open.\n\n"
+                                     + (unsaved
+                                         ? "There is unsaved work in that project. Deleting it discards those edits."
+                                         : "It will be closed when the project is deleted.");
+
+                    if (MessageBox.Show(warning, "Project Is Open",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                            MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+                    {
+                        return;
+                    }
+                }
+
                 if (MessageBox.Show(
                     $"Are you sure you want to delete the project '{projectName}'?\n\nThis action cannot be undone!",
                     "Confirm Project Deletion",
@@ -275,6 +370,8 @@ namespace ModdingGUI
                                 btnPack.Enabled = false;
                             }
 
+                            // No editor may keep a path into a folder that is gone.
+                            ReleaseEditorsForProject(projectFolder);
                             LoadProjects();
                         }
                     }
@@ -291,6 +388,7 @@ namespace ModdingGUI
         // Custom dialog for project copying with progress bar
         private class ProjectCopyDialog : Form
         {
+            private readonly CancellationTokenSource cancellationTokenSource = new();
             private TextBox txtProjectName;
             private ProgressBar progressBar;
             private Label lblStatus;
@@ -399,8 +497,20 @@ namespace ModdingGUI
                     }
                 };
                 
-                btnCancel.Click += (s, e) => 
+                btnCancel.Click += (s, e) =>
                 {
+                    if (isCopying && !operationCompleted)
+                    {
+                        if (MessageBox.Show("Are you sure you want to cancel the copy?", "Cancel Copy",
+                                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        {
+                            cancellationTokenSource.Cancel();
+                            SetStatus("Cancelling...");
+                        }
+
+                        return;
+                    }
+
                     if (isCopying && !operationCompleted)
                     {
                         // Ask for confirmation if the operation is ongoing
@@ -464,25 +574,23 @@ namespace ModdingGUI
                         copyIndex++;
                     }
 
-                    // Count total files for progress tracking
+                    // Count first so the bar has a denominator, then copy with per-file progress.
                     SetStatus("Counting files...");
-                    int totalFiles = CountFilesRecursively(projectFolder);
-                    InitializeProgressBar(totalFiles);
-                    
-                    // Create a shared counter for tracking copy progress across recursive calls
-                    var progress = new SharedCopyProgress();
-                    
-                    // Create progress reporter that updates dialog with the current progress
-                    var progressReporter = new Progress<SharedCopyProgress>(p => {
-                        UpdateProgress(p.FilesCopied, $"Copying files: {p.FilesCopied}/{totalFiles}");
+                    var totals = ProjectFileOperations.Measure(projectFolder);
+                    InitializeProgressBar(totals.Files);
+
+                    var progress = new Progress<FileOperationProgress>(p =>
+                    {
+                        UpdateProgress(p.FilesDone,
+                            $"Copying: {p.FilesDone:N0} / {p.FilesTotal:N0} files ({p.Percent}%)");
                     });
 
-                    // Set status
                     SetStatus("Copying project...");
 
-                    // Perform the copy operation asynchronously with proper renaming
-                    await Task.Run(() => DirectoryCopy(projectFolder, newProjectFolder, true, 
-                                                      originalName, newProjectName, progress, progressReporter));
+                    await Task.Run(() =>
+                        ProjectFileOperations.Copy(projectFolder, newProjectFolder, originalName, newProjectName,
+                            progress, cancellationTokenSource.Token),
+                        cancellationTokenSource.Token);
                     
                     // Enable controls and update status
                     operationCompleted = true;
@@ -493,8 +601,16 @@ namespace ModdingGUI
                     // Set dialog result to OK so the caller knows the operation was successful
                     this.DialogResult = DialogResult.OK;
                 }
+                catch (OperationCanceledException)
+                {
+                    isCopying = false;
+                    SetStatus("Copy cancelled.");
+                    btnStartCopy.Enabled = true;
+                    btnStartCopy.Text = "Try Again";
+                }
                 catch (Exception ex)
                 {
+                    isCopying = false;
                     SetStatus($"Error: {ex.Message}");
                     btnStartCopy.Enabled = true;
                     btnStartCopy.Text = "Try Again";
@@ -664,8 +780,7 @@ namespace ModdingGUI
                 // Create progress bar
                 progressBar = new ProgressBar
                 {
-                    Style = ProgressBarStyle.Marquee,
-                    MarqueeAnimationSpeed = 30,
+                    Style = ProgressBarStyle.Blocks,
                     Left = 10,
                     Top = 20,
                     Width = 370,
@@ -727,20 +842,23 @@ namespace ModdingGUI
                     // Set status
                     SetStatus("Deleting project files...");
 
-                    // Delete the project directory and its contents
-                    await Task.Run(() => 
+                    // Delete file by file so the bar means something and Cancel can actually stop it.
+                    var progress = new Progress<FileOperationProgress>(p =>
+                    {
+                        InitializeProgressBar(p.FilesTotal);
+                        UpdateProgress(p.FilesDone,
+                            $"Deleting: {p.FilesDone:N0} / {p.FilesTotal:N0} files ({p.Percent}%)");
+                    });
+
+                    await Task.Run(() =>
                     {
                         try
                         {
-                            // First, attempt to remove read-only attributes recursively
-                            RemoveReadOnlyAttribute(new DirectoryInfo(projectFolder));
-
-                            // Delete the directory and all its contents
-                            Directory.Delete(projectFolder, true);
+                            ProjectFileOperations.Delete(projectFolder, progress, cancellationTokenSource.Token);
                         }
                         catch (OperationCanceledException)
                         {
-                            throw; // Rethrow cancellation
+                            throw;
                         }
                         catch (Exception ex)
                         {
@@ -774,6 +892,32 @@ namespace ModdingGUI
                 {
                     isDeleting = false;
                 }
+            }
+
+            /// <summary>Set the bar up for a known number of files.</summary>
+            private void InitializeProgressBar(int maximum)
+            {
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() => InitializeProgressBar(maximum)));
+                    return;
+                }
+
+                progressBar.Maximum = Math.Max(1, maximum);
+                progressBar.Value = 0;
+            }
+
+            /// <summary>Advance the bar and the status line together.</summary>
+            private void UpdateProgress(int value, string statusText)
+            {
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() => UpdateProgress(value, statusText)));
+                    return;
+                }
+
+                progressBar.Value = Math.Min(value, progressBar.Maximum);
+                lblStatus.Text = statusText;
             }
 
             private void RemoveReadOnlyAttribute(DirectoryInfo dirInfo)

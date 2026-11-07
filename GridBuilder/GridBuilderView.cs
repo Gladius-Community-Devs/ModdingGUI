@@ -171,6 +171,26 @@ namespace ModdingGUI
             return Application.StartupPath ?? AppContext.BaseDirectory ?? ".";
         }
 
+        /// <summary>The project this view is bound to, or null when none is loaded.</summary>
+        public string? ProjectRoot => _projectRoot;
+
+        /// <summary>True when the open grid has edits that have not been saved.</summary>
+        public bool HasUnsavedChanges => CurrentGrid?.IsDirty == true;
+
+        /// <summary>
+        /// Drop everything tied to a project. Called when that project is deleted, so the view cannot save a grid
+        /// back into a folder that no longer exists.
+        /// </summary>
+        public void ReleaseProject()
+        {
+            _projectRoot = null;
+            _currentArenaPath = null;
+            _arenaBox.Items.Clear();
+            _btnSave.Enabled = false;
+            CurrentGrid = new GridFile();
+            ResetMapState();
+        }
+
         public void SetProjectRoot(string projectFolder)
         {
             _projectRoot = projectFolder;

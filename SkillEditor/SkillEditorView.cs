@@ -102,6 +102,24 @@ public sealed partial class SkillEditorView : UserControl
 
     // ---- public API -------------------------------------------------------
 
+    /// <summary>The project this view is bound to, or empty when none is loaded.</summary>
+    public string ProjectFolder => _projectFolder;
+
+    /// <summary>
+    /// Drop everything tied to a project. Called when that project is deleted, so Save cannot target a folder that
+    /// no longer exists.
+    /// </summary>
+    public void ReleaseProject()
+    {
+        _projectFolder = string.Empty;
+        _skillsContext = null;
+        ClearEditor();
+        _cmbSkills.Items.Clear();
+        _btnSave.Enabled = false;
+        _btnDelete.Enabled = false;
+        SetStatus("No project selected.", isError: false);
+    }
+
     /// <summary>
     /// Point the editor at a project. <paramref name="projectRootPath"/> is the
     /// top-level project folder (the one containing <c>&lt;name&gt;_BEC</c>).

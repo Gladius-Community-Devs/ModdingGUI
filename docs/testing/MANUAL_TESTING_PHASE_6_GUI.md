@@ -98,7 +98,12 @@ the ISO this produces.
 - [ ] **Delete Project** asks for confirmation, shows the progress dialog, and the project disappears from the tree.
 - [ ] Delete a **second** project immediately after, without clicking anything in between.
 - [ ] Delete a third while a fourth is selected — the delete acts on the one right-clicked, not the selected one.
-- [ ] Cancel during a delete: the dialog closes, the project stays.
+- [ ] The delete bar shows a percentage: "Deleting: 1,234 / 4,567 files (27%)" and advances smoothly.
+- [ ] Cancel during a delete really stops it: the dialog reports "Deletion cancelled." and the remaining files stay.
+- [ ] Copy Project shows "Copying: 1,234 / 4,567 files (27%)", and Cancel during a copy stops it ("Copy cancelled.").
+- [ ] Open the Item editor, Skill editor or Grid builder on a project, then right-click -> Delete: a warning names
+      the open editor before the confirmation. Unsaved grid edits get the stronger wording.
+- [ ] After deleting, those editors are cleared: no stale item list, no stale skill list, Save disabled.
 - [ ] Right-click **empty space** below the tree → Delete/Load/Copy say "Right-click a project first" instead of
       doing nothing.
 - [ ] **Launch with Dolphin** and **Copy Project** act on the right-clicked project too.
