@@ -224,7 +224,7 @@ namespace ModdingGUI
 
             try
             {
-                string appDirectory = GetAppDirectory();
+                string appDirectory = AppDirectoryForProjects();
                 int projects = 0;
 
                 // Sorted, so the list does not jump around between refreshes.
@@ -314,6 +314,10 @@ namespace ModdingGUI
                 if (projects == 0)
                 {
                     AppendLog($"No projects found in {appDirectory}. Unpack an ISO to create one.", WarningColor);
+                }
+                else if (!string.Equals(appDirectory, GetAppDirectory(), StringComparison.OrdinalIgnoreCase))
+                {
+                    AppendLog($"Projects folder: {appDirectory}", InfoColor);
                 }
                 else
                 {

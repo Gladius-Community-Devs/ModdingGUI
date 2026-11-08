@@ -5,12 +5,17 @@ public static class BatchContentBuilder
 {
     // Generate the batch file content for unpacking an ISO into a project folder.
     // workingDir: the application's working directory (Directory.GetCurrentDirectory()).
-    public static string GenerateUnpackContent(string isoPath, string projectName, string workingDir)
+    public static string GenerateUnpackContent(string isoPath, string projectName, string workingDir,
+        string? toolsDirectory = null)
     {
         var sb = new StringBuilder();
 
+        // The project and the tooling are not necessarily in the same place: projects can be configured to live in
+        // their own folder, while tools/ always sits beside the executable.
+        string toolsBase = string.IsNullOrWhiteSpace(toolsDirectory) ? workingDir : toolsDirectory!;
+
         string topLevelFolder = PathHelper.NormalizePath(PathHelper.EnsureTrailingSeparator(Path.Combine(workingDir, projectName)));
-        string toolsPath = PathHelper.NormalizePath(Path.Combine(workingDir, "tools"));
+        string toolsPath = PathHelper.NormalizePath(Path.Combine(toolsBase, "tools"));
         string ngcisoToolPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "ngciso-tool.py"));
         string isoFolder = PathHelper.NormalizePath(PathHelper.EnsureTrailingSeparator(Path.Combine(topLevelFolder, $"{projectName}_ISO")));
         string becToolPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "bec-tool-all.py"));

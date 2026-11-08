@@ -85,9 +85,9 @@ namespace ModdingGUI
 
             try
             {
-                // Create the top-level folder beside the executable: that is the folder LoadProjects scans and
-                // where tools/ lives, which the generated batch file also references.
-                string topLevelFolder = Path.Combine(GetAppDirectory(), userInput);
+                // Create the project where the tree scans for them (the configured projects folder, else the app
+                // folder). The tooling path stays app-relative, so the two are resolved separately.
+                string topLevelFolder = Path.Combine(ProjectsFolder(), userInput);
 
                 // Ensure the top-level folder exists
                 if (!Directory.Exists(topLevelFolder))
@@ -469,8 +469,8 @@ namespace ModdingGUI
                                     txtISOPath.Text = isoPath;
                                     txtUnpackPath.Text = userInput;
 
-                                    // Same base as the unpack tab: beside the executable, next to tools/.
-                                    string topLevelFolder = Path.Combine(GetAppDirectory(), userInput);
+                                    // Same base as the unpack tab: the configured projects folder.
+                                    string topLevelFolder = Path.Combine(ProjectsFolder(), userInput);
 
                                     // Ensure the top-level folder exists
                                     if (!Directory.Exists(topLevelFolder))

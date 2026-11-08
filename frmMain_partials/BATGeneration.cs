@@ -8,8 +8,8 @@ namespace ModdingGUI
         // Method to generate the content of the batch file for unpacking operations
         private string GenerateUnpackBatchFileContent(string isoPath, string userInput)
         {
-            // tools/ sits beside the executable, so that - not the process working directory - is the base.
-            return BatchContentBuilder.GenerateUnpackContent(isoPath, userInput, GetAppDirectory());
+            // Projects go to the projects folder; tools/ stays beside the executable.
+            return BatchContentBuilder.GenerateUnpackContent(isoPath, userInput, ProjectsFolder(), GetAppDirectory());
         }
 
 

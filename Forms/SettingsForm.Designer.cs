@@ -139,7 +139,7 @@ namespace ModdingGUI.Forms
             label1.Name = "label1";
             label1.Size = new Size(139, 15);
             label1.TabIndex = 2;
-            label1.Text = "Default Project Directory:";
+            label1.Text = "Projects Folder (blank = app folder):";
             // 
             // chkAutoOpenFolder
             // 

@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using ModdingGUI.Core;
 
 namespace ModdingGUI
 {
@@ -148,7 +149,33 @@ namespace ModdingGUI
             
             // Apply the new settings
             ApplyAppSettings();
+
+            // The projects folder may have moved: re-scan rather than waiting for the next refresh.
+            LoadProjects();
         }
+
+        /// <summary>
+        /// The folder to scan for projects: the configured one when it exists, otherwise the app folder. Warns once
+        /// when a configured folder has gone missing, so the fallback is not silent.
+        /// </summary>
+        private string AppDirectoryForProjects()
+        {
+            if (appSettings == null) LoadAppSettings();
+
+            string configured = appSettings?.DefaultProjectDirectory ?? string.Empty;
+            string resolved = ProjectRoots.ResolveProjectsFolder(configured, GetAppDirectory());
+
+            if (!string.IsNullOrWhiteSpace(configured) && !Directory.Exists(configured))
+            {
+                AppendLog($"Configured projects folder not found ({configured}); using the app folder.",
+                    WarningColor);
+            }
+
+            return resolved;
+        }
+
+        /// <summary>Where new projects are created.</summary>
+        private string ProjectsFolder() => AppDirectoryForProjects();
 
         // Method to check if Dolphin path is set and valid
         private bool IsDolphinPathValid()

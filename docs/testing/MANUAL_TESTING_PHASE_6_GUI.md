@@ -19,6 +19,15 @@ the ISO this produces.
    - [ ] Main window appears, Randomizer tab is reachable.
    - [ ] Options menu no longer shows **Randomizer Testing** (retired with the old pipeline).
 
+## 1b. Projects folder
+
+- [ ] File > Settings shows **Projects Folder (blank = app folder)** with Browse.
+- [ ] Leave it blank: the tree lists projects from the app folder, as before.
+- [ ] Pick a folder containing a project: OK re-scans immediately and the tree lists that folder's projects.
+- [ ] Unpack an ISO with a projects folder set: the new project appears there, not beside the exe.
+- [ ] Point it at a folder that does not exist, then refresh: a warning names the folder and the tree falls back to
+      the app folder instead of coming up empty.
+
 ## 2. Point the panel at a project
 
 3. Randomizer tab → browse / type the project folder → the path is accepted and Pack gets enabled.

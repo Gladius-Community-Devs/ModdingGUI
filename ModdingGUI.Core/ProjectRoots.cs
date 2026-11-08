@@ -78,6 +78,27 @@ public static class ProjectRoots
     }
 
     /// <summary>
+    /// The folder projects are kept in. A configured folder wins when it exists; otherwise the app folder, which is
+    /// where the tooling (and <c>tools/</c>) lives. Keeps one bad setting from making every project disappear.
+    /// </summary>
+    public static string ResolveProjectsFolder(string? configuredFolder, string appDirectory)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(appDirectory);
+
+        // Normalise away a trailing separator so callers compare and combine paths consistently.
+        static string Clean(string path) => Path.GetFullPath(path.Trim()).TrimEnd(
+            Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        if (!string.IsNullOrWhiteSpace(configuredFolder))
+        {
+            string configured = Clean(configuredFolder);
+            if (Directory.Exists(configured)) return configured;
+        }
+
+        return Clean(appDirectory);
+    }
+
+    /// <summary>
     /// The <c>*_BEC</c> children of a folder, or an empty array when the folder is missing or unreadable.
     /// </summary>
     private static string[] EnumerateBecChildren(string folder)

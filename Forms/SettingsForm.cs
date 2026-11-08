@@ -18,6 +18,17 @@ namespace ModdingGUI.Forms
             _currentSettings = new AppSettings(settings);
             _onSave = onSave;
             PopulateFormFromSettings();
+
+            // The tree scans this folder for projects; blank keeps the old behaviour (the app folder).
+            var hint = new Label
+            {
+                Text = "Leave blank to use the folder the application runs from.",
+                AutoSize = true,
+                Location = new Point(txtDefaultProjectDir.Left, txtDefaultProjectDir.Bottom + 2),
+                ForeColor = SystemColors.GrayText,
+            };
+
+            tabGeneral.Controls.Add(hint);
         }
 
         private void PopulateFormFromSettings()
