@@ -691,14 +691,28 @@ namespace ModdingGUI
         private void SaveArena()
         {
             if (_currentArenaPath == null || CurrentGrid == null) return;
+
+            // A directory here means the arena list handed over a folder instead of the .grd it opened. Write the
+            // grid beside it rather than failing with "could not find a part of the path".
+            string target = _currentArenaPath;
+            if (Directory.Exists(target))
+            {
+                target = Path.Combine(target, Path.GetFileNameWithoutExtension(target) + ".grd");
+                AppendLog($"Arena path was a directory; saving to '{target}'.", "Orange", isDetail: false);
+            }
+
             try
             {
+                string? folder = Path.GetDirectoryName(target);
+                if (!string.IsNullOrEmpty(folder)) Directory.CreateDirectory(folder);
+
                 // No GUI bypass: the write goes through Core, which takes the project lock and writes a
                 // timestamped .mod-history backup first, exactly like every other edit in the app.
                 // The grid's own path is enough: the API resolves the enclosing project from it.
-                string? backup = new GridsApi().Save(_currentArenaPath, CurrentGrid);
+                string? backup = new GridsApi().Save(target, CurrentGrid);
 
-                AppendLog($"Arena saved: {_currentArenaPath}", "Green", isDetail: false);
+                _currentArenaPath = target;
+                AppendLog($"Arena saved: {target}", "Green", isDetail: false);
                 if (backup is not null)
                 {
                     AppendLog($"  backup: {backup}", "Green", isDetail: true);
@@ -706,9 +720,10 @@ namespace ModdingGUI
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Save failed:\n{ex.Message}", "Grid Builder",
+                // Name the path in the message: the failure is almost always about where it tried to write.
+                MessageBox.Show($"Save failed:\n\n{target}\n\n{ex.Message}", "Grid Builder",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"Save failed for {_currentArenaPath}: {ex.Message}", "Red", isDetail: false);
+                AppendLog($"Save failed for {target}: {ex.Message}", "Red", isDetail: false);
             }
         }
 

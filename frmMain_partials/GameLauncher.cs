@@ -544,6 +544,10 @@ namespace ModdingGUI
             }
 
             // Start the copy process after user clicks the Start Copy button
+            /// <summary>Where this attempt is writing, so a cancel can clean up after itself.</summary>
+            private string? partialDestination;
+            private string partialName = string.Empty;
+
             private async Task StartCopyProcess()
             {
                 try
@@ -564,6 +568,7 @@ namespace ModdingGUI
                     newProjectName = SanitizeFileName(newProjectName);
                     
                     string newProjectFolder = Path.Combine(Path.GetDirectoryName(projectFolder), newProjectName);
+                    partialDestination = newProjectFolder;
 
                     // Handle cases where the copy name already exists
                     int copyIndex = 1;
@@ -573,6 +578,9 @@ namespace ModdingGUI
                         newProjectFolder = Path.Combine(Path.GetDirectoryName(projectFolder), newProjectName);
                         copyIndex++;
                     }
+
+                    partialDestination = newProjectFolder;
+                    partialName = newProjectName;
 
                     // Count first so the bar has a denominator, then copy with per-file progress.
                     SetStatus("Counting files...");
@@ -604,7 +612,16 @@ namespace ModdingGUI
                 catch (OperationCanceledException)
                 {
                     isCopying = false;
-                    SetStatus("Copy cancelled.");
+
+                    // A half copy is not a project: remove it, or - if a file is still locked - rename it so it is
+                    // obviously incomplete instead of looking like a real project in the tree.
+                    string? remnant = partialDestination is null
+                        ? null
+                        : CleanUpPartialCopy(partialDestination, partialName);
+                    SetStatus(remnant is null
+                        ? "Copy cancelled; the incomplete copy was removed."
+                        : $"Copy cancelled. Incomplete copy kept as '{Path.GetFileName(remnant)}'.");
+
                     btnStartCopy.Enabled = true;
                     btnStartCopy.Text = "Try Again";
                 }
@@ -615,6 +632,44 @@ namespace ModdingGUI
                     btnStartCopy.Enabled = true;
                     btnStartCopy.Text = "Try Again";
                     MessageBox.Show($"Failed to copy project: {ex.Message}", "Copy Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+            /// <summary>
+            /// Remove what a cancelled copy left behind. Returns the folder it kept, or null when nothing remains.
+            /// </summary>
+            private string? CleanUpPartialCopy(string folder, string newName)
+            {
+                try
+                {
+                    if (!Directory.Exists(folder)) return null;
+
+                    ProjectFileOperations.Delete(folder);
+                    return null;
+                }
+                catch (Exception)
+                {
+                    // Something is still holding a file. Label the remnant rather than leaving a plausible-looking
+                    // project in the tree: '<name>-copy-partial'.
+                    try
+                    {
+                        string partial = folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                         + "-copy-partial";
+
+                        int suffix = 1;
+                        string candidate = partial;
+                        while (Directory.Exists(candidate))
+                        {
+                            candidate = $"{partial}-{suffix++}";
+                        }
+
+                        Directory.Move(folder, candidate);
+                        return candidate;
+                    }
+                    catch (Exception)
+                    {
+                        return folder;
+                    }
                 }
             }
 

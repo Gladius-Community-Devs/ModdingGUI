@@ -52,7 +52,7 @@ public static class ProjectRoots
         // Project folder renamed independently of its children: accept a single *_BEC child.
         if (Directory.Exists(full))
         {
-            var candidates = Directory.EnumerateDirectories(full, "*_BEC").Take(2).ToArray();
+            var candidates = EnumerateBecChildren(full);
             if (candidates.Length == 1) return candidates[0];
         }
 
@@ -67,11 +67,39 @@ public static class ProjectRoots
 
             if (Directory.Exists(Path.Combine(current, "data", "config"))) return current;
 
-            var nested = Directory.EnumerateDirectories(current, "*_BEC").Take(2).ToArray();
+            // Nothing exists here yet: a caller can legitimately resolve a path it is about to create (the Grid
+            // Builder writing a grid into an arena folder that is not there). Enumerating a missing directory
+            // throws DirectoryNotFoundException, which used to surface as "could not find a part of the path".
+            var nested = EnumerateBecChildren(current);
             if (nested.Length == 1) return nested[0];
         }
 
         return full;
+    }
+
+    /// <summary>
+    /// The <c>*_BEC</c> children of a folder, or an empty array when the folder is missing or unreadable.
+    /// </summary>
+    private static string[] EnumerateBecChildren(string folder)
+    {
+        if (!Directory.Exists(folder)) return Array.Empty<string>();
+
+        try
+        {
+            return Directory.EnumerateDirectories(folder, "*_BEC").Take(2).ToArray();
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return Array.Empty<string>();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Array.Empty<string>();
+        }
+        catch (IOException)
+        {
+            return Array.Empty<string>();
+        }
     }
 
     /// <summary>True when <paramref name="path"/> looks like a BEC folder (has <c>data/config</c>).</summary>

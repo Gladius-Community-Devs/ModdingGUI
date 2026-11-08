@@ -103,6 +103,30 @@ public sealed class GridsApiTests : IDisposable
     }
 
     [Fact]
+    public void Save_WritesIntoAProvinceArenaFolderThatDoesNotExistYet()
+    {
+        if (!Ready) return;
+
+        // Vanilla keeps grids under data/encounters/<province>/<arena>/. A save must land there even when the
+        // arena folder has to be created, which is the shape the Grid Builder uses.
+        string target = Path.Combine(_bec, "data", "encounters", "expanse", "expansedunes", "qstsarenenutetexdunes.grd");
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetDirectoryName(target))!);
+
+        var grid = GridFile.Load(Path.Combine(_bec, Relative.Replace('/', Path.DirectorySeparatorChar)));
+
+        // A file that does not exist yet has nothing to back up; the write must still land.
+        string? firstBackup = new GridsApi().Save(target, grid);
+        Assert.True(File.Exists(target));
+        Assert.Null(firstBackup);
+        Assert.StartsWith(Path.Combine(_bec, "data", "encounters", "expanse", "expansedunes"), target);
+
+        // The second save has a previous version, so it is backed up beside the project history.
+        string? secondBackup = new GridsApi().Save(target, grid);
+        Assert.NotNull(secondBackup);
+        Assert.True(File.Exists(secondBackup!));
+    }
+
+    [Fact]
     public void Get_RejectsPathsThatEscapeTheProject()
     {
         if (!Ready) return;
