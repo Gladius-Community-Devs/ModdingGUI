@@ -42,6 +42,14 @@ namespace ModdingGUI
                 {
                     appSettings = new AppSettings();
                 }
+
+                // Older builds defaulted this to true, so a settings file could say "auto-launch" while no Dolphin
+                // was configured at all - and once one was set, every pack launched the emulator. A flag that could
+                // never have been a real choice is normalised away; ticking the box later still works.
+                if (string.IsNullOrWhiteSpace(appSettings.DolphinExecutablePath))
+                {
+                    appSettings.AutoLaunchDolphin = false;
+                }
                 
                 // Apply settings to the application
                 ApplyAppSettings();
@@ -167,16 +175,8 @@ namespace ModdingGUI
                     return;
                 }
 
-                // Respect live user preference (checkbox when visible; fallback to saved setting)
-                bool autoLaunch =
-                    (chbAutoLaunchDolphin != null && chbAutoLaunchDolphin.Visible)
-                        ? chbAutoLaunchDolphin.Checked
-                        : (appSettings?.AutoLaunchDolphin == true);
-                if (!autoLaunch)
-                {
-                    AppendLog("Dolphin auto-launch is disabled. Skipping launch.", WarningColor, rtbPackOutput);
-                    return;
-                }
+                // No preference check here: an explicit "Launch with Dolphin" click must launch even when
+                // auto-launch is off, and the pack handler already decides whether to call this at all.
 
                 // Verify ISO exists
                 if (string.IsNullOrWhiteSpace(isoPath) || !File.Exists(isoPath))

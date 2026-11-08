@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.IO;
 using ModdingGUI.Core.Logging;
+using ModdingGUI.Core.Randomizer;
 using ModdingGUI.Models;
 using System.Diagnostics;
 using System.Text.Json;
@@ -206,37 +207,52 @@ namespace ModdingGUI
         }
         private void LoadProjects()
         {
+            // Rebuilding drops the selection, which is what made "delete a second project" do nothing. Remember
+            // what was selected and expanded, and put it back afterwards.
+            string? previousSelection = tvwProjects.SelectedNode?.Tag as string ??
+                                        tvwProjects.SelectedNode?.Parent?.Tag as string;
+            var previousSelectionText = tvwProjects.SelectedNode?.Text;
+            var expanded = tvwProjects.Nodes.Cast<TreeNode>()
+                .Where(node => node.IsExpanded)
+                .Select(node => node.Tag as string)
+                .Where(tag => tag is not null)
+                .Select(tag => tag!)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            tvwProjects.BeginUpdate();
             tvwProjects.Nodes.Clear();
 
             try
             {
-                // Retrieve the original executable directory using the helper method
                 string appDirectory = GetAppDirectory();
-                AppendLog($"App Directory: {appDirectory}", InfoColor);
+                int projects = 0;
 
-                var directories = Directory.GetDirectories(appDirectory);
-                AppendLog($"Found {directories.Length} directories in app directory. (including tools folder)", InfoColor);
+                // Sorted, so the list does not jump around between refreshes.
+                var directories = Directory.GetDirectories(appDirectory)
+                    .OrderBy(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase);
 
                 foreach (var dir in directories)
                 {
                     string projectName = Path.GetFileName(dir);
-                    if (projectName.Equals("tools", StringComparison.OrdinalIgnoreCase))
-                    {
-                        AppendLog($"Skipping directory: {projectName}", InfoColor);
-                        continue;
-                    }
-                    //AppendLog($"Checking directory: {projectName}", InfoColor);
+                    if (projectName.Equals("tools", StringComparison.OrdinalIgnoreCase)) continue;
 
                     if (IsProjectDirectory(dir))
                     {
-                        AppendLog($"Directory '{projectName}' is a valid project.", SuccessColor);
+                        projects++;
+
+                        string becFolder = Path.Combine(dir, $"{projectName}_BEC");
+                        bool randomized = Directory.Exists(
+                            Path.Combine(becFolder, ".mod-history", RandomizerBaseline.Folder));
 
                         // Create a tree node for the project
-                        TreeNode projectNode = new TreeNode(projectName)
+                        TreeNode projectNode = new TreeNode(randomized ? $"{projectName} (randomized)" : projectName)
                         {
                             Tag = dir,
                             ImageKey = "folder",
-                            SelectedImageKey = "folder"
+                            SelectedImageKey = "folder",
+                            ToolTipText = randomized
+                                ? $"{dir}\nRandomizer baseline pinned: a run can be undone with Reset to Vanilla."
+                                : dir
                         };
 
                         // Define paths for _ISO and _BEC
@@ -292,15 +308,41 @@ namespace ModdingGUI
                         // Add the project node to the TreeView
                         tvwProjects.Nodes.Add(projectNode);
                     }
-                    else
+                }
+
+                // One line instead of one line per directory: this runs after every delete, copy and pack.
+                if (projects == 0)
+                {
+                    AppendLog($"No projects found in {appDirectory}. Unpack an ISO to create one.", WarningColor);
+                }
+                else
+                {
+                    AppendLog($"Loaded {projects} project(s) from {appDirectory}.", InfoColor);
+                }
+
+                // Put the selection and expansion back.
+                foreach (TreeNode node in tvwProjects.Nodes)
+                {
+                    if (node.Tag is string path && expanded.Contains(path)) node.Expand();
+
+                    if (node.Tag is string selectedPath && previousSelection is not null &&
+                        selectedPath.Equals(previousSelection, StringComparison.OrdinalIgnoreCase))
                     {
-                        AppendLog($"Directory '{projectName}' is not a valid project. Skipping...", WarningColor);
+                        tvwProjects.SelectedNode = node;
+                    }
+                    else if (previousSelectionText is not null && node.Text == previousSelectionText)
+                    {
+                        tvwProjects.SelectedNode = node;
                     }
                 }
             }
             catch (Exception ex)
             {
                 AppendLog($"Error loading projects: {ex.Message}", ErrorColor);
+            }
+            finally
+            {
+                tvwProjects.EndUpdate();
             }
         }
 

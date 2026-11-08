@@ -161,6 +161,52 @@ namespace ModdingGUI
         }
 
         /// <summary>
+        /// Refresh and "open folder" on the project tree. Refresh is also on F5.
+        /// </summary>
+        private void AddProjectTreeExtras()
+        {
+            ContextMenuStrip menu = tvwProjects.ContextMenuStrip ?? new ContextMenuStrip();
+
+            var refresh = new ToolStripMenuItem("Refresh Projects");
+            refresh.ShortcutKeys = Keys.F5;
+            refresh.Click += (_, _) => LoadProjects();
+
+            var openFolder = new ToolStripMenuItem("Open Project Folder");
+            openFolder.Click += (_, _) =>
+            {
+                if (!TryGetSelectedProject(out string projectFolder, out _)) return;
+
+                try
+                {
+                    Process.Start(new ProcessStartInfo("explorer.exe", $"\"{projectFolder}\"")
+                    {
+                        UseShellExecute = true,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Could not open the folder:\n\n{ex.Message}", "Open Project Folder",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(refresh);
+            menu.Items.Add(openFolder);
+            tvwProjects.ContextMenuStrip = menu;
+
+            // F5 works whether or not the context menu is open.
+            tvwProjects.KeyDown += (_, e) =>
+            {
+                if (e.KeyCode != Keys.F5) return;
+
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                LoadProjects();
+            };
+        }
+
+        /// <summary>
         /// A right-click does not move the TreeView selection on its own, and <see cref="LoadProjects"/> clears the
         /// tree (and therefore the selection) after every delete. Without this the second delete found
         /// <c>SelectedNode == null</c> and silently did nothing.
@@ -1140,7 +1186,11 @@ namespace ModdingGUI
             // Add context menu to project tree
             AddLaunchContextMenuToProjectTree();
             AddCopyContextMenuToProjectTree();
-            AddDeleteContextMenuToProjectTree(); // Add this line
+            AddDeleteContextMenuToProjectTree();
+            AddProjectTreeExtras();
+
+            // The project node's tooltip carries the path and whether the project has been randomized.
+            tvwProjects.ShowNodeToolTips = true;
         }
     }
 }

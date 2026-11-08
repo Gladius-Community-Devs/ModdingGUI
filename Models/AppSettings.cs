@@ -13,7 +13,11 @@ namespace ModdingGUI.Models
         public bool AutoOpenFolderAfterOperation { get; set; } = false;
         public string DefaultProjectDirectory { get; set; } = string.Empty;
         public string DolphinExecutablePath { get; set; } = string.Empty;
-        public bool AutoLaunchDolphin { get; set; } = true;
+        /// <summary>
+        /// Launch the packed ISO in Dolphin automatically. Off by default: it used to default to true, so simply
+        /// setting a Dolphin path made every pack launch the emulator.
+        /// </summary>
+        public bool AutoLaunchDolphin { get; set; }
 
         // Randomizer settings
         public bool EnableRandomizerLogs { get; set; } = false;

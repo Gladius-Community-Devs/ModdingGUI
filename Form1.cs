@@ -192,9 +192,10 @@ namespace ModdingGUI
                 btnRandomize.Enabled = true;
                 btnToPatching.Enabled = true;
                 btnPack.Enabled = true;
-                if (appSettings.AutoLaunchDolphin)
+                // Follow the tickbox the user can see. The saved setting defaults to off, and the checkbox is the
+                // live intent; checking the setting alone is what made every pack launch the emulator.
+                if (chbAutoLaunchDolphin.Visible && chbAutoLaunchDolphin.Checked)
                 {
-                    // Launch the packed ISO with Dolphin
                     LaunchGameWithDolphin(isoPath);
                 }
             }

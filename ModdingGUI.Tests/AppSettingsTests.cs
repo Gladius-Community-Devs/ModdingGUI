@@ -1,5 +1,6 @@
 using ModdingGUI.Models;
 using Xunit;
+using System.Text.Json;
 
 namespace ModdingGUI.Tests;
 
@@ -21,9 +22,28 @@ public class AppSettingsTests
     }
 
     [Fact]
-    public void DefaultConstructor_AutoLaunchDolphin_DefaultsTrue()
+    public void DefaultConstructor_DoesNotAutoLaunchDolphin()
     {
-        Assert.True(new AppSettings().AutoLaunchDolphin);
+        // Setting a Dolphin path must not, by itself, make every pack launch the emulator.
+        Assert.False(new AppSettings().AutoLaunchDolphin);
+    }
+
+    [Fact]
+    public void AutoLaunchSurvivesSerialisationForAConfiguredDolphin()
+    {
+        // The normalisation lives in the shell's loader; the model itself must round-trip the choice unchanged,
+        // otherwise unticking the box would not stick.
+        var original = new AppSettings
+        {
+            DolphinExecutablePath = @"C:\dolphin\Dolphin.exe",
+            AutoLaunchDolphin = true,
+        };
+
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<AppSettings>(json)!;
+
+        Assert.Equal(@"C:\dolphin\Dolphin.exe", restored.DolphinExecutablePath);
+        Assert.True(restored.AutoLaunchDolphin);
     }
 
     [Fact]
