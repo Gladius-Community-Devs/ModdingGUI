@@ -528,18 +528,24 @@ namespace ModdingGUI
             var patch = new ItemPatch();
             bool anyChange = false;
 
-            // Cost
-            if (!int.TryParse(txtItemEditorNewCost.Text, out int costVal))
+            // Cost: a shop price, so it cannot be negative.
+            if (!int.TryParse(txtItemEditorNewCost.Text, out int costVal) || costVal < 0)
             {
-                MessageBox.Show("Invalid Cost value.");
+                MessageBox.Show("Cost must be a whole number of 0 or more.", "Invalid Cost",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtItemEditorNewCost.Focus();
                 return;
             }
             if ((dto.Cost ?? 0) != costVal) { patch.Cost = costVal; anyChange = true; }
 
-            // MinLevel
-            if (!int.TryParse(txtItemEditorNewLevel.Text, out int lvlVal))
+            // MinLevel: the value the equip tier compares against ITEMMINLEVEL, inside the 1..30 level range.
+            if (!int.TryParse(txtItemEditorNewLevel.Text, out int lvlVal)
+                || !ModdingGUI.Core.Units.InputRules.IsValidLevel(lvlVal))
             {
-                MessageBox.Show("Invalid MinLevel value.");
+                MessageBox.Show(ModdingGUI.Core.Units.InputRules.ExplainLevel(lvlVal) ??
+                                "MinLevel must be a whole number between 1 and 30.",
+                    "Invalid MinLevel", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtItemEditorNewLevel.Focus();
                 return;
             }
             if ((dto.MinLevel ?? 0) != lvlVal) { patch.MinLevel = lvlVal; anyChange = true; }
@@ -554,9 +560,11 @@ namespace ModdingGUI
                 }
                 else
                 {
-                    if (!int.TryParse(txtItemEditorNewAffinity.Text, out int parsedAffVal))
+                    if (!int.TryParse(txtItemEditorNewAffinity.Text, out int parsedAffVal) || parsedAffVal < 0)
                     {
-                        MessageBox.Show($"Invalid affinity value for '{selAffType}'.");
+                        MessageBox.Show($"Affinity amount for '{selAffType}' must be 0 or more.",
+                            "Invalid Affinity", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtItemEditorNewAffinity.Focus();
                         return;
                     }
                     bool same = dto.Affinity.HasValue

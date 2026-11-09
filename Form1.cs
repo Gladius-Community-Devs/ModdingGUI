@@ -779,7 +779,8 @@ namespace ModdingGUI
                 {
                     cash = CashMode.Random;
                 }
-                else if (int.TryParse(txtRandomCustomCash.Text, out int parsed) && parsed >= 0 && parsed <= 999999)
+                else if (int.TryParse(txtRandomCustomCash.Text, out int parsed)
+                         && ModdingGUI.Core.Units.InputRules.IsValidGold(parsed))
                 {
                     cash = CashMode.Fixed;
                     cashAmount = parsed;
@@ -830,6 +831,17 @@ namespace ModdingGUI
                 SaveRandomizerSettings(projectFolder);
 
                 var options = ReadRandomizerOptions();
+
+                // A quote or line break in the school name would corrupt the roster header.
+                var schoolNameProblems = ModdingGUI.Core.Units.InputRules.ValidateSchoolName(options.SchoolName);
+                if (schoolNameProblems.Count > 0)
+                {
+                    MessageBox.Show(string.Join(Environment.NewLine, schoolNameProblems), "School Name",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    btnRandomize.Enabled = true;
+                    lblRandomizeStatus.Text = "Ready";
+                    return;
+                }
                 if (options.IsEmpty)
                 {
                     AppendLog("Nothing selected: pick at least one randomizer option.", WarningColor, rtbPackOutput);

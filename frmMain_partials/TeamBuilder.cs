@@ -903,10 +903,13 @@ namespace ModdingGUI
             string levelText = txtTeamLevel.Text.Trim();
             int unitLevel = 1; // Default level
 
-            // Validate Unit Name
-            if (string.IsNullOrEmpty(unitName))
+            // Validate Unit Name. Quotes and line breaks would corrupt the CREATEUNIT line; spaces and the
+            // display separator '_' are legitimate (see InputRules).
+            var nameProblems = ModdingGUI.Core.Units.InputRules.ValidateUnitName(unitName);
+            if (nameProblems.Count > 0)
             {
-                MessageBox.Show("Please enter a unit name.", "Input Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(string.Join(Environment.NewLine, nameProblems), "Unit Name",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtTeamUnitName.Focus();
                 return;
             }
@@ -919,10 +922,13 @@ namespace ModdingGUI
                 return;
             }
 
-            // Validate Level Input
-            if (!int.TryParse(levelText, out unitLevel) || unitLevel < 1 || unitLevel > 30)
+            // Validate Level Input: 1..30, the range every stat set provides rows for.
+            if (!int.TryParse(levelText, out unitLevel) || !ModdingGUI.Core.Units.InputRules.IsValidLevel(unitLevel))
             {
-                MessageBox.Show("Please enter a valid unit level (integer between 1 and 30).", "Invalid Level", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ModdingGUI.Core.Units.InputRules.ExplainLevel(
+                        int.TryParse(levelText, out int parsedLevel) ? parsedLevel : 0) ??
+                        "Please enter a unit level between 1 and 30.",
+                    "Invalid Level", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtTeamLevel.Focus();
                 return;
             }
