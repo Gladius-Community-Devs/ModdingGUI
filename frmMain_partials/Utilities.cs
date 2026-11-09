@@ -205,34 +205,45 @@ namespace ModdingGUI
             // initialisation failed) before any window appears. ShellExecute hands the job to the
             // running shell, and the path travels as a file name rather than as command-line text, so
             // quoting, carets and parentheses in the path stop mattering.
-            try
+            // Three routes, most direct first. ShellExecute (the second) is the one a sandboxed or locked-down
+            // environment refuses with "Access is denied", so it is not tried first any more.
+            var attempts = new (string Name, Func<ProcessStartInfo> Build)[]
             {
-                Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
-                return;
-            }
-            catch (Exception ex)
-            {
-                AppendLog($"Shell could not open '{path}': {ex.Message}", WarningColor, rtbPackOutput);
-            }
-
-            // Fallback: explorer.exe as a shell verb, with a system working directory so the loader does
-            // not search our output folder for DLLs.
-            try
-            {
-                Process.Start(new ProcessStartInfo
+                ("explorer (direct)", () => new ProcessStartInfo
+                {
+                    FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                        "explorer.exe"),
+                    UseShellExecute = false,
+                    WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                    ArgumentList = { path },
+                }),
+                ("explorer (shell)", () => new ProcessStartInfo
                 {
                     FileName = "explorer.exe",
-                    Arguments = $"\"{path}\"",
                     UseShellExecute = true,
-                    WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows),
-                });
-            }
-            catch (Exception ex)
+                    ArgumentList = { path },
+                }),
+                ("shell open", () => new ProcessStartInfo { FileName = path, UseShellExecute = true }),
+            };
+
+            foreach (var attempt in attempts)
             {
-                AppendLog($"Explorer fallback failed for '{path}': {ex.Message}", ErrorColor, rtbPackOutput);
-                MessageBox.Show($"Could not open the folder:\n{path}\n\n{ex.Message}",
-                    "Open folder", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                try
+                {
+                    Process.Start(attempt.Build());
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    AppendLog($"Could not open '{path}' via {attempt.Name}: {ex.Message}",
+                        WarningColor, rtbPackOutput);
+                }
             }
+
+            // Nothing worked: give the path back so it can be pasted into Explorer by hand.
+            MessageBox.Show(
+                $"Windows would not open the folder:\n\n{path}\n\nCopy that path into Explorer's address bar.",
+                "Open folder", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         private void LoadProjects()
         {

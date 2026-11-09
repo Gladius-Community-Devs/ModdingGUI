@@ -245,7 +245,9 @@ namespace ModdingGUI
         // Event handler for the 'Open Pack Location' button click event
         private void btnOpenPackLocation_Click(object sender, EventArgs e)
         {
-            OpenLocation(txtUnpackPath.Text); // Open the pack path location
+            // The packing tab is about the selected project, not the unpack folder name.
+            string project = txtPackPath.Text.Trim();
+            OpenLocation(string.IsNullOrWhiteSpace(project) ? txtUnpackPath.Text : project);
         }
 
         // Event handler for the 'Open Unpack Location' button click event
