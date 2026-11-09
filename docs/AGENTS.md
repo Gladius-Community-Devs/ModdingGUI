@@ -6,14 +6,16 @@ Gladius Modding Tools is a **Windows .NET 8 (WinForms)** GUI for modding the Gam
 
 - **`ModdingGUI`** — WinForms shell. Treated as a **parameter builder** over Core APIs. Never edits game files directly.
 
-- **Logging today is UI-bound, and that is a known gap.** About 270 `AppendLog(` calls across the
-  shell write into RichTextBox controls, and the Grid Builder keeps a second private logger; Core has
-  no logging abstraction. `ModdingGUI.Core.Logging.IAppLog` / `AppLog` now exist and the shell's
-  `AppendLog` writes through it before rendering, so **new output goes the same way**: take an
-  `IAppLog` (or the shell's existing helper), never write to a control directly, and when adding a Core
-  service return data (results, warnings, DTOs) rather than printing. An MCP client can only see what
-  exists as data. Known gap: pack/unpack still own their child processes in the shell.
-- **`ModdingGUI.Core`** (`net8.0`) — parsing, schemas, Tok framework, APIs, history, locking. No UI.
+- **Logging is Core-owned (Phase 7.8, done).** Every user-visible line goes through
+  `ModdingGUI.Core.Logging.IAppLog` / `AppLog` (ring buffer, `Written` event, file sink at
+  `%LOCALAPPDATA%\GladiusModding\last-run.log`). The shell's `AppendLog` records first and renders
+  second; the Grid Builder shares the same instance. **New output goes the same way**: take an
+  `IAppLog`, never write to a control directly, and when adding a Core service return data (results,
+  warnings, DTOs) rather than printing. An MCP client can only see what exists as data.
+  Pack, unpack, script compile and xdelta now own their child processes in Core
+  (`PackService` / `UnpackService` / `ProjectBuildService` + `ToolRunner`), so the GUI and the CLI
+  print the same log.
+- **`ModdingGUI.Core`** (`net8.0`) — parsing, schemas, Tok framework, APIs, history, locking, logging, toolchain. No UI.
 - **`ModdingGUI.Mcp`** (`net8.0`) — stdio MCP server exposing the Core APIs as tools (Phase 8, scaffolding today).
 
 The actual git repository lives at **`ModdingGUI/`** (origin `git@github.com:Gladius-Community-Devs/ModdingGUI.git`). The workspace root is a staging area that is **not** a git repo.
@@ -37,7 +39,7 @@ GladiusModdingToolsGUI/
                                 Reference only. Source of truth for round-trip tests.
                                 Any test/edit that writes must operate on a staged COPY.
   GridBuilder.jar_Decompiler.com/  Decompiled original Java app (reference only)
-  tools/                        Legacy Python modding toolbelt (invoked via .bat files)
+  tools/                        Legacy Python modding toolbelt (started directly, no .bat)
   docs/                         AGENTS.md, prd-template.md, test-standards.md
   MANUAL_TESTING_PHASE_2_6.md   Manual test checklist (Item Editor)
   MANUAL_TESTING_PHASE_2_7.md   Manual test checklist (Skill Editor validation)
@@ -47,7 +49,7 @@ GladiusModdingToolsGUI/
   ModdingGUI/                   ← THE GIT REPO + .NET solution
     ModdingGUI.sln
     ModdingGUI.csproj           WinForms shell (net8.0-windows, WinExe)
-    ModdingGUI.Core/            net8.0 no-UI core (Tok, Schemas, Api, Skills, History, Lock)
+    ModdingGUI.Core/            net8.0 no-UI core (Tok, Schemas, Api, Skills, History, Lock, Logging, Tools)
     ModdingGUI.Mcp/             net8.0 MCP stdio server (scaffolded, Phase 8)
     ModdingGUI.Tests/           xUnit, net8.0-windows
     skills/                     Skills catalog pipeline (versioned)
@@ -75,7 +77,7 @@ dol/                        Engine field tables extracted from the DOL (authorit
 
 ```
 dotnet build ModdingGUI.sln          # whole solution (shell + Core + Mcp + Tests)
-dotnet test ModdingGUI.sln           # xUnit suite (564 pass / 0 fail / 16 gated skips without real-data fixtures; 590/0/0 with them)
+dotnet test ModdingGUI.sln           # xUnit suite: 763 pass / 0 fail / 0 skip
 .\run-tests.ps1                      # colored runner w/ TRX, filters, -ProjectFolder
 .\run-tests.ps1 -Filter RealGameDataTests
 .\run-tests.ps1 -ProjectFolder REALDATA_v2
@@ -87,19 +89,19 @@ All commands run from inside `ModdingGUI/` (that is where the `.sln` and the git
 ### Test bar (mandatory, from PLAN.md)
 
 - `dotnet test -c Release` green at the end of every phase. No phase merges with failing tests.
-- Baseline is **590 passed / 0 failed / 0 skipped** with real-data fixtures present, or **564 passed / 0 failed / 16 skipped** without them. Every phase ends green.
+- Baseline is **763 passed / 0 failed / 0 skipped**. Every phase ends green.
 - `ModdingGUI.Tests/Core/Tok/TokRoundTripTests.cs` is the **corpus gate**: it parses and re-serializes every `.tok`/`.enc` in `clean-bec-unpacked/` (977 files) and fails on any byte diff. Never break this.
-- 16 `RealGameDataTests` are gated behind a `REALDATA_*` project folder + `vanilla.iso`; they skip in CI without it. To enable them locally, run **`ModdingGUI/setup-realdata.ps1`** — it breaks the vanilla ISO down from scratch using the app's own unpack toolchain (`ngciso-tool.py` → `bec-tool-all.py` → `Gladius_Units_IDX_Unpack.py`, the same commands `BatchContentBuilder` emits), byte-verifies the result against `clean-bec-unpacked` (0 missing / 0 extra / 0 diffs), and installs it into `bin/{Debug|Release}/net8.0-windows/win-x64/REALDATA_<name>/` plus a `vanilla.iso` hardlink. The vanilla ISO + `clean-bec-unpacked` are outside the repo; `bin/` is gitignored.
+- The `RealGameDataTests` are gated behind a `REALDATA_*` project folder + `vanilla.iso`. To enable them locally, run **`ModdingGUI/setup-realdata.ps1`** — it breaks the vanilla ISO down from scratch using the app's own unpack toolchain (`ngciso-tool.py` → `bec-tool-all.py` → `Gladius_Units_IDX_Unpack.py`, the same commands `BatchContentBuilder` emits), byte-verifies the result against `clean-bec-unpacked` (0 missing / 0 extra / 0 diffs), and installs it into `bin/{Debug|Release}/net8.0-windows/win-x64/REALDATA_<name>/` plus a `vanilla.iso` hardlink. The vanilla ISO + `clean-bec-unpacked` are outside the repo; `bin/` is gitignored.
 - Integration fixture: `ModdingGUI.Tests/Integration/GameDataFixture.cs` points at `clean-bec-unpacked/`. Do not check large new fixtures into the repo.
 - **Nullability policy (build must stay warning-free).** `ModdingGUI.Core` sets `Nullable=enable`
   **and promotes CS8600-CS8629 to errors** — Core is the source of truth, so new logic cannot land
   with a nullability warning. `ModdingGUI.Tests` is `enable` as well. The WinForms shell is
   `annotations`: type declarations stay annotated for callers, but flow analysis is off because
-  designer fields and event-handler parameters are not nullable-aware (that accounted for 107 of the
-  107 CS86xx warnings). A shell file flips to `#nullable enable` when it is ported onto a Core API
-  (Randomizer and Team Builder are next, Phases 6-7); logic that needs checking belongs in Core, not
-  in the shell. Consequences: `dotnet build` is expected to report **0 warnings** in both Debug and
-  Release — if a new warning appears, fix it rather than widening the suppression.
+  designer fields and event-handler parameters are not nullable-aware (that accounted for the
+  original 107 CS86xx warnings). A shell file flips to `#nullable enable` when it is ported onto a
+  Core API; logic that needs checking belongs in Core, not in the shell. Consequences:
+  `dotnet build` is expected to report **0 warnings** in both Debug and Release — if a new warning
+  appears, fix it rather than widening the suppression.
 
 ## Versioning / Release
 
@@ -166,18 +168,23 @@ zero warnings across all 1,811 vanilla records.
 
 | Phase | Status |
 |---|---|
-| Phase 2.6 — Items GUI on `IItemsApi` | **done** (216/0/0 at close-out) |
-| Phase 2.7 — Skills catalog-driven, freeform | **implemented** (catalog v2 + `Validate` + GUI surfacing; manual smoke pending) |
+| Phase 2.6 — Items GUI on `IItemsApi` | **done** |
+| Phase 2.7 — Skills catalog-driven, freeform | **done** (manual smoke pending) |
+| Phase 3 — Lookup + Classes | **done** |
 | Phase 4 — Encounters, Leagues, Towns, Schools | **done**: encounters, schools, leagues and the flat config-table API; `ITownsApi` folded into `IConfigTableApi` (towns hold shops + `.tnt` tints, no `towns/*.tok`) |
-| Phases 4–9 | Phase 4 (encounters/leagues/schools/config/grids) and Phase 5 (units txt) are done; randomizer, team builder, backup restore, MCP and polish remain |
+| Phase 5 — Units `.txt` family | **APIs done**, in-game QA pending |
+| Phase 6 — Randomizer rewrite | **done**, in-game QA pending |
+| Phase 7 — Team Builder (incl. 7.5, 7.8, 7.9) | **done** — Team Builder reads/writes only through Core APIs; pack/unpack/compile/xdelta run from Core with no batch file. UX refinement backlog is listed in `docs/HANDOFF.md` §5.3 |
+| Phase 8 — `ModdingGUI.Mcp` stdio server | **next** — `Program.cs` is a 46-line inert stub |
+| Phase 9 — Polish | not started |
 
 ## Known Tech Debt / Gotchas
 
-- **Everything is committed.** The rewrite lives in `329a3f0` (plus follow-ups). Keep the working tree clean; `dotnet clean` only affects gitignored `bin/`.
-- 113 build warnings (mostly nullable analysis in legacy `frmMain_partials`). No analyzers, `TreatWarningsAsErrors=false`.
+- **Everything is committed.** Keep the working tree clean; `dotnet clean` only affects gitignored `bin/`.
+- **0 build warnings** are expected in Debug and Release. If one appears, fix it (see the nullability policy above).
 - `CLAUDE.md` is in `.gitignore` (deliberately not committed) — this AGENTS.md is the committed equivalent.
-- The randomizer no longer bypasses Core: `frmMain_partials/Randomizer.cs` was deleted in Phase 6 and the panel builds `RandomizerOptions` for `RandomizerRunner`. Remaining bypasses: pack/unpack batch generation and Team Builder (Phase 7).
-- Python batch scripts break on paths containing `(` or `)`. The app warns/fixes at several entry points; `PathHelper.QuotePath` escapes them.
+- No bypasses remain: the randomizer panel builds `RandomizerOptions` for `RandomizerRunner`; Team Builder reads and writes through Core APIs; pack/unpack/script-compile are Core services.
+- **`(` and `)` in paths are ordinary.** The toolchain is started with `ProcessStartInfo.ArgumentList`, so there is no batch parser to break. Do **not** reintroduce a parenthesis check, and do **not** pass `PathHelper.QuotePath` output to a directly-started process — a caret escape is literal there. `QuotePath` exists only to render the inspectable batch text ("Save tool commands (.bat)").
 - **`clean-bec-unpacked/` is reference-only, never a write target.** It is not part of the git repo (deliberately), so it cannot be restored from version control. Never read-modify it in place. Any test, script, or manual session that mutates data **must copy the file(s) to a temp/staging location first** and operate on the copy (the test suite does this via per-test temp project dirs; see `docs/test-standards.md`).
 - `ModdingGUI/skills/skills_catalog.json` is generated by `py -3 skills/build_catalog.py`
 - `ModdingGUI/classdefs/classdefs_catalog.json` is generated by `py -3 classdefs/build_catalog.py`
