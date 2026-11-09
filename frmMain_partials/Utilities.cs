@@ -199,31 +199,26 @@ namespace ModdingGUI
 
             AppendLog($"Opening location: {path}", InfoColor, rtbPackOutput);
 
-            // Ask the shell to open the folder instead of spawning explorer.exe ourselves. A directly
-            // spawned explorer.exe inherits this process's working directory and DLL search path, and
-            // started from the build output folder that can die at load time with 0xC0000142 (DLL
-            // initialisation failed) before any window appears. ShellExecute hands the job to the
-            // running shell, and the path travels as a file name rather than as command-line text, so
-            // quoting, carets and parentheses in the path stop mattering.
-            // Three routes, most direct first. ShellExecute (the second) is the one a sandboxed or locked-down
-            // environment refuses with "Access is denied", so it is not tried first any more.
+            // Ask the shell that is already running first. SHOpenFolderAndSelectItems opens the folder through the
+            // shell namespace, so nothing is spawned: neither the 0xC0000142 loader failure of starting explorer.exe
+            // ourselves (it inherits this process's environment) nor a refused ShellExecute verb can stop it.
+            if (ModdingGUI.Helpers.ShellFolderOpener.TryOpen(path, out string shellError))
+            {
+                return;
+            }
+
+            AppendLog($"Could not open '{path}' through the shell: {shellError}", WarningColor, rtbPackOutput);
+
+            // Fallbacks: the ShellExecute verb, then explorer.exe launched by the shell rather than by us.
             var attempts = new (string Name, Func<ProcessStartInfo> Build)[]
             {
-                ("explorer (direct)", () => new ProcessStartInfo
-                {
-                    FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),
-                        "explorer.exe"),
-                    UseShellExecute = false,
-                    WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows),
-                    ArgumentList = { path },
-                }),
+                ("shell open", () => new ProcessStartInfo { FileName = path, UseShellExecute = true }),
                 ("explorer (shell)", () => new ProcessStartInfo
                 {
                     FileName = "explorer.exe",
                     UseShellExecute = true,
                     ArgumentList = { path },
                 }),
-                ("shell open", () => new ProcessStartInfo { FileName = path, UseShellExecute = true }),
             };
 
             foreach (var attempt in attempts)

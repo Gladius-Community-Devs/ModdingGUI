@@ -178,10 +178,11 @@ namespace ModdingGUI
 
                 try
                 {
-                    Process.Start(new ProcessStartInfo("explorer.exe", $"\"{projectFolder}\"")
+                    // Same route as everywhere else: ask the running shell, never spawn explorer.exe ourselves.
+                    if (!ModdingGUI.Helpers.ShellFolderOpener.TryOpen(projectFolder, out string shellError))
                     {
-                        UseShellExecute = true,
-                    });
+                        throw new InvalidOperationException(shellError);
+                    }
                 }
                 catch (Exception ex)
                 {
