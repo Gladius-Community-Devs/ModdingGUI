@@ -556,6 +556,22 @@ Expose the `.mod-history` archive as a first-class feature.
 
 **Exit:** user can browse and restore any prior backup from within the GUI; restoring is itself undoable (creates a new `.bak` of the pre-restore state).
 
+**Status: done.**
+
+- **Core — `ChangeHistoryService`** gained `ListBackups(project, relativePathFilter?)` (newest first, timestamp parsed
+  from the file name), `ListBackedUpFiles(project)` (grouped with counts) and `RestoreBackup(project, backupPath)`.
+  Restore writes a backup of the live file first, so it is undoable, and rejects anything outside this project's
+  `.mod-history`. The randomizer's pinned baseline lives under `.mod-history/_randomizer-baseline` and is deliberately
+  excluded: it is a snapshot, not an edit history.
+- **Core — `IHistoryApi` / `HistoryApi`**: `ListAll`, `ListFiles`, `ListFor`, `Restore` (by entry or by path), under
+  the project lock like every other write. Binary formats come free: grids are ordinary `.mod-history` entries.
+- **GUI — `Forms/HistoryForm`**: files with backups on the left (path, count, latest), timestamps on the right
+  (time, size), Restore with a confirmation that says the current file is backed up first. Reached from
+  **File > Restore from Backup...** and from the project tree's context menu.
+- **11 tests**: ordering, grouping, filtering, byte-exact restore, restore-is-undoable, recreating a deleted file,
+  rejecting a backup outside the project, rejecting a missing backup, binary round-trip, baseline exclusion, empty
+  project.
+
 ### Phase 7.8 — Output and log sink (prerequisite for Phase 8)
 
 Today every user-visible message goes into a WinForms control: **267 `AppendLog(` call sites** across

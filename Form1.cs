@@ -585,6 +585,32 @@ namespace ModdingGUI
         }
 
         /// <summary>
+        /// Open the backup browser for the current project: the tree selection first, then the pack box.
+        /// </summary>
+        private void restoreFromBackupMenuItem_Click(object? sender, EventArgs e)
+        {
+            string project = tvwProjects.SelectedNode?.Tag as string ?? txtPackPath.Text.Trim();
+
+            if (string.IsNullOrEmpty(project) || !Directory.Exists(project))
+            {
+                MessageBox.Show("Select a project in the list first.", "Restore from Backup",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var dialog = new ModdingGUI.Forms.HistoryForm(project);
+            dialog.ShowDialog(this);
+
+            // A restore rewrites files behind the editors' backs: reload them so nothing saves a stale copy.
+            if (dialog.RestoredAnything)
+            {
+                AppendLog($"Restored from backup in '{Path.GetFileName(project)}'; reload any open editor.",
+                    WarningColor);
+                RefreshBaselineStatus();
+            }
+        }
+
+        /// <summary>
         /// True when the folder holds a <c>_BEC</c> and an <c>_ISO</c> folder. Uses exact suffixes rather than a
         /// substring test, and tolerates the folder vanishing between the check and the enumeration.
         /// </summary>

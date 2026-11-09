@@ -117,6 +117,18 @@ the ISO this produces.
       doing nothing.
 - [ ] **Launch with Dolphin** and **Copy Project** act on the right-clicked project too.
 
+## 6c. Restore from backup
+
+- [ ] Edit something (item, skill, grid, randomizer run), then **File > Restore from Backup...**.
+- [ ] The left list shows the edited file with a backup count and the latest timestamp.
+- [ ] Picking it lists timestamps on the right, newest first, with sizes.
+- [ ] Restore asks for confirmation, then reports the file back at that timestamp.
+- [ ] The restored file is byte-identical to before the edit (diff it).
+- [ ] Restore again, choosing the newer backup: the *undo* works, proving restore is itself undoable.
+- [ ] Project tree > right-click > **Restore from Backup...** opens the same dialog for that project.
+- [ ] The randomizer's baseline does **not** appear in the list (use Reset to Vanilla for that).
+- [ ] Delete a file, then restore it: the file comes back.
+
 ## 7. Failure table
 
 | Symptom | Most likely cause |

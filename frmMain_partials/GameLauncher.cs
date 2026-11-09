@@ -190,9 +190,21 @@ namespace ModdingGUI
                 }
             };
 
+            var backups = new ToolStripMenuItem("Restore from Backup...");
+            backups.Click += (_, _) =>
+            {
+                if (!TryGetSelectedProject(out string folder, out _)) return;
+                using var dialog = new ModdingGUI.Forms.HistoryForm(folder);
+                if (dialog.ShowDialog(this) == DialogResult.OK || dialog.RestoredAnything)
+                {
+                    LoadProjects();
+                }
+            };
+
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(refresh);
             menu.Items.Add(openFolder);
+            menu.Items.Add(backups);
             tvwProjects.ContextMenuStrip = menu;
 
             // F5 works whether or not the context menu is open.

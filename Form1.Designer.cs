@@ -35,6 +35,7 @@ namespace ModdingGUI
             mnuMain = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             settingsMenuItem = new ToolStripMenuItem();
+        restoreFromBackupMenuItem = new ToolStripMenuItem();
             infoMenuItem = new ToolStripMenuItem();
             updateMenuItem = new ToolStripMenuItem();
             optionsToolStripMenuItem = new ToolStripMenuItem();
@@ -264,12 +265,19 @@ namespace ModdingGUI
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsMenuItem, infoMenuItem, updateMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsMenuItem, restoreFromBackupMenuItem, infoMenuItem, updateMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(54, 29);
             fileToolStripMenuItem.Text = "File";
             // 
-            // settingsMenuItem
+            // restoreFromBackupMenuItem
+        //
+        restoreFromBackupMenuItem.Name = "restoreFromBackupMenuItem";
+        restoreFromBackupMenuItem.Size = new Size(272, 34);
+        restoreFromBackupMenuItem.Text = "Restore from Backup...";
+        restoreFromBackupMenuItem.Click += restoreFromBackupMenuItem_Click;
+        //
+        // settingsMenuItem
             // 
             settingsMenuItem.Name = "settingsMenuItem";
             settingsMenuItem.Size = new Size(272, 34);
@@ -2475,6 +2483,7 @@ namespace ModdingGUI
         private ToolStripMenuItem randomizerTestingMenuItem;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem settingsMenuItem;
+        private ToolStripMenuItem restoreFromBackupMenuItem;
         private CheckBox chbAutoLaunchDolphin;
         private CheckBox chbRandomCustomCash;
         private TextBox txtRandomCustomCash;
