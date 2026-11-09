@@ -47,6 +47,12 @@ if (!FUN_800f96f4(unit[0x20], item)) return 0;     // item category vs class ITE
 
 `item[9]` is `ITEMMINLEVEL` from `items.tok`.
 
+The tier itself is **not stored in any data file**: `FUN_800f7bd8` derives it from championships completed. Amateur
+until the first championship is won, Semi-Pro until the second, Pro afterwards. A starting team is always Amateur;
+PvP/tournament teams are Pro. Consequences for tooling: the campaign rosters the Team Builder writes will be Amateur in
+normal play, so items above level 5 would not be equippable **by hand** there — but explicit `ITEMSCOMP` gear ignores
+the cap, so this stays an advisory note rather than a validation rule.
+
 So the rule is **not** "an item's level must not exceed the unit's level". It is the *school's tier* against the
 *item's* minimum level: Amateur ≤ 5, Semi-Pro ≤ 10, Pro unlimited. A level-3 unit may legitimately carry a level-5
 weapon.

@@ -4,14 +4,27 @@
     "function": "FUN_800fd694",
     "signature": "int canEquip(unitOrSchool, item)",
     "calledFrom": "UpdateEquipItemMenu (0x801bc110), the equip-menu confirmation path",
-    "tierSource": "FUN_800f7bd8(school, 0) -> school grade 1..3",
+    "tierSource": "FUN_800f7bd8(school, 0) -> school grade 1..3, derived at runtime from championships beaten: Amateur until the first championship is completed, Semi-Pro until the second, Pro after. A starting team is always Amateur; PvP/tournament teams are Pro. Nothing in the data files stores it.",
     "rules": [
-      { "tier": 1, "name": "Amateur", "rejectWhen": "ITEMMINLEVEL > 5" },
-      { "tier": 2, "name": "Semi-Pro", "rejectWhen": "ITEMMINLEVEL > 10" },
-      { "tier": 3, "name": "Pro", "rejectWhen": "never (no level cap)" }
+      {
+        "tier": 1,
+        "name": "Amateur",
+        "rejectWhen": "ITEMMINLEVEL > 5"
+      },
+      {
+        "tier": 2,
+        "name": "Semi-Pro",
+        "rejectWhen": "ITEMMINLEVEL > 10"
+      },
+      {
+        "tier": 3,
+        "name": "Pro",
+        "rejectWhen": "never (no level cap)"
+      }
     ],
     "then": "FUN_800f96f4(classItemCategories, item) must pass",
-    "note": "The cap compares the ITEM's ITEMMINLEVEL to the school's tier, not to the unit's level. Gear written into a roster's ITEMSCOMP is applied directly and is not gated by this path at all."
+    "note": "The cap compares the ITEM's ITEMMINLEVEL to the school's tier, not to the unit's level. Gear written into a roster's ITEMSCOMP is applied directly and is not gated by this path at all.",
+    "tierIsRuntimeProgression": true
   },
   "categoryCheck": {
     "function": "FUN_800f96f4",
@@ -31,7 +44,13 @@
     "vanillaAgreement": "all 9,912 rows carry a tag equal to their item's Type, so the tag is redundant but never load-bearing"
   },
   "itemsComp": {
-    "positions": ["weapon", "armor", "shield", "helmet", "accessory"],
+    "positions": [
+      "weapon",
+      "armor",
+      "shield",
+      "helmet",
+      "accessory"
+    ],
     "handler": "CORESTATSCOMP2/ITEMSCOMP block loader -> CharacterChangeItem slots 1,2,4,3,5",
     "validation": "none: the engine does not check that the item in the weapon position is a weapon",
     "consequence": "an item written in the wrong position occupies that slot; a unit without a usable weapon does not attack"

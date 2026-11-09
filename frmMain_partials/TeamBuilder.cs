@@ -1437,17 +1437,19 @@ namespace ModdingGUI
             }
 
             // Parse item sets from the project if possible
-            Dictionary<int, List<string>> itemSets = null;
+            Dictionary<int, ModdingGUI.Core.Api.ItemSetDto> itemSets = null;
+            Dictionary<string, string> itemTypes = null;
             try
             {
                 if (!string.IsNullOrEmpty(projectPath) && Directory.Exists(projectPath))
                 {
                     // One pass over the item sets, then index -> item names, which is what the builder wants.
                     itemSets = new ModdingGUI.Core.Api.ItemSetsApi().GetAll(projectPath)
-                        .ToDictionary(
-                            set => set.Index,
-                            set => set.Rows.Select(row => row.ItemName).ToList());
-                    AppendLog($"Loaded {itemSets.Count} item sets for class-based equipment assignment.", Color.Blue);
+                        .ToDictionary(set => set.Index);
+                    itemTypes = new ModdingGUI.Core.Api.ItemsApi().GetAll(projectPath)
+                        .Where(item => !string.IsNullOrWhiteSpace(item.Type))
+                        .ToDictionary(item => item.Name, item => item.Type!, StringComparer.OrdinalIgnoreCase);
+                    AppendLog($"Loaded {itemSets.Count} item sets and {itemTypes.Count} item types.", Color.Blue);
                 }
             }
             catch (Exception ex)
@@ -1489,22 +1491,35 @@ namespace ModdingGUI
                     {
                         // Find a matching gladiator entry for this class
                         var matchingGladiators = gladiatorEntries.Where(g => g.Class.Equals(unit.Class.ClassName, StringComparison.OrdinalIgnoreCase)).ToList();
-                        if (matchingGladiators.Count > 0)
+                        if (matchingGladiators.Count > 0
+                            && itemSets.TryGetValue(matchingGladiators[0].ItemSet, out var sourceSet)
+                            && itemTypes is not null)
                         {
-                            // Use the first matching gladiator's item set
                             var gladiator = matchingGladiators[0];
-                            var defaultItems = itemSets.GetValueOrDefault(gladiator.ItemSet, new List<string> { "", "", "", "", "" });
+                            var gearWarnings = new List<string>();
 
-                            // Assign default items only for empty slots
-                            if (defaultItems.Count >= 5)
+                            // Shared with the randomizer: classify by items.tok Type, prefer the row covering the unit's level.
+                            var gear = ModdingGUI.Core.Units.ItemSetGear.ForLevel(
+                                sourceSet.Rows, unit.Level, itemTypes, gearWarnings);
+
+                            foreach (string warning in gearWarnings)
                             {
-                                if (string.IsNullOrEmpty(weapon)) weapon = defaultItems[0];
-                                if (string.IsNullOrEmpty(armor)) armor = defaultItems[1];
-                                if (string.IsNullOrEmpty(shield)) shield = defaultItems[2];
-                                if (string.IsNullOrEmpty(helmet)) helmet = defaultItems[3];
-                                if (string.IsNullOrEmpty(accessory)) accessory = defaultItems[4];
-                                
-                                AppendLog($"Applied default equipment from ItemSet {gladiator.ItemSet} for unit '{unit.UnitName}' with class '{unit.Class.ClassName}'", Color.Blue);
+                                AppendLog($"Item set {gladiator.ItemSet}: {warning}", Color.Orange);
+                            }
+
+                            if (string.IsNullOrEmpty(weapon)) weapon = gear.Weapon ?? string.Empty;
+                            if (string.IsNullOrEmpty(armor)) armor = gear.Armor ?? string.Empty;
+                            if (string.IsNullOrEmpty(shield)) shield = gear.Shield ?? string.Empty;
+                            if (string.IsNullOrEmpty(helmet)) helmet = gear.Helmet ?? string.Empty;
+                            if (string.IsNullOrEmpty(accessory)) accessory = gear.Accessory ?? string.Empty;
+
+                            AppendLog($"Applied equipment from item set {gladiator.ItemSet} for '{unit.UnitName}' " +
+                                      $"({unit.Class.ClassName}, level {unit.Level}).", Color.Blue);
+
+                            if (string.IsNullOrEmpty(weapon))
+                            {
+                                AppendLog($"Warning: '{unit.UnitName}' has no weapon in item set {gladiator.ItemSet}; " +
+                                          "the unit will not be able to attack.", Color.Red);
                             }
                         }
                     }

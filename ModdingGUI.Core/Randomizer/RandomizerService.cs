@@ -91,6 +91,8 @@ public sealed class RandomizerService
     private readonly IGladiatorsApi _gladiators;
     private readonly IStatSetsApi _statSets;
     private readonly IItemSetsApi _itemSets;
+    private readonly IItemsApi _items;
+    private IReadOnlyDictionary<string, string>? _itemTypes;
     private readonly ISkillSetsApi _skillSets;
     private readonly ILeaguesApi _leagues;
     private readonly IAppLog? _log;
@@ -102,7 +104,8 @@ public sealed class RandomizerService
         IItemSetsApi? itemSets = null,
         ISkillSetsApi? skillSets = null,
         ILeaguesApi? leagues = null,
-        IAppLog? log = null)
+        IAppLog? log = null,
+        IItemsApi? items = null)
     {
         _gladiators = gladiators ?? new GladiatorsApi();
         _statSets = statSets ?? new StatSetsApi();
@@ -110,6 +113,7 @@ public sealed class RandomizerService
         _skillSets = skillSets ?? new SkillSetsApi();
         _leagues = leagues ?? new LeaguesApi();
         _log = log;
+        _items = items ?? new ItemsApi();
     }
 
     /// <summary>Run the requested steps. Returns what happened, including the seed for reproduction.</summary>
@@ -363,22 +367,30 @@ public sealed class RandomizerService
     private string BuildItemLine(string projectRoot, int itemSet)
     {
         var rows = _itemSets.Get(projectRoot, itemSet)?.Rows ?? Array.Empty<ItemSetRow>();
-        var items = new List<string>(5);
 
-        foreach (string slot in new[] { "Weapon", "Armor", "Shield", "Helmet", "Accessory" })
+        // Shared with the Team Builder: classify by items.tok Type, because that is what the engine matches against
+        // the class categories. The [Weapon] tag in itemsets.txt is discarded by the packer, so it cannot be trusted.
+        GearLoadout gear = ItemSetGear.ForLevel(rows, 1, ItemTypes(projectRoot));
+
+        return string.Join(", ", gear.InSlotOrder.Select(item => $"\"{item}\""));
+    }
+
+    /// <summary>Item name to <c>items.tok</c> Type, built once per run.</summary>
+    private IReadOnlyDictionary<string, string> ItemTypes(string projectRoot)
+    {
+        if (_itemTypes is not null) return _itemTypes;
+
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in _items.GetAll(projectRoot))
         {
-            var candidates = rows
-                .Where(row => row.Note is not null
-                              && row.Note.Contains(slot, StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-
-            var chosen = candidates.FirstOrDefault(row => row.MinLevel <= 1 && row.MaxLevel >= 1)
-                         ?? candidates.FirstOrDefault();
-
-            items.Add(chosen?.ItemName ?? string.Empty);
+            if (!string.IsNullOrWhiteSpace(item.Name) && !string.IsNullOrWhiteSpace(item.Type))
+            {
+                map[item.Name] = item.Type!;
+            }
         }
 
-        return string.Join(", ", items.Select(item => $"\"{item}\""));
+        _itemTypes = map;
+        return map;
     }
 
     /// <summary>
