@@ -162,6 +162,32 @@ Target: ~30–40 new tests, full suite green at 2xx/0/0 with `REALDATA_vanilla` 
 
 Phases 3–7 later add `classes_*`, `encounters_*`, `leagues_*`, `towns_*`, `schools_*`, `gladiators_*`, `statsets_*`, `itemsets_*`, `skillsets_*`, `randomizer_*` — one tool class each, ~30–60 lines, no protocol work.
 
+## 5.9 What MCP must not touch
+
+Application settings are **not** exposed as tools, by design, and the boundary is enforced by tests
+(`ModdingGUI.Tests/Architecture/McpBoundaryTests.cs`):
+
+| Guard | Why |
+|---|---|
+| `ModdingGUI.Mcp` may reference **only** `ModdingGUI.Core` | `AppSettings` lives in the shell; without the reference no tool can reach it |
+| No `AppSettings`, `settings.json`, Dolphin path, projects folder or auto-launch mentions in the MCP project | the intent is checked, not just the reference |
+| `AppSettings` must not move into Core | a tripwire for the one refactor that would quietly open the door |
+
+Reasons to keep it closed:
+
+1. **Settings are machine-local, not part of the mod.** A Dolphin executable path or a projects folder says nothing
+   about the game data a client is editing.
+2. **They are outside the undo story.** Every write tool ships with `.mod-history` backups; settings changes have no
+   history, so an AI edit there would be unrecoverable - against the rule that write tools wait for `history_restore`
+   (Phase 7.5).
+3. **They change where the tool looks and what it launches.** Moving the projects folder or pointing at a different
+   emulator is a decision for the person at the keyboard.
+4. **The MCP server is opt-in per process.** `EnableMcpServer` in `AppSettings` gates it; a client that can write
+   settings could switch its own transport on.
+
+Read-only context is fine, and is planned as `project_list` / `project_info` output (version, project layout, whether
+a randomizer baseline is pinned). That is information about the project, not configuration of the application.
+
 ## 6. Verification status from this session
 
 - **Could not run the build or tests here.** `dotnet` in this sandbox can't reach nuget.org (`NU1301`, TLS/"No credentials are available in the security package" — the machine's proxy needs Windows SSO, which a sandboxed child process doesn't get in the same way). `DOTNET_CLI_HOME` also had to be redirected to a writable folder.
