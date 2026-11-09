@@ -169,7 +169,11 @@ public sealed class LookupTextApi : ILookupTextApi
     {
         string path = PathFor(projectPath, language);
         if (!File.Exists(path))
-            throw new FileNotFoundException($"lookuptext_{LookupLanguages.Suffix(language)}.txt not found.", path);
+        {
+            throw new FileNotFoundException(
+                $"lookuptext_{LookupLanguages.Suffix(language)}.txt not found for project '{projectPath}'. " +
+                $"Expected at '{path}'.", path);
+        }
 
         string text = File.ReadAllText(path, Enc);
         string normalised = text.Replace("\r\n", "\n").Replace("\r", "\n");

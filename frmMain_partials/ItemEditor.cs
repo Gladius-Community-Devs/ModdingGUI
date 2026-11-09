@@ -84,16 +84,34 @@ namespace ModdingGUI
         /// Entry point called by <c>tvwProjects_AfterSelect</c>. Fires the async
         /// load immediately and returns so the UI thread is never blocked.
         /// </summary>
+        /// <summary>
+        /// Bumped on every load. A load that finishes after a newer one started - or after its project was deleted -
+        /// discards its results instead of binding them, so the tree cannot resurrect a dead project.
+        /// </summary>
+        private int _itemEditorLoadVersion;
+
         public void InitialiseItemEditor(string projectPath)
         {
-            _ = InitialiseItemEditorAsync(projectPath);
+            int version = ++_itemEditorLoadVersion;
+            _ = InitialiseItemEditorAsync(projectPath, version);
         }
 
-        private async Task InitialiseItemEditorAsync(string projectPath)
+        private async Task InitialiseItemEditorAsync(string projectPath, int version)
         {
             // ---- Path setup (no I/O) ----------------------------------------
             projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            _becFolder = Path.Combine(projectPath, $"{Path.GetFileName(projectPath)}_BEC");
+            string candidateBec = Path.Combine(projectPath, $"{Path.GetFileName(projectPath)}_BEC");
+
+            // Deleting a project while the tree is rebuilt can land here with a folder that is already gone.
+            if (!Directory.Exists(candidateBec))
+            {
+                AppendLog($"Item editor not loaded: '{Path.GetFileName(projectPath)}' is no longer on disk.",
+                    Color.Orange);
+                ClearEditorState();
+                return;
+            }
+
+            _becFolder = candidateBec;
             var cfg = Path.Combine(_becFolder, "data", "config");
             string skillsTokPath = Path.Combine(cfg, "skills.tok");
 
@@ -118,6 +136,12 @@ namespace ModdingGUI
             {
                 var lookupAndSkillsTask = Task.Run(() =>
                 {
+                    // The folder can be deleted between the check above and this I/O.
+                    if (!Directory.Exists(becFolder))
+                    {
+                        return (new Dictionary<int, string>(), new List<SkillInfo>());
+                    }
+
                     var lt = new Dictionary<int, string>(_lookupTextApi.Load(becFolder));
                     // Pass pre-loaded lookup — no second read of lookuptext_eng.txt.
                     // Pass null logAction — safe to call from background thread.
@@ -138,8 +162,14 @@ namespace ModdingGUI
             catch (Exception ex)
             {
                 AppendLog($"Failed to initialize Item Editor: {ex.Message}", Color.Red);
-                ddlItemEditorAllItems.Enabled = true;
-                btnItemEditorNewSave.Enabled = true;
+                ClearEditorState();
+                return;
+            }
+
+            // A newer load started, or this project was deleted while the I/O ran: drop the results.
+            if (version != _itemEditorLoadVersion || !Directory.Exists(becFolder))
+            {
+                AppendLog("Item editor load discarded: the project changed or was removed.", Color.Orange);
                 return;
             }
 
@@ -228,6 +258,20 @@ namespace ModdingGUI
                 return text ?? string.Empty;
             }
             return string.Empty;
+        }
+
+        /// <summary>Put the editor back to "nothing loaded" without touching any project.</summary>
+        private void ClearEditorState()
+        {
+            _becFolder = string.Empty;
+            _currentDto = null;
+            _itemDtoCache = new Dictionary<string, ItemDto>(StringComparer.Ordinal);
+            _bindingListOfItems = new BindingList<ItemRow>();
+
+            ddlItemEditorAllItems.DataSource = null;
+            ddlItemEditorAllItems.Enabled = true;
+            btnItemEditorNewSave.Enabled = false;
+            ClearEditorFields();
         }
 
         private void ClearEditorFields()

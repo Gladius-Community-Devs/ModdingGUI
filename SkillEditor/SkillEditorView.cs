@@ -127,6 +127,14 @@ public sealed partial class SkillEditorView : UserControl
     /// </summary>
     public void InitializeEditor(string projectRootPath)
     {
+        // A project can be deleted while the tree is being rebuilt; do not start a load against a dead folder.
+        if (!Directory.Exists(projectRootPath))
+        {
+            ReleaseProject();
+            SetStatus($"Project '{Path.GetFileName(projectRootPath)}' is no longer on disk.", isError: true);
+            return;
+        }
+
         _projectFolder = projectRootPath.TrimEnd(
             Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         _skillsContext = null;   // Invalidate per-project cache on project change
@@ -309,7 +317,16 @@ public sealed partial class SkillEditorView : UserControl
         try
         {
             string bec = ProjectPaths.BecFolder(_projectFolder);
-            names = await Task.Run(() => _api.List(bec).ToList());
+
+            // The folder may have been deleted between the guard above and this call.
+            if (!Directory.Exists(bec))
+            {
+                error = new DirectoryNotFoundException("The project folder no longer exists.");
+            }
+            else
+            {
+                names = await Task.Run(() => _api.List(bec).ToList());
+            }
         }
         catch (Exception ex)
         {

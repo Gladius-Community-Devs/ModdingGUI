@@ -1119,6 +1119,8 @@ namespace ModdingGUI
                 if (e.Node.Level == 0 && e.Node.Tag is Unit unit)
                 {
                     DisplayUnitStats(unit);
+                    _selectedUnit = unit;
+                    RefreshLoadoutEditors();
                     btnTeamRemoveUnit.Enabled = true;
                 }
                 else
@@ -1708,8 +1710,20 @@ namespace ModdingGUI
         /// skills only for those the class may learn (SKILLUSECLASS); see dol/equipment_rules.json and
         /// dol/skill_rules.json.
         /// </summary>
+        private bool _loadoutBuilt;
+
         private void BuildLoadoutEditors()
         {
+            // InitializeTeamBuilderUI runs on every project selection; the controls must only be created once.
+            if (_loadoutBuilt)
+            {
+                RefreshRosterList();
+                RefreshLoadoutEditors();
+                return;
+            }
+
+            _loadoutBuilt = true;
+
             // ---- Gear page ----
             _lstLegalItems = new ListBox { Dock = DockStyle.Fill, IntegralHeight = false };
             _lstLegalItems.DoubleClick += (_, _) => AssignSelectedItem();
