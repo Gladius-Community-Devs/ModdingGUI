@@ -214,6 +214,7 @@ namespace ModdingGUI
             }
 
             AppendLog($"Could not open '{path}' through the shell: {shellError}", WarningColor, rtbPackOutput);
+            AppendLog($"Process context: {ModdingGUI.Helpers.ProcessContext.Describe()}", WarningColor, rtbPackOutput);
 
             // One fallback only: the ShellExecute verb, on a normalised path. Spawning explorer.exe is not offered at
             // all - it dies at load with 0xC0000142 when it inherits this process environment, which is a worse
@@ -229,9 +230,24 @@ namespace ModdingGUI
                 AppendLog($"Could not open '{path}' via ShellExecute: {ex.Message}", WarningColor, rtbPackOutput);
             }
 
-            // Nothing worked: give the path back so it can be pasted into Explorer by hand.
+            // Nothing worked. Copy the path so it can be pasted into Explorer, and say why it failed: a process in a
+            // restricted job or a non-interactive window station cannot drive the shell at all.
+            bool copied = false;
+            try
+            {
+                Clipboard.SetText(path);
+                copied = true;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Could not copy the path to the clipboard: {ex.Message}", WarningColor, rtbPackOutput);
+            }
+
             MessageBox.Show(
-                $"Windows would not open the folder:\n\n{path}\n\nCopy that path into Explorer's address bar.",
+                $"Windows would not open the folder:\n\n{path}\n\n" +
+                (copied ? "The path is on the clipboard - paste it into Explorer's address bar.\n\n" : string.Empty) +
+                "If this keeps happening, the app is running in a restricted context " +
+                $"({ModdingGUI.Helpers.ProcessContext.Describe()}). Launch it normally from Explorer.",
                 "Open folder", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         private void LoadProjects()
