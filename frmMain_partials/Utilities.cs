@@ -243,11 +243,16 @@ namespace ModdingGUI
                 AppendLog($"Could not copy the path to the clipboard: {ex.Message}", WarningColor, rtbPackOutput);
             }
 
+            string reason = ModdingGUI.Helpers.ProcessContext.IsLowIntegrity()
+                ? "This copy of the app is running at LOW integrity (started by a sandbox). Windows does not let a " +
+                  "low-integrity process drive Explorer, so no folder can be opened from here. Launch the .exe " +
+                  "directly - double-click it in File Explorer - and the button will work."
+                : "Windows would not open the folder. Launch the app normally from Explorer and try again.";
+
             MessageBox.Show(
                 $"Windows would not open the folder:\n\n{path}\n\n" +
                 (copied ? "The path is on the clipboard - paste it into Explorer's address bar.\n\n" : string.Empty) +
-                "If this keeps happening, the app is running in a restricted context " +
-                $"({ModdingGUI.Helpers.ProcessContext.Describe()}). Launch it normally from Explorer.",
+                reason + $"\n\nContext: {ModdingGUI.Helpers.ProcessContext.Describe()}",
                 "Open folder", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         private void LoadProjects()

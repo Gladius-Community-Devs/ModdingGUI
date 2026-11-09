@@ -140,6 +140,12 @@ internal static class ProcessContext
         }
     }
 
+    /// <summary>
+    /// True when the process runs at low integrity. Windows refuses such a process the shell entirely: it cannot drive
+    /// Explorer (UIPI), so opening a folder is impossible until the app is launched normally.
+    /// </summary>
+    public static bool IsLowIntegrity() => IntegrityLevel() == "Low";
+
     /// <summary>One line describing the environment, for the log when a shell operation is refused.</summary>
     public static string Describe() =>
         $"elevated={IsElevated()}, integrity={IntegrityLevel()}, inJob={IsInJob()}, " +

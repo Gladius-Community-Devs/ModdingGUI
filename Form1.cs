@@ -262,6 +262,16 @@ namespace ModdingGUI
             {
                 LoadAppSettings(); // Apply application settings
 
+                // Record the process context once: a low-integrity (sandboxed) instance cannot drive the shell, and
+                // knowing that up front saves chasing features that are blocked by it.
+                AppendLog($"Running as: {ModdingGUI.Helpers.ProcessContext.Describe()}", InfoColor);
+                if (ModdingGUI.Helpers.ProcessContext.IsLowIntegrity())
+                {
+                    AppendLog("This copy is running at LOW integrity (a sandbox started it). Windows blocks shell " +
+                              "integration - opening folders, launching Dolphin - from here. Run the .exe directly.",
+                        WarningColor);
+                }
+
                 // Check for updates at startup
                 RunGuarded("Startup update check", CheckForUpdatesAtStartupAsync);
 
