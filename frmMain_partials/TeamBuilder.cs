@@ -84,6 +84,15 @@ namespace ModdingGUI
             public List<Gear> EquippedGear { get; set; } = new List<Gear>();
             public int Level { get; set; } = 1; // Default to level 1
 
+   /// <summary>
+   /// Job points written to the roster: what the class's LEVELUPJPGIVEN awards by this level, minus the cost of the
+   /// granted skills, unless the designer overrode it.
+   /// </summary>
+   public int JobPoints { get; set; }
+
+   /// <summary>True when <see cref="JobPoints"/> came from the designer rather than the rule.</summary>
+   public bool JobPointsOverridden { get; set; }
+
             // BaseStats are set directly from statsets.txt
             public Stats BaseStats { get; set; } = new Stats();
 
@@ -965,6 +974,31 @@ namespace ModdingGUI
                 // EquippedGear and LearnedSkills are initialized as empty lists
             };
 
+            // Job points: the class's award by this level (minus granted skills, none yet), unless overridden.
+            var budget = CurrentJobPointBudget();
+            unit.JobPoints = budget?.Remaining ?? 0;
+            unit.JobPointsOverridden = false;
+
+            if (_chbTeamOverrideJp is { Checked: true })
+            {
+                if (int.TryParse(_txtTeamJobPoints?.Text.Trim(), out int manual) && manual >= 0)
+                {
+                    unit.JobPoints = manual;
+                    unit.JobPointsOverridden = true;
+                }
+                else
+                {
+                    MessageBox.Show("Override JP is on, but the value is not a number.", "Job Points",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+
+            if (budget is { OverBudget: true })
+            {
+                AppendLog($"'{unitName}' spends more JP on skills than level {unitLevel} awards.", Color.Orange);
+            }
+
             teamUnits.Add(unit);
             // Add the unit to the team TreeView
             AddUnitToTreeView(unit);
@@ -1224,8 +1258,13 @@ namespace ModdingGUI
         /// <summary>
         /// Handles UI initialization when opening the Team Builder tab.
         /// </summary>
+        private CheckBox? _chbTeamOverrideJp;
+        private TextBox? _txtTeamJobPoints;
+
         private void InitializeTeamBuilderUI()
         {
+            BuildJobPointControls();
+
             // Set Campaign mode as default
             rbnTeamCampaign.Checked = true;
             
@@ -1244,6 +1283,70 @@ namespace ModdingGUI
             
             if (tabTeamBuilderMaster.TabPages.Contains(tabTeamSkillSelection))
                 tabTeamBuilderMaster.TabPages.Remove(tabTeamSkillSelection);
+        }
+
+        /// <summary>
+        /// Job points are derived from the class's LEVELUPJPGIVEN and the unit's level, so a level-N unit is worth
+        /// what one that levelled to N would be. The override exists for deliberate departures.
+        /// </summary>
+        private void BuildJobPointControls()
+        {
+            Control parent = txtTeamLevel.Parent ?? tabTeamBuilder;
+
+            _chbTeamOverrideJp = new CheckBox
+            {
+                Text = "Override JP",
+                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 6),
+                AutoSize = true,
+            };
+
+            _txtTeamJobPoints = new TextBox
+            {
+                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 30),
+                Size = new Size(txtTeamLevel.Width, txtTeamLevel.Height),
+                ReadOnly = true,
+            };
+
+            parent.Controls.Add(_chbTeamOverrideJp);
+            parent.Controls.Add(_txtTeamJobPoints);
+
+            _chbTeamOverrideJp.CheckedChanged += (_, _) =>
+            {
+                _txtTeamJobPoints.ReadOnly = !_chbTeamOverrideJp.Checked;
+                UpdateJobPointPreview();
+            };
+
+            txtTeamLevel.TextChanged += (_, _) => UpdateJobPointPreview();
+            ddlTeamClasses.SelectedIndexChanged += (_, _) => UpdateJobPointPreview();
+
+            UpdateJobPointPreview();
+        }
+
+        /// <summary>The budget for the class and level currently selected, or null when nothing is selected.</summary>
+        private ModdingGUI.Core.Units.JobPointBudget? CurrentJobPointBudget()
+        {
+            string project = txtPackPath.Text.Trim();
+            string? className = ddlTeamClasses.SelectedItem?.ToString();
+
+            if (string.IsNullOrEmpty(project) || !Directory.Exists(project) || string.IsNullOrWhiteSpace(className))
+            {
+                return null;
+            }
+
+            int level = int.TryParse(txtTeamLevel.Text.Trim(), out int parsed) ? Math.Clamp(parsed, 1, 30) : 1;
+            var classDef = new ModdingGUI.Core.Api.ClassDefsApi().Get(project, className!);
+
+            return ModdingGUI.Core.Units.JobPoints.Compute(classDef, level);
+        }
+
+        /// <summary>Show the derived JP, or leave the designer's value alone while the override is on.</summary>
+        private void UpdateJobPointPreview()
+        {
+            if (_txtTeamJobPoints is null || _chbTeamOverrideJp is null) return;
+            if (_chbTeamOverrideJp.Checked) return;
+
+            var budget = CurrentJobPointBudget();
+            _txtTeamJobPoints.Text = budget is null ? string.Empty : budget.Remaining.ToString();
         }
 
         /// <summary>
@@ -1466,7 +1569,7 @@ namespace ModdingGUI
                     outputLines.Add($"CREATEUNIT: \"{unit.UnitName}\", \"{unit.Class.ClassName}\"    // Name, class");
                     outputLines.Add($"\tLEVEL: {unit.Level}");
                     outputLines.Add("\tEXPERIENCE: 0");
-                    outputLines.Add("\tJOBPOINTS: 8");
+                    outputLines.Add($"\tJOBPOINTS: {unit.JobPoints}");
                     outputLines.Add("\tCUSTOMIZE: 0, \"\"");
 
                     // Get the unit's stats
