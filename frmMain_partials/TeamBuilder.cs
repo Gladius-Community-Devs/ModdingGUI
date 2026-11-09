@@ -1888,6 +1888,20 @@ namespace ModdingGUI
         {
             if (_lstLegalItems is null) return;
 
+            try
+            {
+                RefreshLoadoutEditorsCore();
+            }
+            catch (Exception ex)
+            {
+                // Runs from the tree selection handler; a partial project must not take the window down.
+                AppendLog($"Could not populate the loadout editors: {ex.Message}", Color.Orange);
+            }
+        }
+
+        private void RefreshLoadoutEditorsCore()
+        {
+
             _lstLegalItems.Items.Clear();
             _lstGrantedSkills.Items.Clear();
             _lstLearnableSkills.Items.Clear();

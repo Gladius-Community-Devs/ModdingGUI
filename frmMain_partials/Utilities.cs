@@ -245,14 +245,21 @@ namespace ModdingGUI
                             Path.Combine(becFolder, ".mod-history", RandomizerBaseline.Folder));
 
                         // Create a tree node for the project
-                        TreeNode projectNode = new TreeNode(randomized ? $"{projectName} (randomized)" : projectName)
+                        bool complete = IsCompleteProject(dir);
+                        string label = projectName;
+                        if (randomized) label += " (randomized)";
+                        if (!complete) label += " (incomplete)";
+
+                        // Create a tree node for the project
+                        TreeNode projectNode = new TreeNode(label)
                         {
                             Tag = dir,
                             ImageKey = "folder",
                             SelectedImageKey = "folder",
-                            ToolTipText = randomized
-                                ? $"{dir}\nRandomizer baseline pinned: a run can be undone with Reset to Vanilla."
-                                : dir
+                            ToolTipText = (randomized
+                                    ? $"{dir}\nRandomizer baseline pinned: a run can be undone with Reset to Vanilla."
+                                    : dir)
+                                + (complete ? string.Empty : "\nIncomplete project: missing " + string.Join(", ", MissingProjectFiles(dir))),
                         };
 
                         // Define paths for _ISO and _BEC

@@ -115,6 +115,22 @@ namespace ModdingGUI
             var cfg = Path.Combine(_becFolder, "data", "config");
             string skillsTokPath = Path.Combine(cfg, "skills.tok");
 
+            // A folder can look like a project and still be a partial unpack. Say which file is missing instead of
+            // letting the background load throw.
+            string itemsTokPath = Path.Combine(cfg, "items.tok");
+            string lookupPath = Path.Combine(cfg, "lookuptext_eng.txt");
+            var missing = new List<string>();
+            if (!File.Exists(itemsTokPath)) missing.Add("data/config/items.tok");
+            if (!File.Exists(lookupPath)) missing.Add("data/config/lookuptext_eng.txt");
+
+            if (missing.Count > 0)
+            {
+                AppendLog($"Item editor not loaded: '{Path.GetFileName(projectPath)}' is missing " +
+                          $"{string.Join(" and ", missing)}. It may be an incomplete unpack.", Color.Orange);
+                ClearEditorState();
+                return;
+            }
+
             // Capture for lambdas (fields may change if user switches project quickly)
             string becFolder = _becFolder;
 
@@ -132,9 +148,12 @@ namespace ModdingGUI
             IReadOnlyList<ItemDto> allDtos;
             List<SkillInfo> itemSkills;
 
+            Task<(Dictionary<int, string> lookup, List<SkillInfo> skills)>? lookupAndSkillsTask = null;
+            Task<IReadOnlyList<ItemDto>>? itemsTask = null;
+
             try
             {
-                var lookupAndSkillsTask = Task.Run(() =>
+                lookupAndSkillsTask = Task.Run(() =>
                 {
                     // The folder can be deleted between the check above and this I/O.
                     if (!Directory.Exists(becFolder))
@@ -152,15 +171,20 @@ namespace ModdingGUI
                     return (lt, sk);
                 });
 
-                var itemsTask = Task.Run(() => _itemsApi.GetAll(becFolder));
+                itemsTask = Task.Run(() => _itemsApi.GetAll(becFolder));
 
                 await Task.WhenAll(lookupAndSkillsTask, itemsTask);
 
-                (lookupTable, itemSkills) = lookupAndSkillsTask.Result;
-                allDtos = itemsTask.Result;
+                (lookupTable, itemSkills) = lookupAndSkillsTask!.Result;
+                allDtos = itemsTask!.Result;
             }
             catch (Exception ex)
             {
+                // When both tasks fault, awaiting WhenAll only surfaces the first; touching Exception on the others
+                // marks them observed, otherwise they resurface later as an unhandled crash report.
+                _ = lookupAndSkillsTask?.Exception;
+                _ = itemsTask?.Exception;
+
                 AppendLog($"Failed to initialize Item Editor: {ex.Message}", Color.Red);
                 ClearEditorState();
                 return;

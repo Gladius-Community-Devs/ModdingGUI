@@ -611,6 +611,49 @@ namespace ModdingGUI
         }
 
         /// <summary>
+        /// Files every editor needs. A folder can carry <c>_BEC</c>/<c>_ISO</c> and still be a partial unpack, and
+        /// then the first editor to load throws from a background task.
+        /// </summary>
+        private static readonly string[] ProjectEssentials =
+        {
+            "data/config/items.tok",
+            "data/config/classdefs.tok",
+            "data/config/lookuptext_eng.txt",
+        };
+
+        /// <summary>True when the project has the files the editors read.</summary>
+        private static bool IsCompleteProject(string? projectFolder)
+        {
+            if (string.IsNullOrWhiteSpace(projectFolder) || !Directory.Exists(projectFolder)) return false;
+
+            string bec = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder.TrimEnd(
+                Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))}_BEC");
+
+            if (!Directory.Exists(bec)) bec = projectFolder;
+
+            return ProjectEssentials.All(relative => File.Exists(
+                Path.Combine(bec, relative.Replace('/', Path.DirectorySeparatorChar))));
+        }
+
+        /// <summary>The essentials a project is missing, for a log line.</summary>
+        private static IReadOnlyList<string> MissingProjectFiles(string? projectFolder)
+        {
+            if (string.IsNullOrWhiteSpace(projectFolder) || !Directory.Exists(projectFolder))
+            {
+                return ProjectEssentials;
+            }
+
+            string bec = Path.Combine(projectFolder, $"{Path.GetFileName(projectFolder.TrimEnd(
+                Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))}_BEC");
+
+            if (!Directory.Exists(bec)) bec = projectFolder;
+
+            return ProjectEssentials
+                .Where(relative => !File.Exists(Path.Combine(bec, relative.Replace('/', Path.DirectorySeparatorChar))))
+                .ToArray();
+        }
+
+        /// <summary>
         /// True when the folder holds a <c>_BEC</c> and an <c>_ISO</c> folder. Uses exact suffixes rather than a
         /// substring test, and tolerates the folder vanishing between the check and the enumeration.
         /// </summary>
@@ -1046,8 +1089,22 @@ namespace ModdingGUI
 
                     // Try to load randomizer settings for the selected project
                     LoadRandomizerSettings(projectPath);
-                    InitialiseItemEditor(projectPath);
-                    _skillEditorView.InitializeEditor(projectPath);
+
+                    if (IsCompleteProject(projectPath))
+                    {
+                        InitialiseItemEditor(projectPath);
+                        _skillEditorView.InitializeEditor(projectPath);
+                    }
+                    else
+                    {
+                        // A partial unpack still appears in the tree; say why the editors stay empty instead of
+                        // letting a background load throw.
+                        var missing = MissingProjectFiles(projectPath);
+                        AppendLog($"'{projectName}' is an incomplete project; editors not loaded. Missing: " +
+                                  string.Join(", ", missing) + ".", WarningColor);
+                        ClearEditorState();
+                        _skillEditorView.ReleaseProject();
+                    }
                 }
                 else
                 {

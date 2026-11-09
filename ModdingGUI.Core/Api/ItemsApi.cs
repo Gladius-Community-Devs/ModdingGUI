@@ -144,7 +144,11 @@ public sealed class ItemsApi : IItemsApi
         projectPath = ProjectRoots.ResolveBecFolder(projectPath);
         string path = Path.Combine(projectPath, RelativePath.Replace('/', Path.DirectorySeparatorChar));
         if (!File.Exists(path))
-            throw new FileNotFoundException("items.tok not found.", path);
+        {
+            throw new FileNotFoundException(
+                $"items.tok not found for project '{projectPath}'. Expected at '{path}'. " +
+                "The folder may be an incomplete unpack.", path);
+        }
         byte[] bytes = File.ReadAllBytes(path);
         var doc = TokReader.Read(bytes, path);
         var set = _schema.Read(doc);
