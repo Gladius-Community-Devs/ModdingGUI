@@ -245,7 +245,7 @@ public sealed class SkillsApi : ISkillsApi
     {
         string path = GetPath(projectPath);
         if (!File.Exists(path))
-            throw new FileNotFoundException("skills.tok not found.", path);
+            throw new FileNotFoundException($"skills.tok not found for '{projectPath}'. Expected at '{path}'.", path);
 
         string text = File.ReadAllText(path, Enc);
         // Normalise to LF for splitting; remember exactly how many newlines

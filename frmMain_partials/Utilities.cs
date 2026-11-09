@@ -89,6 +89,24 @@ namespace ModdingGUI
         // Method to append a message to the log with optional color and target (unpack or pack).
         // The message is recorded in the Core log first, then rendered: the RichTextBox is a viewer,
         // not the store, so headless runs (tests, MCP) see the same output.
+        /// <summary>
+        /// Run an async operation whose result nobody awaits, reporting a failure instead of letting it surface as an
+        /// unhandled task exception. Every fire-and-forget load should go through here.
+        /// </summary>
+        /// <param name="what">Short description used in the log line.</param>
+        /// <param name="work">The operation.</param>
+        private async void RunGuarded(string what, Func<Task> work)
+        {
+            try
+            {
+                await work().ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"{what} failed: {ex.Message}", ErrorColor);
+            }
+        }
+
         private void AppendLog(string message, Color? color = null, RichTextBox targetRtb = null)
         {
             targetRtb ??= rtbUnpackOutput;
@@ -105,16 +123,27 @@ namespace ModdingGUI
         {
             targetRtb ??= rtbUnpackOutput;
             color ??= Color.Black;
-            if (targetRtb.InvokeRequired)
+
+            // The line is already in the log stream, so rendering is best-effort: a control without a handle yet (during
+            // startup) or one that has been disposed (during close) must not turn logging into a crash.
+            if (targetRtb.IsDisposed || !targetRtb.IsHandleCreated) return;
+
+            try
             {
-                targetRtb.Invoke(new Action(() => AppendLogText(message, color, targetRtb)));
-            }
-            else
-            {
+                if (targetRtb.InvokeRequired)
+                {
+                    targetRtb.Invoke(new Action(() => AppendLogText(message, color, targetRtb)));
+                    return;
+                }
+
                 targetRtb.SelectionStart = targetRtb.TextLength;
                 targetRtb.SelectionColor = color.Value;
                 targetRtb.AppendText(message + Environment.NewLine);
                 targetRtb.ScrollToCaret();
+            }
+            catch (InvalidOperationException)
+            {
+                // Handle destroyed between the check and the call.
             }
         }
 

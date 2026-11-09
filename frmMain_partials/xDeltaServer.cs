@@ -48,9 +48,16 @@ namespace ModdingGUI
 
             private async void AuthForm_Load(object sender, EventArgs e)
             {
-                mainForm.AppendLog($"Starting Authentication", InfoColor, mainForm.rtbPatchingApplicationOutput);
-                await webViewAuth.EnsureCoreWebView2Async();
-                webViewAuth.Source = new Uri("https://gladiuscommunity.com/auth/discord");
+                try
+                {
+                    mainForm.AppendLog($"Starting Authentication", InfoColor, mainForm.rtbPatchingApplicationOutput);
+                    await webViewAuth.EnsureCoreWebView2Async();
+                    webViewAuth.Source = new Uri("https://gladiuscommunity.com/auth/discord");
+                }
+                catch (Exception ex)
+                {
+                    mainForm?.AppendLog($"Authentication failed: {ex.Message}", Color.Red);
+                }
             }
 
             private void WebViewAuth_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e) { }
@@ -65,57 +72,64 @@ namespace ModdingGUI
 
             private async void WebViewAuth_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
             {
-                if (webViewAuth.Source.AbsoluteUri.StartsWith("https://gladiuscommunity.com/auth/discord/callback"))
+                try
                 {
-                    // Do not attempt to extract cookies here; wait for the final redirect
+                    if (webViewAuth.Source.AbsoluteUri.StartsWith("https://gladiuscommunity.com/auth/discord/callback"))
+                    {
+                        // Do not attempt to extract cookies here; wait for the final redirect
+                    }
+                    else if (webViewAuth.Source.AbsoluteUri == "https://gladiuscommunity.com/")
+                    {
+                        // Extract cookies from WebView2 and sync with HttpClient
+                        var cookies = await webViewAuth.CoreWebView2.CookieManager.GetCookiesAsync("https://gladiuscommunity.com/");
+                        foreach (var cookie in cookies)
+                        {
+                            // Validate and enforce expected domain to prevent cookie injection
+                            string domain = string.IsNullOrEmpty(cookie.Domain) || !cookie.Domain.EndsWith("gladiuscommunity.com")
+                                                ? "gladiuscommunity.com"
+                                                : cookie.Domain.TrimStart('.');
+
+                            string path = string.IsNullOrEmpty(cookie.Path) ? "/" : cookie.Path;
+
+                            // Create a new Cookie preserving security attributes
+                            Cookie newCookie = new Cookie(cookie.Name, cookie.Value, path, domain);
+                            newCookie.Secure = cookie.IsSecure;         // Preserve Secure flag
+                            newCookie.HttpOnly = cookie.IsHttpOnly;      // Preserve HttpOnly flag
+                            if (cookie.Expires != default(DateTime))
+                            {
+                                newCookie.Expires = cookie.Expires;      // Preserve expiration, if set
+                            }
+
+                            // Only add the cookie if its domain is as expected
+                            if (domain == "gladiuscommunity.com")
+                            {
+                                handler.CookieContainer.Add(new Uri("https://gladiuscommunity.com/"), newCookie);
+                            }
+                            // Else, do not add cookies from unexpected domains to avoid potential spoofing.
+                        }
+
+
+                        Uri uri = new Uri("https://gladiuscommunity.com/");
+                        CookieCollection httpClientCookies = handler.CookieContainer.GetCookies(uri);
+
+                        if (httpClientCookies["connect.sid"] != null)
+                        {
+                            mainForm.AppendLog("Authentication successful. Closing AuthForm.", SuccessColor, mainForm.rtbPatchingApplicationOutput);
+
+                            // Set DialogResult to OK to indicate success
+                            this.DialogResult = DialogResult.OK;
+                            this.Close();
+                        }
+                        else
+                        {
+                            mainForm.AppendLog("Authentication failed. Session cookie not found. Make sure you are an approved modder!", ErrorColor, mainForm.rtbPatchingApplicationOutput);
+                            MessageBox.Show("Authentication failed. Please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
                 }
-                else if (webViewAuth.Source.AbsoluteUri == "https://gladiuscommunity.com/")
+                catch (Exception ex)
                 {
-                    // Extract cookies from WebView2 and sync with HttpClient
-                    var cookies = await webViewAuth.CoreWebView2.CookieManager.GetCookiesAsync("https://gladiuscommunity.com/");
-                    foreach (var cookie in cookies)
-                    {
-                        // Validate and enforce expected domain to prevent cookie injection
-                        string domain = string.IsNullOrEmpty(cookie.Domain) || !cookie.Domain.EndsWith("gladiuscommunity.com")
-                                            ? "gladiuscommunity.com"
-                                            : cookie.Domain.TrimStart('.');
-
-                        string path = string.IsNullOrEmpty(cookie.Path) ? "/" : cookie.Path;
-
-                        // Create a new Cookie preserving security attributes
-                        Cookie newCookie = new Cookie(cookie.Name, cookie.Value, path, domain);
-                        newCookie.Secure = cookie.IsSecure;         // Preserve Secure flag
-                        newCookie.HttpOnly = cookie.IsHttpOnly;      // Preserve HttpOnly flag
-                        if (cookie.Expires != default(DateTime))
-                        {
-                            newCookie.Expires = cookie.Expires;      // Preserve expiration, if set
-                        }
-
-                        // Only add the cookie if its domain is as expected
-                        if (domain == "gladiuscommunity.com")
-                        {
-                            handler.CookieContainer.Add(new Uri("https://gladiuscommunity.com/"), newCookie);
-                        }
-                        // Else, do not add cookies from unexpected domains to avoid potential spoofing.
-                    }
-
-
-                    Uri uri = new Uri("https://gladiuscommunity.com/");
-                    CookieCollection httpClientCookies = handler.CookieContainer.GetCookies(uri);
-
-                    if (httpClientCookies["connect.sid"] != null)
-                    {
-                        mainForm.AppendLog("Authentication successful. Closing AuthForm.", SuccessColor, mainForm.rtbPatchingApplicationOutput);
-
-                        // Set DialogResult to OK to indicate success
-                        this.DialogResult = DialogResult.OK;
-                        this.Close();
-                    }
-                    else
-                    {
-                        mainForm.AppendLog("Authentication failed. Session cookie not found. Make sure you are an approved modder!", ErrorColor, mainForm.rtbPatchingApplicationOutput);
-                        MessageBox.Show("Authentication failed. Please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    mainForm?.AppendLog($"Authentication failed: {ex.Message}", Color.Red);
                 }
             }
         }

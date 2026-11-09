@@ -221,7 +221,7 @@ public sealed class ClassDefsApi : IClassesApi
     private static (List<string> Lines, int TrailingNewlines) Read(string projectPath) =>
         File.Exists(RawLineFile.GetPath(projectPath, RelativePath))
             ? RawLineFile.Read(projectPath, RelativePath, DisplayName)
-            : throw new FileNotFoundException("classdefs.tok not found.",
+            : throw new FileNotFoundException($"classdefs.tok not found for '{projectPath}'.",
                 RawLineFile.GetPath(projectPath, RelativePath));
 
     private static List<string> ExtractNames(List<string> lines)

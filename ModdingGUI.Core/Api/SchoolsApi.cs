@@ -413,7 +413,11 @@ public sealed class SchoolsApi : ISchoolsApi
         using (ProjectLock.Acquire(bec))
         {
             string path = FullPath(bec, relativePath);
-            if (!File.Exists(path)) throw new FileNotFoundException("school not found.", path);
+            if (!File.Exists(path))
+        {
+            throw new FileNotFoundException(
+                $"school file '{Path.GetFileName(path)}' not found for '{projectPath}'.", path);
+        }
 
             var (lines, trailing) = RawLineFile.Read(bec, relativePath, Path.GetFileName(relativePath));
             if (!mutate(lines)) return;

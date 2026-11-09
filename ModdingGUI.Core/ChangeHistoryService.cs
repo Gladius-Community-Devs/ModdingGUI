@@ -90,7 +90,18 @@ public static class ChangeHistoryService
         string? filter = string.IsNullOrWhiteSpace(relativePathFilter) ? null : Normalise(relativePathFilter!);
         var entries = new List<BackupEntry>();
 
-        foreach (string file in Directory.EnumerateFiles(historyRoot, "*.bak", SearchOption.AllDirectories))
+        string[] files;
+        try
+        {
+            files = Directory.EnumerateFiles(historyRoot, "*.bak", SearchOption.AllDirectories).ToArray();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // A locked or permission-denied history folder should not break the browser; report what is readable.
+            return Array.Empty<BackupEntry>();
+        }
+
+        foreach (string file in files)
         {
             string historyRelative = Normalise(Path.GetRelativePath(historyRoot, file));
 

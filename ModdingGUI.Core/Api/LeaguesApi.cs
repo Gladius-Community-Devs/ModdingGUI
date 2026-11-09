@@ -335,7 +335,11 @@ public sealed class LeaguesApi : ILeaguesApi
         using (ProjectLock.Acquire(bec))
         {
             string path = Path.Combine(bec, relativePath.Replace('/', Path.DirectorySeparatorChar));
-            if (!File.Exists(path)) throw new FileNotFoundException("league file not found.", path);
+            if (!File.Exists(path))
+        {
+            throw new FileNotFoundException(
+                $"league file '{Path.GetFileName(path)}' not found for '{projectPath}'.", path);
+        }
 
             var (lines, trailing) = RawLineFile.Read(bec, relativePath, Path.GetFileName(relativePath));
             if (!mutate(lines)) return;

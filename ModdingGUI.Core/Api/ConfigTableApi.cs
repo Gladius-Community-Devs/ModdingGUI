@@ -159,7 +159,10 @@ public sealed class ConfigTableApi : IConfigTableApi
         using (ProjectLock.Acquire(bec))
         {
             string path = FullPath(bec, relativePath);
-            if (!File.Exists(path)) throw new FileNotFoundException("tok table not found.", path);
+            if (!File.Exists(path))
+        {
+            throw new FileNotFoundException($"tok table '{Path.GetFileName(path)}' not found for '{projectPath}'.", path);
+        }
 
             var (lines, trailing) = RawLineFile.Read(bec, relativePath, Path.GetFileName(relativePath));
             if (!mutate(lines, trailing)) return;

@@ -54,7 +54,17 @@ public static class ProjectFileOperations
         int files = 0;
         long bytes = 0;
 
-        foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
+        string[] all;
+        try
+        {
+            all = Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories).ToArray();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new IOException($"Could not enumerate '{folder}': {ex.Message}", ex);
+        }
+
+        foreach (string file in all)
         {
             files++;
             try

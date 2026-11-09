@@ -145,7 +145,7 @@ public sealed partial class SkillEditorView : UserControl
         _btnDelete.Enabled = false;
         SetStatus("Loading skills…", isError: false);
 
-        _ = LoadSkillsAsync();
+        _ = LoadSkillsSafeAsync();
     }
 
     // ---- UI build ---------------------------------------------------------
@@ -307,6 +307,19 @@ public sealed partial class SkillEditorView : UserControl
 
     // ---- async skill list load --------------------------------------------
 
+    /// <summary>Fire-and-forget load that reports a failure instead of leaving an unobserved task exception.</summary>
+    private async Task LoadSkillsSafeAsync()
+    {
+        try
+        {
+            await LoadSkillsAsync();
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"Loading skills failed: {ex.Message}", isError: true);
+        }
+    }
+
     private async Task LoadSkillsAsync()
     {
         if (string.IsNullOrEmpty(_projectFolder)) return;
@@ -411,7 +424,7 @@ public sealed partial class SkillEditorView : UserControl
     private void BtnReload_Click(object? sender, EventArgs e)
     {
         SetStatus("Reloading…", isError: false);
-        _ = LoadSkillsAsync();
+        _ = LoadSkillsSafeAsync();
     }
 
     private void CmbField_SelectedIndexChanged(object? sender, EventArgs e)

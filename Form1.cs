@@ -261,7 +261,7 @@ namespace ModdingGUI
                 LoadAppSettings(); // Apply application settings
 
                 // Check for updates at startup
-                _ = CheckForUpdatesAtStartupAsync(); // Fire and forget async call
+                RunGuarded("Startup update check", CheckForUpdatesAtStartupAsync);
 
                 // Retrieve the original executable directory using the helper method
                 string appDirectory = GetAppDirectory();
@@ -287,7 +287,7 @@ namespace ModdingGUI
                 // Proceed with loading the file list asynchronously. Fire-and-forget on purpose: this runs
                 // during form load and the tree fills in when the scan finishes; the discard says so
                 // instead of leaving the compiler to guess.
-                _ = LoadFileListAsync();
+                RunGuarded("Loading the file list", LoadFileListAsync);
 
                 // Remove specific tabs on load
                 // tabContainer.TabPages.Remove(tabRandomizer);
@@ -408,147 +408,154 @@ namespace ModdingGUI
 
         private async void btnRandomizerPath_Click(object sender, EventArgs e)
         {
-            // Check if a valid project path is already selected
-            string currentPath = txtRandomizerPath.Text.Trim();
-            bool hasValidProject = IsProjectFolder(currentPath);
-
-            if (!hasValidProject)
+            try
             {
-                // No valid project selected, ask if user wants to select an ISO to randomize
-                var selectChoice = MessageBox.Show(
-                    "No valid project selected. Do you want to select an ISO file to randomize?",
-                    "Select ISO for Randomization",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                // Check if a valid project path is already selected
+                string currentPath = txtRandomizerPath.Text.Trim();
+                bool hasValidProject = IsProjectFolder(currentPath);
 
-                if (selectChoice == DialogResult.Yes) // User wants to select an ISO file
+                if (!hasValidProject)
                 {
-                    // Open file dialog for ISO selection
-                    using (OpenFileDialog openFileDialog = new OpenFileDialog())
+                    // No valid project selected, ask if user wants to select an ISO to randomize
+                    var selectChoice = MessageBox.Show(
+                        "No valid project selected. Do you want to select an ISO file to randomize?",
+                        "Select ISO for Randomization",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+
+                    if (selectChoice == DialogResult.Yes) // User wants to select an ISO file
                     {
-                        openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*";
-                        if (openFileDialog.ShowDialog() == DialogResult.OK)
+                        // Open file dialog for ISO selection
+                        using (OpenFileDialog openFileDialog = new OpenFileDialog())
                         {
-                            string isoPath = openFileDialog.FileName;
-
-                            if (ValidateFilePathNoParentheses(isoPath))
+                            openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*";
+                            if (openFileDialog.ShowDialog() == DialogResult.OK)
                             {
-                                // Ask user for project name
-                                string projectName = Path.GetFileNameWithoutExtension(isoPath);
-                                string userInput = Microsoft.VisualBasic.Interaction.InputBox(
-                                    "Enter a name for the project folder:",
-                                    "Project Name",
-                                    projectName);
+                                string isoPath = openFileDialog.FileName;
 
-                                if (string.IsNullOrEmpty(userInput))
+                                if (ValidateFilePathNoParentheses(isoPath))
                                 {
-                                    MessageBox.Show("Please enter a valid folder name.");
-                                    return;
-                                }
+                                    // Ask user for project name
+                                    string projectName = Path.GetFileNameWithoutExtension(isoPath);
+                                    string userInput = Microsoft.VisualBasic.Interaction.InputBox(
+                                        "Enter a name for the project folder:",
+                                        "Project Name",
+                                        projectName);
 
-                                // Replace spaces with underscores for consistency
-                                userInput = userInput.Trim().Replace(" ", "_");
-
-                                // Validate the ISO file exists
-                                if (!ValidateFilePath(isoPath, "ISO"))
-                                {
-                                    return;
-                                }
-
-                                // Store the current tab to return to later
-                                TabPage currentTab = tabContainer.SelectedTab;
-
-                                // Switch to the unpack tab to show progress
-                                tabContainer.SelectedTab = tabUnpacking;
-
-                                AppendLog("Starting unpack operation...", InfoColor);
-
-                                try
-                                {
-                                    // Populate the unpack tab fields to show what's being unpacked
-                                    txtISOPath.Text = isoPath;
-                                    txtUnpackPath.Text = userInput;
-
-                                    // Same base as the unpack tab: the configured projects folder.
-                                    string topLevelFolder = Path.Combine(ProjectsFolder(), userInput);
-
-                                    // Ensure the top-level folder exists
-                                    if (!Directory.Exists(topLevelFolder))
+                                    if (string.IsNullOrEmpty(userInput))
                                     {
-                                        Directory.CreateDirectory(topLevelFolder);
-                                        AppendLog($"Top-level folder created: {topLevelFolder}", InfoColor);
+                                        MessageBox.Show("Please enter a valid folder name.");
+                                        return;
                                     }
 
-                                    // Normalize the path for batch file generation
-                                    string normalizedTopLevelFolder = PathHelper.NormalizePath(PathHelper.EnsureTrailingSeparator(topLevelFolder));
+                                    // Replace spaces with underscores for consistency
+                                    userInput = userInput.Trim().Replace(" ", "_");
 
-                                    // Generate the batch file content for unpacking
-                                    string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
+                                    // Validate the ISO file exists
+                                    if (!ValidateFilePath(isoPath, "ISO"))
+                                    {
+                                        return;
+                                    }
 
-                                    // Run the batch file asynchronously within the top-level folder
-                                    await RunBatchFileAsync(batchContent, topLevelFolder);
+                                    // Store the current tab to return to later
+                                    TabPage currentTab = tabContainer.SelectedTab;
 
-                                    AppendLog("Unpacking completed successfully.", SuccessColor);
+                                    // Switch to the unpack tab to show progress
+                                    tabContainer.SelectedTab = tabUnpacking;
 
-                                    // Update the pack path text box to point to the created unpack folder
-                                    txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                                    txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                                    txtPatchingCreationModISOPath.Text = PathHelper.NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso");
-                                    txtPatchingCreationOutputPath.Text = PathHelper.NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta");
-                                    btnRandomize.Enabled = true;
-                                    btnPack.Enabled = true;
-                                    LoadProjects();
+                                    AppendLog("Starting unpack operation...", InfoColor);
 
-                                    // Show a message that the ISO was successfully unpacked
-                                    MessageBox.Show("ISO unpacked successfully. You can now randomize the project.", "Unpacking Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    try
+                                    {
+                                        // Populate the unpack tab fields to show what's being unpacked
+                                        txtISOPath.Text = isoPath;
+                                        txtUnpackPath.Text = userInput;
 
-                                    // Switch back to the randomizer tab
-                                    tabContainer.SelectedTab = tabRandomizer;
-                                }
-                                catch (Exception ex)
-                                {
-                                    AppendLog("Error during unpacking: " + ex.Message, ErrorColor);
-                                    MessageBox.Show($"Error during unpacking: {ex.Message}", "Unpacking Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                        // Same base as the unpack tab: the configured projects folder.
+                                        string topLevelFolder = Path.Combine(ProjectsFolder(), userInput);
 
-                                    // Switch back to the randomizer tab even if there was an error
-                                    tabContainer.SelectedTab = tabRandomizer;
+                                        // Ensure the top-level folder exists
+                                        if (!Directory.Exists(topLevelFolder))
+                                        {
+                                            Directory.CreateDirectory(topLevelFolder);
+                                            AppendLog($"Top-level folder created: {topLevelFolder}", InfoColor);
+                                        }
+
+                                        // Normalize the path for batch file generation
+                                        string normalizedTopLevelFolder = PathHelper.NormalizePath(PathHelper.EnsureTrailingSeparator(topLevelFolder));
+
+                                        // Generate the batch file content for unpacking
+                                        string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
+
+                                        // Run the batch file asynchronously within the top-level folder
+                                        await RunBatchFileAsync(batchContent, topLevelFolder);
+
+                                        AppendLog("Unpacking completed successfully.", SuccessColor);
+
+                                        // Update the pack path text box to point to the created unpack folder
+                                        txtPackPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                                        txtRandomizerPath.Text = topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                                        txtPatchingCreationModISOPath.Text = PathHelper.NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.iso");
+                                        txtPatchingCreationOutputPath.Text = PathHelper.NormalizePath(topLevelFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + $"/{userInput}.xdelta");
+                                        btnRandomize.Enabled = true;
+                                        btnPack.Enabled = true;
+                                        LoadProjects();
+
+                                        // Show a message that the ISO was successfully unpacked
+                                        MessageBox.Show("ISO unpacked successfully. You can now randomize the project.", "Unpacking Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                                        // Switch back to the randomizer tab
+                                        tabContainer.SelectedTab = tabRandomizer;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        AppendLog("Error during unpacking: " + ex.Message, ErrorColor);
+                                        MessageBox.Show($"Error during unpacking: {ex.Message}", "Unpacking Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                                        // Switch back to the randomizer tab even if there was an error
+                                        tabContainer.SelectedTab = tabRandomizer;
+                                    }
                                 }
                             }
                         }
                     }
+                    else
+                    {
+                        // User doesn't want to select an ISO
+                        MessageBox.Show("Please select a project from the sidebar or unpack an ISO in the Unpack tab.");
+                    }
                 }
                 else
                 {
-                    // User doesn't want to select an ISO
-                    MessageBox.Show("Please select a project from the sidebar or unpack an ISO in the Unpack tab.");
-                }
-            }
-            else
-            {
-                // Project already selected, show folder browser to select a different project
-                using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
-                {
-                    if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                    // Project already selected, show folder browser to select a different project
+                    using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
                     {
-                        string selectedPath = folderBrowserDialog.SelectedPath;
-
-                        // Check for the project layout, tolerating a folder that disappears mid-dialog.
-                        if (IsProjectFolder(selectedPath))
+                        if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                         {
-                            txtRandomizerPath.Text = selectedPath;
-                            btnRandomize.Enabled = true;
-                            txtPackPath.Text = selectedPath;
-                            btnPack.Enabled = true;
+                            string selectedPath = folderBrowserDialog.SelectedPath;
 
-                            // Try to load randomizer settings for the selected project
-                            LoadRandomizerSettings(selectedPath);
-                        }
-                        else
-                        {
-                            MessageBox.Show("Expected an unpacked project. Use the Unpack tab to create one, or ensure the selected folder contains _ISO and _BEC folders.");
+                            // Check for the project layout, tolerating a folder that disappears mid-dialog.
+                            if (IsProjectFolder(selectedPath))
+                            {
+                                txtRandomizerPath.Text = selectedPath;
+                                btnRandomize.Enabled = true;
+                                txtPackPath.Text = selectedPath;
+                                btnPack.Enabled = true;
+
+                                // Try to load randomizer settings for the selected project
+                                LoadRandomizerSettings(selectedPath);
+                            }
+                            else
+                            {
+                                MessageBox.Show("Expected an unpacked project. Use the Unpack tab to create one, or ensure the selected folder contains _ISO and _BEC folders.");
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Randomizer path failed: {ex.Message}", ErrorColor);
             }
         }
 
@@ -1068,55 +1075,63 @@ namespace ModdingGUI
 
         private void tvwProjects_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            TreeNode selectedNode = e.Node;
-
-            // Check if the selected node is a top-level project node
-            if (selectedNode.Parent == null)
+            try
             {
-                string projectPath = selectedNode.Tag as string;
-                if (!string.IsNullOrEmpty(projectPath) && Directory.Exists(projectPath))
+                TreeNode selectedNode = e.Node;
+
+                // Check if the selected node is a top-level project node
+                if (selectedNode.Parent == null)
                 {
-                    projectPath = PathHelper.NormalizePath(projectPath);
-                    string projectName = Path.GetFileName(projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-                    txtPackPath.Text = projectPath;
-                    txtRandomizerPath.Text = projectPath;
-                    txtPatchingCreationOutputPath.Text = projectPath + $"/{projectName}.xDelta";
-                    txtPatchingCreationModISOPath.Text = projectPath + $"/{projectName}.iso";
-                    txtUnpackPath.Text = projectName;
-                    btnPack.Enabled = true;
-                    btnRandomize.Enabled = true;
-                    _gridBuilderView.SetProjectRoot(projectPath);
-
-                    // Try to load randomizer settings for the selected project
-                    LoadRandomizerSettings(projectPath);
-
-                    if (IsCompleteProject(projectPath))
+                    string projectPath = selectedNode.Tag as string;
+                    if (!string.IsNullOrEmpty(projectPath) && Directory.Exists(projectPath))
                     {
-                        InitialiseItemEditor(projectPath);
-                        _skillEditorView.InitializeEditor(projectPath);
+                        projectPath = PathHelper.NormalizePath(projectPath);
+                        string projectName = Path.GetFileName(projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                        txtPackPath.Text = projectPath;
+                        txtRandomizerPath.Text = projectPath;
+                        txtPatchingCreationOutputPath.Text = projectPath + $"/{projectName}.xDelta";
+                        txtPatchingCreationModISOPath.Text = projectPath + $"/{projectName}.iso";
+                        txtUnpackPath.Text = projectName;
+                        btnPack.Enabled = true;
+                        btnRandomize.Enabled = true;
+                        _gridBuilderView.SetProjectRoot(projectPath);
+
+                        // Try to load randomizer settings for the selected project
+                        LoadRandomizerSettings(projectPath);
+
+                        if (IsCompleteProject(projectPath))
+                        {
+                            InitialiseItemEditor(projectPath);
+                            _skillEditorView.InitializeEditor(projectPath);
+                        }
+                        else
+                        {
+                            // A partial unpack still appears in the tree; say why the editors stay empty instead of
+                            // letting a background load throw.
+                            var missing = MissingProjectFiles(projectPath);
+                            AppendLog($"'{projectName}' is an incomplete project; editors not loaded. Missing: " +
+                                      string.Join(", ", missing) + ".", WarningColor);
+                            ClearEditorState();
+                            _skillEditorView.ReleaseProject();
+                        }
                     }
                     else
                     {
-                        // A partial unpack still appears in the tree; say why the editors stay empty instead of
-                        // letting a background load throw.
-                        var missing = MissingProjectFiles(projectPath);
-                        AppendLog($"'{projectName}' is an incomplete project; editors not loaded. Missing: " +
-                                  string.Join(", ", missing) + ".", WarningColor);
-                        ClearEditorState();
-                        _skillEditorView.ReleaseProject();
+                        txtPackPath.Text = string.Empty;
                     }
+                    LoadClassesIntoDropdown();
+                    InitializeTeamBuilderUI();
                 }
                 else
                 {
-                    txtPackPath.Text = string.Empty;
+                    // Optional: Clear txtPackPath or handle selections of sub-nodes
+                    // txtPackPath.Text = string.Empty;
                 }
-                LoadClassesIntoDropdown();
-                InitializeTeamBuilderUI();
             }
-            else
+            catch (Exception ex)
             {
-                // Optional: Clear txtPackPath or handle selections of sub-nodes
-                // txtPackPath.Text = string.Empty;
+                // Selecting a project drives several editors; a bad project must never take the window down.
+                AppendLog($"Selecting a project failed: {ex.Message}", ErrorColor);
             }
         }
 
@@ -1431,28 +1446,35 @@ namespace ModdingGUI
 
         private async void updateMenuItem_Click(object sender, EventArgs e)
         {
-            ProgramInfo programInfo = new ProgramInfo();
-            var (updateAvailable, latestVersion) = await programInfo.CheckForUpdateAsync();
-
-            if (updateAvailable)
+            try
             {
-                DialogResult result = MessageBox.Show(
-                    $"A new version ({latestVersion}) is available. Would you like to update?",
-                    "Update Available",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-                if (result == DialogResult.Yes)
+                ProgramInfo programInfo = new ProgramInfo();
+                var (updateAvailable, latestVersion) = await programInfo.CheckForUpdateAsync();
+
+                if (updateAvailable)
                 {
-                    await PerformUpdateAsync(latestVersion);
+                    DialogResult result = MessageBox.Show(
+                        $"A new version ({latestVersion}) is available. Would you like to update?",
+                        "Update Available",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+                    if (result == DialogResult.Yes)
+                    {
+                        await PerformUpdateAsync(latestVersion);
+                    }
+                }
+                else if (latestVersion != null)
+                {
+                    MessageBox.Show(
+                        "You are already using the latest version.",
+                        "No Update Available",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
             }
-            else if (latestVersion != null)
+            catch (Exception ex)
             {
-                MessageBox.Show(
-                    "You are already using the latest version.",
-                    "No Update Available",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                AppendLog($"Update check failed: {ex.Message}", ErrorColor);
             }
         }
 

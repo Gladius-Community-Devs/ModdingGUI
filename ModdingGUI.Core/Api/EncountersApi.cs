@@ -329,7 +329,8 @@ public sealed class EncountersApi : IEncountersApi
         {
             string path = FullPath(bec, relativePath);
             if (!File.Exists(path))
-                throw new FileNotFoundException("encounter not found.", path);
+                throw new FileNotFoundException(
+                $"encounter '{Path.GetFileName(path)}' not found for '{projectPath}'.", path);
 
             var (lines, trailing) = RawLineFile.Read(bec, relativePath, Path.GetFileName(relativePath));
             if (!mutate(lines, trailing)) return;   // nothing changed: leave the file alone

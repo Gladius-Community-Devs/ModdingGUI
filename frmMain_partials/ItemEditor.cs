@@ -93,7 +93,7 @@ namespace ModdingGUI
         public void InitialiseItemEditor(string projectPath)
         {
             int version = ++_itemEditorLoadVersion;
-            _ = InitialiseItemEditorAsync(projectPath, version);
+            RunGuarded("Item editor load", () => InitialiseItemEditorAsync(projectPath, version));
         }
 
         private async Task InitialiseItemEditorAsync(string projectPath, int version)

@@ -612,146 +612,153 @@ namespace ModdingGUI
         /// </summary>
         private async void LoadClassesIntoDropdown()
         {
-            // Verify if a project is selected by checking txtPackPath
-            string projectPath = txtPackPath.Text.Trim();
-            if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
-            {
-                MessageBox.Show("No project selected. Please unpack or select a project first.", "Project Not Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                AppendLog("Attempted to access Team Builder without selecting a valid project.", Color.Red);
-
-                // Switch back to tabPacking
-                foreach (TabPage tab in tabContainer.TabPages)
-                {
-                    if (tab.Name == "tabPacking")
-                    {
-                        tabContainer.SelectedTab = tab;
-                        break;
-                    }
-                }
-
-                tabContainer.TabPages.Remove(tabTeamBuilder);
-                teamBuilderToolStripMenuItem.Checked = false;
-                return;
-            }
-
-            // Step 1: Trim trailing directory separators
-            projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-
-            // Step 2: Extract the project folder name
-            string projectFolderName = Path.GetFileName(projectPath);
-
-            // Step 3: Construct the paths to classdefs.tok, gladiators.txt, and statsets.txt dynamically
-            string becFolder     = Path.Combine(projectPath, $"{projectFolderName}_BEC");
-            string classDefsPath = Path.Combine(becFolder, "data", "config", "classdefs.tok");
-            string gladiatorsPath = Path.Combine(projectPath, $"{projectFolderName}_BEC", "data", "units", "gladiators.txt");
-            string statSetsPath = Path.Combine(projectPath, $"{projectFolderName}_BEC", "data", "units", "statsets.txt");
-
-            // Verify that classDefsPath, gladiatorsPath, and statSetsPath exist
-            if (!File.Exists(classDefsPath))
-            {
-                MessageBox.Show($"classdefs.tok not found at '{classDefsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"classdefs.tok not found at '{classDefsPath}'.", Color.Red);
-
-                // Optionally, switch back to tabPacking
-                foreach (TabPage tab in tabContainer.TabPages)
-                {
-                    if (tab.Name == "tabPacking")
-                    {
-                        tabContainer.SelectedTab = tab;
-                        break;
-                    }
-                }
-
-                tabContainer.TabPages.Remove(tabTeamBuilder);
-                teamBuilderToolStripMenuItem.Checked = false;
-                return;
-            }
-
-            if (!File.Exists(gladiatorsPath))
-            {
-                MessageBox.Show($"gladiators.txt not found at '{gladiatorsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"gladiators.txt not found at '{gladiatorsPath}'.", Color.Red);
-
-                // Optionally, switch back to tabPacking
-                foreach (TabPage tab in tabContainer.TabPages)
-                {
-                    if (tab.Name == "tabPacking")
-                    {
-                        tabContainer.SelectedTab = tab;
-                        break;
-                    }
-                }
-
-                tabContainer.TabPages.Remove(tabTeamBuilder);
-                teamBuilderToolStripMenuItem.Checked = false;
-                return;
-            }
-
-            if (!File.Exists(statSetsPath))
-            {
-                MessageBox.Show($"statsets.txt not found at '{statSetsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"statsets.txt not found at '{statSetsPath}'.", Color.Red);
-
-                // Optionally, switch back to tabPacking
-                foreach (TabPage tab in tabContainer.TabPages)
-                {
-                    if (tab.Name == "tabPacking")
-                    {
-                        tabContainer.SelectedTab = tab;
-                        break;
-                    }
-                }
-
-                tabContainer.TabPages.Remove(tabTeamBuilder);
-                teamBuilderToolStripMenuItem.Checked = false;
-                return;
-            }
-
-            // Proceed with loading class definitions, gladiators, and statsets
             try
             {
-                var classParser = new ClassParser();
-                classDefinitions = await Task.Run(() => classParser.ParseClassDefs(becFolder));
-
-                var gladiatorParser = new GladiatorParser();
-                gladiatorEntries = await Task.Run(() => gladiatorParser.ParseGladiators(gladiatorsPath));
-
-                var statSetsParser = new StatSetsParser();
-                statSets = await Task.Run(() => statSetsParser.ParseStatSets(statSetsPath));
-
-                ddlTeamClasses.Items.Clear();
-                foreach (var classDef in classDefinitions)
+                // Verify if a project is selected by checking txtPackPath
+                string projectPath = txtPackPath.Text.Trim();
+                if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
                 {
-                    ddlTeamClasses.Items.Add(classDef.ClassName);
+                    MessageBox.Show("No project selected. Please unpack or select a project first.", "Project Not Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppendLog("Attempted to access Team Builder without selecting a valid project.", Color.Red);
+
+                    // Switch back to tabPacking
+                    foreach (TabPage tab in tabContainer.TabPages)
+                    {
+                        if (tab.Name == "tabPacking")
+                        {
+                            tabContainer.SelectedTab = tab;
+                            break;
+                        }
+                    }
+
+                    tabContainer.TabPages.Remove(tabTeamBuilder);
+                    teamBuilderToolStripMenuItem.Checked = false;
+                    return;
                 }
 
-                if (ddlTeamClasses.Items.Count > 0)
+                // Step 1: Trim trailing directory separators
+                projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+                // Step 2: Extract the project folder name
+                string projectFolderName = Path.GetFileName(projectPath);
+
+                // Step 3: Construct the paths to classdefs.tok, gladiators.txt, and statsets.txt dynamically
+                string becFolder     = Path.Combine(projectPath, $"{projectFolderName}_BEC");
+                string classDefsPath = Path.Combine(becFolder, "data", "config", "classdefs.tok");
+                string gladiatorsPath = Path.Combine(projectPath, $"{projectFolderName}_BEC", "data", "units", "gladiators.txt");
+                string statSetsPath = Path.Combine(projectPath, $"{projectFolderName}_BEC", "data", "units", "statsets.txt");
+
+                // Verify that classDefsPath, gladiatorsPath, and statSetsPath exist
+                if (!File.Exists(classDefsPath))
                 {
-                    ddlTeamClasses.SelectedIndex = 0; // Select the first class by default
+                    MessageBox.Show($"classdefs.tok not found at '{classDefsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AppendLog($"classdefs.tok not found at '{classDefsPath}'.", Color.Red);
+
+                    // Optionally, switch back to tabPacking
+                    foreach (TabPage tab in tabContainer.TabPages)
+                    {
+                        if (tab.Name == "tabPacking")
+                        {
+                            tabContainer.SelectedTab = tab;
+                            break;
+                        }
+                    }
+
+                    tabContainer.TabPages.Remove(tabTeamBuilder);
+                    teamBuilderToolStripMenuItem.Checked = false;
+                    return;
                 }
-                else
+
+                if (!File.Exists(gladiatorsPath))
                 {
-                    MessageBox.Show("No classes found in the selected project.", "No Classes", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    AppendLog("No classes found in classdefs.tok.", Color.Blue);
+                    MessageBox.Show($"gladiators.txt not found at '{gladiatorsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AppendLog($"gladiators.txt not found at '{gladiatorsPath}'.", Color.Red);
+
+                    // Optionally, switch back to tabPacking
+                    foreach (TabPage tab in tabContainer.TabPages)
+                    {
+                        if (tab.Name == "tabPacking")
+                        {
+                            tabContainer.SelectedTab = tab;
+                            break;
+                        }
+                    }
+
+                    tabContainer.TabPages.Remove(tabTeamBuilder);
+                    teamBuilderToolStripMenuItem.Checked = false;
+                    return;
+                }
+
+                if (!File.Exists(statSetsPath))
+                {
+                    MessageBox.Show($"statsets.txt not found at '{statSetsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AppendLog($"statsets.txt not found at '{statSetsPath}'.", Color.Red);
+
+                    // Optionally, switch back to tabPacking
+                    foreach (TabPage tab in tabContainer.TabPages)
+                    {
+                        if (tab.Name == "tabPacking")
+                        {
+                            tabContainer.SelectedTab = tab;
+                            break;
+                        }
+                    }
+
+                    tabContainer.TabPages.Remove(tabTeamBuilder);
+                    teamBuilderToolStripMenuItem.Checked = false;
+                    return;
+                }
+
+                // Proceed with loading class definitions, gladiators, and statsets
+                try
+                {
+                    var classParser = new ClassParser();
+                    classDefinitions = await Task.Run(() => classParser.ParseClassDefs(becFolder));
+
+                    var gladiatorParser = new GladiatorParser();
+                    gladiatorEntries = await Task.Run(() => gladiatorParser.ParseGladiators(gladiatorsPath));
+
+                    var statSetsParser = new StatSetsParser();
+                    statSets = await Task.Run(() => statSetsParser.ParseStatSets(statSetsPath));
+
+                    ddlTeamClasses.Items.Clear();
+                    foreach (var classDef in classDefinitions)
+                    {
+                        ddlTeamClasses.Items.Add(classDef.ClassName);
+                    }
+
+                    if (ddlTeamClasses.Items.Count > 0)
+                    {
+                        ddlTeamClasses.SelectedIndex = 0; // Select the first class by default
+                    }
+                    else
+                    {
+                        MessageBox.Show("No classes found in the selected project.", "No Classes", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        AppendLog("No classes found in classdefs.tok.", Color.Blue);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error loading classes, gladiators, or statsets: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AppendLog($"Error loading classes, gladiators, or statsets: {ex.Message}", Color.Red);
+
+                    // Optionally, switch back to tabPacking
+                    foreach (TabPage tab in tabContainer.TabPages)
+                    {
+                        if (tab.Name == "tabPacking")
+                        {
+                            tabContainer.SelectedTab = tab;
+                            break;
+                        }
+                    }
+
+                    tabContainer.TabPages.Remove(tabTeamBuilder);
+                    teamBuilderToolStripMenuItem.Checked = false;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading classes, gladiators, or statsets: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                AppendLog($"Error loading classes, gladiators, or statsets: {ex.Message}", Color.Red);
-
-                // Optionally, switch back to tabPacking
-                foreach (TabPage tab in tabContainer.TabPages)
-                {
-                    if (tab.Name == "tabPacking")
-                    {
-                        tabContainer.SelectedTab = tab;
-                        break;
-                    }
-                }
-
-                tabContainer.TabPages.Remove(tabTeamBuilder);
-                teamBuilderToolStripMenuItem.Checked = false;
+                AppendLog($"Loading classes failed: {ex.Message}", ErrorColor);
             }
         }
 
