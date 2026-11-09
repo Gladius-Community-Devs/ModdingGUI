@@ -190,6 +190,12 @@ namespace ModdingGUI
                 path = Path.Combine(GetAppDirectory(), path);
             }
 
+            // The path fields are normalised to forward slashes for the Python tooling; Windows APIs want backslashes.
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                path = ModdingGUI.Helpers.ShellFolderOpener.NormaliseForShell(path);
+            }
+
             if (!Directory.Exists(path)) // Check if the directory exists
             {
                 AppendLog($"Cannot open '{path}': not a folder.", WarningColor, rtbPackOutput);
@@ -209,30 +215,18 @@ namespace ModdingGUI
 
             AppendLog($"Could not open '{path}' through the shell: {shellError}", WarningColor, rtbPackOutput);
 
-            // Fallbacks: the ShellExecute verb, then explorer.exe launched by the shell rather than by us.
-            var attempts = new (string Name, Func<ProcessStartInfo> Build)[]
+            // One fallback only: the ShellExecute verb, on a normalised path. Spawning explorer.exe is not offered at
+            // all - it dies at load with 0xC0000142 when it inherits this process environment, which is a worse
+            // experience than an honest message.
+            try
             {
-                ("shell open", () => new ProcessStartInfo { FileName = path, UseShellExecute = true }),
-                ("explorer (shell)", () => new ProcessStartInfo
-                {
-                    FileName = "explorer.exe",
-                    UseShellExecute = true,
-                    ArgumentList = { path },
-                }),
-            };
-
-            foreach (var attempt in attempts)
+                string shellPath = ModdingGUI.Helpers.ShellFolderOpener.NormaliseForShell(path);
+                Process.Start(new ProcessStartInfo { FileName = shellPath, UseShellExecute = true });
+                return;
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    Process.Start(attempt.Build());
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    AppendLog($"Could not open '{path}' via {attempt.Name}: {ex.Message}",
-                        WarningColor, rtbPackOutput);
-                }
+                AppendLog($"Could not open '{path}' via ShellExecute: {ex.Message}", WarningColor, rtbPackOutput);
             }
 
             // Nothing worked: give the path back so it can be pasted into Explorer by hand.

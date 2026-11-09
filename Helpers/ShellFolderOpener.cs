@@ -1,6 +1,7 @@
 namespace ModdingGUI.Helpers;
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 /// <summary>
@@ -29,6 +30,21 @@ internal static class ShellFolderOpener
     private static extern void ILFree(IntPtr pidl);
 
     /// <summary>
+    /// The form the shell needs: absolute, backslash separated, no trailing separator (except a drive root).
+    /// </summary>
+    /// <param name="path">A path as the tool holds it, possibly with forward slashes.</param>
+    internal static string NormaliseForShell(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        string full = Path.GetFullPath(path.Trim());
+
+        // "E:\\" must stay "E:\\": trimming it would leave "E:", which GetFullPath reads as a relative path.
+        bool isRoot = full.EndsWith(":\\", StringComparison.Ordinal) || full.EndsWith(":/", StringComparison.Ordinal);
+        return isRoot ? full : full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+    }
+
+    /// <summary>
     /// Ask the shell to show a folder. Returns false with a reason when the shell refuses.
     /// </summary>
     /// <param name="folder">An existing folder. A missing path is reported as a failure, not thrown.</param>
@@ -37,20 +53,24 @@ internal static class ShellFolderOpener
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(folder);
 
+        // The shell namespace rejects forward slashes outright (SHParseDisplayName returns E_INVALIDARG,
+        // 0x80070057), and the tool's path fields hold forward slashes, so normalise before asking.
+        string normalised = NormaliseForShell(folder);
+
         IntPtr pidl = IntPtr.Zero;
         try
         {
-            int hr = SHParseDisplayName(folder, IntPtr.Zero, out pidl, 0, out _);
+            int hr = SHParseDisplayName(normalised, IntPtr.Zero, out pidl, 0, out _);
             if (hr != Success)
             {
-                error = $"the shell could not resolve '{folder}' (0x{hr:X8})";
+                error = $"the shell could not resolve '{normalised}' (0x{hr:X8})";
                 return false;
             }
 
             hr = SHOpenFolderAndSelectItems(pidl, 0, null!, 0);
             if (hr != Success)
             {
-                error = $"the shell refused to open '{folder}' (0x{hr:X8})";
+                error = $"the shell refused to open '{normalised}' (0x{hr:X8})";
                 return false;
             }
 
