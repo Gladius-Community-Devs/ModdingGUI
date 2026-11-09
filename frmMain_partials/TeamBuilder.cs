@@ -93,6 +93,12 @@ namespace ModdingGUI
    /// <summary>True when <see cref="JobPoints"/> came from the designer rather than the rule.</summary>
    public bool JobPointsOverridden { get; set; }
 
+   /// <summary>Roster file this unit was loaded from, when it already exists in the project.</summary>
+   public string? LoadedFromRoster { get; set; }
+
+   /// <summary>Name the unit had in that roster when it was loaded.</summary>
+   public string? LoadedName { get; set; }
+
             // BaseStats are set directly from statsets.txt
             public Stats BaseStats { get; set; } = new Stats();
 
@@ -1277,12 +1283,10 @@ namespace ModdingGUI
             // Hide PVP-only controls
             UpdateEquipmentRulesVisibility(false);
             
-            // Hide gear and skill selection tabs initially
-            if (tabTeamBuilderMaster.TabPages.Contains(tabTeamGearSelection))
-                tabTeamBuilderMaster.TabPages.Remove(tabTeamGearSelection);
-            
-            if (tabTeamBuilderMaster.TabPages.Contains(tabTeamSkillSelection))
-                tabTeamBuilderMaster.TabPages.Remove(tabTeamSkillSelection);
+            // The gear and skill pages used to be placeholders that were removed. They are editors now.
+            tabTeamGearSelection.Text = "Gear";
+            tabTeamSkillSelection.Text = "Skills";
+            BuildLoadoutEditors();
         }
 
         /// <summary>
@@ -1584,14 +1588,18 @@ namespace ModdingGUI
                 var itemsByName = new ModdingGUI.Core.Api.ItemsApi().GetAll(projectPath)
                     .ToDictionary(item => item.Name, item => item, StringComparer.OrdinalIgnoreCase);
 
-                var units = new List<ModdingGUI.Core.Api.SchoolUnitDto>();
+                // The DTO is what gets written; the Unit carries where it came from, so exports can update an
+                // existing roster entry rather than appending a second copy.
+                var built = new List<(ModdingGUI.Core.Api.SchoolUnitDto Dto, Unit Source)>();
                 foreach (TreeNode node in tvwTeam.Nodes)
                 {
                     if (node.Tag is Unit unit)
                     {
-                        units.Add(BuildSchoolUnit(unit, itemSets, itemTypes, itemsByName));
+                        built.Add((BuildSchoolUnit(unit, itemSets, itemTypes, itemsByName), unit));
                     }
                 }
+
+                var units = built.Select(entry => entry.Dto).ToList();
 
                 var schools = new ModdingGUI.Core.Api.SchoolsApi();
                 int written = 0;
@@ -1610,8 +1618,41 @@ namespace ModdingGUI
                         skipped.Add($"{unit.Name} (already in {roster})");
                     }
 
-                    written += schools.AddUnits(projectPath, relative, units);
-                    AppendLog($"Wrote '{roster}': {written} unit(s) so far.", Color.Blue);
+                    // Units loaded from this roster are edited in place rather than appended again.
+                    int updated = 0;
+                    foreach (var (unit, _) in built.Where(entry =>
+                        string.Equals(entry.Source.LoadedFromRoster, roster, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        foreach (var field in unit.Fields)
+                        {
+                            if (field.Key.Equals("SKILL", StringComparison.OrdinalIgnoreCase)) continue;
+                            schools.SetUnitField(projectPath, relative, unit.Name, field.Key, field.RawValue);
+                        }
+
+                        schools.SetUnitSkills(projectPath, relative, unit.Name,
+                            unit.Fields.Where(f => f.Key.Equals("SKILL", StringComparison.OrdinalIgnoreCase))
+                                .Select(f => f.RawValue).Select(v => v.Trim().Trim('"')).ToArray());
+                        updated++;
+                    }
+
+                    var fresh = built
+                        .Where(entry => !string.Equals(entry.Source.LoadedFromRoster, roster, StringComparison.OrdinalIgnoreCase))
+                        .Select(entry => entry.Dto)
+                        .ToList();
+
+                    // Loaded units that are no longer in the tree were deleted by the designer: remove their blocks.
+                    int removedUnits = 0;
+                    if (_loadedRosterUnits.TryGetValue(roster, out var loadedNames))
+                    {
+                        var present = units.Select(u => u.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                        foreach (string gone in loadedNames.Where(name => !present.Contains(name)))
+                        {
+                            if (schools.RemoveUnit(projectPath, relative, gone)) removedUnits++;
+                        }
+                    }
+
+                    written += schools.AddUnits(projectPath, relative, fresh);
+                    AppendLog($"'{roster}': +{fresh.Count} added, {updated} updated, {removedUnits} removed.", Color.Blue);
                 }
 
                 string summary = $"Added {written} unit(s) across {rosters.Count} roster(s).";
@@ -1644,6 +1685,394 @@ namespace ModdingGUI
 
         private CheckBox? chbTeamRosterValens;
         private CheckBox? chbTeamRosterUrsula;
+        #endregion
+        #region Loadout editors (gear, skills, sets, roster)
+
+        private Unit? _selectedUnit;
+
+        private ListBox _lstLegalItems = new();
+        private ListBox _lstGrantedSkills = new();
+        private ListBox _lstLearnableSkills = new();
+        private ComboBox _cmbStatSet = new();
+        private ComboBox _cmbItemSet = new();
+        private ComboBox _cmbRoster = new();
+        private Label _lblLoadoutGear = new();
+        private Label _lblLoadoutJp = new();
+
+        /// <summary>Roster name to the unit names that were loaded from it, so removals can be written back.</summary>
+        private readonly Dictionary<string, HashSet<string>> _loadedRosterUnits =
+            new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Fill the Gear and Skills pages. Gear is offered only for items the class may actually use (ITEMCAT), and
+        /// skills only for those the class may learn (SKILLUSECLASS); see dol/equipment_rules.json and
+        /// dol/skill_rules.json.
+        /// </summary>
+        private void BuildLoadoutEditors()
+        {
+            // ---- Gear page ----
+            _lstLegalItems = new ListBox { Dock = DockStyle.Fill, IntegralHeight = false };
+            _lstLegalItems.DoubleClick += (_, _) => AssignSelectedItem();
+
+            var gearButtons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 44, Padding = new Padding(4) };
+            var assign = new Button { Text = "Assign", Width = 90, Height = 30 };
+            assign.Click += (_, _) => AssignSelectedItem();
+            var clear = new Button { Text = "Clear gear", Width = 100, Height = 30 };
+            clear.Click += (_, _) =>
+            {
+                if (_selectedUnit is null) return;
+                _selectedUnit.EquippedGear.Clear();
+                RefreshLoadoutEditors();
+            };
+            var fromSet = new Button { Text = "From item set", Width = 120, Height = 30 };
+            fromSet.Click += (_, _) => FillGearFromItemSet();
+            gearButtons.Controls.AddRange(new Control[] { assign, clear, fromSet });
+
+            _lblLoadoutGear = new Label
+            {
+                Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(4), TextAlign = ContentAlignment.TopLeft,
+            };
+
+            var setRow = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 34, Padding = new Padding(4) };
+            _cmbItemSet = new ComboBox { Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
+            _cmbStatSet = new ComboBox { Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
+            var applySets = new Button { Text = "Apply sets", Width = 100, Height = 26 };
+            applySets.Click += (_, _) => ApplySetsToSelected();
+            setRow.Controls.Add(new Label { Text = "Item set", Width = 60, TextAlign = ContentAlignment.MiddleLeft });
+            setRow.Controls.Add(_cmbItemSet);
+            setRow.Controls.Add(new Label { Text = "Stat set", Width = 60, TextAlign = ContentAlignment.MiddleLeft });
+            setRow.Controls.Add(_cmbStatSet);
+            setRow.Controls.Add(applySets);
+
+            tabTeamGearSelection.Controls.Clear();
+            tabTeamGearSelection.Controls.Add(_lstLegalItems);
+            tabTeamGearSelection.Controls.Add(gearButtons);
+            tabTeamGearSelection.Controls.Add(_lblLoadoutGear);
+            tabTeamGearSelection.Controls.Add(setRow);
+
+            // ---- Skills page ----
+            _lstLearnableSkills = new ListBox { Dock = DockStyle.Fill, IntegralHeight = false };
+            _lstGrantedSkills = new ListBox { Dock = DockStyle.Right, Width = 260, IntegralHeight = false };
+
+            var skillButtons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 44, Padding = new Padding(4) };
+            var add = new Button { Text = "Add -->", Width = 90, Height = 30 };
+            add.Click += (_, _) => AddSelectedSkill();
+            var remove = new Button { Text = "<-- Remove", Width = 90, Height = 30 };
+            remove.Click += (_, _) => RemoveSelectedSkill();
+            skillButtons.Controls.AddRange(new Control[] { add, remove });
+
+            _lblLoadoutJp = new Label
+            {
+                Dock = DockStyle.Bottom, Height = 40, Padding = new Padding(4), TextAlign = ContentAlignment.MiddleLeft,
+            };
+
+            tabTeamSkillSelection.Controls.Clear();
+            tabTeamSkillSelection.Controls.Add(_lstLearnableSkills);
+            tabTeamSkillSelection.Controls.Add(_lstGrantedSkills);
+            tabTeamSkillSelection.Controls.Add(skillButtons);
+            tabTeamSkillSelection.Controls.Add(_lblLoadoutJp);
+
+            // ---- Roster loader, on the rules page ----
+            Control parent = txtTeamLevel.Parent ?? tabTeamBuilder;
+            var rosterRow = new FlowLayoutPanel
+            {
+                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 112),
+                Size = new Size(400, 34),
+            };
+            _cmbRoster = new ComboBox { Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
+            var loadRoster = new Button { Text = "Load roster", Width = 110, Height = 26 };
+            loadRoster.Click += (_, _) => LoadSelectedRoster();
+            rosterRow.Controls.Add(_cmbRoster);
+            rosterRow.Controls.Add(loadRoster);
+            parent.Controls.Add(rosterRow);
+
+            RefreshRosterList();
+            RefreshLoadoutEditors();
+        }
+
+        /// <summary>Populate the roster drop-down from the project's school files.</summary>
+        private void RefreshRosterList()
+        {
+            _cmbRoster.Items.Clear();
+
+            string project = txtPackPath.Text.Trim();
+            if (string.IsNullOrEmpty(project) || !Directory.Exists(project)) return;
+
+            foreach (string file in new ModdingGUI.Core.Api.SchoolsApi().ListFiles(project))
+            {
+                _cmbRoster.Items.Add(Path.GetFileName(file));
+            }
+
+            if (_cmbRoster.Items.Count > 0) _cmbRoster.SelectedIndex = 0;
+        }
+
+        /// <summary>
+        /// Load an existing roster into the tree. Units keep a note of where they came from, so exporting edits them
+        /// in place and removes the ones deleted here.
+        /// </summary>
+        private void LoadSelectedRoster()
+        {
+            string project = txtPackPath.Text.Trim();
+            string? roster = _cmbRoster.SelectedItem?.ToString();
+
+            if (string.IsNullOrEmpty(project) || !Directory.Exists(project) || string.IsNullOrWhiteSpace(roster))
+            {
+                MessageBox.Show("Select a project and a roster first.", "Load Roster",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var school = new ModdingGUI.Core.Api.SchoolsApi().Get(project, "data/school/" + roster);
+            if (school is null)
+            {
+                MessageBox.Show($"Could not read '{roster}'.", "Load Roster", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            tvwTeam.Nodes.Clear();
+            teamUnits.Clear();
+            _loadedRosterUnits[roster!] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var dto in school.Units)
+            {
+                var unit = new Unit
+                {
+                    UnitName = dto.Name,
+                    Class = new ClassDefinition { ClassName = dto.ClassName },
+                    Level = int.TryParse(dto.Value("LEVEL"), out int level) ? level : 1,
+                    JobPoints = int.TryParse(dto.Value("JOBPOINTS"), out int jp) ? jp : 0,
+                    LoadedFromRoster = roster,
+                    LoadedName = dto.Name,
+                };
+
+                var stats = dto.CoreStats;
+                if (stats.Count >= 6)
+                {
+                    unit.BaseStats = new Stats
+                    {
+                        CON = stats[0], PWR = stats[1], ACC = stats[2], DEF = stats[3], INI = stats[4], MOV = stats[5],
+                    };
+                }
+
+                foreach (string skill in dto.Skills)
+                {
+                    unit.LearnedSkills.Add(new Skill { InternalName = skill, Name = skill });
+                }
+
+                teamUnits.Add(unit);
+                AddUnitToTreeView(unit);
+                _loadedRosterUnits[roster!].Add(unit.UnitName);
+            }
+
+            AppendLog($"Loaded {school.Units.Count} unit(s) from '{roster}'.", Color.Green);
+            UpdateUnitCountAndButtons();
+        }
+
+        /// <summary>Repopulate the loadout pages from the selected unit.</summary>
+        private void RefreshLoadoutEditors()
+        {
+            if (_lstLegalItems is null) return;
+
+            _lstLegalItems.Items.Clear();
+            _lstGrantedSkills.Items.Clear();
+            _lstLearnableSkills.Items.Clear();
+            _cmbItemSet.Items.Clear();
+            _cmbStatSet.Items.Clear();
+
+            Unit? unit = _selectedUnit;
+            string project = txtPackPath.Text.Trim();
+
+            if (unit is null || string.IsNullOrEmpty(project) || !Directory.Exists(project))
+            {
+                _lblLoadoutGear.Text = "Select a unit.";
+                _lblLoadoutJp.Text = string.Empty;
+                return;
+            }
+
+            string className = unit.Class.ClassName;
+            var classes = new ModdingGUI.Core.Api.ClassDefsApi();
+            var classDef = classes.Get(project, className);
+            var categories = ModdingGUI.Core.Units.ItemCategoryRules.Parse(classDef);
+
+            // Legal items for this class, with the level shown because the tier rule is the player's, not ours.
+            var items = new ModdingGUI.Core.Api.ItemsApi().GetAll(project);
+            foreach (var item in items)
+            {
+                if (!ModdingGUI.Core.Units.ItemCategoryRules.Allows(categories, item.Type, item.SubType, item.Style))
+                {
+                    continue;
+                }
+
+                string label = $"{item.Name}  [{item.Type} / {item.SubType} / {item.Style}]";
+                _lstLegalItems.Items.Add(new ItemChoice(item, label));
+            }
+
+            _lblLoadoutGear.Text =
+                $"Weapon: {Slot(unit, GearType.Weapon)}\nArmor: {Slot(unit, GearType.Armor)}\n" +
+                $"Shield: {Slot(unit, GearType.Shield)}\nHelmet: {Slot(unit, GearType.Helmet)}\n" +
+                $"Accessory: {Slot(unit, GearType.Accessory)}";
+
+            // Learnable skills, priced.
+            var allSkills = new ModdingGUI.Core.Api.SkillsApi().GetAll(project);
+            foreach (var skill in ModdingGUI.Core.Units.LearnableSkills.For(allSkills, className))
+            {
+                int cost = ModdingGUI.Core.Units.JobPoints.CostOf(skill);
+                int level = ModdingGUI.Core.Units.LearnableSkills.LevelOf(skill);
+                _lstLearnableSkills.Items.Add(new SkillChoice(skill, $"{skill.Name}  ({cost} JP, lvl {level})"));
+            }
+
+            foreach (var skill in unit.LearnedSkills)
+            {
+                _lstGrantedSkills.Items.Add(skill.InternalName);
+            }
+
+            // Job points: award from the class and level, spent on the granted skills.
+            var budget = ModdingGUI.Core.Units.JobPoints.Compute(
+                ModdingGUI.Core.Units.JobPoints.ParseAwards(classDef?.Value("LEVELUPJPGIVEN")),
+                unit.Level,
+                unit.LearnedSkills.Select(_ => 0));
+
+            int spent = 0;
+            var allSkillsByName = allSkills.ToDictionary(s => s.Name, StringComparer.OrdinalIgnoreCase);
+            foreach (var skill in unit.LearnedSkills)
+            {
+                if (allSkillsByName.TryGetValue(skill.InternalName, out var dto)) spent += ModdingGUI.Core.Units.JobPoints.CostOf(dto);
+            }
+
+            _lblLoadoutJp.Text = $"Level {unit.Level}: {budget.Awarded} JP awarded, {spent} spent, " +
+                                 $"{Math.Max(0, budget.Awarded - spent)} left" +
+                                 (spent > budget.Awarded ? "  (over budget)" : string.Empty);
+
+            // Sets used by this class's existing gladiators.
+            var records = gladiatorEntries.Where(g => g.Class.Equals(className, StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (int index in records.Select(r => r.StatSet).Distinct().OrderBy(i => i))
+            {
+                _cmbStatSet.Items.Add(index);
+            }
+
+            foreach (int index in records.Select(r => r.ItemSet).Distinct().OrderBy(i => i))
+            {
+                _cmbItemSet.Items.Add(index);
+            }
+
+            if (_cmbStatSet.Items.Count > 0) _cmbStatSet.SelectedIndex = 0;
+            if (_cmbItemSet.Items.Count > 0) _cmbItemSet.SelectedIndex = 0;
+        }
+
+        private static string Slot(Unit unit, GearType type) =>
+            unit.EquippedGear.FirstOrDefault(gear => gear.GearType == type)?.InternalName ?? "(empty)";
+
+        private void AssignSelectedItem()
+        {
+            if (_selectedUnit is null || _lstLegalItems.SelectedItem is not ItemChoice choice) return;
+
+            // The slot comes from the item's own Type, which is what the engine uses.
+            if (!Enum.TryParse<GearType>(choice.Item.Type, ignoreCase: true, out GearType slot)) return;
+
+            _selectedUnit.EquippedGear.RemoveAll(gear => gear.GearType == slot);
+            _selectedUnit.EquippedGear.Add(new Gear
+            {
+                InternalName = choice.Item.Name,
+                Name = choice.Item.Name,
+                GearType = slot,
+                SubType = choice.Item.SubType ?? string.Empty,
+                Style = choice.Item.Style ?? string.Empty,
+            });
+
+            RefreshLoadoutEditors();
+            DisplayUnitStats(_selectedUnit);
+        }
+
+        private void FillGearFromItemSet()
+        {
+            if (_selectedUnit is null) return;
+
+            string project = txtPackPath.Text.Trim();
+            if (_cmbItemSet.SelectedItem is not int setIndex || string.IsNullOrEmpty(project)) return;
+
+            var set = new ModdingGUI.Core.Api.ItemSetsApi().Get(project, setIndex);
+            if (set is null) return;
+
+            var types = new ModdingGUI.Core.Api.ItemsApi().GetAll(project)
+                .Where(item => !string.IsNullOrWhiteSpace(item.Type))
+                .ToDictionary(item => item.Name, item => item.Type!, StringComparer.OrdinalIgnoreCase);
+
+            var warnings = new List<string>();
+            var gear = ModdingGUI.Core.Units.ItemSetGear.ForLevel(set.Rows, _selectedUnit.Level, types, warnings);
+
+            foreach (string warning in warnings) AppendLog($"Item set {setIndex}: {warning}", Color.Orange);
+
+            _selectedUnit.EquippedGear.Clear();
+            AddGear(_selectedUnit, gear.Weapon, GearType.Weapon);
+            AddGear(_selectedUnit, gear.Armor, GearType.Armor);
+            AddGear(_selectedUnit, gear.Shield, GearType.Shield);
+            AddGear(_selectedUnit, gear.Helmet, GearType.Helmet);
+            AddGear(_selectedUnit, gear.Accessory, GearType.Accessory);
+
+            RefreshLoadoutEditors();
+            DisplayUnitStats(_selectedUnit);
+        }
+
+        private static void AddGear(Unit unit, string? name, GearType type)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return;
+            unit.EquippedGear.Add(new Gear { InternalName = name!, Name = name!, GearType = type });
+        }
+
+        private void ApplySetsToSelected()
+        {
+            if (_selectedUnit is null) return;
+
+            string project = txtPackPath.Text.Trim();
+            if (string.IsNullOrEmpty(project)) return;
+
+            if (_cmbStatSet.SelectedItem is int statIndex && statSets.TryGetValue(statIndex, out var rows) &&
+                rows.TryGetValue(_selectedUnit.Level, out var values) && values.Count >= 5)
+            {
+                _selectedUnit.BaseStats = new Stats
+                {
+                    CON = values[0], PWR = values[1], ACC = values[2], DEF = values[3], INI = values[4],
+                    MOV = values.Count > 5 ? values[5] : 1,
+                };
+            }
+
+            FillGearFromItemSet();
+            DisplayUnitStats(_selectedUnit);
+        }
+
+        private void AddSelectedSkill()
+        {
+            if (_selectedUnit is null || _lstLearnableSkills.SelectedItem is not SkillChoice choice) return;
+
+            if (_selectedUnit.LearnedSkills.All(skill => !skill.InternalName.Equals(choice.Skill.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                _selectedUnit.LearnedSkills.Add(new Skill { InternalName = choice.Skill.Name, Name = choice.Skill.Name });
+            }
+
+            RefreshLoadoutEditors();
+        }
+
+        private void RemoveSelectedSkill()
+        {
+            if (_selectedUnit is null || _lstGrantedSkills.SelectedItem is not string name) return;
+
+            _selectedUnit.LearnedSkills.RemoveAll(skill =>
+                skill.InternalName.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            RefreshLoadoutEditors();
+        }
+
+        private sealed record ItemChoice(ModdingGUI.Core.Api.ItemDto Item, string Label)
+        {
+            public override string ToString() => Label;
+        }
+
+        private sealed record SkillChoice(ModdingGUI.Core.Api.SkillDto Skill, string Label)
+        {
+            public override string ToString() => Label;
+        }
+
         #endregion
     }
 }

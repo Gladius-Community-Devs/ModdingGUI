@@ -1,0 +1,25 @@
+{
+  "$comment": "Skill learning rules read out of bootfile.dol.",
+  "learnGate": {
+    "function": "CharacterCanLearnSkillEventually (0x800fd0c8)",
+    "steps": [
+      "reject when the skill's flag words mark it unlearnable: byte2 bits 0x1000 / 0x2000, or flags & 0x2000000",
+      "reject when the skill's signed byte at +0x1d is negative",
+      "class check: FUN_800f95a0(skill) returns true when BOTH class-mask words are zero (no class restriction); otherwise FUN_800f95d0(characterMask, skillMask) must find a common bit",
+      "reject when the skill is already known, or is an ancestor of something already known (FUN_8002e94c)",
+      "recurses through the prerequisite link at skill[0xb], so a chain of prerequisites must be satisfiable"
+    ],
+    "classMask": {
+      "builder": "FUN_800f9608 from repeating SKILLUSECLASS lines (skills_fields.json id 93, slot 'class set')",
+      "check": "FUN_800f95d0 = (a[0] & b[0]) | (a[1] & b[1]) - a 64-bit mask, one bit per class",
+      "consequence": "a skill with no SKILLUSECLASS lines is learnable by any class; otherwise the unit's class must appear in that list"
+    }
+  },
+  "fields": {
+    "SKILLUSECLASS": { "id": 93, "arity": "string", "repeatable": true, "note": "repeats add classes to the mask" },
+    "SKILLLEVEL": { "id": 91, "arity": "int", "note": "gates nothing in the learn check above; treat it as the tier at which the skill is meant to appear" },
+    "SKILLJOBPOINTCOST": { "id": 92, "arity": "int", "note": "job points charged to learn; has a hardcoded \"KillTest\" special case" },
+    "SKILLCOSTS": { "id": 16, "arity": "float,int", "note": "turn cost and SP cost, not job points" }
+  },
+  "toolingConsequence": "A skill picker should offer skills whose SKILLUSECLASS list is empty or contains the unit's class, and charge SKILLJOBPOINTCOST against the class's LEVELUPJPGIVEN budget. SKILLLEVEL is shown for guidance, not enforced, because the engine's learn check does not read it."
+}

@@ -125,6 +125,12 @@ public interface ISchoolsApi
     void AddUnitSkill(string projectPath, string relativePath, string unitName, string skill);
 
     /// <summary>
+    /// Delete a unit block from a roster. Returns true when a block was removed; a missing name is not an error, so a
+    /// caller removing several units can ignore the ones already gone.
+    /// </summary>
+    bool RemoveUnit(string projectPath, string relativePath, string unitName);
+
+    /// <summary>
     /// Append new unit blocks to a roster (the randomizer builds a team this way). One read, one write, one
     /// backup for the whole batch; returns how many blocks were added. The unit name must not already exist.
     /// </summary>
@@ -352,6 +358,35 @@ public sealed class SchoolsApi : ISchoolsApi
         });
 
         return added;
+    }
+
+    /// <inheritdoc />
+    public bool RemoveUnit(string projectPath, string relativePath, string unitName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(unitName);
+
+        bool removed = false;
+
+        Edit(projectPath, relativePath, lines =>
+        {
+            var block = UnitBlocks(lines)
+                .FirstOrDefault(candidate => candidate.Name.Equals(unitName, StringComparison.OrdinalIgnoreCase));
+
+            // A default tuple means no such unit; removing an absent name is not an error.
+            if (block.Name is null) return false;
+
+            int start = block.Start;
+            int end = block.End - 1;
+
+            // Trim the blank separator that trails the block so the file does not accumulate gaps.
+            while (end > start && string.IsNullOrWhiteSpace(lines[end])) end--;
+
+            lines.RemoveRange(start, end - start + 1);
+            removed = true;
+            return true;
+        });
+
+        return removed;
     }
 
     /// <inheritdoc />
