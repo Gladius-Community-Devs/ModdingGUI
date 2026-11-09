@@ -1310,6 +1310,27 @@ namespace ModdingGUI
             parent.Controls.Add(_chbTeamOverrideJp);
             parent.Controls.Add(_txtTeamJobPoints);
 
+            // Which rosters to write to. Both campaign schools ship with the same starting team, so both is the
+            // sensible default, but a mod may only want one.
+            chbTeamRosterValens = new CheckBox
+            {
+                Text = "Valens school",
+                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 60),
+                AutoSize = true,
+                Checked = true,
+            };
+
+            chbTeamRosterUrsula = new CheckBox
+            {
+                Text = "Ursula school",
+                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 84),
+                AutoSize = true,
+                Checked = true,
+            };
+
+            parent.Controls.Add(chbTeamRosterValens);
+            parent.Controls.Add(chbTeamRosterUrsula);
+
             _chbTeamOverrideJp.CheckedChanged += (_, _) =>
             {
                 _txtTeamJobPoints.ReadOnly = !_chbTeamOverrideJp.Checked;
@@ -1430,299 +1451,199 @@ namespace ModdingGUI
         /// </summary>
         /// <param name="projectFolder">The root project folder path.</param>
         /// <param name="fileName">The name of the school file (e.g. "valens_school.txt" or "ursula_school.txt").</param>
-        private void AppendTeamUnitsToFile(string projectFolder, string fileName)
-        {
-            // Validate parameters
-            if (string.IsNullOrEmpty(projectFolder) || !Directory.Exists(projectFolder))
-            {
-                AppendLog("Invalid project folder path.", Color.Red);
-                return;
-            }
-
-            try
-            {
-                // Step 1: Properly normalize and construct the file path
-                projectFolder = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                string projectFolderName = Path.GetFileName(projectFolder);
-                string dataFolder = Path.Combine(projectFolder, $"{projectFolderName}_BEC", "data");
-                string schoolFolder = Path.Combine(dataFolder, "school");
-                string filePath = Path.Combine(schoolFolder, fileName);
-                
-                // Log the path being used for better troubleshooting
-                AppendLog($"Target school file path: {filePath}", Color.Blue);
-
-                // Step 2: Ensure directories exist
-                if (!Directory.Exists(dataFolder))
-                {
-                    AppendLog($"Data folder not found: {dataFolder}", Color.Red);
-                    MessageBox.Show($"The data folder could not be found at:\n{dataFolder}\n\nPlease ensure the project is correctly unpacked.", 
-                        "Directory Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                // Create school folder if it doesn't exist
-                if (!Directory.Exists(schoolFolder))
-                {
-                    AppendLog($"School folder not found: {schoolFolder}. Creating it now.", Color.Orange);
-                    Directory.CreateDirectory(schoolFolder);
-                }
-
-                // Step 3: Check and load existing file content
-                List<string> outputLines = new List<string>();
-                
-                // Read existing file content
-                AppendLog($"Reading existing school file: {filePath}", Color.Blue);
-                outputLines.AddRange(File.ReadAllLines(filePath));
-
-                // Step 4: Append team units with detailed logging
-                AppendLog($"Adding {tvwTeam.Nodes.Count} units to {fileName}...", Color.Blue);
-                int initialLineCount = outputLines.Count;
-                AppendTeamUnitBlocks(outputLines);
-                
-                if (outputLines.Count <= initialLineCount)
-                {
-                    AppendLog("Warning: No unit data was added to the output lines.", Color.Orange);
-                }
-
-                // Step 5: Write back to file with validation
-                File.WriteAllLines(filePath, outputLines);
-                
-                // Verify file was created/updated
-                if (File.Exists(filePath))
-                {
-                    int unitCount = tvwTeam.Nodes.Count;
-                    string statusMessage = $"{unitCount} team units added to existing file {filePath}";
-                    
-                    AppendLog(statusMessage, Color.Green);
-                }
-                else
-                {
-                    throw new IOException($"Failed to verify the existence of the output file after writing: {filePath}");
-                }
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                string message = $"Access denied while writing to school file. Try running the application as administrator: {ex.Message}";
-                AppendLog(message, Color.Red);
-                MessageBox.Show(message, "Access Denied", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (IOException ex)
-            {
-                string message = $"I/O error while writing school file: {ex.Message}";
-                AppendLog(message, Color.Red);
-                MessageBox.Show(message, "File Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                string message = $"Error appending team to file: {ex.Message}";
-                AppendLog(message, Color.Red);
-                MessageBox.Show(message, "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
         /// <summary>
-        /// Appends CREATEUNIT blocks for all units in the team TreeView to the specified output lines.
+        /// Build the roster block for one unit: stats, gear and skills as the school file records them.
         /// </summary>
-        /// <param name="outputLines">The list of output lines to append to.</param>
-        private void AppendTeamUnitBlocks(List<string> outputLines)
+        private ModdingGUI.Core.Api.SchoolUnitDto BuildSchoolUnit(Unit unit, Dictionary<int, ModdingGUI.Core.Api.ItemSetDto> itemSets,
+            Dictionary<string, string> itemTypes, Dictionary<string, ModdingGUI.Core.Api.ItemDto> itemsByName)
         {
-            if (tvwTeam.Nodes.Count == 0)
+            var fields = new List<ModdingGUI.Core.Api.SchoolFieldDto>
             {
-                AppendLog("No units found in the team to export.", Color.Orange);
-                return;
-            }
+                new("LEVEL", unit.Level.ToString()),
+                new("EXPERIENCE", "0"),
+                new("JOBPOINTS", unit.JobPoints.ToString()),
+                new("CUSTOMIZE", "0, \"\""),
+            };
 
-            // Get project path for parsing item sets if needed
-            string projectPath = txtPackPath.Text.Trim();
-            if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
-            {
-                AppendLog("Warning: Valid project path not found, default items may not be assigned correctly.", Color.Orange);
-            }
+            var stats = unit.BaseStats;
+            fields.Add(new ModdingGUI.Core.Api.SchoolFieldDto("CORESTATSCOMP2",
+                $"{stats.CON}, {stats.PWR}, {stats.ACC}, {stats.DEF}, {stats.INI}, {stats.MOV}"));
 
-            // Parse item sets from the project if possible
-            Dictionary<int, ModdingGUI.Core.Api.ItemSetDto> itemSets = null;
-            Dictionary<string, string> itemTypes = null;
-            try
+            // Gear comes from the class's own gladiator records, chosen by items.tok Type at the unit's level.
+            string weapon = GetItemNameByType(unit.EquippedGear, GearType.Weapon);
+            string armor = GetItemNameByType(unit.EquippedGear, GearType.Armor);
+            string shield = GetItemNameByType(unit.EquippedGear, GearType.Shield);
+            string helmet = GetItemNameByType(unit.EquippedGear, GearType.Helmet);
+            string accessory = GetItemNameByType(unit.EquippedGear, GearType.Accessory);
+
+            if ((string.IsNullOrEmpty(weapon) || string.IsNullOrEmpty(armor) || string.IsNullOrEmpty(shield)
+                 || string.IsNullOrEmpty(helmet) || string.IsNullOrEmpty(accessory))
+                && itemSets is not null && itemTypes is not null && gladiatorEntries is { Count: > 0 })
             {
-                if (!string.IsNullOrEmpty(projectPath) && Directory.Exists(projectPath))
+                var matching = gladiatorEntries
+                    .Where(g => g.Class.Equals(unit.Class.ClassName, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (matching.Count > 0 && itemSets.TryGetValue(matching[0].ItemSet, out var sourceSet))
                 {
-                    // One pass over the item sets, then index -> item names, which is what the builder wants.
-                    itemSets = new ModdingGUI.Core.Api.ItemSetsApi().GetAll(projectPath)
-                        .ToDictionary(set => set.Index);
-                    itemTypes = new ModdingGUI.Core.Api.ItemsApi().GetAll(projectPath)
-                        .Where(item => !string.IsNullOrWhiteSpace(item.Type))
-                        .ToDictionary(item => item.Name, item => item.Type!, StringComparer.OrdinalIgnoreCase);
-                    AppendLog($"Loaded {itemSets.Count} item sets and {itemTypes.Count} item types.", Color.Blue);
-                }
-            }
-            catch (Exception ex)
-            {
-                AppendLog($"Error loading item sets: {ex.Message}. Default items will not be assigned.", Color.Orange);
-            }
+                    var gearWarnings = new List<string>();
+                    var gear = ModdingGUI.Core.Units.ItemSetGear.ForLevel(
+                        sourceSet.Rows, unit.Level, itemTypes, gearWarnings);
 
-            foreach (TreeNode unitNode in tvwTeam.Nodes)
-            {
-                // Get the Unit object from the node's Tag
-                if (unitNode.Tag is Unit unit)
-                {
-                    // Add CREATEUNIT block
-                    outputLines.Add($"CREATEUNIT: \"{unit.UnitName}\", \"{unit.Class.ClassName}\"    // Name, class");
-                    outputLines.Add($"\tLEVEL: {unit.Level}");
-                    outputLines.Add("\tEXPERIENCE: 0");
-                    outputLines.Add($"\tJOBPOINTS: {unit.JobPoints}");
-                    outputLines.Add("\tCUSTOMIZE: 0, \"\"");
-
-                    // Get the unit's stats
-                    var stats = unit.BaseStats;
-                    outputLines.Add("\t//            CON, PWR, ACC, DEF, INT, MOV");
-                    outputLines.Add($"\tCORESTATSCOMP2: {stats.CON}, {stats.PWR}, {stats.ACC}, {stats.DEF}, {stats.INI}, {stats.MOV}");
-
-                    // Add equipped items - first check the unit's equipped gear, then fall back to class-based defaults
-                    outputLines.Add("\t//	weapon,	armor,	shield,	helmet,	accessory");
-
-                    // First, check if the unit has any equpped gear
-                    string weapon = GetItemNameByType(unit.EquippedGear, GearType.Weapon);
-                    string armor = GetItemNameByType(unit.EquippedGear, GearType.Armor);
-                    string shield = GetItemNameByType(unit.EquippedGear, GearType.Shield);
-                    string helmet = GetItemNameByType(unit.EquippedGear, GearType.Helmet);
-                    string accessory = GetItemNameByType(unit.EquippedGear, GearType.Accessory);
-
-                    // If we're missing any equipment and have gladiator entries, try to assign class-based defaults
-                    if ((string.IsNullOrEmpty(weapon) || string.IsNullOrEmpty(armor) || string.IsNullOrEmpty(shield) || 
-                        string.IsNullOrEmpty(helmet) || string.IsNullOrEmpty(accessory)) && 
-                        gladiatorEntries != null && gladiatorEntries.Count > 0 && itemSets != null && itemSets.Count > 0)
+                    foreach (string warning in gearWarnings)
                     {
-                        // Find a matching gladiator entry for this class
-                        var matchingGladiators = gladiatorEntries.Where(g => g.Class.Equals(unit.Class.ClassName, StringComparison.OrdinalIgnoreCase)).ToList();
-                        if (matchingGladiators.Count > 0
-                            && itemSets.TryGetValue(matchingGladiators[0].ItemSet, out var sourceSet)
-                            && itemTypes is not null)
-                        {
-                            var gladiator = matchingGladiators[0];
-                            var gearWarnings = new List<string>();
-
-                            // Shared with the randomizer: classify by items.tok Type, prefer the row covering the unit's level.
-                            var gear = ModdingGUI.Core.Units.ItemSetGear.ForLevel(
-                                sourceSet.Rows, unit.Level, itemTypes, gearWarnings);
-
-                            foreach (string warning in gearWarnings)
-                            {
-                                AppendLog($"Item set {gladiator.ItemSet}: {warning}", Color.Orange);
-                            }
-
-                            if (string.IsNullOrEmpty(weapon)) weapon = gear.Weapon ?? string.Empty;
-                            if (string.IsNullOrEmpty(armor)) armor = gear.Armor ?? string.Empty;
-                            if (string.IsNullOrEmpty(shield)) shield = gear.Shield ?? string.Empty;
-                            if (string.IsNullOrEmpty(helmet)) helmet = gear.Helmet ?? string.Empty;
-                            if (string.IsNullOrEmpty(accessory)) accessory = gear.Accessory ?? string.Empty;
-
-                            AppendLog($"Applied equipment from item set {gladiator.ItemSet} for '{unit.UnitName}' " +
-                                      $"({unit.Class.ClassName}, level {unit.Level}).", Color.Blue);
-
-                            if (string.IsNullOrEmpty(weapon))
-                            {
-                                AppendLog($"Warning: '{unit.UnitName}' has no weapon in item set {gladiator.ItemSet}; " +
-                                          "the unit will not be able to attack.", Color.Red);
-                            }
-                        }
+                        AppendLog($"Item set {matching[0].ItemSet}: {warning}", Color.Orange);
                     }
 
-                    // Ensure we have a value (empty string if nothing else) for each slot
-                    weapon = weapon ?? "";
-                    armor = armor ?? "";
-                    shield = shield ?? "";
-                    helmet = helmet ?? "";
-                    accessory = accessory ?? "";
-
-                    outputLines.Add($"\tITEMSCOMP: \"{weapon}\", \"{armor}\", \"{shield}\", \"{helmet}\", \"{accessory}\"");
-
-                    // Add learned skills (if any)
-                    if (unit.LearnedSkills.Count > 0)
-                    {
-                        outputLines.Add("\t// basic skills");
-                        foreach (var skill in unit.LearnedSkills)
-                        {
-                            outputLines.Add($"\tSKILL: \"{skill.InternalName}\"");
-                        }
-                    }
+                    if (string.IsNullOrEmpty(weapon)) weapon = gear.Weapon ?? string.Empty;
+                    if (string.IsNullOrEmpty(armor)) armor = gear.Armor ?? string.Empty;
+                    if (string.IsNullOrEmpty(shield)) shield = gear.Shield ?? string.Empty;
+                    if (string.IsNullOrEmpty(helmet)) helmet = gear.Helmet ?? string.Empty;
+                    if (string.IsNullOrEmpty(accessory)) accessory = gear.Accessory ?? string.Empty;
                 }
             }
+
+            fields.Add(new ModdingGUI.Core.Api.SchoolFieldDto("ITEMSCOMP",
+                $"\"{weapon}\", \"{armor}\", \"{shield}\", \"{helmet}\", \"{accessory}\""));
+
+            if (string.IsNullOrEmpty(weapon))
+            {
+                AppendLog($"Warning: '{unit.UnitName}' has no weapon; the unit will not be able to attack.", Color.Red);
+            }
+
+            // Category legality: the engine would refuse these by hand, even though ITEMSCOMP itself is not checked.
+            var loadout = new ModdingGUI.Core.Units.GearLoadout(weapon, armor, shield, helmet, accessory);
+            if (itemsByName is { Count: > 0 } && projectPathForValidation is { Length: > 0 })
+            {
+                var classDef = new ModdingGUI.Core.Api.ClassDefsApi().Get(projectPathForValidation, unit.Class.ClassName);
+                foreach (string problem in ModdingGUI.Core.Units.ItemCategoryRules.Validate(classDef, loadout, itemsByName))
+                {
+                    AppendLog($"Category warning for '{unit.UnitName}': {problem}", Color.Orange);
+                }
+            }
+
+            foreach (var skill in unit.LearnedSkills)
+            {
+                fields.Add(new ModdingGUI.Core.Api.SchoolFieldDto("SKILL", $"\"{skill.InternalName}\""));
+            }
+
+            return new ModdingGUI.Core.Api.SchoolUnitDto
+            {
+                Name = unit.UnitName,
+                ClassName = unit.Class.ClassName,
+                Fields = fields,
+            };
         }
 
-        /// <summary>
-        /// Gets the name of an item of a specific type from the equipped gear list.
-        /// </summary>
-        /// <param name="equippedGear">The list of equipped gear.</param>
-        /// <param name="type">The type of gear to find.</param>
-        /// <returns>The item name or empty string if not found.</returns>
-        private string GetItemNameByType(List<Gear> equippedGear, GearType type)
-        {
-            var item = equippedGear.FirstOrDefault(g => g.GearType == type);
-            return item?.InternalName ?? "";
-        }
+        /// <summary>Set while building a unit, so the category check can read the class block.</summary>
+        private string? projectPathForValidation;
 
         /// <summary>
-        /// Exports the current team to both Valens and Ursula school files.
-        /// </summary>
-        /// <param name="projectFolder">The root project folder path.</param>
-        /// <param name="writeToValens">Flag indicating whether to write to Valens school file.</param>
-        /// <param name="writeToUrsula">Flag indicating whether to write to Ursula school file.</param>
-        /// <param name="appendToExisting">Flag indicating whether to append to existing files or create new ones.</param>
-        #endregion
-
-
-        /// <summary>
-        /// Handles the Click event of btnTeamAddToFile to export the team to both school files.
+        /// Write the designed team into the chosen school rosters through <c>ISchoolsApi</c>: the lock, the
+        /// <c>.mod-history</c> backup and round-trip fidelity come with it, and duplicate names are refused rather
+        /// than appended twice.
         /// </summary>
         private void btnTeamAddToFile_Click(object sender, EventArgs e)
         {
-            // Verify project path
             string projectPath = txtPackPath.Text.Trim();
             if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
             {
-                MessageBox.Show("Please select a valid project folder first.", "Project Not Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please select a valid project folder first.", "Project Not Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 AppendLog("Attempted to export team without selecting a valid project.", Color.Red);
                 return;
             }
 
-            // Check if team has units
             if (tvwTeam.Nodes.Count == 0)
             {
-                MessageBox.Show("Your team is empty. Please add units before exporting.", "Empty Team", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Your team is empty. Please add units before exporting.", "Empty Team",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var rosters = new List<string>();
+            if (chbTeamRosterValens is null || chbTeamRosterValens.Checked) rosters.Add("valensimperia.tok");
+            if (chbTeamRosterUrsula is null || chbTeamRosterUrsula.Checked) rosters.Add("ursulanordagh.tok");
+
+            if (rosters.Count == 0)
+            {
+                MessageBox.Show("Choose at least one school roster to write to.", "No Roster Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
-                // Confirm with the user before proceeding
-                DialogResult confirmResult = MessageBox.Show(
-                    "This will append your team units to both Valens and Ursula school files.\n\n" +
-                    "Do you want to continue?",
-                    "Confirm Team Export",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                projectPathForValidation = projectPath;
 
-                if (confirmResult != DialogResult.Yes)
+                var itemSets = new ModdingGUI.Core.Api.ItemSetsApi().GetAll(projectPath)
+                    .ToDictionary(set => set.Index);
+                var itemTypes = new ModdingGUI.Core.Api.ItemsApi().GetAll(projectPath)
+                    .Where(item => !string.IsNullOrWhiteSpace(item.Type))
+                    .ToDictionary(item => item.Name, item => item.Type!, StringComparer.OrdinalIgnoreCase);
+                var itemsByName = new ModdingGUI.Core.Api.ItemsApi().GetAll(projectPath)
+                    .ToDictionary(item => item.Name, item => item, StringComparer.OrdinalIgnoreCase);
+
+                var units = new List<ModdingGUI.Core.Api.SchoolUnitDto>();
+                foreach (TreeNode node in tvwTeam.Nodes)
                 {
-                    AppendLog("Team export canceled by user.", Color.Orange);
-                    return;
+                    if (node.Tag is Unit unit)
+                    {
+                        units.Add(BuildSchoolUnit(unit, itemSets, itemTypes, itemsByName));
+                    }
                 }
 
-                // Always append to existing files
-                AppendTeamUnitsToFile(projectPath, "valensimperia.tok");
-                AppendTeamUnitsToFile(projectPath, "ursulanordagh.tok");
+                var schools = new ModdingGUI.Core.Api.SchoolsApi();
+                int written = 0;
+                var skipped = new List<string>();
 
-                MessageBox.Show("Team units have been successfully added to both school files!",
-                    "Export Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                foreach (string roster in rosters)
+                {
+                    string relative = "data/school/" + roster;
 
-                AppendLog("Team units successfully added to both school files.", Color.Green);
+                    var existing = schools.Get(projectPath, relative)?.Units
+                        .Select(u => u.Name)
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var unit in units.Where(unit => existing.Contains(unit.Name)))
+                    {
+                        skipped.Add($"{unit.Name} (already in {roster})");
+                    }
+
+                    written += schools.AddUnits(projectPath, relative, units);
+                    AppendLog($"Wrote '{roster}': {written} unit(s) so far.", Color.Blue);
+                }
+
+                string summary = $"Added {written} unit(s) across {rosters.Count} roster(s).";
+                if (skipped.Count > 0)
+                {
+                    summary += $"\n\nSkipped {skipped.Count} duplicate(s):\n" + string.Join("\n", skipped.Distinct().Take(10));
+                }
+
+                AppendLog(summary, written > 0 ? Color.Green : Color.Orange);
+                MessageBox.Show(summary, "Team Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred while exporting the team: {ex.Message}",
-                    "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"An error occurred while exporting the team: {ex.Message}", "Export Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 AppendLog($"Team export error: {ex.Message}", Color.Red);
             }
+            finally
+            {
+                projectPathForValidation = null;
+            }
         }
+
+        /// <summary>The name of the equipped item of a given kind, or an empty string.</summary>
+        private static string GetItemNameByType(List<Gear> equippedGear, GearType type)
+        {
+            var item = equippedGear.FirstOrDefault(gear => gear.GearType == type);
+            return item?.InternalName ?? string.Empty;
+        }
+
+        private CheckBox? chbTeamRosterValens;
+        private CheckBox? chbTeamRosterUrsula;
+        #endregion
     }
 }
