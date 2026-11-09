@@ -25,30 +25,30 @@ public sealed class InputRulesTests
     }
 
     [Fact]
-    public void GoldFitsASignedThirtyTwoBitField()
+    public void GoldStopsAtTheInGameClamp()
     {
+        // Measured in game: 2,000,000,000 loads and displays, but the first gold gained or spent snaps it to
+        // 999,999. So the highest amount that survives a transaction is the limit.
         Assert.True(InputRules.IsValidGold(0));
-        Assert.True(InputRules.IsValidGold(999_980_999));
-        Assert.True(InputRules.IsValidGold(int.MaxValue));
+        Assert.True(InputRules.IsValidGold(999_999));
+        Assert.False(InputRules.IsValidGold(1_000_000));
+        Assert.False(InputRules.IsValidGold(999_980_999));
         Assert.False(InputRules.IsValidGold(-1));
-        Assert.False(InputRules.IsValidGold((long)int.MaxValue + 1));
+        Assert.Contains("999,999", InputRules.ExplainGold(2_000_000_000)!);
     }
 
     [Fact]
-    public void ValuesAboveVanillaMoneyAreAllowed()
+    public void ACostCanReachTheGoldCeilingButNotExceedIt()
     {
-        // No vanilla ceiling is imposed: a modder may hand a school more than the game ships with.
-        Assert.True(InputRules.IsValidGold(999_980_999));
-        Assert.True(InputRules.IsValidGold(1_500_000_000));
-        Assert.True(InputRules.IsValidGold(int.MaxValue));
+        Assert.True(InputRules.IsValidItemCost(999_999));
+        Assert.False(InputRules.IsValidItemCost(1_000_000));
     }
 
     [Fact]
-    public void AnItemCostsAtLeastOneAndAtMostTheMoneyField()
+    public void AnItemCostsAtLeastOne()
     {
         Assert.False(InputRules.IsValidItemCost(0));
         Assert.True(InputRules.IsValidItemCost(1));
-        Assert.True(InputRules.IsValidItemCost(int.MaxValue));
         Assert.False(InputRules.IsValidItemCost(-1));
         Assert.Contains("between 1 and", InputRules.ExplainItemCost(0)!);
     }
@@ -62,12 +62,6 @@ public sealed class InputRulesTests
         Assert.False(InputRules.IsValidAffinity(-1));
     }
 
-    [Fact]
-    public void TheHudLimitIsDocumentedButNotEnforced()
-    {
-        Assert.Equal(999_999, InputRules.ReportedHudGoldDisplayLimit);
-        Assert.True(InputRules.IsValidGold(InputRules.ReportedHudGoldDisplayLimit + 1));
-    }
 
     [Fact]
     public void OrdinaryNamesAreAccepted()

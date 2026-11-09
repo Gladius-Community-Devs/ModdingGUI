@@ -33,14 +33,15 @@ public static class InputRules
     public const int MaxLevel = 30;
 
     /// <summary>
-    /// Structural ceiling for an amount of money and for an item price: a signed 32-bit integer, because that is how
-    /// the field is stored. The in-game HUD is reported to stop displaying correctly at 999,999, which is a display
-    /// limit rather than a storage one, so it is not enforced here.
+    /// Ceiling for an amount of money, and therefore for an item price.
     /// </summary>
-    public const long MaxGold = int.MaxValue;
-
-    /// <summary>The HUD is reported to show at most six digits of currency. Display only - not enforced.</summary>
-    public const long ReportedHudGoldDisplayLimit = 999_999;
+    /// <remarks>
+    /// Measured in game: a roster written with 2,000,000,000 loads and displays as written, but the first gold gained
+    /// or spent snaps the total to 999,999. So the engine clamps on arithmetic rather than on load, and any value above
+    /// this is unreachable - vanilla's own 999,980,999 would snap the moment the player bought anything. 999,999 is
+    /// the highest amount that survives a transaction.
+    /// </remarks>
+    public const long MaxGold = 999_999;
 
     /// <summary>
     /// Highest affinity amount an item may carry. A unit holds at most 100 points of offensive affinity, and vanilla
@@ -74,7 +75,10 @@ public static class InputRules
     public static string? ExplainGold(long amount) =>
         IsValidGold(amount) ? null : $"Money must be between 0 and {MaxGold:N0}; got {amount:N0}.";
 
-    /// <summary>True when the price is one an item may carry.</summary>
+    /// <summary>
+    /// True when the price is one an item may carry: at least 1, at most the most money a school can actually hold,
+    /// so a purchase can always be completed and the price always survives the gold clamp.
+    /// </summary>
     public static bool IsValidItemCost(long cost) => cost >= MinItemCost && cost <= MaxGold;
 
     /// <summary>Why a price is not acceptable, or null.</summary>

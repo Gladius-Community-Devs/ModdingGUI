@@ -63,14 +63,13 @@
     },
     "gold": {
       "min": 0,
-      "max": 2147483647,
-      "evidence": "signed 32-bit field; no clamp found in the executable",
-      "hudNote": "reported to display at most 999,999; a display limit, not enforced"
+      "max": 999999,
+      "evidence": "measured in game: a roster written with 2,000,000,000 loads and displays, but the first gold gained or spent snaps the total to 999,999. The engine clamps on arithmetic, so higher values are unreachable; vanilla 999,980,999 would snap too."
     },
     "itemCost": {
       "min": 1,
-      "max": 2147483647,
-      "evidence": "same storage as a money amount; a modder may price an item anywhere the field allows"
+      "max": 999999,
+      "evidence": "priced within what a school can actually hold, so a purchase completes and the price survives the gold clamp"
     },
     "affinityAmount": {
       "min": 0,
