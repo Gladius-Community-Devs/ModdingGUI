@@ -616,6 +616,29 @@ place the text exists.
 over stdio); every write tool's result envelope carries `warnings[]` and the log range it produced, so
 an AI reads validation output structurally instead of scraping text.
 
+### Phase 7.9 — Invoke the tooling directly instead of generating `.bat` files
+
+**Problem.** Every tool call is assembled into a batch file and run through `cmd.exe`. Parentheses in a path break
+batch parsing even when quoted, which is why the app warns about them, offers to rename a copy, and `PathHelper`
+escapes them. That is a workaround for the transport, not for the tooling.
+
+**Proposal.** Call the tool directly with `ProcessStartInfo` and `ArgumentList` (no shell, no quoting rules), so any
+legal Windows path works - parentheses, spaces, commas, ampersands. A one-file PyInstaller build of the toolbelt makes
+this cleaner still: one executable, no Python install, no `tools/*.py` path arithmetic, no `python` on PATH.
+
+**Scope.**
+
+- `BatchContentBuilder` gains a structured form: a list of `(executable, arguments)` steps rather than one text blob.
+  The batch text stays available for anyone who wants to inspect or reuse it.
+- `PackService`/`UnpackService` (Phase 7.8) run those steps, so child-process output arrives as `LogEntry`s.
+- Path validation drops the parenthesis rule once this lands: `(` and `)` become ordinary characters.
+- A packaging job builds the one-file exe and the app prefers it when present, falling back to `python` + scripts.
+
+**Why it sits here.** It is the correct fix for a bug that has been papered over in every version, and it is far
+cheaper after Phase 7.8 moves process handling into Core. Doing it earlier would mean writing the same runner twice.
+
+**Exit.** A project whose path contains `(` unpacked and packed with no warning, and no `.bat` file created.
+
 ### Phase 8 — `ModdingGUI.Mcp` stdio server
 Thin tools-over-stdio bridge. One tool per Core method.
 

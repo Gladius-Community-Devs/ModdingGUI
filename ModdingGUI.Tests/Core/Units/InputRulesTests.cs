@@ -35,11 +35,38 @@ public sealed class InputRulesTests
     }
 
     [Fact]
-    public void ValuesAboveVanillaAreFlaggedNotRefused()
+    public void ValuesAboveVanillaMoneyAreAllowed()
     {
-        Assert.False(InputRules.IsAboveVanillaGold(999_980_999));
-        Assert.True(InputRules.IsAboveVanillaGold(999_981_000));
+        // No vanilla ceiling is imposed: a modder may hand a school more than the game ships with.
+        Assert.True(InputRules.IsValidGold(999_980_999));
         Assert.True(InputRules.IsValidGold(1_500_000_000));
+        Assert.True(InputRules.IsValidGold(int.MaxValue));
+    }
+
+    [Fact]
+    public void AnItemCostsAtLeastOneAndAtMostTheMoneyField()
+    {
+        Assert.False(InputRules.IsValidItemCost(0));
+        Assert.True(InputRules.IsValidItemCost(1));
+        Assert.True(InputRules.IsValidItemCost(int.MaxValue));
+        Assert.False(InputRules.IsValidItemCost(-1));
+        Assert.Contains("between 1 and", InputRules.ExplainItemCost(0)!);
+    }
+
+    [Fact]
+    public void AffinityStopsAtTwoHundred()
+    {
+        Assert.True(InputRules.IsValidAffinity(0));
+        Assert.True(InputRules.IsValidAffinity(200));
+        Assert.False(InputRules.IsValidAffinity(201));
+        Assert.False(InputRules.IsValidAffinity(-1));
+    }
+
+    [Fact]
+    public void TheHudLimitIsDocumentedButNotEnforced()
+    {
+        Assert.Equal(999_999, InputRules.ReportedHudGoldDisplayLimit);
+        Assert.True(InputRules.IsValidGold(InputRules.ReportedHudGoldDisplayLimit + 1));
     }
 
     [Fact]

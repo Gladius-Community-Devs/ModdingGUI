@@ -529,9 +529,11 @@ namespace ModdingGUI
             bool anyChange = false;
 
             // Cost: a shop price, so it cannot be negative.
-            if (!int.TryParse(txtItemEditorNewCost.Text, out int costVal) || costVal < 0)
+            if (!int.TryParse(txtItemEditorNewCost.Text, out int costVal)
+                || !ModdingGUI.Core.Units.InputRules.IsValidItemCost(costVal))
             {
-                MessageBox.Show("Cost must be a whole number of 0 or more.", "Invalid Cost",
+                MessageBox.Show(ModdingGUI.Core.Units.InputRules.ExplainItemCost(costVal) ??
+                    "Cost must be a whole number of 1 or more.", "Invalid Cost",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtItemEditorNewCost.Focus();
                 return;
@@ -560,9 +562,11 @@ namespace ModdingGUI
                 }
                 else
                 {
-                    if (!int.TryParse(txtItemEditorNewAffinity.Text, out int parsedAffVal) || parsedAffVal < 0)
+                    if (!int.TryParse(txtItemEditorNewAffinity.Text, out int parsedAffVal)
+                        || !ModdingGUI.Core.Units.InputRules.IsValidAffinity(parsedAffVal))
                     {
-                        MessageBox.Show($"Affinity amount for '{selAffType}' must be 0 or more.",
+                        MessageBox.Show(ModdingGUI.Core.Units.InputRules.ExplainAffinity(parsedAffVal) ??
+                            $"Affinity amount for '{selAffType}' must be 0 or more.",
                             "Invalid Affinity", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         txtItemEditorNewAffinity.Focus();
                         return;

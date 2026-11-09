@@ -32,11 +32,24 @@ public static class InputRules
     /// <summary>Highest level: every stat set stops at row 30.</summary>
     public const int MaxLevel = 30;
 
-    /// <summary>Largest value vanilla rosters use for <c>GOLD</c>.</summary>
-    public const long VanillaMaxGold = 999_980_999;
-
-    /// <summary>Structural ceiling for an amount of money: a signed 32-bit integer.</summary>
+    /// <summary>
+    /// Structural ceiling for an amount of money and for an item price: a signed 32-bit integer, because that is how
+    /// the field is stored. The in-game HUD is reported to stop displaying correctly at 999,999, which is a display
+    /// limit rather than a storage one, so it is not enforced here.
+    /// </summary>
     public const long MaxGold = int.MaxValue;
+
+    /// <summary>The HUD is reported to show at most six digits of currency. Display only - not enforced.</summary>
+    public const long ReportedHudGoldDisplayLimit = 999_999;
+
+    /// <summary>
+    /// Highest affinity amount an item may carry. A unit holds at most 100 points of offensive affinity, and vanilla
+    /// items go up to 200.
+    /// </summary>
+    public const int MaxAffinity = 200;
+
+    /// <summary>Cheapest legal item price: a price of 0 is treated as free and rejected.</summary>
+    public const int MinItemCost = 1;
 
     /// <summary>Longest name any vanilla unit or gladiator carries is 28; allow a little room.</summary>
     public const int MaxNameLength = 31;
@@ -61,8 +74,23 @@ public static class InputRules
     public static string? ExplainGold(long amount) =>
         IsValidGold(amount) ? null : $"Money must be between 0 and {MaxGold:N0}; got {amount:N0}.";
 
-    /// <summary>True when the amount is above anything vanilla ships, so it deserves a note rather than a refusal.</summary>
-    public static bool IsAboveVanillaGold(long amount) => amount > VanillaMaxGold;
+    /// <summary>True when the price is one an item may carry.</summary>
+    public static bool IsValidItemCost(long cost) => cost >= MinItemCost && cost <= MaxGold;
+
+    /// <summary>Why a price is not acceptable, or null.</summary>
+    public static string? ExplainItemCost(long cost) =>
+        IsValidItemCost(cost)
+            ? null
+            : $"Cost must be between {MinItemCost} and {MaxGold:N0}; got {cost:N0}.";
+
+    /// <summary>True when the amount is one an item may carry as an affinity bonus.</summary>
+    public static bool IsValidAffinity(long amount) => amount >= 0 && amount <= MaxAffinity;
+
+    /// <summary>Why an affinity amount is not acceptable, or null.</summary>
+    public static string? ExplainAffinity(long amount) =>
+        IsValidAffinity(amount)
+            ? null
+            : $"Affinity must be between 0 and {MaxAffinity}; got {amount:N0}.";
 
     /// <summary>Every reason a unit name would be rejected; empty when it is fine.</summary>
     public static IReadOnlyList<string> ValidateUnitName(string? name)

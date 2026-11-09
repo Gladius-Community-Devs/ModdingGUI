@@ -54,5 +54,38 @@
     "handler": "CORESTATSCOMP2/ITEMSCOMP block loader -> CharacterChangeItem slots 1,2,4,3,5",
     "validation": "none: the engine does not check that the item in the weapon position is a weapon",
     "consequence": "an item written in the wrong position occupies that slot; a unit without a usable weapon does not attack"
+  },
+  "inputLimits": {
+    "level": {
+      "min": 1,
+      "max": 30,
+      "evidence": "all 169 stat sets provide level rows 1-30 only (5,070 rows)"
+    },
+    "gold": {
+      "min": 0,
+      "max": 2147483647,
+      "evidence": "signed 32-bit field; no clamp found in the executable",
+      "hudNote": "reported to display at most 999,999; a display limit, not enforced"
+    },
+    "itemCost": {
+      "min": 1,
+      "max": 2147483647,
+      "evidence": "same storage as a money amount; a modder may price an item anywhere the field allows"
+    },
+    "affinityAmount": {
+      "min": 0,
+      "max": 200,
+      "evidence": "a unit holds at most 100 points of offensive affinity; vanilla items reach 200"
+    },
+    "itemMinLevel": {
+      "min": 1,
+      "max": 30,
+      "evidence": "not compared with the unit level; the equip tier compares it with 5/10/none"
+    },
+    "statModifier": {
+      "min": null,
+      "max": null,
+      "evidence": "no bound observed or documented; any integer the parser accepts"
+    }
   }
 }
