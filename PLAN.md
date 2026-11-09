@@ -544,6 +544,27 @@ and works through the same code path the MCP server will use.
 ### Phase 7 — Team Builder real implementation
 Replace mockup with real implementation backed by `IClassesApi` + `ISkillsApi` + `IItemsApi` + `ISchoolsApi` + `IGladiatorsApi`.
 
+**Status: done** (audited 2026-11-09). Every read and every write goes through a Core API:
+
+| Concern | API |
+|---|---|
+| classes, attributes, `ITEMCAT` eligibility | `IClassesApi` (`ClassDefsApi`), via `ItemCategoryRules` for the tier/subtype match |
+| gladiator records (stat set, item set, outfit, school) | `IGladiatorsApi` — the shell parser is gone |
+| stat sets (level → CON/POW/ACC/DEF/INI+MOV) | `IStatSetsApi` — the shell parser is gone; `GetAll` was added so the tab reads the table once |
+| legal gear, item-set fill by level | `IItemsApi` + `IItemSetsApi` (`ItemSetGear.ForLevel`) |
+| learnable/granted skills and their JP cost | `ISkillsApi` + `LearnableSkills` + `JobPoints` |
+| roster load, `SetUnitSkills`/`SetUnitClass`, export | `ISchoolsApi` |
+
+- The tab no longer parses a single game file: `GladiatorParser` and `StatSetsParser` are thin mappers over the
+  APIs, and the dead `GearParser` (~125 lines) is deleted.
+- Project validation went through `ProjectPaths` and one combined missing-file report instead of three
+  hand-built `_BEC` path checks (rule 7: one resolver).
+- Export writes through `ISchoolsApi`, so it gets the lock, the `.mod-history` backup and the byte-exact
+  round trip for free; duplicate names are refused and the export summary lists what it skipped.
+- **Still open (UX, agreed with the user, not blocking):** loadout grouping/labels, gear search over 404 item
+  sets, "raise `JOBPOINTS` when a skill is added" offer, and the stat preview not always repainting after a
+  level/stat-set change. These are usability refinements; the data path is complete.
+
 ### Phase 7.5 — Restore from backup
 Expose the `.mod-history` archive as a first-class feature.
 
@@ -585,14 +606,25 @@ box. `ModdingGUI.Core` has no logging abstraction at all. Consequences:
   so nothing outside the GUI can report a packing failure;
 - nothing to assert on in tests (log content is invisible to the suite).
 
-**Status: the sink itself is done** (`ModdingGUI.Core.Logging`: `LogLevel`, `LogEntry`, `IAppLog`,
+**Status: done.** (`ModdingGUI.Core.Logging`: `LogLevel`, `LogEntry`, `IAppLog`,
 `AppLog` — ring buffer, per-subscriber-isolated `Written` event, `Scope`, file sink at
-`%LOCALAPPDATA%\GladiusModding\last-run.log`, 11 tests). The shell's `AppendLog` is now a thin
-adapter that records first and renders second, so all ~270 call sites already feed the stream without
-being touched, and the Grid Builder shares the same instance via `GridBuilderView.Log`. Still open from
-this slice: moving pack/unpack/script-compile behind Core services (`PackService`/`UnpackService`) so
-child-process output is emitted as `LogEntry`s rather than only rendered — needed before Phase 8
-exposes it, and it is the natural home for the Phase 6 progress reporting too.
+`%LOCALAPPDATA%\GladiusModding\last-run.log`, 11 tests). The shell's `AppendLog` is a thin
+adapter that records first and renders second, so all ~200 call sites feed the stream without
+being touched, and the Grid Builder shares the same instance via `GridBuilderView.Log`.
+
+The remainder of the slice landed with Phase 7.9, because both needed one runner:
+
+- **`PackService` / `UnpackService`** in `ModdingGUI.Core.Tools` own the child processes and emit every line
+  as a `LogEntry`. `UnpackService` also creates the project folder, so a headless caller needs no shell.
+- **`ProjectBuildService`** now compiles through the same runner and delegates packing to `PackService`;
+  `RunBatchContent` (the `cmd.exe` path) is gone.
+- **`ToolRunner`** starts a step with `ProcessStartInfo.ArgumentList`, streams stdout as Info and stderr as
+  Warning, captures the lines on `BuildStepResult.Output`, echoes the command it ran, and kills the child
+  tree on cancellation.
+- **The shell renders, it does not run**: `frmMain_partials/BuildRunner.cs` calls the services and mirrors the
+  log into the target RichTextBox, so the GUI and `--pack`/`--unpack` print the same lines from the same code.
+- **A failed pack is now visible**: the buttons used to log "completed successfully" whatever the exit code
+  was, because the batch runner could not report one. They now check `BuildResult.Succeeded`.
 
 **Deliverable: `IAppLog` in Core.**
 
@@ -636,6 +668,26 @@ this cleaner still: one executable, no Python install, no `tools/*.py` path arit
 
 **Why it sits here.** It is the correct fix for a bug that has been papered over in every version, and it is far
 cheaper after Phase 7.8 moves process handling into Core. Doing it earlier would mean writing the same runner twice.
+
+**Status: done.**
+
+- **`ToolStep`** (`Name`, `Executable`, `Arguments`, `WorkingDirectory`) is the structured form PLAN asked for.
+  `BatchContentBuilder` gained `BuildUnpackSteps` / `BuildPackSteps`, and the old `GenerateUnpackContent` /
+  `GeneratePackContent` are now a rendering of those steps (`ToBatchText`), so the two forms cannot drift.
+- **No shell anywhere in the pipeline**: pack, unpack, script compile and xdelta all start their tool with
+  `ProcessStartInfo.ArgumentList`. `cmd.exe` and the generated `.bat` are gone from every run path.
+- **The parenthesis rule is deleted, not worked around**: the ISO picker, the pack-folder picker, the startup
+  app-path check and `ValidateFilePathNoParentheses` are removed; `PathHelper.QuotePath` now exists only for
+  the inspectable batch text.
+- **`xdelta3` was the worst case and is fixed**: patching used `PathHelper.QuotePath` inside a directly-started
+  process's `Arguments`, so a caret escape (`^(`) reached xdelta3 literally, and a path with parentheses was
+  "fixed" by offering to copy the ISO under a new name. That dialog, the copy, and the paren check are gone;
+  both patch apply and patch creation go through `ToolRunner`. The exe is now resolved from the app directory
+  rather than the current directory, which also fixes launching from a shortcut.
+- **Verified end to end**: `--unpack` and then `--pack` of the retail ISO into
+  `…\paren (test) project` both exited 0 (27,298 files, 2,170 unit records), and no `.bat` was created.
+- **`Save BAT file` became `Save tool commands (.bat)`**: it still writes the chain next to the project when
+  ticked, for someone who wants to inspect or reuse it. Nothing executes it.
 
 **Exit.** A project whose path contains `(` unpacked and packed with no warning, and no `.bat` file created.
 

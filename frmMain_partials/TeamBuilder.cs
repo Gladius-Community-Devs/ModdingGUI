@@ -252,13 +252,13 @@ namespace ModdingGUI
             /// parses classdefs.tok itself, so Team Builder sees exactly what the editor and
             /// the MCP server see (comments and unknown keys included).
             /// </summary>
-            /// <param name="becFolder">The project's <c>&lt;name&gt;_BEC</c> folder.</param>
-            public List<ClassDefinition> ParseClassDefs(string becFolder)
+            /// <param name="projectRoot">The project folder or its <c>&lt;name&gt;_BEC</c> folder.</param>
+            public List<ClassDefinition> ParseClassDefs(string projectRoot)
             {
                 var api = new ClassDefsApi();
                 var classDefinitions = new List<ClassDefinition>();
 
-                foreach (var dto in api.GetAll(becFolder))
+                foreach (var dto in api.GetAll(projectRoot))
                 {
                     var currentClass = new ClassDefinition { ClassName = dto.Name };
 
@@ -303,295 +303,62 @@ namespace ModdingGUI
 
 
         /// <summary>
-        /// Parses the gladiators.txt file to extract gladiator entries.
+        /// Reads <c>gladiators.txt</c> through <see cref="IGladiatorsApi"/>.
         /// </summary>
+        /// <remarks>
+        /// The shell used to walk the file itself, which duplicated the Core parser and re-derived the nine field
+        /// labels. Phase 7 puts Team Builder on the APIs like every other editor, so a record means the same thing
+        /// here as it does in the randomizer and (later) the MCP server.
+        /// </remarks>
         public class GladiatorParser
         {
-            /// <summary>
-            /// Parses the gladiators.txt file and returns a list of GladiatorEntry objects.
-            /// </summary>
-            /// <param name="filePath">Path to the gladiators.txt file.</param>
-            /// <returns>List of GladiatorEntry objects.</returns>
-            public List<GladiatorEntry> ParseGladiators(string filePath)
+            /// <summary>Every gladiator record in the project, in file order.</summary>
+            /// <param name="projectRoot">The project folder or its <c>_BEC</c> folder.</param>
+            public List<GladiatorEntry> ParseGladiators(string projectRoot)
             {
-                var gladiators = new List<GladiatorEntry>();
-
-                if (!File.Exists(filePath))
-                {
-                    throw new FileNotFoundException($"The file '{filePath}' does not exist.");
-                }
-
-                var lines = File.ReadAllLines(filePath);
-                GladiatorEntry currentGladiator = null;
-
-                foreach (var line in lines)
-                {
-                    var trimmedLine = line.Trim();
-
-                    if (string.IsNullOrEmpty(trimmedLine))
-                        continue;
-
-                    if (trimmedLine.StartsWith("Name:", StringComparison.OrdinalIgnoreCase))
+                return new GladiatorsApi().GetAll(projectRoot)
+                    .Select(dto => new GladiatorEntry
                     {
-                        if (currentGladiator != null)
-                        {
-                            gladiators.Add(currentGladiator);
-                        }
-
-                        currentGladiator = new GladiatorEntry
-                        {
-                            Name = trimmedLine.Substring(5).Trim()
-                        };
-                        continue;
-                    }
-
-                    if (currentGladiator != null)
-                    {
-                        if (trimmedLine.StartsWith("Class:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            currentGladiator.Class = trimmedLine.Substring(6).Trim();
-                        }
-                        else if (trimmedLine.StartsWith("Outfit:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (int.TryParse(trimmedLine.Substring(7).Trim(), out int outfit))
-                                currentGladiator.Outfit = outfit;
-                        }
-                        else if (trimmedLine.StartsWith("Affinity:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            currentGladiator.Affinity = trimmedLine.Substring(9).Trim();
-                        }
-                        else if (trimmedLine.StartsWith("Tint set:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (int.TryParse(trimmedLine.Substring(10).Trim(), out int tintSet))
-                                currentGladiator.TintSet = tintSet;
-                        }
-                        else if (trimmedLine.StartsWith("Skill set:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (int.TryParse(trimmedLine.Substring(10).Trim(), out int skillSet))
-                                currentGladiator.SkillSet = skillSet;
-                        }
-                        else if (trimmedLine.StartsWith("Stat set:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (int.TryParse(trimmedLine.Substring(9).Trim(), out int statSet))
-                                currentGladiator.StatSet = statSet;
-                        }
-                        else if (trimmedLine.StartsWith("Item set:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (int.TryParse(trimmedLine.Substring(9).Trim(), out int itemSet))
-                                currentGladiator.ItemSet = itemSet;
-                        }
-                        else if (trimmedLine.StartsWith("School:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (int.TryParse(trimmedLine.Substring(7).Trim(), out int school))
-                                currentGladiator.School = school;
-                        }
-
-                        // Future Parsing: Add other fields as needed
-                    }
-                }
-
-                // Add the last parsed gladiator
-                if (currentGladiator != null)
-                {
-                    gladiators.Add(currentGladiator);
-                }
-
-                return gladiators;
+                        Name = dto.Name,
+                        Class = dto.Class,
+                        Affinity = dto.Affinity,
+                        Outfit = dto.Outfit,
+                        TintSet = dto.TintSet,
+                        SkillSet = dto.SkillSet,
+                        StatSet = dto.StatSet,
+                        ItemSet = dto.ItemSet,
+                        School = dto.School,
+                    })
+                    .ToList();
             }
         }
 
         /// <summary>
-        /// Parses the statsets.txt file to extract stats for each statset and level.
+        /// Reads <c>statsets.txt</c> through <see cref="IStatSetsApi"/>.
         /// </summary>
+        /// <remarks>
+        /// The shape stays the one the preview code wants — set index → level → five stats — but the parse is Core's,
+        /// including its handling of the section headers and the level rows.
+        /// </remarks>
         public class StatSetsParser
         {
-            /// <summary>
-            /// Parses the statsets.txt file and returns a dictionary mapping statset numbers to their level-based stats.
-            /// </summary>
-            /// <param name="filePath">Path to the statsets.txt file.</param>
-            /// <returns>Dictionary of statset numbers to a dictionary of level and stats list.</returns>
-            public Dictionary<int, Dictionary<int, List<int>>> ParseStatSets(string filePath)
+            /// <summary>Every stat set, keyed by set index and then by level.</summary>
+            /// <param name="projectRoot">The project folder or its <c>_BEC</c> folder.</param>
+            public Dictionary<int, Dictionary<int, List<int>>> ParseStatSets(string projectRoot)
             {
-                var statSets = new Dictionary<int, Dictionary<int, List<int>>>();
-
-                if (!File.Exists(filePath))
+                var sets = new Dictionary<int, Dictionary<int, List<int>>>();
+                foreach (StatSetDto dto in new StatSetsApi().GetAll(projectRoot))
                 {
-                    throw new FileNotFoundException($"The file '{filePath}' does not exist.");
-                }
-
-                var lines = File.ReadAllLines(filePath);
-                int currentStatSet = -1;
-
-                foreach (var line in lines)
-                {
-                    var trimmedLine = line.Trim();
-
-                    if (string.IsNullOrEmpty(trimmedLine))
-                        continue;
-
-                    if (trimmedLine.StartsWith("Statset ", StringComparison.OrdinalIgnoreCase))
+                    var rows = new Dictionary<int, List<int>>();
+                    foreach (StatSetRow row in dto.Rows)
                     {
-                        var match = Regex.Match(trimmedLine, @"Statset\s+(\d+):", RegexOptions.IgnoreCase);
-                        if (match.Success)
-                        {
-                            currentStatSet = int.Parse(match.Groups[1].Value);
-                            if (!statSets.ContainsKey(currentStatSet))
-                            {
-                                statSets[currentStatSet] = new Dictionary<int, List<int>>();
-                            }
-                        }
-                        else
-                        {
-                            currentStatSet = -1;
-                        }
-                        continue;
+                        rows[row.Level] = new List<int> { row.Con, row.Pow, row.Acc, row.Def, row.IniMov };
                     }
 
-                    if (currentStatSet != -1 && Regex.IsMatch(trimmedLine, @"^\d+:\s*\d+\s+\d+\s+\d+\s+\d+\s+\d+"))
-                    {
-                        var parts = trimmedLine.Split(new[] { ':' }, 2);
-                        if (parts.Length == 2)
-                        {
-                            if (int.TryParse(parts[0].Trim(), out int level))
-                            {
-                                var statsParts = parts[1].Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                if (statsParts.Length >= 5)
-                                {
-                                    var stats = statsParts.Take(5).Select(int.Parse).ToList();
-                                    statSets[currentStatSet][level] = stats;
-                                }
-                            }
-                        }
-                    }
+                    sets[dto.Index] = rows;
                 }
 
-                return statSets;
-            }
-        }
-
-        public class GearParser
-        {
-            public List<Gear> ParseGear(string filePath)
-            {
-                var gears = new List<Gear>();
-
-                if (!File.Exists(filePath))
-                {
-                    throw new FileNotFoundException($"The file '{filePath}' does not exist.");
-                }
-
-                var lines = File.ReadAllLines(filePath);
-                Gear currentGear = null;
-
-                foreach (var line in lines)
-                {
-                    var trimmedLine = line.Trim();
-
-                    if (string.IsNullOrEmpty(trimmedLine))
-                        continue;
-
-                    if (trimmedLine.StartsWith("ITEMCREATE:", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (currentGear != null)
-                        {
-                            gears.Add(currentGear);
-                        }
-
-                        currentGear = new Gear();
-
-                        var match = Regex.Match(trimmedLine, @"ITEMCREATE:\s*""([^""]+)"",\s*""([^""]+)"",\s*""([^""]+)"",\s*""([^""]+)"",\s*(\d+)", RegexOptions.IgnoreCase);
-                        if (match.Success)
-                        {
-                            currentGear.InternalName = match.Groups[1].Value.Trim();
-
-                            if (Enum.TryParse<GearType>(match.Groups[2].Value.Trim(), out GearType gearType))
-                            {
-                                currentGear.GearType = gearType;
-                            }
-
-                            currentGear.SubType = match.Groups[3].Value.Trim();
-                            currentGear.Style = match.Groups[4].Value.Trim();
-                            currentGear.StarValue = int.Parse(match.Groups[5].Value.Trim());
-                        }
-                        else
-                        {
-                            currentGear = null;
-                        }
-                        continue;
-                    }
-
-                    if (currentGear != null)
-                    {
-                        if (trimmedLine.StartsWith("ITEMDISPLAYNAMEID:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var match = Regex.Match(trimmedLine, @"ITEMDISPLAYNAMEID:\s*(\d+)", RegexOptions.IgnoreCase);
-                            if (match.Success)
-                            {
-                                currentGear.DisplayID = int.Parse(match.Groups[1].Value.Trim());
-                            }
-                        }
-                        else if (trimmedLine.StartsWith("ITEMMINLEVEL:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var match = Regex.Match(trimmedLine, @"ITEMMINLEVEL:\s*(\d+)", RegexOptions.IgnoreCase);
-                            if (match.Success)
-                            {
-                                currentGear.MinLevel = int.Parse(match.Groups[1].Value.Trim());
-                            }
-                        }
-                        else if (trimmedLine.StartsWith("ITEMAFFINITY:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var match = Regex.Match(trimmedLine, @"ITEMAFFINITY:\s*(\w+)\s*,\s*(\d+)", RegexOptions.IgnoreCase);
-                            if (match.Success)
-                            {
-                                currentGear.Affinity = match.Groups[1].Value.Trim();
-                                currentGear.AffinityValue = int.Parse(match.Groups[2].Value.Trim());
-                            }
-                        }
-                        else if (trimmedLine.StartsWith("ITEMSTATMOD:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var match = Regex.Match(trimmedLine, @"ITEMSTATMOD:\s*(\w+)\s*,\s*(-?\d+)", RegexOptions.IgnoreCase);
-                            if (match.Success)
-                            {
-                                var statName = match.Groups[1].Value.Trim().ToLower();
-                                var statValue = int.Parse(match.Groups[2].Value.Trim());
-                                switch (statName)
-                                {
-                                    case "accuracy":
-                                        currentGear.Accuracy = statValue;
-                                        break;
-                                    case "initiative":
-                                        currentGear.Initiative = statValue;
-                                        break;
-                                    case "defense":
-                                        currentGear.Defense = statValue;
-                                        break;
-                                    case "hp":
-                                        currentGear.HP = statValue;
-                                        break;
-                                    case "damage":
-                                        currentGear.Damage = statValue;
-                                        break;
-                                }
-                            }
-                        }
-                        else if (trimmedLine.StartsWith("ITEMSKILL:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var match = Regex.Match(trimmedLine, @"ITEMSKILL:\s*""([^""]+)""", RegexOptions.IgnoreCase);
-                            if (match.Success)
-                            {
-                                var skill = new Skill { InternalName = match.Groups[1].Value.Trim() };
-                                currentGear.Skills.Add(skill);
-                            }
-                        }
-                    }
-                }
-
-                if (currentGear != null)
-                {
-                    gears.Add(currentGear);
-                }
-
-                return gears;
+                return sets;
             }
         }
         #endregion
@@ -639,22 +406,29 @@ namespace ModdingGUI
                 // Step 1: Trim trailing directory separators
                 projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-                // Step 2: Extract the project folder name
-                string projectFolderName = Path.GetFileName(projectPath);
-
-                // Step 3: Construct the paths to classdefs.tok, gladiators.txt, and statsets.txt dynamically
-                string becFolder     = Path.Combine(projectPath, $"{projectFolderName}_BEC");
-                string classDefsPath = Path.Combine(becFolder, "data", "config", "classdefs.tok");
-                string gladiatorsPath = Path.Combine(projectPath, $"{projectFolderName}_BEC", "data", "units", "gladiators.txt");
-                string statSetsPath = Path.Combine(projectPath, $"{projectFolderName}_BEC", "data", "units", "statsets.txt");
-
-                // Verify that classDefsPath, gladiatorsPath, and statSetsPath exist
-                if (!File.Exists(classDefsPath))
+                // Step 2: Resolve the three files Team Builder reads through the shell's project layout helper, so a
+                // project whose <name>_BEC folder is missing is reported the same way every other editor reports it.
+                string becFolder = ProjectPaths.BecFolder(projectPath);
+                var required = new (string Label, string Path)[]
                 {
-                    MessageBox.Show($"classdefs.tok not found at '{classDefsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    AppendLog($"classdefs.tok not found at '{classDefsPath}'.", Color.Red);
+                    ("classdefs.tok", ProjectPaths.ClassDefsFile(projectPath)),
+                    ("gladiators.txt", ProjectPaths.GladiatorsFile(projectPath)),
+                    ("statsets.txt", ProjectPaths.StatSetsFile(projectPath)),
+                };
 
-                    // Optionally, switch back to tabPacking
+                string[] missing = required
+                    .Where(file => !File.Exists(file.Path))
+                    .Select(file => file.Label)
+                    .ToArray();
+
+                if (missing.Length > 0)
+                {
+                    string message = $"{string.Join(", ", missing)} not found under '{becFolder}'. " +
+                                     "Please ensure the project is correctly unpacked.";
+                    MessageBox.Show(message, "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AppendLog(message, Color.Red);
+
+                    // Switch back to the packing tab; the builder cannot stand up without these files.
                     foreach (TabPage tab in tabContainer.TabPages)
                     {
                         if (tab.Name == "tabPacking")
@@ -669,57 +443,18 @@ namespace ModdingGUI
                     return;
                 }
 
-                if (!File.Exists(gladiatorsPath))
-                {
-                    MessageBox.Show($"gladiators.txt not found at '{gladiatorsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    AppendLog($"gladiators.txt not found at '{gladiatorsPath}'.", Color.Red);
-
-                    // Optionally, switch back to tabPacking
-                    foreach (TabPage tab in tabContainer.TabPages)
-                    {
-                        if (tab.Name == "tabPacking")
-                        {
-                            tabContainer.SelectedTab = tab;
-                            break;
-                        }
-                    }
-
-                    tabContainer.TabPages.Remove(tabTeamBuilder);
-                    teamBuilderToolStripMenuItem.Checked = false;
-                    return;
-                }
-
-                if (!File.Exists(statSetsPath))
-                {
-                    MessageBox.Show($"statsets.txt not found at '{statSetsPath}'. Please ensure the project is correctly unpacked.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    AppendLog($"statsets.txt not found at '{statSetsPath}'.", Color.Red);
-
-                    // Optionally, switch back to tabPacking
-                    foreach (TabPage tab in tabContainer.TabPages)
-                    {
-                        if (tab.Name == "tabPacking")
-                        {
-                            tabContainer.SelectedTab = tab;
-                            break;
-                        }
-                    }
-
-                    tabContainer.TabPages.Remove(tabTeamBuilder);
-                    teamBuilderToolStripMenuItem.Checked = false;
-                    return;
-                }
-
-                // Proceed with loading class definitions, gladiators, and statsets
+                // Proceed with loading class definitions, gladiators, and statsets — all through the Core APIs, so the
+                // shell parses none of these files itself (PLAN.md Phase 7).
                 try
                 {
                     var classParser = new ClassParser();
-                    classDefinitions = await Task.Run(() => classParser.ParseClassDefs(becFolder));
+                    classDefinitions = await Task.Run(() => classParser.ParseClassDefs(projectPath));
 
                     var gladiatorParser = new GladiatorParser();
-                    gladiatorEntries = await Task.Run(() => gladiatorParser.ParseGladiators(gladiatorsPath));
+                    gladiatorEntries = await Task.Run(() => gladiatorParser.ParseGladiators(projectPath));
 
                     var statSetsParser = new StatSetsParser();
-                    statSets = await Task.Run(() => statSetsParser.ParseStatSets(statSetsPath));
+                    statSets = await Task.Run(() => statSetsParser.ParseStatSets(projectPath));
 
                     ddlTeamClasses.Items.Clear();
                     foreach (var classDef in classDefinitions)

@@ -26,9 +26,9 @@ public enum CliMode
 /// A parsed command line invocation of the non-GUI entry points.
 /// </summary>
 /// <remarks>
-/// The GUI packs and unpacks by writing the batch produced by
-/// <see cref="BatchContentBuilder"/> and running it. The command line does exactly the
-/// same thing through the same builder, so automation cannot drift from what users do.
+/// The GUI packs and unpacks through Core (<see cref="PackService"/>, <see cref="UnpackService"/>); the command
+/// line calls the same services with the same arguments, so automation cannot drift from what users do. Neither
+/// path writes a batch file: the tools are started directly (PLAN.md Phase 7.9).
 /// </remarks>
 public sealed class CliInvocation
 {
@@ -92,8 +92,8 @@ public sealed class CliInvocation
           --python <cmd>   Python command to run (default: python; use "py -3" for the launcher)
           --help           Show this text
 
-        Both modes replay exactly the batch that the GUI generates
-        (Helpers/BatchContentBuilder), so results match packing from the app.
+        Both modes run the same Core pipeline as the GUI (PackService / UnpackService),
+        so results match packing from the app, and neither creates a batch file.
         """;
 
     /// <summary>
@@ -279,7 +279,7 @@ public sealed class CliInvocation
     }
 
     /// <summary>
-    /// Build the batch for this invocation, run it, and return its exit code.
+    /// Run this invocation and return its exit code.
     /// </summary>
     /// <param name="appDirectory">The application directory (tools default, working root).</param>
     public int Run(string appDirectory)
@@ -291,9 +291,14 @@ public sealed class CliInvocation
             return 2;
         }
 
+        // Projects are created beside the toolbelt, which is the app directory in a normal install.
         string workingRoot = Path.GetDirectoryName(tools.TrimEnd(
             Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) ?? appDirectory;
         string python = PythonCommand ?? "python";
+
+        // One log for every mode: this is the same stream the GUI renders, so a headless run reports the same lines.
+        var log = AppLog.CreateForRun();
+        log.Written += (_, entry) => Console.WriteLine($"[{entry.Level.ToString().ToLowerInvariant()}] {entry.Message}");
 
         if (Mode == CliMode.Randomize)
         {
@@ -303,9 +308,6 @@ public sealed class CliInvocation
                 Console.Error.WriteLine($"Project folder not found: {projectPath}");
                 return 2;
             }
-
-            var log = AppLog.CreateForRun();
-            log.Written += (_, entry) => Console.WriteLine($"[{entry.Level.ToString().ToLowerInvariant()}] {entry.Message}");
 
             var runner = new RandomizerRunner(log: log);
             BuildOptions? build = PackAfterRandomize
@@ -326,8 +328,6 @@ public sealed class CliInvocation
             return result.Succeeded ? 0 : 1;
         }
 
-        string script;
-        string batchName;
         if (Mode == CliMode.Pack)
         {
             string project = Path.GetFullPath(ProjectFolder!);
@@ -336,61 +336,28 @@ public sealed class CliInvocation
                 Console.Error.WriteLine($"Project folder not found: {project}");
                 return 2;
             }
-            script = BatchContentBuilder.GeneratePackContent(project, EnsureSeparator(workingRoot));
-            batchName = "moddinggui-pack-" + Guid.NewGuid().ToString("N") + ".bat";
-        }
-        else
-        {
-            string iso = Path.GetFullPath(IsoPath!);
-            if (!File.Exists(iso))
-            {
-                Console.Error.WriteLine($"ISO not found: {iso}");
-                return 2;
-            }
-            script = BatchContentBuilder.GenerateUnpackContent(iso, ProjectName!, EnsureSeparator(workingRoot));
-            batchName = "moddinggui-unpack-" + Guid.NewGuid().ToString("N") + ".bat";
+
+            BuildResult pack = new PackService(log).Pack(new PackRequest(project, tools, python));
+            Console.WriteLine($"[pack] {(pack.Succeeded ? "ok" : $"failed (exit {pack.ExitCode})")}");
+            return pack.Succeeded ? 0 : 1;
         }
 
-        script = ApplyPython(script, python);
-        script = "@echo off\r\ncd /d \"" + workingRoot + "\"\r\n" + script + "exit /b %ERRORLEVEL%\r\n";
-
-        string batchPath = Path.Combine(Path.GetTempPath(), batchName);
-        File.WriteAllText(batchPath, script);
-
-        try
+        string iso = Path.GetFullPath(IsoPath!);
+        if (!File.Exists(iso))
         {
-            Console.WriteLine($"[{Mode.ToString().ToLowerInvariant()}] {batchPath}");
-            var psi = new ProcessStartInfo("cmd.exe", "/c \"" + batchPath + "\"")
-            {
-                UseShellExecute = false,
-            };
-            using var process = Process.Start(psi);
-            if (process is null)
-            {
-                Console.Error.WriteLine("Failed to start cmd.exe.");
-                return 2;
-            }
-            process.WaitForExit();
-            return process.ExitCode;
+            Console.Error.WriteLine($"ISO not found: {iso}");
+            return 2;
         }
-        finally
-        {
-            try { File.Delete(batchPath); } catch (IOException) { /* best effort */ }
-        }
+
+        var unpackRequest = new UnpackRequest(
+            iso, ProjectName!, EnsureSeparator(workingRoot), tools, python);
+
+        BuildResult unpack = new UnpackService(log).Unpack(unpackRequest);
+        Console.WriteLine($"[unpack] {(unpack.Succeeded ? "ok" : $"failed (exit {unpack.ExitCode})")}");
+        Console.WriteLine($"[unpack] project: {UnpackService.ProjectFolderOf(unpackRequest)}");
+        return unpack.Succeeded ? 0 : 1;
     }
 
     private static string EnsureSeparator(string path) =>
         path.EndsWith(Path.DirectorySeparatorChar) ? path : path + Path.DirectorySeparatorChar;
-
-    /// <summary>Swap the batch's <c>python</c> prefix for the requested command.</summary>
-    private static string ApplyPython(string batch, string python)
-    {
-        if (string.Equals(python, "python", StringComparison.OrdinalIgnoreCase)) return batch;
-
-        return string.Join("\r\n", batch
-            .Split(["\r\n"], StringSplitOptions.None)
-            .Select(line => line.StartsWith("python ", StringComparison.OrdinalIgnoreCase)
-                ? python + line["python".Length..]
-                : line));
-    }
 }

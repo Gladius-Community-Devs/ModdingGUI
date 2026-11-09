@@ -56,12 +56,8 @@ namespace ModdingGUI
             btnUnpack.Enabled = false; // Disable the button to prevent multiple clicks
             string isoPath = txtISOPath.Text; // Get the ISO path from the text box
 
-            // Check if the ISO path contains parentheses
-            if (isoPath.Contains("(") || isoPath.Contains(")"))
-            {
-                MessageBox.Show("The ISO path cannot contain parentheses. Please select a different path.");
-                return; // Exit the method
-            }
+            // Parentheses are ordinary characters now: the tool is started directly with an argument list, so
+            // there is no batch parser to confuse (PLAN.md Phase 7.9).
 
             // Get the user input for the folder name, trim whitespace, and replace spaces with underscores
             string userInput = txtUnpackPath.Text.Trim().Replace(" ", "_");
@@ -96,14 +92,20 @@ namespace ModdingGUI
                     AppendLog($"Top-level folder created: {topLevelFolder}", InfoColor); // Log the creation of the folder
                 }
 
-                // Normalize the path for batch file generation
+                // Normalize the path for the project tree and the grid builder
                 string normalizedTopLevelFolder = PathHelper.NormalizePath(PathHelper.EnsureTrailingSeparator(topLevelFolder));
 
-                // Generate the batch file content for unpacking
-                string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
-
-                // Run the batch file asynchronously within the top-level folder
-                await RunBatchFileAsync(batchContent, topLevelFolder);
+                // Run the unpack chain through Core (no batch file, output streamed into the log)
+                BuildResult unpack = await RunUnpackAsync(isoPath, userInput);
+                if (!unpack.Succeeded)
+                {
+                    AppendLog(
+                        $"Unpacking failed at '{unpack.FirstFailure?.Name ?? "an unknown step"}' " +
+                        $"(exit {unpack.ExitCode}). See the log above for the tool's output.",
+                        ErrorColor);
+                    btnUnpack.Enabled = true;
+                    return;
+                }
 
                 AppendLog("Unpacking completed successfully.", SuccessColor); // Log successful completion
 
@@ -182,11 +184,17 @@ namespace ModdingGUI
                     AppendLog("Recompiling all .scp files before packing...", InfoColor, rtbPackOutput);
                     await RecompileAllScpAsync(selectedFolder);
                 }
-                // Generate the batch file content for packing
-                string batchContent = GeneratePackBatchFileContent(selectedFolder);
-
-                // Run the batch file asynchronously within the selected folder
-                await RunBatchFileAsync(batchContent, selectedFolder, rtbPackOutput);
+                // Run the pack chain through Core (no batch file, output streamed into the log)
+                BuildResult pack = await RunPackAsync(selectedFolder, rtbPackOutput);
+                if (!pack.Succeeded)
+                {
+                    AppendLog(
+                        $"Packing failed at '{pack.FirstFailure?.Name ?? "an unknown step"}' (exit {pack.ExitCode}). " +
+                        "See the log above for the tool's output.",
+                        ErrorColor, rtbPackOutput);
+                    btnPack.Enabled = true;
+                    return;
+                }
 
                 AppendLog("Packing completed successfully.", SuccessColor, rtbPackOutput); // Log successful completion
                 btnRandomize.Enabled = true;
@@ -215,10 +223,7 @@ namespace ModdingGUI
                 openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*";
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    if (ValidateFilePathNoParentheses(openFileDialog.FileName))
-                    {
-                        txtISOPath.Text = openFileDialog.FileName;
-                    }
+                    txtISOPath.Text = openFileDialog.FileName;
                 }
             }
         }
@@ -231,13 +236,10 @@ namespace ModdingGUI
                 if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                 {
                     string selectedPath = folderBrowserDialog.SelectedPath;
-                    if (ValidateFilePathNoParentheses(selectedPath))
-                    {
-                        txtPackPath.Text = selectedPath;
-                        txtRandomizerPath.Text = selectedPath;
-                        btnRandomize.Enabled = true;
-                        btnPack.Enabled = true;
-                    }
+                    txtPackPath.Text = selectedPath;
+                    txtRandomizerPath.Text = selectedPath;
+                    btnRandomize.Enabled = true;
+                    btnPack.Enabled = true;
                 }
             }
         }
@@ -279,12 +281,8 @@ namespace ModdingGUI
                 string appDirectory = GetAppDirectory();
                 AppendLog($"App Directory: {appDirectory}", InfoColor);
 
-                // Check for parentheses in the executable path
-                if (appDirectory.Contains("(") || appDirectory.Contains(")"))
-                {
-                    MessageBox.Show("The program cannot run from a file path containing parentheses. Please move it to a different location.", "Invalid Path", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Environment.Exit(0); // Exit the application
-                }
+                // No parenthesis check: tools are started with an argument list, so "C:\Mods (backup)\..." is as
+                // valid as any other path (PLAN.md Phase 7.9).
 
                 // Define the full path to the tools folder
                 string toolsPath = Path.Combine(appDirectory, "tools");
@@ -445,7 +443,8 @@ namespace ModdingGUI
                             {
                                 string isoPath = openFileDialog.FileName;
 
-                                if (ValidateFilePathNoParentheses(isoPath))
+                                // Parentheses no longer matter (Phase 7.9); only an empty selection is rejected.
+                                if (!string.IsNullOrWhiteSpace(isoPath))
                                 {
                                     // Ask user for project name
                                     string projectName = Path.GetFileNameWithoutExtension(isoPath);
@@ -493,14 +492,19 @@ namespace ModdingGUI
                                             AppendLog($"Top-level folder created: {topLevelFolder}", InfoColor);
                                         }
 
-                                        // Normalize the path for batch file generation
+                                        // Normalize the path for the project tree and the grid builder
                                         string normalizedTopLevelFolder = PathHelper.NormalizePath(PathHelper.EnsureTrailingSeparator(topLevelFolder));
 
-                                        // Generate the batch file content for unpacking
-                                        string batchContent = GenerateUnpackBatchFileContent(isoPath, userInput);
-
-                                        // Run the batch file asynchronously within the top-level folder
-                                        await RunBatchFileAsync(batchContent, topLevelFolder);
+                                        // Run the unpack chain through Core (no batch file, output streamed into the log)
+                                        BuildResult unpack = await RunUnpackAsync(isoPath, userInput);
+                                        if (!unpack.Succeeded)
+                                        {
+                                            AppendLog(
+                                                $"Unpacking failed at '{unpack.FirstFailure?.Name ?? "an unknown step"}' " +
+                                                $"(exit {unpack.ExitCode}).",
+                                                ErrorColor);
+                                            return;
+                                        }
 
                                         AppendLog("Unpacking completed successfully.", SuccessColor);
 

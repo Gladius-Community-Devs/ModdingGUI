@@ -310,7 +310,7 @@ namespace ModdingGUI
             saveBatMenuItem.CheckOnClick = true;
             saveBatMenuItem.Name = "saveBatMenuItem";
             saveBatMenuItem.Size = new Size(269, 34);
-            saveBatMenuItem.Text = "Save BAT file";
+            saveBatMenuItem.Text = "Save tool commands (.bat)";
             // 
             // randomizerLogsMenuItem
             // 

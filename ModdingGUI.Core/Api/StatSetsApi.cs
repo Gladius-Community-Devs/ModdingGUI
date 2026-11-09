@@ -59,6 +59,12 @@ public interface IStatSetsApi
     /// <summary>One set, or null when the index does not exist.</summary>
     StatSetDto? Get(string projectRoot, int index);
 
+    /// <summary>
+    /// Every set in one pass. Callers that want more than a handful should use this instead of
+    /// <see cref="Get"/> in a loop: each <c>Get</c> re-reads and re-parses the whole table (169 sets).
+    /// </summary>
+    IReadOnlyList<StatSetDto> GetAll(string projectRoot);
+
     /// <summary>Replace the values of one level row (the level comes from <paramref name="row"/>).</summary>
     void SetRow(string projectRoot, int index, StatSetRow row);
 
@@ -131,6 +137,20 @@ public sealed class StatSetsApi : IStatSetsApi
 
     /// <inheritdoc />
     public StatSetDto? Get(string projectRoot, int index) => ToDto(Load(projectRoot), index);
+
+    /// <inheritdoc />
+    public IReadOnlyList<StatSetDto> GetAll(string projectRoot)
+    {
+        var file = Load(projectRoot);
+        var sets = new List<StatSetDto>(file.Indexes.Count);
+        foreach (int index in file.Indexes)
+        {
+            StatSetDto? dto = ToDto(file, index);
+            if (dto is not null) sets.Add(dto);
+        }
+
+        return sets;
+    }
 
     /// <inheritdoc />
     public void SetRow(string projectRoot, int index, StatSetRow row)

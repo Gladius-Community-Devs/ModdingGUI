@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using ModdingGUI.Core.Tools;
 
@@ -24,100 +24,11 @@ namespace ModdingGUI
 
                 string isoPath = txtPatchingApplicationISOPath.Text;
 
-                // Check if the ISO filename contains parentheses
-                string fileName = Path.GetFileName(isoPath);
-                if (fileName.Contains('(') || fileName.Contains(')'))
+                // Parentheses are ordinary characters now: xdelta3 is started with an argument list, so a file named
+                // "Gladius (USA).iso" no longer needs copying or renaming first (PLAN.md Phase 7.9).
+                if (!File.Exists(isoPath))
                 {
-                    var result = MessageBox.Show(
-                        "The selected ISO file name contains parentheses. Do you want to create a copy with parentheses replaced by spaces?",
-                        "Filename Issue",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question
-                    );
-
-                    if (result == DialogResult.Yes)
-                    {
-                        try
-                        {
-                            string directory = Path.GetDirectoryName(isoPath);
-                            if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(fileName))
-                            {
-                                MessageBox.Show("Invalid ISO path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                return;
-                            }
-
-                            // Replace parentheses with spaces in the filename
-                            string newFilename = fileName.Replace("(", " ").Replace(")", "");
-                            string newPath = Path.Combine(directory, newFilename);
-
-                            // Check if the new file already exists
-                            if (File.Exists(newPath))
-                            {
-                                var overwriteResult = MessageBox.Show(
-                                    $"A file named \"{newFilename}\" already exists. Do you want to overwrite it?",
-                                    "File Exists",
-                                    MessageBoxButtons.YesNo,
-                                    MessageBoxIcon.Warning
-                                );
-
-                                if (overwriteResult != DialogResult.Yes)
-                                {
-                                    return;
-                                }
-                            }
-
-                            // Copy the original file to the new path
-                            File.Copy(isoPath, newPath, overwrite: true);
-
-                            // Update the text box and isoPath variable to the new path
-                            txtPatchingApplicationISOPath.Text = newPath;
-                            isoPath = newPath;
-
-                            MessageBox.Show(
-                                $"File copied successfully to:\n{newPath}",
-                                "Success",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Information
-                            );
-                            AppendLog($"File copied successfully to: {newPath}", InfoColor, rtbPatchingApplicationOutput);
-                        }
-                        catch (UnauthorizedAccessException ex)
-                        {
-                            MessageBox.Show($"Access denied: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            AppendLog($"Access denied: {ex.Message}", ErrorColor, rtbPatchingApplicationOutput);
-                            return;
-                        }
-                        catch (PathTooLongException ex)
-                        {
-                            MessageBox.Show($"Path too long: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            AppendLog($"Path too long: {ex.Message}", ErrorColor, rtbPatchingApplicationOutput);
-                            return;
-                        }
-                        catch (IOException ex)
-                        {
-                            MessageBox.Show($"I/O error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            AppendLog($"I/O error: {ex.Message}", ErrorColor, rtbPatchingApplicationOutput);
-                            return;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            AppendLog($"Unexpected error: {ex.Message}", ErrorColor, rtbPatchingApplicationOutput);
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        // User chose not to create a copy
-                        AppendLog("Please select a valid ISO file without parentheses.", ErrorColor, rtbPatchingApplicationOutput);
-                        return;
-                    }
-                }
-
-                // Validate the entire file path for parentheses
-                if (!ValidateFilePathNoParentheses(isoPath))
-                {
-                    AppendLog("The file path contains parentheses. Please rename your folders or move your ISO somewhere else.", ErrorColor, rtbPatchingApplicationOutput);
+                    AppendLog($"ISO not found: {isoPath}", ErrorColor, rtbPatchingApplicationOutput);
                     return;
                 }
 
@@ -193,43 +104,50 @@ namespace ModdingGUI
             }
         }
 
-        private async Task ApplyXDeltaPatchAsync(string isoPath, string xdeltaPath)
-        {
-            string outputIsoPath = Path.Combine(Path.GetDirectoryName(isoPath), "Gladius_Patched.ISO");
-            string xdeltaExePath = Path.Combine("tools", "xdelta3.exe");
+        /// <summary>The xdelta3 executable that ships in the toolbelt beside the app.</summary>
+        private static string XDeltaPath() =>
+            Path.Combine(GetAppDirectory(), "tools", "xdelta3.exe");
 
+        /// <summary>
+        /// Run one xdelta3 command through Core, mirroring its output into the patching panel.
+        /// </summary>
+        /// <remarks>
+        /// Arguments go to the process verbatim via <see cref="ToolRunner"/>, so a path containing parentheses,
+        /// spaces or an ampersand needs no quoting — and must not get any, because a caret escape is literal to
+        /// xdelta3. The old code passed <c>PathHelper.QuotePath</c> output here, which silently mangled such paths.
+        /// </remarks>
+        private async Task RunXDeltaAsync(string name, params string[] arguments)
+        {
+            string xdeltaExePath = XDeltaPath();
             if (!File.Exists(xdeltaExePath))
             {
                 MessageBox.Show("xdelta3.exe not found in tools folder.");
-                throw new FileNotFoundException("xdelta3.exe not found in tools folder.");
+                throw new FileNotFoundException("xdelta3.exe not found in tools folder.", xdeltaExePath);
             }
 
-            ProcessStartInfo psi = new ProcessStartInfo
-            {
-                FileName = xdeltaExePath,
-                Arguments = $"-d -f -s {PathHelper.QuotePath(isoPath)} {PathHelper.QuotePath(xdeltaPath)} {PathHelper.QuotePath(outputIsoPath)}",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-            };
-            using (Process process = new Process())
-            {
-                process.StartInfo = psi;
-                process.OutputDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, InfoColor, rtbPatchingApplicationOutput); };
-                process.ErrorDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, ErrorColor, rtbPatchingApplicationOutput); };
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                await process.WaitForExitAsync();
+            var step = new ToolStep(name, xdeltaExePath, arguments);
 
-                if (process.ExitCode != 0)
-                {
-                    throw new Exception("xdelta3 patching failed.");
-                }
+            BuildStepResult result;
+            using (MirrorLogInto(rtbPatchingApplicationOutput))
+            {
+                result = await Task.Run(() => new ToolRunner(_log, "patch").RunStep(step));
             }
+
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"xdelta3 {name} failed (exit {result.ExitCode}).");
+            }
+        }
+
+        private async Task ApplyXDeltaPatchAsync(string isoPath, string xdeltaPath)
+        {
+            string outputIsoPath = Path.Combine(Path.GetDirectoryName(isoPath)!, "Gladius_Patched.ISO");
+
+            await RunXDeltaAsync("patch", "-d", "-f", "-s", isoPath, xdeltaPath, outputIsoPath);
+
             txtISOPath.Text = outputIsoPath;
         }
+
         private void btnPatchingCreationVanISOPath_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
@@ -298,42 +216,9 @@ namespace ModdingGUI
             }
         }
 
-
         private async Task CreateXDeltaPatchAsync(string vanIsoPath, string modIsoPath, string outputPatchPath)
         {
-            string xdeltaExePath = Path.Combine("tools", "xdelta3.exe");
-
-            if (!File.Exists(xdeltaExePath))
-            {
-                throw new FileNotFoundException("xdelta3.exe not found in tools folder.");
-            }
-
-            ProcessStartInfo psi = new ProcessStartInfo
-            {
-                FileName = xdeltaExePath,
-                Arguments = $"-e -f -s {PathHelper.QuotePath(vanIsoPath)} {PathHelper.QuotePath(modIsoPath)} {PathHelper.QuotePath(outputPatchPath)}",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-            };
-
-            using (Process process = new Process())
-            {
-                process.StartInfo = psi;
-                process.OutputDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, InfoColor, rtbPatchingApplicationOutput); };
-                process.ErrorDataReceived += (s, e) => { if (e.Data != null) AppendLog(e.Data, ErrorColor, rtbPatchingApplicationOutput); };
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                await process.WaitForExitAsync();
-
-                if (process.ExitCode != 0)
-                {
-                    throw new Exception("xdelta3 patch creation failed.");
-                }
-            }
-
+            await RunXDeltaAsync("create", "-e", "-f", "-s", vanIsoPath, modIsoPath, outputPatchPath);
         }
     }
 }

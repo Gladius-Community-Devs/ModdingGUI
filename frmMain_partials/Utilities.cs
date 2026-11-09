@@ -2,6 +2,7 @@ using System.Drawing;
 using System.IO;
 using ModdingGUI.Core.Logging;
 using ModdingGUI.Core.Randomizer;
+using ModdingGUI.Core.Tools;
 using ModdingGUI.Models;
 using System.Diagnostics;
 using System.Text.Json;
@@ -434,16 +435,8 @@ namespace ModdingGUI
             }
         }
 
-        // Helper function to validate that the file path contains no parentheses
-        private bool ValidateFilePathNoParentheses(string filepath)
-        {
-            if (filepath.Contains('(') || filepath.Contains(')'))
-            {
-                MessageBox.Show("File path cannot contain parentheses.", "Invalid Path", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-            return true;
-        }
+        // The parenthesis guard is gone: the toolchain is started with an argument list, so "(" and ")" are
+        // ordinary characters in a path (PLAN.md Phase 7.9).
 
         private bool IsProjectDirectory(string projectPath)
         {
@@ -625,21 +618,29 @@ namespace ModdingGUI
 
             int ok = 0, fail = 0;
 
-            // Compile only changed files, one-by-one (deterministic progress)
+            // Compile only changed files, one-by-one (deterministic progress). Each compile is a Core step, so its
+            // output lands in the log like every other tool line, and the exit code is real: a failed compile used
+            // to be counted as a success because the batch runner could not report one.
             foreach (var f in changed)
             {
-                string scbPath = Path.Combine(binFolder, System.IO.Path.GetFileNameWithoutExtension(f.Path) + ".scb");
-                string oneLineBatch = $"\"{compilerPath}\" \"{f.Path}\" \"{scbPath}\"";
-
+                string fileName = System.IO.Path.GetFileName(f.Path);
                 try
                 {
-                    await RunBatchFileAsync(oneLineBatch, scriptFolder, rtbPackOutput);
-                    ok++;
+                    BuildStepResult compiled = await RunCompileScriptAsync(projectFolder, fileName, rtbPackOutput);
+                    if (compiled.Succeeded)
+                    {
+                        ok++;
+                    }
+                    else
+                    {
+                        fail++;
+                        AppendLog($"{fileName} failed to compile (exit {compiled.ExitCode}).", ErrorColor, rtbPackOutput);
+                    }
                 }
                 catch (Exception ex)
                 {
                     fail++;
-                    AppendLog($"Failed compiling {System.IO.Path.GetFileName(f.Path)}: {ex.Message}", ErrorColor, rtbPackOutput);
+                    AppendLog($"Failed compiling {fileName}: {ex.Message}", ErrorColor, rtbPackOutput);
                 }
                 finally
                 {

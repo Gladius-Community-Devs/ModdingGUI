@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using ModdingGUI.Core.Logging;
 using ModdingGUI.Core.Tools;
 using Xunit;
@@ -10,8 +9,8 @@ namespace ModdingGUI.Tests.Core.Tools;
 
 /// <summary>
 /// The build pipeline has to be runnable from Core, not only from the WinForms shell, so a randomized project can
-/// be packed by anything (including the MCP server). These tests cover the part that is cheap to verify: batch
-/// execution, output capture and the failure paths.
+/// be packed by anything (including the MCP server). These tests cover the parts that are cheap to verify: the
+/// command chain, the compiler invocation, and the failure paths.
 /// </summary>
 public sealed class ProjectBuildServiceTests
 {
@@ -20,40 +19,6 @@ public sealed class ProjectBuildServiceTests
         string dir = Path.Combine(Path.GetTempPath(), "ModdingGUI.Build-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dir);
         return dir;
-    }
-
-    [Fact]
-    public void RunBatchContent_ReturnsTheExitCodeAndLogsOutput()
-    {
-        string dir = TempDir();
-        try
-        {
-            var log = AppLog.CreateForRun();
-
-            int exit = ProjectBuildService.RunBatchContent("echo build-ok", dir, log);
-
-            Assert.Equal(0, exit);
-            Assert.Contains(log.Tail(500), e => e.Message.Contains("build-ok", StringComparison.OrdinalIgnoreCase));
-        }
-        finally
-        {
-            Directory.Delete(dir, recursive: true);
-        }
-    }
-
-    [Fact]
-    public void RunBatchContent_PropagatesAFailure()
-    {
-        string dir = TempDir();
-        try
-        {
-            int exit = ProjectBuildService.RunBatchContent("exit /b 7", dir);
-            Assert.Equal(7, exit);
-        }
-        finally
-        {
-            Directory.Delete(dir, recursive: true);
-        }
     }
 
     [Fact]
@@ -96,7 +61,31 @@ public sealed class ProjectBuildServiceTests
     }
 
     [Fact]
-    public void BuildCompileBatch_RunsTheCompilerForEachScript()
+    public void CompileScripts_BuildsOneStepPerScript_WithTheCompilerAndBothPaths()
+    {
+        string project = Path.Combine(Path.GetTempPath(), "proj");
+        string tools = Path.Combine(Path.GetTempPath(), "tools");
+
+        var steps = ProjectBuildService.BuildCompileSteps(
+            new BuildOptions(project, tools), new[] { "one.scp", "two.scp" });
+
+        Assert.Equal(2, steps.Count);
+        Assert.All(steps, step =>
+        {
+            Assert.Equal("DOGCodeCompiler.exe", Path.GetFileName(step.Executable));
+            Assert.Equal(2, step.Arguments.Count);
+            Assert.EndsWith(".scp", step.Arguments[0], StringComparison.OrdinalIgnoreCase);
+            Assert.EndsWith(".scb", step.Arguments[1], StringComparison.OrdinalIgnoreCase);
+            Assert.NotNull(step.WorkingDirectory);
+            Assert.EndsWith("script", step.WorkingDirectory!.TrimEnd(Path.DirectorySeparatorChar),
+                StringComparison.OrdinalIgnoreCase);
+        });
+        Assert.Contains(steps, step => step.Arguments[0].EndsWith("one.scp", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(steps, step => step.Arguments[0].EndsWith("two.scp", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void BuildCompileBatch_StaysAvailableForInspection()
     {
         string project = Path.Combine(Path.GetTempPath(), "proj");
         string tools = Path.Combine(Path.GetTempPath(), "tools");
@@ -104,22 +93,54 @@ public sealed class ProjectBuildServiceTests
         string batch = ProjectBuildService.BuildCompileBatch(
             new BuildOptions(project, tools), new[] { "one.scp", "two.scp" });
 
+        Assert.StartsWith("@echo off", batch);
         Assert.Contains("DOGCodeCompiler.exe", batch);
         Assert.Contains("one.scp", batch);
         Assert.Contains("two.scp", batch);
-        Assert.StartsWith("@echo off", batch);
     }
 
     [Fact]
-    public void Pack_BuildsABatchThatMentionsThePackChain()
+    public void CompileScript_ReportsAMissingCompilerWithoutThrowing()
     {
-        // The batch generator is covered elsewhere; this pins that Pack() routes through it rather than
-        // inventing its own chain, which is the whole point of the move into Core.
-        string project = Path.Combine(Path.GetTempPath(), "proj");
-        string content = BatchContentBuilder.GeneratePackContent(project,
-            Path.Combine(Path.GetTempPath()) + Path.DirectorySeparatorChar);
+        string project = TempDir();
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(project, "proj_BEC", "data", "script"));
 
-        Assert.Contains("ngciso-tool.py", content, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("bec-tool-all.py", content, StringComparison.OrdinalIgnoreCase);
+            BuildStepResult step = new ProjectBuildService()
+                .CompileScript(new BuildOptions(project, Path.Combine(project, "tools")), "a.scp");
+
+            Assert.False(step.Succeeded);
+        }
+        finally
+        {
+            Directory.Delete(project, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Pack_RoutesThroughThePackServiceChain()
+    {
+        // The pack chain is covered by PackServiceTests; this pins that ProjectBuildService does not invent
+        // its own chain, which is the whole point of the move into Core.
+        string project = TempDir();
+        try
+        {
+            var steps = PackService.Steps(new PackRequest(project, Path.Combine(project, "tools")));
+
+            Assert.Contains(steps, step => step.Name == "ngciso-tool.py");
+            Assert.Contains(steps, step => step.Arguments.Contains("-pack"));
+
+            BuildResult result = new ProjectBuildService(scope: "test")
+                .Pack(new BuildOptions(project, Path.Combine(project, "tools")));
+
+            // No toolbelt in the temp folder, so the chain cannot succeed; the assertion is that it ran and
+            // reported a failure instead of throwing.
+            Assert.False(result.Succeeded);
+        }
+        finally
+        {
+            Directory.Delete(project, recursive: true);
+        }
     }
 }

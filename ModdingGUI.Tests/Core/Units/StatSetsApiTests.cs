@@ -62,6 +62,22 @@ public sealed class StatSetsApiTests : IDisposable
     }
 
     [Fact]
+    public void GetAll_ReadsEverySetInOnePass()
+    {
+        if (!Ready) return;
+
+        var all = _api.GetAll(_bec);
+
+        Assert.Equal(169, all.Count);
+        Assert.Equal(_api.List(_bec), all.Select(set => set.Index).ToArray());
+        Assert.All(all, set => Assert.Equal(30, set.Rows.Count));
+
+        // Same content whichever way it is read; GetAll exists so the Team Builder does not parse 169 times.
+        var first = _api.Get(_bec, 0)!;
+        Assert.Equal(first.Rows, all[0].Rows);
+    }
+
+    [Fact]
     public void NoOpRead_LeavesTheFileUntouched()
     {
         if (!Ready) return;

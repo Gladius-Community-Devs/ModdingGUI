@@ -2,10 +2,10 @@ namespace ModdingGUI.Core.Tools;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using ModdingGUI.Core.Logging;
 
 /// <summary>Where a build finds the project and the toolchain.</summary>
@@ -14,38 +14,20 @@ using ModdingGUI.Core.Logging;
 /// <param name="PythonCommand">Interpreter used for the Python tools, e.g. <c>py -3</c>.</param>
 public sealed record BuildOptions(string ProjectPath, string ToolsPath, string PythonCommand = "py -3");
 
-/// <summary>One command that ran during a build.</summary>
-/// <param name="Name">What the step does, for logs and the UI.</param>
-/// <param name="ExitCode">Process exit code; 0 means success.</param>
-/// <param name="Output">Captured lines, in order.</param>
-public sealed record BuildStepResult(string Name, int ExitCode, IReadOnlyList<string> Output)
-{
-    /// <summary>True when the step succeeded.</summary>
-    public bool Succeeded => ExitCode == 0;
-}
-
-/// <summary>The result of a whole build.</summary>
-/// <param name="ExitCode">First non-zero step exit code, or 0.</param>
-/// <param name="Steps">Every step that ran, in order.</param>
-public sealed record BuildResult(int ExitCode, IReadOnlyList<BuildStepResult> Steps)
-{
-    /// <summary>True when every step succeeded.</summary>
-    public bool Succeeded => ExitCode == 0;
-}
-
 /// <summary>
 /// Runs the project's build pipeline from Core: the script compiler and the pack chain.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The pipeline is the one the GUI has always used — <see cref="BatchContentBuilder"/> generates the batch,
-/// which then runs the Python tools through <c>cmd</c> — so packing from here produces exactly what packing
-/// from the app produces. Moving it into Core is what lets a randomized project be built by anything, including
-/// the MCP server, instead of only by the WinForms shell.
+/// The pipeline is the one the app has always run — script compile through <c>DOGCodeCompiler.exe</c>, then the
+/// pack chain — so packing from here produces exactly what packing from the GUI produces. Moving it into Core is
+/// what lets a randomized project be built by anything, including the MCP server, instead of only by the WinForms
+/// shell.
 /// </para>
 /// <para>
-/// Output is streamed to <see cref="IAppLog"/> as it arrives, because a pack takes minutes and a silent gap
-/// looks like a hang.
+/// Since Phase 7.9 no batch file is written or run: <see cref="ToolRunner"/> starts each tool directly with
+/// <see cref="System.Diagnostics.ProcessStartInfo.ArgumentList"/>. Output still streams to <see cref="IAppLog"/> as
+/// it arrives, because a pack takes minutes and a silent gap looks like a hang.
 /// </para>
 /// </remarks>
 public sealed class ProjectBuildService
@@ -61,36 +43,57 @@ public sealed class ProjectBuildService
     }
 
     /// <summary>Compile the given <c>.scp</c> scripts with the project's script compiler.</summary>
-    public BuildResult CompileScripts(BuildOptions options, IEnumerable<string> scriptNames)
+    /// <param name="options">Project and toolchain.</param>
+    /// <param name="scriptNames">Script file names inside <c>data/script</c>.</param>
+    /// <param name="cancellationToken">Stops the running compiler when signalled.</param>
+    public BuildResult CompileScripts(
+        BuildOptions options, IEnumerable<string> scriptNames, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(scriptNames);
 
         var scripts = scriptNames.Where(name => !string.IsNullOrWhiteSpace(name)).ToList();
-        if (scripts.Count == 0) return new BuildResult(0, Array.Empty<BuildStepResult>());
+        if (scripts.Count == 0) return BuildResult.Empty;
 
-        string compiler = Path.Combine(options.ToolsPath, "DOGCodeCompiler.exe");
-        if (!File.Exists(compiler))
+        var steps = BuildCompileSteps(options, scripts);
+
+        if (!File.Exists(steps[0].Executable))
         {
-            string message = $"script compiler not found at {compiler}";
+            string message = $"script compiler not found at {steps[0].Executable}";
             _log?.Write(LogLevel.Error, message, _scope);
             return new BuildResult(1, new[] { new BuildStepResult("compile scripts", 1, new[] { message }) });
         }
 
-        string scriptFolder = Path.Combine(ResolveBec(options.ProjectPath), "data", "script");
-        string batch = BuildCompileBatch(options, scripts);
+        return new ToolRunner(_log, _scope).Run(steps, cancellationToken);
+    }
 
-        int exitCode = RunBatchContent(batch, scriptFolder, _log, _scope);
-        return new BuildResult(
-            exitCode,
-            new[] { new BuildStepResult("compile scripts", exitCode, Array.Empty<string>()) });
+    /// <summary>Compile one script, for the incremental recompile loop.</summary>
+    /// <param name="options">Project and toolchain.</param>
+    /// <param name="scriptName">Script file name inside <c>data/script</c>.</param>
+    /// <param name="cancellationToken">Stops the running compiler when signalled.</param>
+    public BuildStepResult CompileScript(
+        BuildOptions options, string scriptName, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentException.ThrowIfNullOrWhiteSpace(scriptName);
+
+        ToolStep step = BuildCompileSteps(options, new[] { scriptName })[0];
+        if (!File.Exists(step.Executable))
+        {
+            string message = $"script compiler not found at {step.Executable}";
+            _log?.Write(LogLevel.Error, message, _scope);
+            return new BuildStepResult(step.Name, 1, new[] { message });
+        }
+
+        return new ToolRunner(_log, _scope).RunStep(step, cancellationToken);
     }
 
     /// <summary>
-    /// The batch that compiles the given scripts. Separated from execution so the command line can be asserted
+    /// The steps that compile the given scripts. Separated from execution so the command lines can be asserted
     /// without launching the compiler.
     /// </summary>
-    internal static string BuildCompileBatch(BuildOptions options, IReadOnlyList<string> scripts)
+    internal static IReadOnlyList<ToolStep> BuildCompileSteps(
+        BuildOptions options, IReadOnlyList<string> scripts)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(scripts);
@@ -98,7 +101,7 @@ public sealed class ProjectBuildService
         string compiler = Path.Combine(options.ToolsPath, "DOGCodeCompiler.exe");
         string scriptFolder = Path.Combine(ResolveBec(options.ProjectPath), "data", "script");
 
-        var builder = new StringBuilder("@echo off" + Environment.NewLine);
+        var steps = new List<ToolStep>(scripts.Count);
         foreach (string script in scripts)
         {
             // The compiler takes an input .scp and an output .scb in data/script/bin, which is what the game
@@ -107,10 +110,22 @@ public sealed class ProjectBuildService
             string binary = Path.Combine(scriptFolder, "bin",
                 Path.GetFileNameWithoutExtension(script) + ".scb");
 
-            builder.Append('"').Append(compiler).Append('"')
-                   .Append(' ').Append('"').Append(source).Append('"')
-                   .Append(' ').Append('"').Append(binary).Append('"')
-                   .Append(Environment.NewLine);
+            steps.Add(new ToolStep(script, compiler, new[] { source, binary }, scriptFolder));
+        }
+
+        return steps;
+    }
+
+    /// <summary>
+    /// The compile chain as batch text, for inspection only. Nothing executes this; it exists so the command
+    /// chain can be shown or copied, and so the pre-7.9 behaviour stays assertable.
+    /// </summary>
+    internal static string BuildCompileBatch(BuildOptions options, IReadOnlyList<string> scripts)
+    {
+        var builder = new StringBuilder("@echo off" + Environment.NewLine);
+        foreach (ToolStep step in BuildCompileSteps(options, scripts))
+        {
+            builder.Append(step.ToBatchLine()).Append(Environment.NewLine);
         }
 
         builder.Append("exit /b %ERRORLEVEL%").Append(Environment.NewLine);
@@ -118,75 +133,16 @@ public sealed class ProjectBuildService
     }
 
     /// <summary>Run the pack chain: units repack, strings, bec and ISO.</summary>
-    public BuildResult Pack(BuildOptions options)
+    /// <param name="options">Project and toolchain.</param>
+    /// <param name="cancellationToken">Stops the running step when signalled.</param>
+    public BuildResult Pack(BuildOptions options, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(options);
 
-        string project = options.ProjectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        string workingRoot = Path.GetDirectoryName(project) ?? project;
-
-        string content = BatchContentBuilder.GeneratePackContent(project, EnsureTrailingSeparator(workingRoot));
-        string name = $"pack {Path.GetFileName(project)}";
-
-        int exitCode = RunBatchContent(content, workingRoot, _log, _scope);
-        return new BuildResult(exitCode, new[] { new BuildStepResult(name, exitCode, Array.Empty<string>()) });
-    }
-
-    /// <summary>
-    /// Write a batch file and run it through <c>cmd</c>, streaming stdout and stderr into the log.
-    /// </summary>
-    /// <returns>The process exit code.</returns>
-    public static int RunBatchContent(string content, string workingDirectory, IAppLog? log = null,
-        string scope = "build")
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(content);
-
-        string directory = Directory.Exists(workingDirectory) ? workingDirectory : Path.GetTempPath();
-        string batchPath = Path.Combine(Path.GetTempPath(), $"gladius-build-{Guid.NewGuid():N}.bat");
-
-        try
-        {
-            File.WriteAllText(batchPath, content, Encoding.Default);
-
-            var startInfo = new ProcessStartInfo("cmd.exe", "/c \"" + batchPath + "\"")
-            {
-                WorkingDirectory = directory,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
-
-            using var process = Process.Start(startInfo);
-            if (process is null)
-            {
-                log?.Write(LogLevel.Error, "could not start cmd.exe", scope);
-                return 1;
-            }
-
-            process.OutputDataReceived += (_, e) =>
-            {
-                if (!string.IsNullOrWhiteSpace(e.Data)) log?.Write(LogLevel.Info, e.Data, scope);
-            };
-            process.ErrorDataReceived += (_, e) =>
-            {
-                if (!string.IsNullOrWhiteSpace(e.Data)) log?.Write(LogLevel.Warning, e.Data, scope);
-            };
-
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
-            return process.ExitCode;
-        }
-        finally
-        {
-            try { if (File.Exists(batchPath)) File.Delete(batchPath); }
-            catch (IOException) { /* the batch is in temp; a stale one is harmless */ }
-        }
+        return new PackService(_log, _scope).Pack(
+            new PackRequest(options.ProjectPath, options.ToolsPath, options.PythonCommand),
+            cancellationToken);
     }
 
     private static string ResolveBec(string projectPath) => ProjectRoots.ResolveBecFolder(projectPath);
-
-    private static string EnsureTrailingSeparator(string path) =>
-        path.EndsWith(Path.DirectorySeparatorChar) ? path : path + Path.DirectorySeparatorChar;
 }
