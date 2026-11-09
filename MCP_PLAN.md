@@ -162,31 +162,39 @@ Target: ~30–40 new tests, full suite green at 2xx/0/0 with `REALDATA_vanilla` 
 
 Phases 3–7 later add `classes_*`, `encounters_*`, `leagues_*`, `towns_*`, `schools_*`, `gladiators_*`, `statsets_*`, `itemsets_*`, `skillsets_*`, `randomizer_*` — one tool class each, ~30–60 lines, no protocol work.
 
-## 5.9 What MCP must not touch
+## 5.9 Settings: readable over MCP, never writable
 
-Application settings are **not** exposed as tools, by design, and the boundary is enforced by tests
-(`ModdingGUI.Tests/Architecture/McpBoundaryTests.cs`):
+A client may **read** application settings so it can answer "where is the Dolphin path configured?" and point at the
+right tab instead of guessing. It may never change them.
 
+**Shipped:** `ModdingGUI.Core.Settings.AppSettingsReader` + `AppSettingsSnapshot` (Phase 8 can wrap them):
+- `AppSettingsSnapshot` is an immutable record of every stored setting, the settings file path, the resolved projects
+  folder, and `WhereEachSettingLives` - a map from each setting to the UI control that edits it. That map is what
+  makes the view useful: the answer to a settings question is usually a place, not a JSON key.
+- `AppSettingsReader.Read(path)` / `ReadFromAppDirectory(dir)` parse the file tolerantly and return defaults plus a
+  human-readable `Problem` when it is missing, empty, or corrupt, so a client can still answer.
+- Core contains **no writer** for settings. Reading is the only direction available to anything below the shell.
+
+**Planned tools (Phase 8):** `settings_get` (the snapshot) and `settings_where` (the location map for one or all
+keys). Read-only, no `strict`, no `dryRun`, no side effects.
+
+**Guards** (`ModdingGUI.Tests/Architecture/McpBoundaryTests.cs`):
 | Guard | Why |
 |---|---|
-| `ModdingGUI.Mcp` may reference **only** `ModdingGUI.Core` | `AppSettings` lives in the shell; without the reference no tool can reach it |
-| No `AppSettings`, `settings.json`, Dolphin path, projects folder or auto-launch mentions in the MCP project | the intent is checked, not just the reference |
-| `AppSettings` must not move into Core | a tripwire for the one refactor that would quietly open the door |
+| `ModdingGUI.Mcp` references only `ModdingGUI.Core` | the editable `AppSettings` lives in the shell |
+| no MCP source may use `AppSettings`, `SaveAppSettings` or any `settings_set`/`_update`/`_write` name | reading must go through the snapshot |
+| no `[McpServerTool]` may be a settings mutator | catches a setter by name once the registry exists |
+| `AppSettings` must not move into Core; the reader/snapshot must exist there | the tripwire for the refactor that would open the door |
 
-Reasons to keep it closed:
+Reasons the write direction stays closed:
 
-1. **Settings are machine-local, not part of the mod.** A Dolphin executable path or a projects folder says nothing
-   about the game data a client is editing.
-2. **They are outside the undo story.** Every write tool ships with `.mod-history` backups; settings changes have no
-   history, so an AI edit there would be unrecoverable - against the rule that write tools wait for `history_restore`
-   (Phase 7.5).
-3. **They change where the tool looks and what it launches.** Moving the projects folder or pointing at a different
-   emulator is a decision for the person at the keyboard.
-4. **The MCP server is opt-in per process.** `EnableMcpServer` in `AppSettings` gates it; a client that can write
-   settings could switch its own transport on.
-
-Read-only context is fine, and is planned as `project_list` / `project_info` output (version, project layout, whether
-a randomizer baseline is pinned). That is information about the project, not configuration of the application.
+1. **Settings are machine-local, not part of the mod.** A Dolphin path or projects folder says nothing about the game
+   data being edited.
+2. **They are outside the undo story.** Every write tool ships with `.mod-history` backups; settings have no history,
+   so a change there would be unrecoverable - against the rule that write tools wait for `history_restore` (7.5).
+3. **They decide where the tool looks and what it launches.** Moving the projects folder makes every project
+   "disappear"; pointing at another emulator launches something else.
+4. **The MCP transport is gated by a setting.** A client that could write settings could switch its own transport on.
 
 ## 6. Verification status from this session
 
