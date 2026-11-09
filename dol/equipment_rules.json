@@ -1,0 +1,39 @@
+{
+  "$comment": "Equipment rules read out of bootfile.dol. Authority for how the engine treats items, levels and slots.",
+  "equipGate": {
+    "function": "FUN_800fd694",
+    "signature": "int canEquip(unitOrSchool, item)",
+    "calledFrom": "UpdateEquipItemMenu (0x801bc110), the equip-menu confirmation path",
+    "tierSource": "FUN_800f7bd8(school, 0) -> school grade 1..3",
+    "rules": [
+      { "tier": 1, "name": "Amateur", "rejectWhen": "ITEMMINLEVEL > 5" },
+      { "tier": 2, "name": "Semi-Pro", "rejectWhen": "ITEMMINLEVEL > 10" },
+      { "tier": 3, "name": "Pro", "rejectWhen": "never (no level cap)" }
+    ],
+    "then": "FUN_800f96f4(classItemCategories, item) must pass",
+    "note": "The cap compares the ITEM's ITEMMINLEVEL to the school's tier, not to the unit's level. Gear written into a roster's ITEMSCOMP is applied directly and is not gated by this path at all."
+  },
+  "categoryCheck": {
+    "function": "FUN_800f96f4",
+    "inputs": {
+      "item5": "Type    (Weapon/Armor/Shield/Helmet/Accessory) from items.tok",
+      "item6": "SubType (Bow, Sword, ...) from items.tok",
+      "item7": "Style   (Plain, Light, Medium, Heavy, Archer, ...) from items.tok"
+    },
+    "matches": "each ITEMCAT entry of the class: type must equal item5, subtype must equal item6 unless the category is the wildcard (byte 1, '<Any>'), style must equal item7",
+    "note": "There is no code path that reads the bracketed tag in an itemset row."
+  },
+  "itemsetStorage": {
+    "source": "Gladius_Units_IDX_Repack.py",
+    "row": "min:u8, max:u8, itemId:u16",
+    "terminator": "0x0000",
+    "note": "The packer matches and discards the [Tag], so unititems.idx carries no slot information. Classifying an itemset row must use the item's Type from items.tok.",
+    "vanillaAgreement": "all 9,912 rows carry a tag equal to their item's Type, so the tag is redundant but never load-bearing"
+  },
+  "itemsComp": {
+    "positions": ["weapon", "armor", "shield", "helmet", "accessory"],
+    "handler": "CORESTATSCOMP2/ITEMSCOMP block loader -> CharacterChangeItem slots 1,2,4,3,5",
+    "validation": "none: the engine does not check that the item in the weapon position is a weapon",
+    "consequence": "an item written in the wrong position occupies that slot; a unit without a usable weapon does not attack"
+  }
+}

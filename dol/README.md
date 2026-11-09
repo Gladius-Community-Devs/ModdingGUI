@@ -9,6 +9,7 @@ merely overwrites, and a typo'd field name parses fine but is silently ignored i
 |---|---|
 | `skills_fields.json` | 99 `skills.tok` field names with engine id, parser, argument shape, slot kind, repeat behaviour and a note |
 | `classdefs_fields.json` | 27 `classdefs.tok` field names with engine id |
+| `equipment_rules.json` | Equipment rules: the tier caps (Amateur ≤ 5, Semi-Pro ≤ 10, Pro unlimited), the class `ITEMCAT` match, what `unititems.idx` actually stores, and the `ITEMSCOMP` slot order |
 
 ## How they were extracted
 
