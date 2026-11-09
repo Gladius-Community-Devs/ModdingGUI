@@ -17,8 +17,13 @@ using System.Text;
 /// </remarks>
 internal static class RawLineFile
 {
+    /// <summary>
+    /// Absolute path of a project-relative file. The project root and its <c>_BEC</c> folder are both accepted, the
+    /// same as every other API: callers pass whichever they hold, and the Team Builder passes the project root.
+    /// </summary>
     internal static string GetPath(string projectPath, string relativePath) =>
-        Path.Combine(projectPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+        Path.Combine(ProjectRoots.ResolveBecFolder(projectPath),
+            relativePath.Replace('/', Path.DirectorySeparatorChar));
 
     /// <summary>
     /// Read the file as individual lines plus the count of trailing newlines.

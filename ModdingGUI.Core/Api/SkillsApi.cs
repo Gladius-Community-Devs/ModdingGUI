@@ -238,8 +238,10 @@ public sealed class SkillsApi : ISkillsApi
     }
 
 
+    /// <summary>Absolute path of skills.tok; the project root and its _BEC folder are both accepted.</summary>
     private static string GetPath(string projectPath) =>
-        Path.Combine(projectPath, RelativePath.Replace('/', Path.DirectorySeparatorChar));
+        Path.Combine(ProjectRoots.ResolveBecFolder(projectPath),
+            RelativePath.Replace('/', Path.DirectorySeparatorChar));
 
     private static (List<string> lines, int trailingNewlines) ReadLines(string projectPath)
     {
