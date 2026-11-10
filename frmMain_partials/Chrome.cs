@@ -111,6 +111,9 @@ namespace ModdingGUI
             }
         }
 
+        [System.Runtime.InteropServices.DllImport("uxtheme.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern int SetWindowTheme(IntPtr window, string appName, string? idList);
+
         private static IEnumerable<TabControl> AllTabControls(Control root)
         {
             foreach (Control child in root.Controls)

@@ -74,12 +74,33 @@ namespace ModdingGUI
             foreach (string name in optionNames)
             {
                 if (Find(name) is not CheckBox check) continue;
+
+                // A switch per option rather than the framework box glyph: that glyph is drawn from the system theme and
+                // shows as a pale square on a dark surface. Same control, same handlers, same Checked state.
+                check.Appearance = Appearance.Button;
+                check.FlatStyle = FlatStyle.Flat;
+                check.AutoSize = false;
+                check.TextAlign = ContentAlignment.MiddleLeft;
+                check.Height = UiTheme.Scale(page, 30);
                 check.Font = UiTheme.Body;
-                check.ForeColor = UiTheme.Ink;
-                check.BackColor = UiTheme.Surface;
-                check.Margin = new Padding(0, UiTheme.Scale(page, 1), 0, 0);
+                check.Padding = new Padding(UiTheme.Space(page, 2), 0, UiTheme.Space(page, 1), 0);
+                check.Margin = new Padding(0, 0, 0, UiTheme.Scale(page, 1));
+                check.UseVisualStyleBackColor = false;
+                UiTheme.TintToggle(check);
+                check.CheckedChanged += (sender, _) => { if (sender is CheckBox self) UiTheme.TintToggle(self); };
+
                 optionsFlow.Controls.Add(check);
             }
+
+            // Full-width rows, like a list of switches: on their own the toggles shrink to the text.
+            void FitOptions()
+            {
+                int width = Math.Max(UiTheme.Scale(page, 180), optionsFlow.ClientSize.Width - UiTheme.Scale(page, 2));
+                foreach (Control control in optionsFlow.Controls) control.Width = width;
+            }
+
+            optionsFlow.SizeChanged += (_, _) => FitOptions();
+            FitOptions();
 
             optionsBody.Controls.Add(optionsFlow);
             UiKit.Body(optionsCard, optionsBody);

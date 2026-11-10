@@ -300,18 +300,18 @@ namespace ModdingGUI
                     break;
 
                 case CheckBox check:
+                    // Kept a normal checkbox here: the toggle look is opt-in per page (see the Randomizer options), so a
+                    // list that suits switches is not forced on every checkbox in the app.
                     check.BackColor = Surface;
                     check.ForeColor = Ink;
+                    check.FlatStyle = FlatStyle.Flat;
                     break;
 
                 case RadioButton radio:
                     radio.BackColor = Surface;
                     radio.ForeColor = Ink;
+                    radio.FlatStyle = FlatStyle.Flat;
                     break;
-
-                case ProgressBar bar:
-                    bar.BackColor = SurfaceAlt;
-                    bar.ForeColor = Accent;
                     break;
 
                 case Panel:
@@ -342,6 +342,22 @@ namespace ModdingGUI
 
                 Watch(child);
             }
+        }
+
+        private static void OnToggleChanged(object? sender, EventArgs e)
+        {
+            if (sender is CheckBox check) TintToggle(check);
+        }
+
+        /// <summary>Colour a checkbox-as-toggle by its state: accent when on, quiet surface when off.</summary>
+        internal static void TintToggle(CheckBox check)
+        {
+            bool on = check.Checked;
+            check.BackColor = on ? Accent : SurfaceAlt;
+            check.ForeColor = on ? AccentInk : Ink;
+            check.FlatAppearance.BorderColor = on ? Accent : Border;
+            check.FlatAppearance.BorderSize = 1;
+            check.FlatAppearance.MouseOverBackColor = on ? AccentHover : Border;
         }
 
         private static void TintMenuItem(ToolStripItem item)
