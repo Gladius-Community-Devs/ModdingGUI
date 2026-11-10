@@ -89,6 +89,11 @@ public static class UiDriver
 
         frmMain.UiAutomationActive = true;
 
+        // A MessageBox shown inside a button handler blocks that handler, and the driver's Invoke with it: the run just
+        // hangs with a dialog nobody is there to click. In automation mode, dismiss native message boxes as they appear
+        // and record what they said - that is a report line, not a lost test.
+        StartDialogGuard(window);
+
         if (options.Server) StartServer(window, options.Port);
 
         if (options.ScriptPath is not null)
@@ -276,4 +281,31 @@ public static class UiDriver
 
     internal static string Failure(string message) =>
         JsonSerializer.Serialize(new { ok = false, error = message });
+
+    /// <summary>
+    /// Watch for native message boxes and close them, logging what they said.
+    /// </summary>
+    /// <remarks>
+    /// Automation must be able to walk every path a user can, including the ones that raise a MessageBox. Without this
+    /// the first validation dialog (an empty unit name, say) stops the run for good, because the call that raised it is
+    /// still on the stack.
+    /// </remarks>
+    private static void StartDialogGuard(frmMain window)
+    {
+        var timer = new System.Windows.Forms.Timer { Interval = 250 };
+        timer.Tick += (_, _) =>
+        {
+            IntPtr dialog = NativeDialogs.FindMessageBox((uint)Environment.ProcessId);
+            if (dialog == IntPtr.Zero) return;
+
+            window.Output.Write(
+                ModdingGUI.Core.Logging.LogLevel.Warning,
+                $"[automation] dialog dismissed: {NativeDialogs.TextOf(dialog)}",
+                "driver");
+
+            NativeDialogs.PostClose(dialog);
+        };
+
+        timer.Start();
+    }
 }

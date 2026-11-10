@@ -534,7 +534,6 @@ namespace ModdingGUI
             string unitName = txtTeamUnitName.Text.Trim();
             string selectedClassName = ddlTeamClasses.SelectedItem?.ToString();
             string levelText = txtTeamLevel.Text.Trim();
-            int unitLevel = 1; // Default level
 
             // Validate Class Selection
             if (string.IsNullOrEmpty(selectedClassName))
@@ -552,7 +551,7 @@ namespace ModdingGUI
             }
 
             // Attempt to parse the level input
-            if (!int.TryParse(levelText, out unitLevel) || unitLevel < 1 || unitLevel > 30)
+            if (!int.TryParse(levelText, out int unitLevel) || unitLevel < 1 || unitLevel > 30)
             {
                 txtPreviewStats.Text = "Invalid level input. Please enter a level between 1 and 30.";
                 return;
@@ -645,7 +644,6 @@ namespace ModdingGUI
             string unitName = txtTeamUnitName.Text.Trim();
             string selectedClassName = ddlTeamClasses.SelectedItem?.ToString();
             string levelText = txtTeamLevel.Text.Trim();
-            int unitLevel = 1; // Default level
 
             // Validate Unit Name. Quotes and line breaks would corrupt the CREATEUNIT line; spaces and the
             // display separator '_' are legitimate (see InputRules).
@@ -666,16 +664,18 @@ namespace ModdingGUI
                 return;
             }
 
-            // Validate Level Input: 1..30, the range every stat set provides rows for.
-            if (!int.TryParse(levelText, out unitLevel) || !ModdingGUI.Core.Units.InputRules.IsValidLevel(unitLevel))
+            // Level: 1..30, the range every stat set provides rows for. Out-of-range input is clamped and said out
+            // loud rather than answering with a modal — the level box's own TextChanged already drops what it cannot
+            // parse, so a typo like "99" used to arrive here as empty text and the user got "got 0" for their trouble.
+            int unitLevel = int.TryParse(levelText, out int typedLevel) ? typedLevel : 1;
+            if (!ModdingGUI.Core.Units.InputRules.IsValidLevel(unitLevel))
             {
-                MessageBox.Show(ModdingGUI.Core.Units.InputRules.ExplainLevel(
-                        int.TryParse(levelText, out int parsedLevel) ? parsedLevel : 0) ??
-                        "Please enter a unit level between 1 and 30.",
-                    "Invalid Level", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtTeamLevel.Focus();
-                return;
+                int clamped = Math.Clamp(unitLevel, 1, 30);
+                AppendLog($"Level {unitLevel} is outside 1–30; using {clamped}.", WarningColor, rtbPackOutput);
+                unitLevel = clamped;
             }
+
+            txtTeamLevel.Text = unitLevel.ToString();
 
             var selectedClass = classDefinitions.FirstOrDefault(c => c.ClassName.Equals(selectedClassName, StringComparison.OrdinalIgnoreCase));
 
@@ -765,6 +765,10 @@ namespace ModdingGUI
             teamUnits.Add(unit);
             // Add the unit to the team TreeView
             AddUnitToTreeView(unit);
+
+            // Select it, so the Gear and Skills pages apply to the unit just created and Remove Unit is live. Without
+            // this the new unit existed but nothing was selected, which read as the button being broken.
+            SelectUnitInTree(unit.UnitName);
 
             // Clear input fields after adding
             txtTeamUnitName.Clear();
@@ -893,6 +897,24 @@ namespace ModdingGUI
             else if (tabContainer.SelectedTab == tabTeamGearSelection)
             {
 
+            }
+        }
+
+        /// <summary>
+        /// Select the team tree node for a unit by name, so the pages that act on "the selected unit" follow the unit
+        /// the user just created.
+        /// </summary>
+        private void SelectUnitInTree(string unitName)
+        {
+            foreach (TreeNode node in tvwTeam.Nodes)
+            {
+                if (node.Tag is Unit candidate &&
+                    candidate.UnitName.Equals(unitName, StringComparison.OrdinalIgnoreCase))
+                {
+                    tvwTeam.SelectedNode = node;
+                    node.EnsureVisible();
+                    return;
+                }
             }
         }
 
@@ -1294,6 +1316,13 @@ namespace ModdingGUI
 
             tabTeamRulesSelection.Controls.Add(root);
 
+            // Name what was just built. The controls are created in code, so they had no names: the UI driver's
+            // snapshot (and any accessibility tool) could not see them, and hover help is keyed by name.
+            NameRuntimeControls(root, "tbRules");
+
+            // Hover help for the page that was just built.
+            _uiHelp.Install(tabTeamRulesSelection);
+
             // A new unit needs a level: the designer left the box empty and the campaign handler no longer fills it.
             if (string.IsNullOrWhiteSpace(txtTeamLevel.Text)) txtTeamLevel.Text = "1";
 
@@ -1304,6 +1333,34 @@ namespace ModdingGUI
         private bool _rulesBuilt;
         private Label _lblJpDerived = new();
         private Label _lblJpHint = new();
+
+        /// <summary>
+        /// Give names to controls that were created in code.
+        /// </summary>
+        /// <remarks>
+        /// A designer control always has a name; one built with <c>new Label { Text = ... }</c> does not, and an unnamed
+        /// control is invisible to the UI driver's snapshot and to accessibility tools - which is how the rebuilt Rules
+        /// page ended up untestable. Names are type-based and stable within a build.
+        /// </remarks>
+        private static void NameRuntimeControls(Control root, string prefix)
+        {
+            int index = 0;
+
+            void Walk(Control parent)
+            {
+                foreach (Control child in parent.Controls)
+                {
+                    if (string.IsNullOrEmpty(child.Name))
+                    {
+                        child.Name = $"{prefix}{child.GetType().Name}{++index}";
+                    }
+
+                    Walk(child);
+                }
+            }
+
+            Walk(root);
+        }
 
         private static Label RowLabel(string text) => new()
         {

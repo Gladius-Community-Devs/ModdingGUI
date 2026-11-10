@@ -251,6 +251,30 @@ gap was found: a project that had "validated" could still not be packed.
 6. The one shell-side check that remains is item-set weapon coverage (levels 1–99), which no Core validator makes;
    it reports at most ten gaps and no longer gates the pack.
 
+### 5.3d App-level QA pass
+
+An automated pass over the shipping UI found ten defects and fixed them all; the full log is
+[`testing/QA_PASS.md`](testing/QA_PASS.md). The ones worth remembering:
+
+- **A modal on a tab switch.** Selecting the Editors tab popped a "Select a Project" picker whenever the sidebar had
+  no selection - the state the app starts in - so looking at the tab blocked the window. It now selects the first
+  project and says so in the log.
+- **A hidden unit.** Adding a unit left nothing selected, so Gear still read "No units yet" and Remove Unit stayed
+  disabled. The new unit is selected now.
+- **A silent input.** The level box dropped text it could not parse, then Add refused with "got 0". It clamps and
+  logs instead.
+- **The retired Rules page** was the first thing a fresh installer saw in the Team Builder, because the rebuilt page
+  was only created on project selection. It is created on tab entry.
+- **Patching at 1080p** clipped its own "Create xDelta" panel with no scrollbar; the split panels scroll now.
+- **Text**: 55 labels shortened and ~70 tooltips added (`UiHelp.cs`). The rule is that the label says what, the
+  tooltip says the one thing a label cannot fit - see `UiHelp`'s remarks. Nothing that a user needs is only in a
+  tooltip; depth lives there, meaning does not.
+
+The pass also hardened the driver, because a driver that lies poisons every result after it: `set` on a TabControl
+reported success without switching, `screenshot` could paint the previous page, and any `MessageBox` in a handler
+hung the run. `capture`, `closeDialog` and the automation dialog guard are the answers; `scripts/ui-batch.ps1` runs a
+whole scenario over one connection with per-command timings.
+
 ### 5.4 The UI driver (how GUI work gets verified)
 
 `--ui-server` / `--ui-script` let a script or an agent drive the window over loopback JSON lines — snapshot, click,

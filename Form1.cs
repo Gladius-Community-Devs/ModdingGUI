@@ -29,6 +29,14 @@ namespace ModdingGUI
             ApplyLudoIcon();
             HideRetiredRandomizerTesting();
 
+            // Hover help for every control the designer built. The Team Builder installs its own when it builds its
+            // pages, because those controls only exist at runtime.
+            _uiHelp.Install(this);
+
+            // The pages are laid out at a fixed 1747x1212 from the designer, so on a 1080p screen the bottom of a tab
+            // (Patching's "Create xDelta" panel, for one) was simply unreachable. Let them scroll instead of clipping.
+            UiHelp.EnableTabScrolling(this);
+
             // Check if Python 3 is installed on the system
             if (!IsPythonInstalled())
             {
@@ -1706,93 +1714,29 @@ namespace ModdingGUI
 
         private void TabContainer_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            if (tabContainer.SelectedTab == tabEditors && tvwProjects.SelectedNode == null)
-                PromptProjectPicker();
-        }
-
-        /// <summary>
-        /// Shows a dialog listing every loaded project so the user can click one
-        /// and make it the active project without having to find the sidebar.
-        /// </summary>
-        private void PromptProjectPicker()
-        {
-            var projectNodes = tvwProjects.Nodes
-                .Cast<TreeNode>()
-                .Where(n => n.Parent == null)
-                .ToList();
-
-            if (projectNodes.Count == 0)
+            // Opening the Editors tab used to pop a modal "Select a Project" picker whenever the sidebar had no
+            // selection - which is the state the app starts in - so merely looking at the tab blocked the window.
+            // Pick the project the list would have preselected instead, and say so in the log. An empty install gets a
+            // sentence, not a dialog: a tab switch is not the place to demand input.
+            // The Team Builder's pages are built in code; make sure they exist before the tab is shown, however the
+            // user got here (menu, tab click, driver), so nobody ever sees the retired PvP-era Rules page.
+            if (tabContainer.SelectedTab == tabTeamBuilder)
             {
-                MessageBox.Show(
-                    "No projects found. Use the Unpack tab to create one.",
-                    "No Projects",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                InitializeTeamBuilderUI();
                 return;
             }
 
-            // Build a compact picker dialog inline.
-            using var dlg = new Form
+            if (tabContainer.SelectedTab != tabEditors || tvwProjects.SelectedNode is not null) return;
+
+            var first = tvwProjects.Nodes.Cast<TreeNode>().FirstOrDefault(node => node.Parent is null);
+            if (first is null)
             {
-                Text            = "Select a Project",
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                StartPosition   = FormStartPosition.CenterParent,
-                MinimizeBox     = false,
-                MaximizeBox     = false,
-                Width           = 340,
-                Height          = 260,
-            };
+                AppendLog("No projects yet - unpack an ISO on the Unpacking tab to start editing.", WarningColor);
+                return;
+            }
 
-            var lbl = new Label
-            {
-                Text     = "Choose the project to work on:",
-                Left     = 12,
-                Top      = 12,
-                Width    = 300,
-                AutoSize = true,
-            };
-
-            var lst = new ListBox
-            {
-                Left   = 12,
-                Top    = 36,
-                Width  = 300,
-                Height = 130,
-                SelectionMode = SelectionMode.One,
-            };
-            foreach (var node in projectNodes)
-                lst.Items.Add(node.Text);
-            if (lst.Items.Count > 0) lst.SelectedIndex = 0;
-
-            var btnOk = new Button
-            {
-                Text         = "Select",
-                DialogResult = DialogResult.OK,
-                Left         = 144,
-                Top          = 178,
-                Width        = 80,
-            };
-            var btnCancel = new Button
-            {
-                Text         = "Cancel",
-                DialogResult = DialogResult.Cancel,
-                Left         = 232,
-                Top          = 178,
-                Width        = 80,
-            };
-
-            dlg.AcceptButton = btnOk;
-            dlg.CancelButton = btnCancel;
-            dlg.Controls.AddRange(new Control[] { lbl, lst, btnOk, btnCancel });
-
-            // Double-click also confirms.
-            lst.DoubleClick += (_, _) => dlg.DialogResult = DialogResult.OK;
-
-            if (dlg.ShowDialog(this) != DialogResult.OK) return;
-            if (lst.SelectedIndex < 0) return;
-
-            var chosen = projectNodes[lst.SelectedIndex];
-            tvwProjects.SelectedNode = chosen;
+            tvwProjects.SelectedNode = first;
+            AppendLog($"Editing {first.Text}. Choose another project in the sidebar to switch.", InfoColor);
         }
     }
 }

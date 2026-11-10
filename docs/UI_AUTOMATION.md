@@ -51,6 +51,9 @@ cd ModdingGUI
 | `waitForJob` | `id?` / `kind?`, `timeoutMs?` | Blocks until that job finishes (or the latest of a kind) and answers with its result |
 | `cancelJob` | `id?` / `kind?` | Asks a running job to stop; the tool runner kills the child tree |
 | `waitForLog` | `text`, `timeoutMs?` | Blocks until a log line contains `text` — for flows that have no job |
+| `window` | `monitor?` / `x`,`y`,`width`,`height` | Move and size the window; `monitor` takes a device name like `\\.\DISPLAY2` |
+| `capture` | `path?` | Screen grab of the window - the truth when `screenshot` shows a stale page |
+| `closeDialog` | - | Close a blocking dialog and report what it said |
 | `openTeamBuilder` | `project` | Selects the project (relative paths resolve against the app) and opens the Team Builder tab |
 | `quit` | — | Closes the window |
 

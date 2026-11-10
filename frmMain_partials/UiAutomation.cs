@@ -75,6 +75,15 @@ namespace ModdingGUI
                         case "screenshot":
                             return Screenshot(UiString(request, "path"));
 
+                        case "capture":
+                            return CaptureWindow(UiString(request, "path"));
+
+                        case "window":
+                            return PlaceWindow(request);
+
+                        case "closeDialog":
+                            return CloseDialog();
+
                         case "log":
                             return LogTail(request.TryGetProperty("count", out JsonElement count) ? count.GetInt32() : 50);
 
@@ -297,6 +306,28 @@ namespace ModdingGUI
         {
             var controls = new List<object>();
 
+            // Control.Visible is the native window flag and lags a programmatic SelectedTab change, so it reported the
+            // *previous* tab's page as the visible one and the new page as hidden. Walk the selected-tab chain instead:
+            // a control is on screen only if every ancestor is visible AND every TabPage ancestor is the selected page
+            // of its TabControl. Without this a caller cannot tell what the user is looking at.
+            static bool OnScreen(Control control)
+            {
+                for (Control? cursor = control; cursor is not null; cursor = cursor.Parent)
+                {
+                    if (cursor is TabPage page)
+                    {
+                        if (page.Parent is not TabControl tabs || !ReferenceEquals(tabs.SelectedTab, page)) return false;
+                    }
+
+                    if (cursor is TabControl tabControl && !ReferenceEquals(tabControl.SelectedTab, null))
+                    {
+                        // the page check above covers it; a TabControl itself is visible with its parent
+                    }
+                }
+
+                return control.Visible;
+            }
+
             void Walk(Control parent)
             {
                 foreach (Control child in parent.Controls)
@@ -319,7 +350,7 @@ namespace ModdingGUI
                             ["type"] = child.GetType().Name,
                             ["text"] = Shorten(child.Text, 200),
                             ["enabled"] = child.Enabled,
-                            ["visible"] = child.Visible,
+                            ["visible"] = OnScreen(child),
                             ["x"] = origin.X,
                             ["y"] = origin.Y,
                             ["w"] = child.Width,
@@ -578,14 +609,133 @@ namespace ModdingGUI
             return UiOk(new { clicked = name });
         }
 
-        private string Screenshot(string? path)
+        /// <summary>
+        /// Move and size the window — onto a monitor, or to explicit bounds.
+        /// </summary>
+        /// <remarks>
+        /// Exists so an automated session can keep the app on a screen the user is not working on, and so a layout
+        /// check can be repeated at several sizes. <c>monitor</c> takes a device name (<c>\\.\DISPLAY2</c>) or an index
+        /// into <see cref="Screen.AllScreens"/>; the window is fitted to that monitor's working area unless a size is
+        /// given.
+        /// </remarks>
+        private string PlaceWindow(JsonElement request)
         {
+            int? width = request.TryGetProperty("width", out JsonElement w) ? w.GetInt32() : null;
+            int? height = request.TryGetProperty("height", out JsonElement h) ? h.GetInt32() : null;
+
+            int? x = request.TryGetProperty("x", out JsonElement px) ? px.GetInt32() : null;
+            int? y = request.TryGetProperty("y", out JsonElement py) ? py.GetInt32() : null;
+
+            string? monitor = UiString(request, "monitor");
+            if (!string.IsNullOrWhiteSpace(monitor))
+            {
+                Screen? screen = Screen.AllScreens.FirstOrDefault(candidate =>
+                                   candidate.DeviceName.Equals(monitor, StringComparison.OrdinalIgnoreCase))
+                               ?? (int.TryParse(monitor, out int index) && index >= 0 && index < Screen.AllScreens.Length
+                                   ? Screen.AllScreens[index]
+                                   : null);
+
+                if (screen is null)
+                {
+                    return UiFail($"no monitor '{monitor}'; have " +
+                                  string.Join(", ", Screen.AllScreens.Select(s => s.DeviceName)));
+                }
+
+                Rectangle area = screen.WorkingArea;
+                x = area.X;
+                y = area.Y;
+                width ??= area.Width;
+                height ??= area.Height;
+            }
+
+            if (x is null || y is null) return UiFail("window needs x/y, or a monitor");
+
+            StartPosition = FormStartPosition.Manual;
+            Location = new Point(x.Value, y.Value);
+            if (width is not null && height is not null) Size = new Size(width.Value, height.Value);
+
+            return UiOk(new
+            {
+                x = Location.X,
+                y = Location.Y,
+                width = Width,
+                height = Height,
+                monitor = Screen.FromControl(this).DeviceName,
+            });
+        }
+
+        /// <summary>
+        /// Grab the window from the screen — what the user actually sees, occlusion, cursor and all.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Screenshot"/> renders this form's own control tree with <c>DrawToBitmap</c>, which can paint a
+        /// control the compositor is not showing (a panel behind a tab, a child that has not repainted). When those
+        /// two disagree, the painting is the liar and this is the evidence: it is a copy of the desktop.
+        /// </remarks>
+        private string CaptureWindow(string? path)
+        {
+            string target = string.IsNullOrWhiteSpace(path)
+                ? Path.Combine(Path.GetTempPath(), "gladius-ui", $"capture-{DateTime.Now:yyyyMMdd-HHmmss-fff}.png")
+                : Environment.ExpandEnvironmentVariables(path);
+
+            string? directory = Path.GetDirectoryName(target);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+
+            Rectangle bounds = Bounds;
+            using var bitmap = new Bitmap(bounds.Width, bounds.Height);
+            using (Graphics graphics = Graphics.FromImage(bitmap))
+            {
+                graphics.CopyFromScreen(bounds.Left, bounds.Top, 0, 0, bounds.Size);
+            }
+
+            bitmap.Save(target, ImageFormat.Png);
+
+            return UiOk(new { path = target, x = bounds.X, y = bounds.Y, width = bounds.Width, height = bounds.Height });
+        }
+
+        /// <summary>
+        /// Close whatever dialog is on top: a WinForms dialog this form opened, or a native message box.
+        /// </summary>
+        /// <remarks>
+        /// A modal dialog blocks the caller that opened it, so a command that triggers one never returns until someone
+        /// presses a button and an automated run just looks hung. This is the escape hatch - and it reports what was
+        /// blocking, which is how "switching to the Editors tab pops a project picker" was found.
+        /// </remarks>
+        private string CloseDialog()
+        {
+            Form? open = Application.OpenForms.Cast<Form>()
+                .FirstOrDefault(form => !ReferenceEquals(form, this) && form.Visible);
+
+            if (open is not null)
+            {
+                string title = open.Text;
+                open.Close();
+                Application.DoEvents();
+                return UiOk(new { closed = title, kind = "form" });
+            }
+
+            IntPtr dialog = NativeDialogs.FindMessageBox((uint)Environment.ProcessId);
+            if (dialog == IntPtr.Zero) return UiFail("no dialog is open");
+
+            string text = NativeDialogs.TextOf(dialog);
+            NativeDialogs.PostClose(dialog);
+            Application.DoEvents();
+            return UiOk(new { closed = text, kind = "messagebox" });
+        }
+
+        private string Screenshot(string? path)        {
             string target = string.IsNullOrWhiteSpace(path)
                 ? Path.Combine(Path.GetTempPath(), "gladius-ui", $"shot-{DateTime.Now:yyyyMMdd-HHmmss-fff}.png")
                 : Environment.ExpandEnvironmentVariables(path);
 
             string? directory = Path.GetDirectoryName(target);
             if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+
+            // Force a repaint first: DrawToBitmap can reuse the previously painted page after a programmatic tab
+            // switch, which made a "Packing" screenshot show the Editors content. `capture` is the ground truth.
+            Refresh();
+            Update();
+            Application.DoEvents();
 
             using var bitmap = new Bitmap(Width, Height);
             DrawToBitmap(bitmap, new Rectangle(0, 0, Width, Height));

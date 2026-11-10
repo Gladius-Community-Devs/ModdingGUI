@@ -1,0 +1,68 @@
+# QA sweep 1: usage of the paths users actually take, with probes for the defect cases.
+#
+# Every line is one driver command. Order matters: this walks the first-run state, the unpack->edit->pack loop and
+# the editors, and it deliberately does the awkward thing (empty name, out-of-range level, pack with no project) so
+# the report can say what the app does rather than what it should do.
+
+# --- first run: nothing selected -------------------------------------------------
+{"cmd":"ping"}
+{"cmd":"snapshot"}
+{"cmd":"click","name":"btnPack"}
+{"cmd":"closeDialog"}
+{"cmd":"log","count":6}
+
+# --- select the demo project -----------------------------------------------------
+{"cmd":"selectNode","name":"tvwProjects","text":"demo_hero"}
+{"cmd":"snapshot"}
+
+# --- pack tab: with validation on ------------------------------------------------
+{"cmd":"set","name":"tabContainer","item":"tabPacking"}
+{"cmd":"snapshot"}
+{"cmd":"click","name":"btnPack"}
+{"cmd":"closeDialog"}
+{"cmd":"closeDialog"}
+
+# --- team builder: pages, empty states, unit creation ----------------------------
+{"cmd":"set","name":"tabContainer","item":"tabTeamBuilder"}
+{"cmd":"set","name":"tabTeamBuilderMaster","item":"tabTeamRulesSelection"}
+{"cmd":"snapshot"}
+{"cmd":"set","name":"tabTeamBuilderMaster","item":"tabTeamUnitSelection"}
+{"cmd":"snapshot"}
+{"cmd":"click","name":"btnTeamAddUnit"}
+{"cmd":"closeDialog"}
+{"cmd":"set","name":"txtTeamUnitName","text":"QA Probe"}
+{"cmd":"set","name":"txtTeamLevel","text":"99"}
+{"cmd":"click","name":"btnTeamAddUnit"}
+{"cmd":"closeDialog"}
+{"cmd":"set","name":"txtTeamLevel","text":"1"}
+{"cmd":"click","name":"btnTeamAddUnit"}
+{"cmd":"snapshot"}
+{"cmd":"set","name":"tabTeamBuilderMaster","item":"tabTeamGearSelection"}
+{"cmd":"snapshot"}
+{"cmd":"set","name":"tabTeamBuilderMaster","item":"tabTeamSkillSelection"}
+{"cmd":"snapshot"}
+{"cmd":"set","name":"txtGearSearch","text":"sword"}
+{"cmd":"snapshot"}
+{"cmd":"click","name":"btnTeamRemoveUnit"}
+{"cmd":"snapshot"}
+
+# --- editors: items --------------------------------------------------------------
+{"cmd":"set","name":"tabContainer","item":"tabEditors"}
+{"cmd":"set","name":"tabControlEditor","item":"tabEditorItems"}
+{"cmd":"snapshot"}
+{"cmd":"set","name":"tabControlEditor","item":"tabEditorSkills"}
+{"cmd":"snapshot"}
+{"cmd":"set","name":"tabControlEditor","item":"tabGridBuilder"}
+{"cmd":"snapshot"}
+
+# --- unpacking: bad input --------------------------------------------------------
+{"cmd":"set","name":"tabContainer","item":"tabUnpacking"}
+{"cmd":"set","name":"txtISOPath","text":"Z:\\nope\\missing.iso"}
+{"cmd":"set","name":"txtUnpackPath","text":"qa_probe"}
+{"cmd":"click","name":"btnUnpack"}
+{"cmd":"closeDialog"}
+{"cmd":"log","count":8}
+
+# --- back to a known state -------------------------------------------------------
+{"cmd":"set","name":"tabContainer","item":"tabPacking"}
+{"cmd":"log","count":10}

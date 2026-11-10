@@ -447,7 +447,7 @@ namespace ModdingGUI
             btnPatchingApplicationApply.Name = "btnPatchingApplicationApply";
             btnPatchingApplicationApply.Size = new Size(176, 38);
             btnPatchingApplicationApply.TabIndex = 9;
-            btnPatchingApplicationApply.Text = "Apply Patch!";
+            btnPatchingApplicationApply.Text = "Apply patch";
             btnPatchingApplicationApply.UseVisualStyleBackColor = true;
             btnPatchingApplicationApply.Click += btnPatchingApplicationApply_Click;
             // 
@@ -458,7 +458,7 @@ namespace ModdingGUI
             btnPatchingApplicationXdeltaPath.Name = "btnPatchingApplicationXdeltaPath";
             btnPatchingApplicationXdeltaPath.Size = new Size(217, 38);
             btnPatchingApplicationXdeltaPath.TabIndex = 7;
-            btnPatchingApplicationXdeltaPath.Text = "Get xDelta Path";
+            btnPatchingApplicationXdeltaPath.Text = "Browse.";
             btnPatchingApplicationXdeltaPath.UseVisualStyleBackColor = true;
             btnPatchingApplicationXdeltaPath.Click += btnPatchingApplicationXdeltaPath_Click;
             // 
@@ -488,7 +488,7 @@ namespace ModdingGUI
             btnPatchingApplicationISOPath.Name = "btnPatchingApplicationISOPath";
             btnPatchingApplicationISOPath.Size = new Size(217, 38);
             btnPatchingApplicationISOPath.TabIndex = 4;
-            btnPatchingApplicationISOPath.Text = "Get Vanilla ISO Path";
+            btnPatchingApplicationISOPath.Text = "Browse.";
             btnPatchingApplicationISOPath.UseVisualStyleBackColor = true;
             btnPatchingApplicationISOPath.Click += btnPatchingApplicationISOPath_Click;
             // 
@@ -519,7 +519,7 @@ namespace ModdingGUI
             label8.Name = "label8";
             label8.Size = new Size(298, 25);
             label8.TabIndex = 1;
-            label8.Text = "For applying xDeltas to a vanilla ISO";
+            label8.Text = "Apply a patch to a clean ISO";
             // 
             // txtPatchApplicationHeader
             // 
@@ -630,7 +630,7 @@ namespace ModdingGUI
             btnPatchingCreation.Name = "btnPatchingCreation";
             btnPatchingCreation.Size = new Size(217, 38);
             btnPatchingCreation.TabIndex = 26;
-            btnPatchingCreation.Text = "Create xDelta!";
+            btnPatchingCreation.Text = "Create xDelta";
             btnPatchingCreation.UseVisualStyleBackColor = true;
             btnPatchingCreation.Click += btnPatchingCreation_Click;
             // 
@@ -642,7 +642,7 @@ namespace ModdingGUI
             label9.Name = "label9";
             label9.Size = new Size(270, 25);
             label9.TabIndex = 16;
-            label9.Text = "For creating xDeltas to distribute";
+            label9.Text = "Make a patch to share";
             // 
             // btnPatchingCreationOutputPath
             // 
@@ -651,7 +651,7 @@ namespace ModdingGUI
             btnPatchingCreationOutputPath.Name = "btnPatchingCreationOutputPath";
             btnPatchingCreationOutputPath.Size = new Size(217, 38);
             btnPatchingCreationOutputPath.TabIndex = 25;
-            btnPatchingCreationOutputPath.Text = "Get xDelta Path";
+            btnPatchingCreationOutputPath.Text = "Browse.";
             btnPatchingCreationOutputPath.UseVisualStyleBackColor = true;
             btnPatchingCreationOutputPath.Click += btnPatchingCreationOutputPath_Click;
             // 
@@ -682,7 +682,7 @@ namespace ModdingGUI
             btnPatchingCreationVanISOPath.Name = "btnPatchingCreationVanISOPath";
             btnPatchingCreationVanISOPath.Size = new Size(217, 38);
             btnPatchingCreationVanISOPath.TabIndex = 19;
-            btnPatchingCreationVanISOPath.Text = "Get Vanilla ISO Path";
+            btnPatchingCreationVanISOPath.Text = "Browse.";
             btnPatchingCreationVanISOPath.UseVisualStyleBackColor = true;
             btnPatchingCreationVanISOPath.Click += btnPatchingCreationVanISOPath_Click;
             // 
@@ -711,7 +711,7 @@ namespace ModdingGUI
             btnPatchingCreationModISOPath.Name = "btnPatchingCreationModISOPath";
             btnPatchingCreationModISOPath.Size = new Size(217, 38);
             btnPatchingCreationModISOPath.TabIndex = 22;
-            btnPatchingCreationModISOPath.Text = "Get Modded ISO Path";
+            btnPatchingCreationModISOPath.Text = "Browse.";
             btnPatchingCreationModISOPath.UseVisualStyleBackColor = true;
             btnPatchingCreationModISOPath.Click += btnPatchingCreationModISOPath_Click;
             // 
@@ -749,7 +749,7 @@ namespace ModdingGUI
             btnOpenUnpackLocation.Name = "btnOpenUnpackLocation";
             btnOpenUnpackLocation.Size = new Size(256, 38);
             btnOpenUnpackLocation.TabIndex = 5;
-            btnOpenUnpackLocation.Text = "Open containing folder";
+            btnOpenUnpackLocation.Text = "Open folder";
             btnOpenUnpackLocation.UseVisualStyleBackColor = true;
             btnOpenUnpackLocation.Click += btnOpenUnpackLocation_Click;
             // 
@@ -770,7 +770,7 @@ namespace ModdingGUI
             btnUnpack.Name = "btnUnpack";
             btnUnpack.Size = new Size(107, 38);
             btnUnpack.TabIndex = 3;
-            btnUnpack.Text = "Unpack!";
+            btnUnpack.Text = "Unpack";
             btnUnpack.UseVisualStyleBackColor = true;
             btnUnpack.Click += btnUnpack_Click;
             // 
@@ -781,7 +781,7 @@ namespace ModdingGUI
             txtUnpackPath.Name = "txtUnpackPath";
             txtUnpackPath.Size = new Size(257, 31);
             txtUnpackPath.TabIndex = 2;
-            txtUnpackPath.Text = "Enter project name here";
+            txtUnpackPath.PlaceholderText = "Project name";
             txtUnpackPath.Click += txtUnpackPath_Click;
             // 
             // btnSelectISO
@@ -791,7 +791,7 @@ namespace ModdingGUI
             btnSelectISO.Name = "btnSelectISO";
             btnSelectISO.Size = new Size(124, 38);
             btnSelectISO.TabIndex = 1;
-            btnSelectISO.Text = "Select ISO";
+            btnSelectISO.Text = "Choose ISO.";
             btnSelectISO.UseVisualStyleBackColor = true;
             btnSelectISO.Click += btnSelectISO_Click;
             // 
@@ -803,7 +803,7 @@ namespace ModdingGUI
             txtISOPath.Name = "txtISOPath";
             txtISOPath.Size = new Size(977, 31);
             txtISOPath.TabIndex = 0;
-            txtISOPath.Text = "ISO Path will appear here!";
+            txtISOPath.PlaceholderText = "No ISO selected";
             // 
             // tabPacking
             // 
@@ -833,7 +833,7 @@ namespace ModdingGUI
             chbRecompileScripts.Name = "chbRecompileScripts";
             chbRecompileScripts.Size = new Size(178, 29);
             chbRecompileScripts.TabIndex = 10;
-            chbRecompileScripts.Text = "Recompile Scripts";
+            chbRecompileScripts.Text = "Recompile scripts";
             chbRecompileScripts.UseVisualStyleBackColor = true;
             chbRecompileScripts.MouseHover += chbRecompileScripts_MouseHover;
             // 
@@ -857,7 +857,7 @@ namespace ModdingGUI
             btnToPatching.Name = "btnToPatching";
             btnToPatching.Size = new Size(196, 38);
             btnToPatching.TabIndex = 8;
-            btnToPatching.Text = "Go to patching tab";
+            btnToPatching.Text = "Make a patch.";
             btnToPatching.UseVisualStyleBackColor = true;
             btnToPatching.Click += btnToPatching_Click;
             // 
@@ -891,7 +891,7 @@ namespace ModdingGUI
             btnOpenPackLocation.Name = "btnOpenPackLocation";
             btnOpenPackLocation.Size = new Size(227, 38);
             btnOpenPackLocation.TabIndex = 5;
-            btnOpenPackLocation.Text = "Open ISO location";
+            btnOpenPackLocation.Text = "Open folder";
             btnOpenPackLocation.UseVisualStyleBackColor = true;
             btnOpenPackLocation.Click += btnOpenPackLocation_Click;
             // 
@@ -924,7 +924,7 @@ namespace ModdingGUI
             btnPackPath.Name = "btnPackPath";
             btnPackPath.Size = new Size(124, 38);
             btnPackPath.TabIndex = 2;
-            btnPackPath.Text = "Select project";
+            btnPackPath.Text = "Choose project.";
             btnPackPath.UseVisualStyleBackColor = true;
             btnPackPath.Click += btnPackPath_Click;
             // 
@@ -937,7 +937,7 @@ namespace ModdingGUI
             txtPackPath.ReadOnly = true;
             txtPackPath.Size = new Size(977, 31);
             txtPackPath.TabIndex = 0;
-            txtPackPath.Text = "Project filepath will show up here! (SELECT ONE TO CONTINUE)";
+            txtPackPath.PlaceholderText = "No project selected";
             // 
             // tabRandomizer
             // 
@@ -970,7 +970,7 @@ namespace ModdingGUI
             label16.Name = "label16";
             label16.Size = new Size(189, 25);
             label16.TabIndex = 15;
-            label16.Text = "Custom School Name:";
+            label16.Text = "School name:";
             // 
             // txtRandomCustomSchoolName
             // 
@@ -999,7 +999,7 @@ namespace ModdingGUI
             label15.Name = "label15";
             label15.Size = new Size(1076, 25);
             label15.TabIndex = 12;
-            label15.Text = "The first run pins the vanilla files as a baseline; every later run restores it first, so runs never stack and the same seed reproduces the run. Use Reset to Vanilla to throw the randomization away.";
+            label15.Text = "Each run restores the vanilla baseline first.";
             // 
             // grpGameVersion
             // 
@@ -1013,7 +1013,7 @@ namespace ModdingGUI
             grpGameVersion.Size = new Size(201, 227);
             grpGameVersion.TabIndex = 11;
             grpGameVersion.TabStop = false;
-            grpGameVersion.Text = "Choose Game Version";
+            grpGameVersion.Text = "Game version";
             // 
             // rbnLeonarths
             // 
@@ -1061,7 +1061,7 @@ namespace ModdingGUI
             grpHeroSelection.Size = new Size(201, 110);
             grpHeroSelection.TabIndex = 10;
             grpHeroSelection.TabStop = false;
-            grpHeroSelection.Text = "Choose Starting Hero";
+            grpHeroSelection.Text = "Starting hero";
             // 
             // rbnUrsula
             // 
@@ -1094,7 +1094,7 @@ namespace ModdingGUI
             txtSeed.Name = "txtSeed";
             txtSeed.Size = new Size(311, 31);
             txtSeed.TabIndex = 9;
-            txtSeed.Text = "Enter a seed here!";
+            txtSeed.PlaceholderText = "Seed (optional)";
             txtSeed.MouseHover += txtSeed_MouseHover;
             // 
             // lblRandomizeStatus
@@ -1105,7 +1105,7 @@ namespace ModdingGUI
             lblRandomizeStatus.Name = "lblRandomizeStatus";
             lblRandomizeStatus.Size = new Size(64, 25);
             lblRandomizeStatus.TabIndex = 8;
-            lblRandomizeStatus.Text = "Status:";
+            lblRandomizeStatus.Text = "Last run:";
             // 
             // pgbRandomizeStatus
             // 
@@ -1135,7 +1135,7 @@ namespace ModdingGUI
             grpBaseOptions.Size = new Size(251, 590);
             grpBaseOptions.TabIndex = 5;
             grpBaseOptions.TabStop = false;
-            grpBaseOptions.Text = "Randomized Options";
+            grpBaseOptions.Text = "Options";
             // 
             // chbRandomWeighted
             // 
@@ -1145,7 +1145,7 @@ namespace ModdingGUI
             chbRandomWeighted.Name = "chbRandomWeighted";
             chbRandomWeighted.Size = new Size(241, 29);
             chbRandomWeighted.TabIndex = 12;
-            chbRandomWeighted.Text = "Weighted vs Full Random";
+            chbRandomWeighted.Text = "Weighted picks";
             chbRandomWeighted.UseVisualStyleBackColor = true;
             chbRandomWeighted.MouseHover += chbRandomWeighted_MouseHover;
             // 
@@ -1157,7 +1157,7 @@ namespace ModdingGUI
             chbRandomCustomCash.Name = "chbRandomCustomCash";
             chbRandomCustomCash.Size = new Size(184, 29);
             chbRandomCustomCash.TabIndex = 11;
-            chbRandomCustomCash.Text = "Custom Start Cash";
+            chbRandomCustomCash.Text = "Custom starting gold";
             chbRandomCustomCash.UseVisualStyleBackColor = true;
             chbRandomCustomCash.CheckedChanged += chbRandomCustomCash_CheckedChanged;
             chbRandomCustomCash.MouseHover += chbRandomMaxMoney_MouseHover;
@@ -1170,7 +1170,7 @@ namespace ModdingGUI
             chbRandom40Glads.Name = "chbRandom40Glads";
             chbRandom40Glads.Size = new Size(169, 29);
             chbRandom40Glads.TabIndex = 10;
-            chbRandom40Glads.Text = "40 random units";
+            chbRandom40Glads.Text = "40-unit roster";
             chbRandom40Glads.UseVisualStyleBackColor = true;
             chbRandom40Glads.CheckedChanged += chbRandom40Glads_CheckedChanged;
             chbRandom40Glads.MouseHover += chbRandom40Glads_MouseHover;
@@ -1183,7 +1183,7 @@ namespace ModdingGUI
             chbRandomItemsets.Name = "chbRandomItemsets";
             chbRandomItemsets.Size = new Size(233, 29);
             chbRandomItemsets.TabIndex = 9;
-            chbRandomItemsets.Text = "Randomize enemy items";
+            chbRandomItemsets.Text = "Random enemy items";
             chbRandomItemsets.UseVisualStyleBackColor = true;
             chbRandomItemsets.MouseHover += chbRandomItemsets_MouseHover;
             // 
@@ -1195,7 +1195,7 @@ namespace ModdingGUI
             chbRandomStatsets.Name = "chbRandomStatsets";
             chbRandomStatsets.Size = new Size(229, 29);
             chbRandomStatsets.TabIndex = 8;
-            chbRandomStatsets.Text = "Random enemy statsets";
+            chbRandomStatsets.Text = "Random enemy stat sets";
             chbRandomStatsets.UseVisualStyleBackColor = true;
             chbRandomStatsets.MouseHover += chbRandomStatsets_MouseHover;
             // 
@@ -1207,7 +1207,7 @@ namespace ModdingGUI
             chbRandomizedEnemies.Name = "chbRandomizedEnemies";
             chbRandomizedEnemies.Size = new Size(212, 29);
             chbRandomizedEnemies.TabIndex = 7;
-            chbRandomizedEnemies.Text = "Fully random enemies";
+            chbRandomizedEnemies.Text = "Random enemies";
             chbRandomizedEnemies.UseVisualStyleBackColor = true;
             chbRandomizedEnemies.MouseHover += chbRandomizedEnemies_MouseHover;
             // 
@@ -1243,7 +1243,7 @@ namespace ModdingGUI
             btnRandomize.Name = "btnRandomize";
             btnRandomize.Size = new Size(124, 38);
             btnRandomize.TabIndex = 6;
-            btnRandomize.Text = "Randomize!";
+            btnRandomize.Text = "Randomize";
             btnRandomize.UseVisualStyleBackColor = true;
             btnRandomize.Click += btnRandomize_Click;
             // 
@@ -1257,7 +1257,7 @@ namespace ModdingGUI
             chbRandomTeam.Name = "chbRandomTeam";
             chbRandomTeam.Size = new Size(223, 29);
             chbRandomTeam.TabIndex = 6;
-            chbRandomTeam.Text = "Give Full Random Team";
+            chbRandomTeam.Text = "Full random team";
             chbRandomTeam.UseVisualStyleBackColor = true;
             chbRandomTeam.MouseHover += chbRandomTeam_MouseHover;
             // 
@@ -1271,7 +1271,7 @@ namespace ModdingGUI
             chbRandomHeroes.Name = "chbRandomHeroes";
             chbRandomHeroes.Size = new Size(167, 29);
             chbRandomHeroes.TabIndex = 0;
-            chbRandomHeroes.Text = "Random Heroes";
+            chbRandomHeroes.Text = "Randomize heroes";
             chbRandomHeroes.UseVisualStyleBackColor = true;
             chbRandomHeroes.MouseHover += chbRandomHeroes_MouseHover;
             // 
@@ -1282,7 +1282,7 @@ namespace ModdingGUI
             btnRandomizerPath.Name = "btnRandomizerPath";
             btnRandomizerPath.Size = new Size(124, 38);
             btnRandomizerPath.TabIndex = 4;
-            btnRandomizerPath.Text = "Select project";
+            btnRandomizerPath.Text = "Choose project.";
             btnRandomizerPath.UseVisualStyleBackColor = true;
             btnRandomizerPath.Click += btnRandomizerPath_Click;
             // 
@@ -1294,7 +1294,7 @@ namespace ModdingGUI
             txtRandomizerPath.Name = "txtRandomizerPath";
             txtRandomizerPath.Size = new Size(977, 31);
             txtRandomizerPath.TabIndex = 3;
-            txtRandomizerPath.Text = "Project filepath will show up here!";
+            txtRandomizerPath.PlaceholderText = "No project selected";
             // 
             // tabIngameRandom
             // 
@@ -1397,7 +1397,7 @@ namespace ModdingGUI
             grpRules.Size = new Size(951, 523);
             grpRules.TabIndex = 7;
             grpRules.TabStop = false;
-            grpRules.Text = "First, let's start with some rules:";
+            grpRules.Text = "Rules";
             // 
             // chbTeam40Glads
             // 
@@ -1493,7 +1493,7 @@ namespace ModdingGUI
             lblTeamLevel.Name = "lblTeamLevel";
             lblTeamLevel.Size = new Size(440, 25);
             lblTeamLevel.TabIndex = 7;
-            lblTeamLevel.Text = "Input a team level. (All units added will have this level):";
+            lblTeamLevel.Text = "Level for new units:";
             // 
             // txtTeamLevel
             // 
@@ -1607,7 +1607,7 @@ namespace ModdingGUI
             label3.Name = "label3";
             label3.Size = new Size(191, 89);
             label3.TabIndex = 1;
-            label3.Text = "Unit Name:";
+            label3.Text = "Name:";
             label3.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // txtPreviewUnitName
@@ -1630,7 +1630,7 @@ namespace ModdingGUI
             label4.Name = "label4";
             label4.Size = new Size(191, 305);
             label4.TabIndex = 2;
-            label4.Text = "Base Stats:";
+            label4.Text = "Stats:";
             label4.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // txtPreviewStats
@@ -1655,7 +1655,7 @@ namespace ModdingGUI
             label7.Name = "label7";
             label7.Size = new Size(191, 278);
             label7.TabIndex = 6;
-            label7.Text = "Attributes:";
+            label7.Text = "Traits:";
             label7.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // txtPreviewAttributes
@@ -1679,7 +1679,7 @@ namespace ModdingGUI
             label5.Name = "label5";
             label5.Size = new Size(191, 174);
             label5.TabIndex = 8;
-            label5.Text = "Gear Types:";
+            label5.Text = "Gear:";
             label5.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // txtPreviewAllowedGear
@@ -1703,7 +1703,7 @@ namespace ModdingGUI
             label2.Name = "label2";
             label2.Size = new Size(118, 25);
             label2.TabIndex = 5;
-            label2.Text = "Select a class:";
+            label2.Text = "Class:";
             // 
             // label1
             // 
@@ -1714,7 +1714,7 @@ namespace ModdingGUI
             label1.Name = "label1";
             label1.Size = new Size(145, 25);
             label1.TabIndex = 4;
-            label1.Text = "Enter unit name: ";
+            label1.Text = "Name:";
             // 
             // ddlTeamClasses
             // 
@@ -1978,7 +1978,7 @@ namespace ModdingGUI
             btnItemEditorNewSave.Name = "btnItemEditorNewSave";
             btnItemEditorNewSave.Size = new Size(353, 38);
             btnItemEditorNewSave.TabIndex = 20;
-            btnItemEditorNewSave.Text = "Save/Update Item";
+            btnItemEditorNewSave.Text = "Save item";
             btnItemEditorNewSave.UseVisualStyleBackColor = true;
             // 
             // grpItemEditorStatMods
@@ -1992,7 +1992,7 @@ namespace ModdingGUI
             grpItemEditorStatMods.Size = new Size(394, 385);
             grpItemEditorStatMods.TabIndex = 19;
             grpItemEditorStatMods.TabStop = false;
-            grpItemEditorStatMods.Text = "Item Stat Mods:";
+            grpItemEditorStatMods.Text = "Stat mods";
             // 
             // flpStatMods
             // 
@@ -2012,7 +2012,7 @@ namespace ModdingGUI
             btnItemEditorMoreStats.Name = "btnItemEditorMoreStats";
             btnItemEditorMoreStats.Size = new Size(150, 38);
             btnItemEditorMoreStats.TabIndex = 0;
-            btnItemEditorMoreStats.Text = "Add More Stats";
+            btnItemEditorMoreStats.Text = "Add stat";
             btnItemEditorMoreStats.UseVisualStyleBackColor = true;
             // 
             // label23
@@ -2023,7 +2023,7 @@ namespace ModdingGUI
             label23.Name = "label23";
             label23.Size = new Size(120, 25);
             label23.TabIndex = 17;
-            label23.Text = "Item Material:";
+            label23.Text = "Material:";
             // 
             // txtItemEditorNewMaterial
             // 
@@ -2041,7 +2041,7 @@ namespace ModdingGUI
             label21.Name = "label21";
             label21.Size = new Size(96, 25);
             label21.TabIndex = 13;
-            label21.Text = "Item Skills:";
+            label21.Text = "Skills:";
             // 
             // ddlItemEditorNewSkill2
             // 
@@ -2069,7 +2069,7 @@ namespace ModdingGUI
             label20.Name = "label20";
             label20.Size = new Size(114, 25);
             label20.TabIndex = 10;
-            label20.Text = "Item Affinity:";
+            label20.Text = "Affinity:";
             // 
             // ddlItemEditorNewAffinity
             // 
@@ -2096,7 +2096,7 @@ namespace ModdingGUI
             label19.Name = "label19";
             label19.Size = new Size(100, 25);
             label19.TabIndex = 7;
-            label19.Text = "Item Mesh:";
+            label19.Text = "Mesh:";
             // 
             // txtItemEditorNewMesh
             // 
@@ -2114,7 +2114,7 @@ namespace ModdingGUI
             label18.Name = "label18";
             label18.Size = new Size(96, 25);
             label18.TabIndex = 5;
-            label18.Text = "Item Level:";
+            label18.Text = "Level:";
             // 
             // txtItemEditorNewLevel
             // 
@@ -2132,7 +2132,7 @@ namespace ModdingGUI
             label17.Name = "label17";
             label17.Size = new Size(93, 25);
             label17.TabIndex = 3;
-            label17.Text = "Item Cost:";
+            label17.Text = "Cost:";
             // 
             // txtItemEditorNewCost
             // 
@@ -2254,7 +2254,7 @@ namespace ModdingGUI
             txtFileHeader.ReadOnly = true;
             txtFileHeader.Size = new Size(348, 31);
             txtFileHeader.TabIndex = 4;
-            txtFileHeader.Text = "Project File Tree:";
+            txtFileHeader.Text = "Projects";
             // 
             // tvwProjects
             // 

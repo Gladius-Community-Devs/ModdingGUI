@@ -20,6 +20,9 @@ namespace ModdingGUI
         /// <summary>Read access for anything that needs the stream (future MCP bridge, tests).</summary>
         public IAppLog Output => _log;
 
+        /// <summary>Hover help, installed once at startup and again after the Team Builder builds a page.</summary>
+        private readonly UiHelp _uiHelp = new();
+
         /// <summary>
         /// The long-running operations this window has started (unpack, pack, compile). A job carries state, result and
         /// a completion task, so nothing has to poll the log for "Unpacking completed successfully."
