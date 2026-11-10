@@ -115,6 +115,15 @@ namespace ModdingGUI
                     "Checks the project before packing; tick to pack without checking.");
             }
 
+            // This one was left behind by the old designer layout: still wired to the auto-launch setting and the pack
+            // completion handler, but positioned off the card, so it was invisible and unclickable. Give it a row.
+            if (Find("chbAutoLaunchDolphin") is CheckBox autoLaunch)
+            {
+                autoLaunch.Visible = true;
+                UiKit.Row(form, page, "After packing", Wrap(autoLaunch),
+                    "Packs, then starts the game in Dolphin.");
+            }
+
             var actions = new List<Control>();
             foreach (string name in new[] { "btnPack", "btnPackPath", "btnOpenPackLocation", "btnToPatching" })
             {

@@ -175,3 +175,34 @@ Three behaviours matter when scripting against it:
 
 An agent session looks like: select the project in `tvwProjects`, `{"cmd":"grid","action":"state"}` to see arenas and
 slots, `arena` to load one, `setTag` per cell, `cell` to verify, `save`. That is the whole loop with no mouse.
+
+### `convert` - the Convert page
+
+Drives the Convert tab: turn an RVZ/WIA/GCZ/CISO image into a plain ISO (or compress an ISO back into a Dolphin
+container), and rebuild NKit images. No file dialogs, so it works while the app is running headless.
+
+| Action | Fields | Returns |
+|---|---|---|
+| `state` | - | the page's source/detected/destination/target, `availableTargets`, `hasDolphinTool`, `hasNkitTool`, `lastOutput` |
+| `load` | `source`, optional `target` | fills the page exactly as Browse would (source, detected label, destination) so a screenshot matches what a user sees |
+| `detect` | `source` | `format` + a description; no page change |
+| `run` | `source`, optional `destination`, optional `target` (`iso`/`rvz`/`wia`/`gcz`) | `output` and `message`; runs the conversion and waits for it |
+
+```json
+{"cmd":"convert","action":"state"}
+{"cmd":"convert","action":"detect","source":"C:\\roms\\Gladius (USA).rvz"}
+{"cmd":"convert","action":"load","source":"C:\\roms\\Gladius (USA).rvz","target":"iso"}
+{"cmd":"convert","action":"run","source":"C:\\roms\\Gladius (USA).rvz","destination":"C:\\roms\\Gladius (USA)-from-rvz.iso"}
+```
+
+Notes that matter when scripting it:
+
+- `run` blocks for as long as the conversion takes (a Gladius RVZ takes ~2 s, an NKit rebuild ~8 s, ISO->RVZ ~2 s) and it
+  invokes the Core converter on a background thread. It does **not** go through the page's async handler, because that
+  handler touches controls in its continuations and blocking on it from the driver would deadlock the UI thread.
+- The destination must not already exist: `run` refuses rather than silently overwriting (`dolphin-tool` overwrites
+  without asking, which is exactly why the check is there).
+- Without a `destination` it derives one beside the source: same stem plus the target extension, and `-converted` when
+  that would collide with the source file, so `rvz -> rvz` does not target the input.
+- `target` other than `iso` needs Dolphin's CLI; `availableTargets` in `state` reports what is actually possible before
+  you try.

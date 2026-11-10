@@ -1,0 +1,21 @@
+0) These instructions are for Windows, and the Gamecube version of the game
+   If you use Mac, get a real computer first.
+   If you use Linux, you don't need my help.
+
+   I take no responsibility if you blow up your computer. Use at your own risk.
+
+	These instructions will work on NKIT files, which should be around 1.27GB, or 1,374,646,272 bytes.
+
+
+1) Move or copy your Gladius NKIT file into this folder.
+
+
+2) Rename the file "g" or "g.nkit.iso" (if you have file extensions visible).
+ 
+
+3) Run "Convert NKIT" and press enter when it asks you to.
+   If there is an error of any sort, your file is not the right type/size or was renamed incorrectly.
+
+
+4) You should now have a new ISO file that is 1.35GB, or 1,459,978,240 bytes.
+   You can use this ISO with the mod patchers.

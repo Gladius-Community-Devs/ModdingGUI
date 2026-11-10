@@ -587,3 +587,40 @@ disc with padding stripped and its file table still resolves; 182 of 185 extract
 rebuilt ISO) but patching requires conversion, since a scrubbed image can never match a vanilla patch. The five
 file pickers now offer `iso/gcm/nkit.iso/rvz/wia/gcz/ciso`, and the old "go find Swift's tool in Discord" message is
 gone. `DiscImagePreparerTests` covers the decisions without an external process; `DiscImageProbeTests` covers the magics.
+
+## 25. Convert page, and the shipped NKit converter
+
+The project owner confirmed the NKit distribution is free to bundle, so it now ships: `NkitConvert/` (ConvertToISO.exe,
+NKit.dll, SharpCompress, Redump/GameTDB dats, ~1.8 MB) is copied to `tools/nkit` on build, and a dedicated **Convert**
+tab uses it.
+
+**What the page does.** Source image (any of iso/gcm/nkit.iso/rvz/wia/gcz/ciso) -> detected format label -> target
+format -> destination, with an activity pane. Targets are tinted `CheckBox`-as-button toggles, not a ComboBox: a
+`DropDownList` keeps its own system-coloured closed box no matter what the palette says (drawn by the OS), and
+owner-drawing it needed the `e.Index == -1` closed-state case which is easy to miss. The Randomizer's toggle pattern was
+already the house style.
+
+**Engine.** `ModdingGUI.Core/Discs/DiscImageConverter`:
+
+- ISO/GCM/RVZ/WIA/GCZ/CISO -> `dolphin-tool convert`, with the exact per-format flags those containers demand
+  (`-b` for gcz/wia/rvz; `-c zstd -l 1` for RVZ; `-c none -b 2097152` for WIA). 13 unit tests pin the argument mapping,
+  because getting a block size wrong is a hard failure, not a slow path.
+- NKit -> the bundled `ConvertToISO.exe`, run on a **copy of the tool folder in temp**: it always writes to
+  `<tool>/utils/Processed/GameCube` and appends `_1` on a name collision, and the install directory may be read-only.
+- Output is verified, never trusted: the converted file must exist, be non-empty, and - for an ISO - be re-read through
+  `dolphin-tool header -j` for a game id. Both tools lie about exit codes (Dolphin exits 0 on garbage and writes a file;
+  NKit's converter exits 2 on success *and* failure).
+- Refuses to overwrite an existing destination, and refuses source == destination.
+
+**Measured end to end through the app** (driver `convert run`, and again through the page's own button):
+
+| Conversion | Time | Result |
+|---|---|---|
+| RVZ -> ISO | 2.3 s | 1,392 MB, game id GLSE64 |
+| NKit -> ISO | 8.5 s | 1,392 MB, game id GM4E01 |
+| ISO -> RVZ | 1.7 s | 1,060 MB, magic `52 56 5A 01` |
+
+**Also fixed while wiring it:** `AppSettings`' deep-copy constructor dropped `Theme` (saving Settings reset a light
+theme to dark) and the new `DiscImageConverterPath`; the Packing page's `chbAutoLaunchDolphin` had been left off the card
+by the old designer layout - invisible and unclickable - and now has an "After packing" row. All eight pages audit at
+contrast 0 / layout 0.

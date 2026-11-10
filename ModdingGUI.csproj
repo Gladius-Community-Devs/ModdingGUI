@@ -55,6 +55,12 @@
       <Link>tools\pttp_tga.py</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="NkitConvert\**\*">
+      <!-- NKit's ConvertToISO (Nanook), free to redistribute per the project owner, so an NKit image can be
+           rebuilt without asking the user to install anything. Copied to tools\nkit beside the exe. -->
+      <Link>tools\nkit\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="skills\skills_catalog.json">
       <Link>skills\skills_catalog.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
