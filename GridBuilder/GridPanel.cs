@@ -89,6 +89,10 @@ namespace ModdingGUI
                     float scaledHeight = imageToProcess.Height * scale;
 
                     RectangleF destRect = new RectangleF(offset.X, offset.Y, scaledWidth, scaledHeight);
+
+                    // Drawn as-is: the reference map art already carries ~47% alpha, so dimming it further makes it
+                    // disappear against a dark surface. The cells are painted after this, so the map only shows through
+                    // the gaps and the empty cells - which is what it is for.
                     g.DrawImage(imageToProcess, destRect);
                 }
                 catch (Exception ex)

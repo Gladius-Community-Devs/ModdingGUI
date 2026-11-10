@@ -509,3 +509,24 @@ says exactly that.
 
 The tag-to-bit mapping is per file (`Start1` was bit 1 in that arena, bit 0 in a new grid), so the lookup lives in
 `GridFile.IndexOfTag` with four tests rather than in the UI.
+
+## 23. Arena maps: per project, and how the overlay actually composites
+
+**Per-project lookup.** The Grid Builder looked for `map_<arena>.png` only in `<app>/maps`, so a project could never
+carry its own maps - which is exactly what an unpack is meant to produce from the disc's images. The probe now resolves,
+in order: `<project>/maps/`, `<project>/<name>_BEC/maps/`, then `<app>/maps/` as the bundled fallback. Arena key is the
+parent folder of the `.grd` (`expanse/expansedunes/dunesstartdefault.grd` -> `expansedunes`), unchanged.
+
+Proved by copying a reference PNG into a scratch project's `maps/` folder, switching arena away and back, and reading
+`{"cmd":"grid","action":"state"}` -> `hasMapImage: true`; then `{"action":"map","visible":true,"scale":2.5}` draws it.
+
+**The overlay is drawn as-is, deliberately.** The reference maps are 256x256 with ~47% alpha baked in (average alpha
+119/255). Two attempts to "fix" it were wrong and are recorded so they are not repeated:
+
+- drawing it at 55% and 85% opacity (ColorMatrix `Matrix33`) made the map *disappear* - dimming already-transparent dark
+  art against a dark surface;
+- the map is painted **before** the cells, so it only shows through cell gaps and empty cells; it never washes out the
+  cell colours. At full opacity it reads as a background texture with the cells crisp on top, which is the intended look.
+
+256 x 256 at the default transform scale of 2.5 is exactly 640 px = 32 cells x 20 px, which is why the built-in transform
+defaults in the view are what they are.

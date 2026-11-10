@@ -218,7 +218,7 @@ namespace ModdingGUI
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*";
+                openFileDialog.Filter = "Disc images (*.iso;*.gcm;*.nkit.iso;*.rvz;*.wia;*.gcz;*.ciso)|*.iso;*.gcm;*.nkit.iso;*.rvz;*.wia;*.gcz;*.ciso|ISO files (*.iso;*.gcm)|*.iso;*.gcm|All files (*.*)|*.*";
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     txtISOPath.Text = openFileDialog.FileName;
@@ -439,7 +439,7 @@ namespace ModdingGUI
                         // Open file dialog for ISO selection
                         using (OpenFileDialog openFileDialog = new OpenFileDialog())
                         {
-                            openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*";
+                openFileDialog.Filter = "Disc images (*.iso;*.gcm;*.nkit.iso;*.rvz;*.wia;*.gcz;*.ciso)|*.iso;*.gcm;*.nkit.iso;*.rvz;*.wia;*.gcz;*.ciso|ISO files (*.iso;*.gcm)|*.iso;*.gcm|All files (*.*)|*.*";
                             if (openFileDialog.ShowDialog() == DialogResult.OK)
                             {
                                 string isoPath = openFileDialog.FileName;

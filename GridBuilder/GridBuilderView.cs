@@ -466,6 +466,35 @@ namespace ModdingGUI
             }
         }
 
+        /// <summary>
+        /// Where the map image for an arena lives: the project first, then the app's bundled set.
+        /// </summary>
+        /// <remarks>
+        /// The probe used to look only in <c>&lt;app&gt;/maps</c>, so a project could never carry its own maps - which is
+        /// what an unpack is supposed to produce from the disc's TGA images. Order: project root, the project's _BEC
+        /// folder, then the app folder.
+        /// </remarks>
+        private string? ResolveMapImagePath(string arenaKey, string fileName)
+        {
+            var candidates = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(_projectRoot))
+            {
+                candidates.Add(Path.Combine(_projectRoot, "maps", fileName));
+                candidates.Add(Path.Combine(_projectRoot, Path.GetFileName(_projectRoot) + "_BEC", "maps", fileName));
+            }
+
+            candidates.Add(Path.Combine(GetAppDirectory(), "maps", fileName));
+
+            foreach (string candidate in candidates)
+            {
+                AppendLog($"Attempting to find map image at: '{candidate}'", "Black", isDetail: true);
+                if (File.Exists(candidate)) return candidate;
+            }
+
+            return null;
+        }
+
         private void ResetMapState()
         {
             AppendLog("ResetMapState called.", "CornflowerBlue", isDetail: true);
@@ -579,19 +608,15 @@ namespace ModdingGUI
                             AppendLog($"Processed GRD Key for lookup (after Trim): '{processedGrdKey}'", "DarkBlue", isDetail: false);
 
                             string mapImageFileName = $"map_{processedGrdKey}.png";
-                            string appDir = GetAppDirectory();
-                            string mapDir = Path.Combine(appDir, "maps");
-                            string potentialMapPath = Path.Combine(mapDir, mapImageFileName);
-                            AppendLog($"Attempting to find map image at: '{potentialMapPath}'", "Black", isDetail: true);
-                            if (File.Exists(potentialMapPath))
+                            _currentMapImagePath = ResolveMapImagePath(processedGrdKey, mapImageFileName);
+
+                            if (_currentMapImagePath is not null)
                             {
-                                _currentMapImagePath = potentialMapPath;
                                 AppendLog($"Map image path found and stored: '{_currentMapImagePath}'", "Green", isDetail: true);
                             }
                             else
                             {
-                                _currentMapImagePath = null;
-                                AppendLog($"Map image file NOT FOUND at '{potentialMapPath}'.", "OrangeRed", isDetail: false);
+                                AppendLog($"Map image file NOT FOUND for '{processedGrdKey}' in the project or the app's maps folder.", "OrangeRed", isDetail: false);
                             }
                         }
                         else

@@ -15,7 +15,7 @@ namespace ModdingGUI
 
                 using (OpenFileDialog openFileDialog = new OpenFileDialog())
                 {
-                    openFileDialog.Filter = "ISO files (*.iso;*.nkit.iso)|*.iso;*.nkit.iso|All files (*.*)|*.*";
+                    openFileDialog.Filter = "Disc images (*.iso;*.gcm;*.nkit.iso;*.rvz;*.wia;*.gcz;*.ciso)|*.iso;*.gcm;*.nkit.iso;*.rvz;*.wia;*.gcz;*.ciso|ISO files (*.iso;*.gcm)|*.iso;*.gcm|All files (*.*)|*.*";
                     if (openFileDialog.ShowDialog() == DialogResult.OK)
                     {
                         txtPatchingApplicationISOPath.Text = openFileDialog.FileName;
