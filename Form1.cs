@@ -152,28 +152,11 @@ namespace ModdingGUI
 
             try
             {
-                bool valid = true; // Initialize a flag to track the overall validation result
-                // Run itemsets validation before packing
+                // Advisory: reports what would break a pack, never stops it. The checkbox is the "don't even look"
+                // escape hatch, for a project the user knows the validator will not like.
                 if (!chbValidationSkip.Checked)
                 {
-                    if (!ValidateItemsets(selectedFolder))
-                    {
-                        valid = false; // Exit the method if validation fails
-                    }
-                    ;
-                    if (!ValidateGladiatorsFile(selectedFolder))
-                    {
-                        valid = false;
-                    }
-                    if (!ValidateGladiatorsAndSkills(selectedFolder))
-                    {
-                        valid = false;
-                    }
-                    if (!valid)
-                    {
-                        AppendLog("Validation failed. Please check the log for details.", ErrorColor, rtbPackOutput); // Log validation failure
-                        return; // Exit the method
-                    }
+                    RunPackValidation(selectedFolder);
                 }
                 else
                 {

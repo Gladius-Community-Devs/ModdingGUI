@@ -90,6 +90,14 @@ namespace ModdingGUI
         private void ApplyAppSettings()
         {
             // Apply general settings
+            // Migration: the pack pass used to be skipped by default and a saved settings.json keeps that off for
+            // existing users. Version 1 turns it back on, once.
+            if (appSettings.ValidationPassVersion < 1)
+            {
+                appSettings.ValidateBeforePacking = true;
+                appSettings.ValidationPassVersion = 1;
+            }
+
             chbValidationSkip.Checked = !appSettings.ValidateBeforePacking;
             
             // Apply randomizer settings

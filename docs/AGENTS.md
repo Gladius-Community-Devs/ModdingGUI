@@ -138,6 +138,9 @@ Stateless `open → mutate → write`. Per-project `ProjectLock`. Timestamped ba
   `Warn`/`Reject`-mode overloads of `Add`/`Update` returning `SkillMutationResult`.
   Rules/catalog live in `ModdingGUI.Core.Skills` (`SkillsCatalog`, `SkillsValidator`,
   `SkillsContext`).
+- Pack-time validation is `ModdingGUI.Core.Validation.ProjectValidator`: it calls the APIs' own `Validate` methods and
+  returns advisory findings. No check may compare against a vanilla count - projects come from modded ISOs. The Pack
+  tab runs it, `--validate <project>` prints it, and MCP strict mode will reuse it.
 - Long-running work (unpack, pack, script compile) is a `Core.Jobs` job: `JobRegistry.Start` returns a `BuildJob` with
   an id, a state, a `BuildResult` and a completion task, and raises `Started`/`Finished`. Front ends wait on it (the GUI
   and the UI driver do; the MCP server will forward the events as progress). Do not add a sleep or a log-grep for

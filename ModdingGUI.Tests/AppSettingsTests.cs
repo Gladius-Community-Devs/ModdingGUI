@@ -10,9 +10,10 @@ namespace ModdingGUI.Tests;
 public class AppSettingsTests
 {
     [Fact]
-    public void DefaultConstructor_ValidateBeforePacking_DefaultsFalse()
+    public void DefaultConstructor_ValidateBeforePacking_DefaultsTrue()
     {
-        Assert.False(new AppSettings().ValidateBeforePacking);
+        // On by default since the pack pass aggregated Core validators; it is advisory and can be skipped.
+        Assert.True(new AppSettings().ValidateBeforePacking);
     }
 
     [Fact]

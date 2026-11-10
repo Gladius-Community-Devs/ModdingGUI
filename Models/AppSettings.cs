@@ -9,7 +9,14 @@ namespace ModdingGUI.Models
     public class AppSettings
     {
         // General settings
-        public bool ValidateBeforePacking { get; set; } = false;
+        public bool ValidateBeforePacking { get; set; } = true;
+
+        /// <summary>
+        /// Settings-schema version for this file. Version 1 turned <see cref="ValidateBeforePacking"/> back on (it used
+        /// to default to off, and a saved file keeps that), so the Pack tab runs the validation pass unless the user
+        /// deliberately skips it.
+        /// </summary>
+        public int ValidationPassVersion { get; set; }
         public bool AutoOpenFolderAfterOperation { get; set; } = false;
         public string DefaultProjectDirectory { get; set; } = string.Empty;
         public string DolphinExecutablePath { get; set; } = string.Empty;
@@ -39,6 +46,7 @@ namespace ModdingGUI.Models
         public AppSettings(AppSettings source)
         {
             ValidateBeforePacking = source.ValidateBeforePacking;
+            ValidationPassVersion = source.ValidationPassVersion;
             AutoOpenFolderAfterOperation = source.AutoOpenFolderAfterOperation;
             DefaultProjectDirectory = source.DefaultProjectDirectory;
             DolphinExecutablePath = source.DolphinExecutablePath;

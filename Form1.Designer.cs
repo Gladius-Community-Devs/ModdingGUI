@@ -873,14 +873,14 @@ namespace ModdingGUI
             // chbValidationSkip
             // 
             chbValidationSkip.AutoSize = true;
-            chbValidationSkip.Checked = true;
-            chbValidationSkip.CheckState = CheckState.Checked;
+            chbValidationSkip.Checked = false;
+            chbValidationSkip.CheckState = CheckState.Unchecked;
             chbValidationSkip.Location = new Point(381, 102);
             chbValidationSkip.Margin = new Padding(4, 5, 4, 5);
             chbValidationSkip.Name = "chbValidationSkip";
             chbValidationSkip.Size = new Size(277, 29);
             chbValidationSkip.TabIndex = 6;
-            chbValidationSkip.Text = "Skip Validation (force packing)";
+            chbValidationSkip.Text = "Skip validation (pack without checking)";
             chbValidationSkip.UseVisualStyleBackColor = true;
             chbValidationSkip.CheckedChanged += chbValidationSkip_CheckedChanged;
             // 

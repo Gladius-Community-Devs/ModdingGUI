@@ -56,6 +56,7 @@ public sealed record AppSettingsSnapshot(
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["ValidateBeforePacking"] = "File > Settings > General: 'Validate before packing' checkbox.",
+        ["ValidationPassVersion"] = "Not user-facing: settings-schema version, written by the app.",
             ["AutoOpenFolderAfterOperation"] = "File > Settings > General: 'Open folder after operation' checkbox.",
             ["DefaultProjectDirectory"] = "File > Settings > General: 'Projects Folder (blank = app folder)' + Browse.",
             ["DolphinExecutablePath"] = "File > Settings > General: 'Dolphin Executable Path' + Browse.",

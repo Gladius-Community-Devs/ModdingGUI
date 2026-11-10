@@ -20,6 +20,9 @@ public enum CliMode
 
     /// <summary>Randomize a project (and optionally pack it).</summary>
     Randomize,
+
+    /// <summary>Report what would go wrong when packing, without packing.</summary>
+    Validate,
 }
 
 /// <summary>
@@ -69,6 +72,7 @@ public sealed class CliInvocation
           ModdingGUI --pack <projectFolder> [options]
           ModdingGUI --unpack <isoPath> <projectName> [options]
           ModdingGUI --randomize <projectFolder> [randomizer options] [options]
+          ModdingGUI --validate <projectFolder>
 
         Randomizer options
           --seed <text>    Seed for a reproducible run (default: generated and reported)
@@ -117,6 +121,7 @@ public sealed class CliInvocation
         if (first == "--pack") mode = CliMode.Pack;
         else if (first == "--unpack") mode = CliMode.Unpack;
         else if (first == "--randomize") mode = CliMode.Randomize;
+        else if (first == "--validate") mode = CliMode.Validate;
         else return null;   // not a CLI invocation → GUI
 
         var positional = new List<string>();
@@ -252,14 +257,13 @@ public sealed class CliInvocation
             };
         }
 
-        if (mode == CliMode.Pack)
+        if (mode == CliMode.Pack || mode == CliMode.Validate)
         {
             if (positional.Count != 1)
             {
-                error = "--pack needs exactly one project folder.";
+                error = (mode == CliMode.Validate ? "--validate" : "--pack") + " needs exactly one project folder.";
                 return null;
-            }
-            return new CliInvocation
+            }            return new CliInvocation
             {
                 Mode = mode,
                 ProjectFolder = positional[0],
@@ -331,6 +335,26 @@ public sealed class CliInvocation
             }
 
             return result.Succeeded ? 0 : 1;
+        }
+
+        if (Mode == CliMode.Validate)
+        {
+            string project = Path.GetFullPath(ProjectFolder!);
+            if (!Directory.Exists(project))
+            {
+                Console.Error.WriteLine($"Project folder not found: {project}");
+                return 2;
+            }
+
+            ModdingGUI.Core.Validation.ValidationReport report = ModdingGUI.Core.Validation.ProjectValidator.Validate(project, log: log);
+
+            foreach (ModdingGUI.Core.Validation.ValidationFinding finding in report.Findings)
+            {
+                Console.WriteLine($"[{finding.Severity.ToString().ToLowerInvariant()}] {finding.Area}: {finding.Message}");
+            }
+
+            Console.WriteLine($"[validate] {report.Summary}");
+            return report.ErrorCount == 0 ? 0 : 1;
         }
 
         if (Mode == CliMode.Pack)

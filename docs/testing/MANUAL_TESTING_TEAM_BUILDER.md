@@ -128,3 +128,19 @@ screenshot path. This is the regression net for the panel: run it after touching
 - A skill's `JOBPOINTS` price is the record's `SKILLJOBPOINTCOST`; a combo's later hits are separate records with no
   price, because the root is what the designer places.
 - Anything the panel cannot do yet is listed in `HANDOFF.md` §5.3 (currently: nothing — the UX backlog is closed).
+
+## 7. Pack validation pass (Pack tab)
+
+The checkbox is **off** by default now, which means validation *runs*; tick it only to skip.
+
+24. Pack a project with the checkbox unticked.
+    - [ ] The log opens with `Validating project...`, one line per area (gladiators, skillsets, itemsets, statsets,
+          tints, school names, rosters) and a summary such as
+          `Validation: 62 finding(s): 0 error(s), 0 warning(s). These are advisory - packing continues unless you stop it.`
+    - [ ] Informational notes are counted, not listed; packing starts either way.
+25. Break a reference on purpose: change a skill name inside any `data/units/skillsets.txt` row to something that does
+    not exist (keep the level numbers), then pack.
+    - [ ] A warning appears naming the set and the name: `set 209: '...' is not a skill in skills.tok`.
+    - [ ] Note the difference from the old pass: the row does **not** have to belong to a gladiator to be reported.
+26. `ModdingGUI.exe --validate <projectFolder>` (add `--tools <dir>` outside an install).
+    - [ ] Prints the same findings and `[validate] N finding(s): ...`; exit code 0 while there are no errors.

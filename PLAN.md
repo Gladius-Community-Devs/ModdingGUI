@@ -573,6 +573,9 @@ Replace mockup with real implementation backed by `IClassesApi` + `ISkillsApi` +
   per-roster writes. The skills picker also stopped offering combo hits and game-granted records — the rule is
   `LearnableSkills` (subskill links, `SKILLCREATE` category, opt-in "any class"), and it is documented in `HANDOFF.md`
   §4 because it is engine behaviour, not taste.
+- **Pack validation.** Core's validators (gladiators, skillsets, itemsets, statsets, tints, school names, rosters) run
+  through `ProjectValidator` behind the Pack tab's checkbox: advisory findings, no comparison against vanilla counts,
+  on by default, and `--validate <project>` prints the same report headlessly.
 - **Round trip (owner-reported).** A unit loaded from a roster carries its `ITEMSCOMP` gear, `EXPERIENCE` and
   `CUSTOMIZE` back into the editor, and the exporter compares before writing, so loading and saving a roster unchanged
   reports `0 updated, N unchanged` and leaves those blocks byte-identical. The class item-set fallback now fills gear

@@ -224,6 +224,33 @@ missing-file check now goes through `ProjectRoots.ResolveBecFolder` so a project
    roster and saving it untouched reports `1 added, 0 updated, 2 unchanged` and leaves the file byte-identical apart
    from the new block. Before this every unit was rewritten whether or not anything had changed.
 
+### 5.3c The pack validation pass, rebuilt on Core's validators
+
+The Pack tab's "skip validation" checkbox used to guard three regex checks written in the shell. They only looked at
+skillsets that `gladiators.txt` pointed at, so a bad skill name in a set nobody referenced passed validation and then
+killed the pack inside `Gladius_Units_IDX_Repack.py` with `ValueError: 'Wolf Attack' is not in list`. That is how the
+gap was found: a project that had "validated" could still not be packed.
+
+1. **The pass now runs Core's own validators** — `ProjectValidator.Validate(projectRoot)` calls
+   `GladiatorsApi.Validate`, `SkillSetsApi.Validate`, `ItemSetsApi.Validate`, `StatSetsApi.Validate`,
+   `TintSetsApi.Validate`, `SchoolNamesApi.Validate` and `SchoolsApi.Validate` over every roster, and reports one
+   list of findings from a single place. Nothing is re-implemented in the shell, and the CLI (`--validate <project>`)
+   prints the same report, so MCP strict mode can reuse it.
+2. **No check compares against a vanilla count.** A project unpacked from a modded ISO legitimately has different
+   numbers of skills, items, sets and units; the checks verify that references *inside* the project resolve. A test
+   asserts that removing every `SKILLCREATE` record produces findings about the dangling names and never a complaint
+   about the missing vanilla total.
+3. **Nothing blocks packing.** Findings are Warnings and Info notes; the summary says so out loud
+   (`Validation: 62 finding(s): 0 error(s), 0 warning(s). These are advisory`). Info notes are counted, not listed,
+   because vanilla produces 62 of them by itself (blank entry 0, tints that skip a channel, duplicate grants).
+4. **It is on by default again.** The setting had shipped off, and a saved `settings.json` keeps it off, so
+   `AppSettings.ValidationPassVersion` migrates version 0 users once: `ValidateBeforePacking = true`. The checkbox is
+   now the escape hatch ("Skip validation (pack without checking)").
+5. **Cost**: 0.8–1.7 s on a vanilla project (62 findings across 7 areas), so it does not need to be optional for
+   speed.
+6. The one shell-side check that remains is item-set weapon coverage (levels 1–99), which no Core validator makes;
+   it reports at most ten gaps and no longer gates the pack.
+
 ### 5.4 The UI driver (how GUI work gets verified)
 
 `--ui-server` / `--ui-script` let a script or an agent drive the window over loopback JSON lines — snapshot, click,
@@ -277,18 +304,22 @@ day the machine was busy.
 11. **MSBuild on this machine:** a `Build FAILED` with `0 Errors` and no project errors is a restore/node failure, not
     a code error. Builds also fail with `MSB3491 … Access is denied` writing under `obj\` when the workspace file
     policy is read-only. Check the policy before debugging code.
-12. **A pack can be 130 s or 8 s and neither is a bug.** `bec-tool-all.py` dominates (see §4); the number depends on
+12. **A blank line ends a section in `data/units/*.txt`.** `SectionedFile` treats a blank line as the end of a
+    `Skillset N:` / `Statset N:` block, so a row added *after* the blank line that follows a set belongs to no set at
+    all: the editors and the validators both ignore it, silently. When hand-editing one of those files, put the row
+    directly under its header line.
+13. **A pack can be 130 s or 8 s and neither is a bug.** `bec-tool-all.py` dominates (see §4); the number depends on
     how much of the 1.8 GB tree is in the OS cache and whether the antivirus is scanning it. Do not "optimise" the
     step away without measuring it first — the per-step log line (`bec-tool-all.py: exit 0 in 8.1s, 50 line(s)`) and
     `BuildStepResult.Duration` exist for exactly this.
-13. **The driver owns the UI thread**, so a modal dialog hangs it: `UiConfirm` is the safe way to ask (it logs and
+14. **The driver owns the UI thread**, so a modal dialog hangs it: `UiConfirm` is the safe way to ask (it logs and
     answers yes under automation), while a legacy `MessageBox.Show` in a path the driver reaches will stall the run
     until the app is killed. Also kill the app before rebuilding — a running exe locks `bin\…\ModdingGUI.exe`.
-14. **A roster unit is a snapshot of the file.** Loading reads the fields the model understands; anything it does not
+15. **A roster unit is a snapshot of the file.** Loading reads the fields the model understands; anything it does not
     carry must be written back verbatim or left alone. `ITEMSCOMP`, `EXPERIENCE` and `CUSTOMIZE` were each lost this
     way, and the item-set fallback invented gear into deliberately empty slots. If you add a field to `Unit`, add it to
     `LoadSelectedRoster` *and* `BuildSchoolUnit`, and make the writer compare before writing.
-15. **`DrawToBitmap` screenshots are the window at its logical size**, not what a scaled desktop shows; read the
+16. **`DrawToBitmap` screenshots are the window at its logical size**, not what a scaled desktop shows; read the
     snapshot's bounds when cropping, and do not trust a downscaled preview for pixel-level colour questions.
 
 ---
