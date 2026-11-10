@@ -32,21 +32,22 @@ namespace ModdingGUI
             var body = new Panel { Dock = DockStyle.Fill, BackColor = UiTheme.Surface };
             var form = UiKit.Form(card, 112);
 
-            if (Find("txtISOPath") is TextBox isoPath)
+            // "Choose ISO" belongs beside the ISO it fills, not on a row of its own with an empty caption.
+            if (Find("txtISOPath") is TextBox isoPath && Find("btnSelectISO") is Button chooseIso)
             {
                 isoPath.ReadOnly = true;
-                UiKit.Row(form, page, "ISO", isoPath);
+                UiKit.Look(chooseIso, page, primary: false);
+                UiKit.RowWithButton(form, page, "ISO", isoPath, chooseIso);
+            }
+            else if (Find("txtISOPath") is TextBox isoOnly)
+            {
+                isoOnly.ReadOnly = true;
+                UiKit.Row(form, page, "ISO", isoOnly);
             }
 
             if (Find("txtUnpackPath") is TextBox projectName)
             {
                 UiKit.Row(form, page, "Project", projectName);
-            }
-
-            if (Find("btnSelectISO") is Button chooseIso)
-            {
-                UiKit.Look(chooseIso, page, primary: false);
-                UiKit.Row(form, page, string.Empty, Wrap(chooseIso));
             }
 
             if (Find("btnUnpack") is Button unpack)
@@ -119,6 +120,7 @@ namespace ModdingGUI
             {
                 if (Find(name) is not Button button) continue;
                 UiKit.Look(button, page, primary: name == "btnPack");
+                if (name == "btnToPatching") button.Enabled = true;   // switching tabs never needed a project
                 actions.Add(button);
             }
 

@@ -25,10 +25,66 @@ namespace ModdingGUI
         public override Color CheckPressedBackground => UiTheme.Accent;
     }
 
-    /// <summary>Menu renderer that uses <see cref="UiColorTable"/> and drops the rounded edges.</summary>
+    /// <summary>
+    /// Menu renderer for the current palette: flat hover instead of the system gradient, readable text in every state,
+    /// and our own check mark instead of the small blue system box that looked out of place in a dark window.
+    /// </summary>
     internal sealed class UiMenuRenderer : ToolStripProfessionalRenderer
     {
         public UiMenuRenderer() : base(new UiColorTable()) => RoundedEdges = false;
+
+        protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
+        {
+            using var brush = new SolidBrush(UiTheme.SurfaceAlt);
+            e.Graphics.FillRectangle(brush, e.AffectedBounds);
+        }
+
+        protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
+        {
+            bool hot = e.Item.Selected || e.Item.Pressed;
+            using var brush = new SolidBrush(hot ? UiTheme.Border : UiTheme.SurfaceAlt);
+
+            // A menu strip keeps its own background; only the drop-down items get a hover plate.
+            Rectangle plate = e.Item.Owner is MenuStrip
+                ? Rectangle.Empty
+                : new Rectangle(2, 0, e.Item.Width - 4, e.Item.Height);
+
+            if (plate != Rectangle.Empty) e.Graphics.FillRectangle(brush, plate);
+
+            if (e.Item.Owner is MenuStrip && hot)
+            {
+                using var accent = new SolidBrush(UiTheme.Accent);
+                e.Graphics.FillRectangle(accent, 2, e.Item.Height - 3, e.Item.Width - 4, 2);
+            }
+        }
+
+        protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+        {
+            e.TextColor = e.Item.Enabled ? UiTheme.Ink : UiTheme.InkMuted;
+            base.OnRenderItemText(e);
+        }
+
+        protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
+        {
+            Rectangle box = e.ImageRectangle;
+            if (box.Width <= 0 || box.Height <= 0) return;
+
+            using var pen = new Pen(UiTheme.Accent, 2f);
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            e.Graphics.DrawLines(pen, new[]
+            {
+                new Point(box.Left + 2, box.Top + box.Height / 2),
+                new Point(box.Left + box.Width / 2 - 1, box.Bottom - 3),
+                new Point(box.Right - 2, box.Top + 3),
+            });
+        }
+
+        protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
+        {
+            using var pen = new Pen(UiTheme.Border);
+            int y = e.Item.Height / 2;
+            e.Graphics.DrawLine(pen, 6, y, e.Item.Width - 6, y);
+        }
     }
 
     public partial class frmMain
@@ -66,84 +122,7 @@ namespace ModdingGUI
         }
 
         /// <summary>Collapse the native tab row and put a themed strip above the pages.</summary>
-        private void BuildTabStrip(TabControl tabs)
-        {
-            tabs.Appearance = TabAppearance.FlatButtons;
-            tabs.ItemSize = new Size(1, 1);
-            tabs.Multiline = false;
-            tabs.SizeMode = TabSizeMode.Fixed;
-            tabs.BackColor = UiTheme.SurfaceAlt;
-
-            if (tabs.Parent is not Control parent) return;
-
-            string hostName = "pnlTabStrip_" + tabs.Name;
-            if (parent.Controls.Find(hostName, false).FirstOrDefault() is not FlowLayoutPanel host)
-            {
-                host = new FlowLayoutPanel
-                {
-                    Name = hostName,
-                    Dock = DockStyle.Top,
-                    Height = UiTheme.Scale(tabs, 34),
-                    FlowDirection = FlowDirection.LeftToRight,
-                    WrapContents = false,
-                    BackColor = UiTheme.SurfaceAlt,
-                    Padding = new Padding(UiTheme.Space(tabs, 1), UiTheme.Space(tabs, 1), 0, 0),
-                };
-
-                // Added after the filling tab control, so it docks first and takes the top band.
-                parent.Controls.Add(host);
-                tabs.SelectedIndexChanged += (_, _) => RefreshTabStrip(tabs);
-            }
-
-            host.SuspendLayout();
-            host.Controls.Clear();
-
-            foreach (TabPage page in tabs.TabPages)
-            {
-                var button = new Button
-                {
-                    Text = page.Text,
-                    Tag = page,
-                    AutoSize = false,
-                    FlatStyle = FlatStyle.Flat,
-                    Font = UiTheme.Body,
-                    Height = UiTheme.Scale(tabs, 26),
-                    Margin = new Padding(0, 0, UiTheme.Scale(tabs, 2), 0),
-                    UseVisualStyleBackColor = false,
-                };
-
-                button.FlatAppearance.BorderSize = 0;
-                button.Width = TextRenderer.MeasureText(page.Text, UiTheme.Body).Width + UiTheme.Scale(tabs, 26);
-
-                button.Click += (sender, _) =>
-                {
-                    if (sender is Button clicked && clicked.Tag is TabPage target) tabs.SelectedTab = target;
-                };
-
-                host.Controls.Add(button);
-            }
-
-            host.ResumeLayout();
-            RefreshTabStrip(tabs);
-        }
-
-        /// <summary>Tint the strip's buttons so the selected page reads as selected.</summary>
-        private void RefreshTabStrip(TabControl tabs)
-        {
-            if (tabs.Parent?.Controls.Find("pnlTabStrip_" + tabs.Name, false).FirstOrDefault() is not FlowLayoutPanel host) return;
-
-            foreach (Control control in host.Controls)
-            {
-                if (control is not Button button || button.Tag is not TabPage page) continue;
-
-                bool selected = tabs.SelectedTab == page;
-                button.BackColor = selected ? UiTheme.Surface : UiTheme.SurfaceAlt;
-                button.ForeColor = selected ? UiTheme.Ink : UiTheme.InkMuted;
-                button.Font = selected ? UiTheme.BodyBold : UiTheme.Body;
-                button.FlatAppearance.MouseOverBackColor = selected ? UiTheme.Surface : UiTheme.Border;
-            }
-
-            host.Invalidate();
-        }
+        /// <summary>Collapse the native tab row and put the themed strip above the pages.</summary>
+        private static void BuildTabStrip(TabControl tabs) => UiKit.AttachTabStrip(tabs);
     }
 }

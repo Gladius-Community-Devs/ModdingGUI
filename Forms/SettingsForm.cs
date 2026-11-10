@@ -18,17 +18,10 @@ namespace ModdingGUI.Forms
             _currentSettings = new AppSettings(settings);
             _onSave = onSave;
             PopulateFormFromSettings();
+            BuildThemedLayout();
 
-            // The tree scans this folder for projects; blank keeps the old behaviour (the app folder).
-            var hint = new Label
-            {
-                Text = "Leave blank to use the folder the application runs from.",
-                AutoSize = true,
-                Location = new Point(txtDefaultProjectDir.Left, txtDefaultProjectDir.Bottom + 2),
-                ForeColor = UiTheme.InkMuted,
-            };
-
-            tabGeneral.Controls.Add(hint);
+            // The "leave blank" note lives in the Projects folder caption now; the old absolute-positioned label
+            // landed on top of the grid once the page reflowed.
         }
 
         private void PopulateFormFromSettings()

@@ -302,3 +302,31 @@ loose checkboxes and a log, with most of the page empty at the launch size.
    owner-drawing those controls.
 2. **Randomizer, Team Builder, Editors and Grid Builder still use the designer canvas** - they are themed but not
    reflowed, so their spacing does not follow the window the way Patching/Packing/Unpacking now do.
+
+## 14. Feedback round: sizing, retirement, dialogs
+
+**Button and field sizing.** Browse buttons were a few pixels shorter than their field and sat on a different
+baseline; a path box also stretched to whatever the card was wide (1060 px in Packing). The kit now has one metric -
+`FieldHeight` (30 px, DPI-scaled) - used by both the field and its button, and `FieldWidth` (420 px) applied as
+`MaximumSize` so a field fills a narrow cell (the Settings dialog is ~250 px) and stops at the cap in a wide one.
+
+**"Ingame Random" tab.** It was removed by `Form_Load`, which runs *after* the strip is built, so the strip kept a
+button for a page that no longer existed. The strip now rebuilds when pages are added or removed, deferred to
+`BeginInvoke` because the removal notification arrives while the page is still in the collection.
+
+**Unpacking.** "Choose ISO" is now the button of the ISO row instead of a separate row with an empty caption, and
+Unpack/Open folder share one height. **Packing:** "Make a patch" is always enabled - switching tabs never needed a
+project - so it is no longer a dim, unreadable disabled button.
+
+**Settings dialog.** Rebuilt on the kit: each page is a grid of caption/field rows with the checks beneath, the
+OK/Cancel pair is a docked action strip, and the tab headers are the same themed strip as the main window. The form
+now calls `UiTheme.Apply`, so fields are dark too. The absolutely-positioned "leave blank" hint label that overlapped
+the reflowed grid is gone; the caption carries the note.
+
+Because a modal blocks the UI driver (`ShowDialog` runs its own message loop), the dialog gets a screenshot through a
+new switch: `ModdingGUI.exe --render-settings <png>` draws it off-screen and exits. `--render-settings` is the pattern
+for any dialog that cannot be captured while the driver is attached.
+
+**Menu.** The system check glyph and selection plate are replaced by our own renderer: flat hover plate, accent
+underline on an open top-level item, a hand-drawn check mark, themed separators, and text that stays readable in every
+state. Popup menus are separate windows, so this has no automated screenshot - it needs a human look.

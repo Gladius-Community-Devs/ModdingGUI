@@ -38,10 +38,35 @@ namespace ModdingGUI
             AppDomain.CurrentDomain.UnhandledException +=
                 (_, e) => ReportUnhandled("background thread", e.ExceptionObject as Exception);
 
+            // --render-settings <png>: draw the Settings dialog to a file and exit. Modal dialogs block the UI driver
+            // (ShowDialog runs its own message loop), so this is how the dialog gets a screenshot in QA runs.
+            if (Array.IndexOf(args, "--render-settings") is int renderAt && renderAt >= 0 &&
+                renderAt + 1 < args.Length)
+            {
+                return RenderDialog(new ModdingGUI.Forms.SettingsForm(new ModdingGUI.Models.AppSettings(), _ => { }), args[renderAt + 1]);
+            }
+
             var form = new frmMain();
             if (uiDriver is not null) UiDriver.Attach(form, uiDriver);
 
             Application.Run(form);
+            return 0;
+        }
+
+        /// <summary>Draw a dialog to a PNG without showing it interactively.</summary>
+        private static int RenderDialog(Form dialog, string path)
+        {
+            dialog.StartPosition = FormStartPosition.Manual;
+            dialog.Location = new Point(-6000, -6000);   // off every monitor, so nothing flashes on screen
+            dialog.ShowInTaskbar = false;
+            dialog.Show();
+            Application.DoEvents();
+
+            using var bitmap = new Bitmap(dialog.Width, dialog.Height);
+            dialog.DrawToBitmap(bitmap, new Rectangle(0, 0, dialog.Width, dialog.Height));
+            bitmap.Save(path, System.Drawing.Imaging.ImageFormat.Png);
+
+            dialog.Close();
             return 0;
         }
 

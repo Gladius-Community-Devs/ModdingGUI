@@ -120,12 +120,22 @@ namespace ModdingGUI
             return grid;
         }
 
+        /// <summary>The height every single-line field and its button share, so they line up pixel for pixel.</summary>
+        public static int FieldHeight(Control owner) => UiTheme.Scale(owner, 30);
+
+        /// <summary>
+        /// Cap on a field's width. A path box that spans a 1000 px card is unreadable and pushes its Browse button miles
+        /// away; fields stay at a sane length and the row keeps the rest of the space empty.
+        /// </summary>
+        public static int FieldWidth(Control owner) => UiTheme.Scale(owner, 420);
+
         /// <summary>Add a caption + field row, growing the grid by one 30 px row.</summary>
         public static void Row(TableLayoutPanel grid, Control owner, string caption, Control field, string? hint = null)
         {
             int row = grid.RowCount;
             grid.RowCount = row + 1;
-            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, UiTheme.Scale(owner, 32)));
+            // The row must be tall enough for a 30 px field plus its 4 px margins, or the field is clipped by its host.
+            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, UiTheme.Scale(owner, 38)));
 
             var label = new Label
             {
@@ -139,10 +149,26 @@ namespace ModdingGUI
             };
             grid.Controls.Add(label, 0, row);
 
-            field.Dock = DockStyle.Fill;
             field.Font = UiTheme.Body;
-            field.Margin = new Padding(0, UiTheme.Scale(owner, 4), 0, UiTheme.Scale(owner, 4));
-            grid.Controls.Add(field, 1, row);
+            field.Margin = new Padding(0);
+
+            // Fields keep their own width instead of stretching across the card: a 1000 px path box reads badly and
+            // drags its button to the far edge. The host fills the cell and the field sits at its left.
+            var host = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.Transparent,
+                Margin = new Padding(0, UiTheme.Scale(owner, 4), 0, UiTheme.Scale(owner, 4)),
+            };
+
+            // Fill with a maximum instead of a fixed width: the field takes the cell when the card is narrow (the
+            // Settings dialog is only ~250 px wide) and stops growing at the cap on a wide one, which keeps its button
+            // on screen instead of pushing it past the edge.
+            field.Dock = DockStyle.Fill;
+            field.MaximumSize = new Size(FieldWidth(owner), 0);
+            host.Controls.Add(field);
+            field.Height = FieldHeight(owner);
+            grid.Controls.Add(host, 1, row);
 
             if (!string.IsNullOrWhiteSpace(hint)) label.Tag = hint;   // surfaced by the tooltip table
         }
@@ -159,9 +185,13 @@ namespace ModdingGUI
                 Margin = new Padding(0),
             };
 
-            button.Width = UiTheme.Scale(owner, 84);
+            // The button and the field share one height and one baseline; they used to differ by a few pixels, which is
+            // exactly what "Browse does not match the text box" looks like.
+            button.Width = UiTheme.Scale(owner, 88);
+            button.Height = FieldHeight(owner);
             button.Margin = new Padding(UiTheme.Scale(owner, 2), 0, 0, 0);
             field.Margin = new Padding(0);
+            field.Height = FieldHeight(owner);
             line.Controls.Add(field);
             line.Controls.Add(button);
 
@@ -171,9 +201,9 @@ namespace ModdingGUI
                 field.Width = Math.Max(UiTheme.Scale(owner, 120), line.ClientSize.Width - taken);
             }
 
+            Fit();
             line.SizeChanged += (_, _) => Fit();
             line.ControlAdded += (_, _) => Fit();
-
             Row(grid, owner, caption, line, hint);
             return line;
         }
@@ -308,6 +338,96 @@ namespace ModdingGUI
                 button.FlatAppearance.BorderSize = 1;
                 button.FlatAppearance.MouseOverBackColor = UiTheme.Border;
             }
+        }
+
+        /// <summary>
+        /// Collapse a TabControl's native row and put a themed strip of buttons above it.
+        /// </summary>
+        /// <remarks>
+        /// Windows paints a tab strip itself, so the run right of the last tab cannot be themed - the app shipped a pale
+        /// band across a dark window because of it. This replaces that row with our own buttons and keeps them in step
+        /// with the pages, including pages added or removed at run time.
+        /// </remarks>
+        public static void AttachTabStrip(TabControl tabs)
+        {
+            tabs.Appearance = TabAppearance.FlatButtons;
+            tabs.ItemSize = new Size(1, 1);
+            tabs.Multiline = false;
+            tabs.SizeMode = TabSizeMode.Fixed;
+            tabs.BackColor = UiTheme.SurfaceAlt;
+
+            if (tabs.Parent is not Control parent) return;
+
+            string hostName = "pnlTabStrip_" + tabs.Name;
+            if (parent.Controls.Find(hostName, false).FirstOrDefault() is not FlowLayoutPanel host)
+            {
+                host = new FlowLayoutPanel
+                {
+                    Name = hostName,
+                    Dock = DockStyle.Top,
+                    Height = UiTheme.Scale(tabs, 34),
+                    FlowDirection = FlowDirection.LeftToRight,
+                    WrapContents = false,
+                    BackColor = UiTheme.SurfaceAlt,
+                    Padding = new Padding(UiTheme.Space(tabs, 1), UiTheme.Space(tabs, 1), 0, 0),
+                };
+
+                parent.Controls.Add(host);
+                tabs.SelectedIndexChanged += (_, _) => TintTabStrip(tabs);
+
+                // Deferred: the removal notification arrives while the page is still in the collection.
+                tabs.ControlAdded += (_, _) => tabs.BeginInvoke((Action)(() => AttachTabStrip(tabs)));
+                tabs.ControlRemoved += (_, _) => tabs.BeginInvoke((Action)(() => AttachTabStrip(tabs)));
+            }
+
+            host.SuspendLayout();
+            host.Controls.Clear();
+
+            foreach (TabPage page in tabs.TabPages)
+            {
+                var button = new Button
+                {
+                    Text = page.Text,
+                    Tag = page,
+                    AutoSize = false,
+                    FlatStyle = FlatStyle.Flat,
+                    Font = UiTheme.Body,
+                    Height = UiTheme.Scale(tabs, 26),
+                    Margin = new Padding(0, 0, UiTheme.Scale(tabs, 2), 0),
+                    UseVisualStyleBackColor = false,
+                };
+
+                button.FlatAppearance.BorderSize = 0;
+                button.Width = TextRenderer.MeasureText(page.Text, UiTheme.Body).Width + UiTheme.Scale(tabs, 26);
+                button.Click += (sender, _) =>
+                {
+                    if (sender is Button clicked && clicked.Tag is TabPage target) tabs.SelectedTab = target;
+                };
+
+                host.Controls.Add(button);
+            }
+
+            host.ResumeLayout();
+            TintTabStrip(tabs);
+        }
+
+        /// <summary>Tint a strip's buttons so the selected page reads as selected.</summary>
+        public static void TintTabStrip(TabControl tabs)
+        {
+            if (tabs.Parent?.Controls.Find("pnlTabStrip_" + tabs.Name, false).FirstOrDefault() is not FlowLayoutPanel host) return;
+
+            foreach (Control control in host.Controls)
+            {
+                if (control is not Button button || button.Tag is not TabPage page) continue;
+
+                bool selected = tabs.SelectedTab == page;
+                button.BackColor = selected ? UiTheme.Surface : UiTheme.SurfaceAlt;
+                button.ForeColor = selected ? UiTheme.Ink : UiTheme.InkMuted;
+                button.Font = selected ? UiTheme.BodyBold : UiTheme.Body;
+                button.FlatAppearance.MouseOverBackColor = selected ? UiTheme.Surface : UiTheme.Border;
+            }
+
+            host.Invalidate();
         }
 
         /// <summary>Style an existing control (a log, a tree, a text box) to match the theme.</summary>
