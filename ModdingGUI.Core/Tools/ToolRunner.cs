@@ -148,11 +148,23 @@ public sealed class ToolRunner
 
         using var registration = cancellationToken.Register(() => TryKill(process));
 
+        var watch = Stopwatch.StartNew();
         process.WaitForExit();
         Task.WaitAll(stdout, stderr);
+        watch.Stop();
 
         bool cancelled = cancellationToken.IsCancellationRequested;
         int exitCode = cancelled ? CancelledExitCode : process.ExitCode;
+
+        int lines;
+        lock (gate) lines = output.Count;
+
+        // One line per step with its duration and output volume: the answer to "why was that pack slow" is a step
+        // name, not a guess, and the line count says whether the tool was chatty or the disk was busy.
+        _log?.Write(
+            exitCode == 0 ? LogLevel.Info : LogLevel.Warning,
+            $"{step.Name}: exit {exitCode} in {watch.Elapsed.TotalSeconds:0.0}s, {lines} line(s) of output",
+            _scope);
 
         if (cancelled)
         {
@@ -163,7 +175,10 @@ public sealed class ToolRunner
             _log?.Write(LogLevel.Error, $"{step.Name} exited with code {exitCode}.", _scope);
         }
 
-        lock (gate) return new BuildStepResult(step.Name, exitCode, output.ToArray());
+        lock (gate)
+        {
+            return new BuildStepResult(step.Name, exitCode, output.ToArray()) { Duration = watch.Elapsed };
+        }
     }
 
     private void Pump(StreamReader reader, LogLevel level, List<string> output, object gate)

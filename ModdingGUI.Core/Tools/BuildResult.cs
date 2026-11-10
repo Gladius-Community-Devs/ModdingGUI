@@ -12,6 +12,18 @@ public sealed record BuildStepResult(string Name, int ExitCode, IReadOnlyList<st
 {
     /// <summary>True when the step succeeded.</summary>
     public bool Succeeded => ExitCode == 0;
+
+    /// <summary>
+    /// How long the step took, wall clock. Set by the runner; zero for a step that never ran or a result built by hand.
+    /// </summary>
+    /// <remarks>
+    /// Recorded because the same pack is sometimes 15 seconds and sometimes two minutes, and the only useful question
+    /// is *which step* changed. The log line per step carries it, and so does the job result.
+    /// </remarks>
+    public TimeSpan Duration { get; init; }
+
+    /// <summary>How many lines of output the step produced — a cheap proxy for how chatty (and how costly) it is.</summary>
+    public int OutputLines => Output.Count;
 }
 
 /// <summary>The result of a whole build.</summary>

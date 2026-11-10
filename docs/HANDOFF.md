@@ -152,6 +152,14 @@ calls, so its log is the GUI's log.
     unrestricted records left over (`Crowd Status I–IV`, `Pass`, `Continue`, `Gwazi OffBalance`, `Other HellGate`)
     are behind an opt-in "any class" toggle, marked `· any class`.
 - **Job points**: `JobPoints.Awarded` continues from the last listed `LEVELUPJPGIVEN`; `Compute` deducts skill costs.
+- **A pack is `bec-tool-all.py`, and that step is the whole variance.** Measured on one project, one machine:
+  cold (packed straight after unpacking it) `bec-tool-all.py` = **129.9 s** of a 136 s pack; warm (packed again)
+  **8.1 s** of a 14.3 s pack. Every other step is 0.1–4.9 s either way (`ngciso-tool.py` ~4.5 s, the four
+  config/unit steps ~1 s in total). That step walks all 27,298 files under `_BEC/Data`, `zlib.compress(…, 1)`s what
+  it can and writes a ~1.4 GB `gladius.bec`, so its cost is file I/O over the whole tree plus one huge write. That is
+  why "sometimes 2 minutes, sometimes 15 seconds" had no obvious trigger: it is cache and antivirus state, not the
+  project. Reproduce the slow case by packing straight after an unpack (or after a reboot); reproduce the fast case
+  by packing twice in a row. The real lever is a Defender exclusion for the project and ISO folders.
 
 ---
 
@@ -269,14 +277,18 @@ day the machine was busy.
 11. **MSBuild on this machine:** a `Build FAILED` with `0 Errors` and no project errors is a restore/node failure, not
     a code error. Builds also fail with `MSB3491 … Access is denied` writing under `obj\` when the workspace file
     policy is read-only. Check the policy before debugging code.
-12. **The driver owns the UI thread**, so a modal dialog hangs it: `UiConfirm` is the safe way to ask (it logs and
+12. **A pack can be 130 s or 8 s and neither is a bug.** `bec-tool-all.py` dominates (see §4); the number depends on
+    how much of the 1.8 GB tree is in the OS cache and whether the antivirus is scanning it. Do not "optimise" the
+    step away without measuring it first — the per-step log line (`bec-tool-all.py: exit 0 in 8.1s, 50 line(s)`) and
+    `BuildStepResult.Duration` exist for exactly this.
+13. **The driver owns the UI thread**, so a modal dialog hangs it: `UiConfirm` is the safe way to ask (it logs and
     answers yes under automation), while a legacy `MessageBox.Show` in a path the driver reaches will stall the run
     until the app is killed. Also kill the app before rebuilding — a running exe locks `bin\…\ModdingGUI.exe`.
 14. **A roster unit is a snapshot of the file.** Loading reads the fields the model understands; anything it does not
     carry must be written back verbatim or left alone. `ITEMSCOMP`, `EXPERIENCE` and `CUSTOMIZE` were each lost this
     way, and the item-set fallback invented gear into deliberately empty slots. If you add a field to `Unit`, add it to
     `LoadSelectedRoster` *and* `BuildSchoolUnit`, and make the writer compare before writing.
-13. **`DrawToBitmap` screenshots are the window at its logical size**, not what a scaled desktop shows; read the
+15. **`DrawToBitmap` screenshots are the window at its logical size**, not what a scaled desktop shows; read the
     snapshot's bounds when cropping, and do not trust a downscaled preview for pixel-level colour questions.
 
 ---

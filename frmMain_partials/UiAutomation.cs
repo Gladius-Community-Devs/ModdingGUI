@@ -190,7 +190,15 @@ namespace ModdingGUI
             elapsedSeconds = Math.Round(job.Elapsed.TotalSeconds, 1),
             exitCode = job.Result?.ExitCode,
             failedStep = job.Result?.FirstFailure?.Name,
-            steps = job.Result?.Steps.Count,
+            steps = job.Result?.Steps
+                .Select(step => new
+                {
+                    name = step.Name,
+                    exitCode = step.ExitCode,
+                    seconds = Math.Round(step.Duration.TotalSeconds, 1),
+                    lines = step.OutputLines,
+                })
+                .ToArray(),
         };
 
         /// <summary>

@@ -165,6 +165,18 @@ public sealed class ToolRunnerTests
     }
 
     [Fact]
+    public void RunStep_ReportsHowLongItTookAndHowChattyItWas()
+    {
+        // "The pack was slow" is only answerable per step, and that is what these two values are for.
+        var log = AppLog.CreateForRun();
+        BuildStepResult result = new ToolRunner(log).RunStep(Echo("timed"));
+
+        Assert.True(result.Duration > TimeSpan.Zero);
+        Assert.True(result.OutputLines >= 1);
+        Assert.Contains(log.Tail(200), entry => entry.Message.Contains("in ") && entry.Message.Contains("line(s) of output"));
+    }
+
+    [Fact]
     public void CommandLine_SplitsAQuotedInterpreterPathAndItsArguments()
     {
         var (executable, arguments) = CommandLine.Split(@"""C:\Program Files\Python312\python.exe"" -3");
