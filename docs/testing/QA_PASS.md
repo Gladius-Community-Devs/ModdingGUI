@@ -107,7 +107,7 @@ affects, what the campaign rosters are.
 | D10 | Low | 55 labels verbose or jargon; vague placeholders | Fixed — see §5 |
 | D11 | Fixed | Randomizer tab layout: the options box was 590 px tall for ~10 checkboxes, so Randomize, Reset to Vanilla and the baseline status floated in its dead space. The box is content-sized now, the two buttons and the status share a row beneath it, and the redundant sentence was dropped. Verified: a seeded run still completes (~8 s) and Reset restores 960 files |
 | D12 | Fixed | Patching log printed `Adding mod node: ...` / `Successfully received file list JSON.` | Now "Loading the patch list.", "Patch list received.", "Available patch: X" |
-| D13 | Open | 134 `MessageBox.Show` call sites; only automation mode covers them | Route through one helper over time |
+| D13 | Fixed | 134 `MessageBox.Show` call sites; only automation mode covered them | The editors report validation in a non-blocking strip (`InlineNotice`) plus the log: item cost/level/affinity/stat/duplicate/nothing-changed and the Skills name check. Dialogs remain for failed writes, confirmations and the validation report, which need a decision rather than a glance; the other ~120 sites are outside the editors |
 | D14 | Open | Unit Selection page is still the old absolute layout | Cosmetic |
 | D15 | Fixed (see D23) | Driver `set` writes to hidden/disabled controls without complaint (it drove a retired field during this pass) | `set`/`click` refuse with a reason |
 | D16 | Fixed | Randomizer and Patching flows not exercised (destructive / needs real patch files) | Both exercised: randomizer is deterministic and resettable (�6b); xDelta created from vanilla ? packed ISO (6.9 MB, 12.6 s) and applied back to a copy of vanilla (5.9 s) producing an ISO **byte-identical** to the packed one |
@@ -169,3 +169,17 @@ Two operational notes for anyone scripting this:
 
 | D24 | Fixed | My own edits to the designer lost the ellipsis character in four "Choose..." labels (`Choose project.`) | Fixed - plain labels without punctuation, matching Unpack/Pack |
 | D25 | Fixed | `capture` photographs the whole screen region, so it can capture the user's other windows; `screenshot` renders only the app | Documented - use `screenshot` for evidence, `capture` only to check what the compositor shows |
+
+## 10. Layout at a small window (1366x768)
+
+Checked by geometry rather than by eye: every visible control's bounds against the client area, per tab.
+
+| Tab | Controls past the edge |
+|---|---|
+| Team Builder, Editors, Grid Builder | **0** — the rebuilt pages hold up |
+| Packing, Unpacking, Randomizer | 1 (`txtFileHeader`) plus the project tree, which keeps the designer's 1173 px height and runs below the window |
+| Patching | 8 — the lower "Create xDelta" panel is only reachable by scrolling (D5) |
+
+New finding:
+
+| D26 | Medium | At 1366x768 the project sidebar keeps a 1173 px height and extends past the bottom of the window | Needs the sidebar panel to anchor or dock to the form instead of inheriting the designer height |

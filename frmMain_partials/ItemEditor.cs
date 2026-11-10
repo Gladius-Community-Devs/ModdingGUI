@@ -90,6 +90,9 @@ namespace ModdingGUI
         /// </summary>
         private int _itemEditorLoadVersion;
 
+        /// <summary>Non-blocking message strip for this page (one bad field should not stop the editor).</summary>
+        private InlineNotice? _itemEditorNotice;
+
         public void InitialiseItemEditor(string projectPath)
         {
             int version = ++_itemEditorLoadVersion;
@@ -98,6 +101,14 @@ namespace ModdingGUI
 
         private async Task InitialiseItemEditorAsync(string projectPath, int version)
         {
+            // One strip per page, created once: validation messages go here instead of opening a modal per bad field.
+            if (_itemEditorNotice is null)
+            {
+                _itemEditorNotice = new InlineNotice("lblItemEditorNotice");
+                tabEditorItems.Controls.Add(_itemEditorNotice);
+                _itemEditorNotice.BringToFront();
+            }
+
             // ---- Path setup (no I/O) ----------------------------------------
             projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string candidateBec = Path.Combine(projectPath, $"{Path.GetFileName(projectPath)}_BEC");
@@ -284,6 +295,19 @@ namespace ModdingGUI
             return string.Empty;
         }
 
+        /// <summary>
+        /// Say something about the form in the message strip and the log, instead of opening a modal.
+        /// </summary>
+        /// <remarks>
+        /// Validation used to be one <c>MessageBox</c> per bad field: it took focus, needed a click, and hid the field it
+        /// was about. The strip stays visible until the next action and the log keeps the record.
+        /// </remarks>
+        private void Notice(string message)
+        {
+            _itemEditorNotice?.Warn(message);
+            AppendLog($"Item editor: {message}", Color.Orange, rtbItemEditor);
+        }
+
         /// <summary>Put the editor back to "nothing loaded" without touching any project.</summary>
         private void ClearEditorState()
         {
@@ -384,7 +408,7 @@ namespace ModdingGUI
 
             if (_dynamicStatModControls.Any(row => row.StatTypeComboBox != currentComboBox && (row.StatTypeComboBox.SelectedItem as string ?? "").Equals(selectedStat, StringComparison.OrdinalIgnoreCase)))
             {
-                MessageBox.Show($"Stat '{selectedStat}' already selected.", "Duplicate Stat", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Notice($"'{selectedStat}' is already used by another stat row.");
                 currentComboBox.SelectedItem = currentComboBox.Tag;
                 return;
             }
@@ -532,9 +556,8 @@ namespace ModdingGUI
             if (!int.TryParse(txtItemEditorNewCost.Text, out int costVal)
                 || !ModdingGUI.Core.Units.InputRules.IsValidItemCost(costVal))
             {
-                MessageBox.Show(ModdingGUI.Core.Units.InputRules.ExplainItemCost(costVal) ??
-                    "Cost must be a whole number of 1 or more.", "Invalid Cost",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Notice(ModdingGUI.Core.Units.InputRules.ExplainItemCost(costVal) ??
+                    "Cost must be a whole number of 1 or more.");
                 txtItemEditorNewCost.Focus();
                 return;
             }
@@ -544,9 +567,8 @@ namespace ModdingGUI
             if (!int.TryParse(txtItemEditorNewLevel.Text, out int lvlVal)
                 || !ModdingGUI.Core.Units.InputRules.IsValidLevel(lvlVal))
             {
-                MessageBox.Show(ModdingGUI.Core.Units.InputRules.ExplainLevel(lvlVal) ??
-                                "MinLevel must be a whole number between 1 and 30.",
-                    "Invalid MinLevel", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Notice(ModdingGUI.Core.Units.InputRules.ExplainLevel(lvlVal) ??
+                                "MinLevel must be a whole number between 1 and 30.");
                 txtItemEditorNewLevel.Focus();
                 return;
             }
@@ -565,9 +587,8 @@ namespace ModdingGUI
                     if (!int.TryParse(txtItemEditorNewAffinity.Text, out int parsedAffVal)
                         || !ModdingGUI.Core.Units.InputRules.IsValidAffinity(parsedAffVal))
                     {
-                        MessageBox.Show(ModdingGUI.Core.Units.InputRules.ExplainAffinity(parsedAffVal) ??
-                            $"Affinity amount for '{selAffType}' must be 0 or more.",
-                            "Invalid Affinity", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Notice(ModdingGUI.Core.Units.InputRules.ExplainAffinity(parsedAffVal) ??
+                            $"Affinity amount for '{selAffType}' must be 0 or more.");
                         txtItemEditorNewAffinity.Focus();
                         return;
                     }
@@ -599,7 +620,7 @@ namespace ModdingGUI
                 {
                     if (!int.TryParse(rowUI.StatValueTextBox.Text, out int statVal))
                     {
-                        MessageBox.Show($"Invalid value for stat '{statName}'.");
+                        Notice($"'{statName}' needs a whole number.");
                         return;
                     }
                     uiStats.Add((statName, statVal));
@@ -656,13 +677,13 @@ namespace ModdingGUI
             catch (Exception ex)
             {
                 AppendLog($"Lookup text save failed: {ex.Message}", Color.Red, rtbItemEditor);
-                MessageBox.Show($"Lookup text save failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notice($"Lookup text save failed: {ex.Message}");
                 return;
             }
 
             if (!anyChange && !lookupChanged)
             {
-                MessageBox.Show("No changes detected to save.", "No Changes");
+                Notice("Nothing changed, so there is nothing to save.");
                 return;
             }
 
@@ -683,10 +704,13 @@ namespace ModdingGUI
                 {
                     AppendLog($"Save failed: {ex.Message}", Color.Red, rtbItemEditor);
                     MessageBox.Show($"Save failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            // Left as a dialog on purpose: a failed write is not a validation message the strip can sit on — the user
+            // needs to notice it before doing anything else.
                     return;
                 }
             }
 
+            _itemEditorNotice?.Clear();
             AppendLog($"Item '{dto.Name}' saved.", Color.Green, rtbItemEditor);
 
             // Refresh list + re-select same item so the dropdown label updates

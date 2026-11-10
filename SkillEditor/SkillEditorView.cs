@@ -583,9 +583,8 @@ public sealed partial class SkillEditorView : UserControl
 
         if (error is not null)
         {
+            // Reported where the result of every other save goes, not in a modal.
             SetStatus($"Save failed: {error.Message}", isError: true);
-            MessageBox.Show($"Save failed:\n{error.Message}", "Error",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
@@ -783,8 +782,9 @@ public sealed partial class SkillEditorView : UserControl
         string name = _txtName.Text.Trim();
         if (string.IsNullOrEmpty(name))
         {
-            MessageBox.Show("Skill name is required.", "Validation",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            // The status bar is right under the button: a modal for one empty field only stole focus from the field.
+            SetStatus("Skill name is required.", isError: true);
+            _txtName.Focus();
             return null;
         }
 
