@@ -47,14 +47,39 @@ cd ModdingGUI
 | `clickMenuItem` | `name` | Presses a menu item, checking it first when it is a toggle |
 | `screenshot` | `path?` | Renders the window to a PNG (`DrawToBitmap`); `%TEMP%` is expanded |
 | `log` | `count?` | The app log tail, with level and source |
+| `jobs` | — | Running and recently finished jobs: id, kind, target, state, elapsed, exit code |
+| `waitForJob` | `id?` / `kind?`, `timeoutMs?` | Blocks until that job finishes (or the latest of a kind) and answers with its result |
+| `cancelJob` | `id?` / `kind?` | Asks a running job to stop; the tool runner kills the child tree |
+| `waitForLog` | `text`, `timeoutMs?` | Blocks until a log line contains `text` — for flows that have no job |
 | `openTeamBuilder` | `project` | Selects the project (relative paths resolve against the app) and opens the Team Builder tab |
 | `quit` | — | Closes the window |
 
-`wait` is not a server command: it is handled by `ui-drive.ps1` (client-side sleep, so the app's UI thread stays free
-to paint) and by `--ui-script` (same idea). Use it after anything asynchronous — opening Team Builder loads classes on
-a worker thread.
+`wait` is not a server command: it is handled by `ui-drive.ps1` (client-side sleep, so the app's UI thread stays free)
+and by `--ui-script`.
 
 Every response is `{"ok":true,"result":{…}}` or `{"ok":false,"error":"…"}`.
+
+## Waiting for work to finish (don't poll, don't guess a timeout)
+
+Unpack, pack and script compile are **jobs** (`ModdingGUI.Core.Jobs`): each has an id, a state, a `BuildResult` and a
+completion task. A `click` that starts one returns its id:
+
+```json
+> {"cmd":"click","name":"btnUnpack"}
+< {"ok":true,"result":{"clicked":"btnUnpack","job":{"id":"99133c796645","kind":"unpack","state":"Running"}}}
+
+> {"cmd":"waitForJob","id":"99133c796645"}
+< {"ok":true,"result":{"job":{"id":"99133c796645","kind":"unpack","state":"Succeeded","elapsedSeconds":21.5,
+                             "exitCode":0,"steps":3},"succeeded":true,"firstFailure":null}}
+```
+
+The response arrives when the work ends, however long it takes — the client's default is to wait for a response, not
+to impose a deadline (`-TimeoutMs` still exists for callers that want one). Before jobs existed the choices were
+sleeping for a guessed duration and grepping the log for `Unpacking completed successfully.`; both are bets, and a
+bet made in a test script is a flake waiting to happen.
+
+Use `waitForLog` only for a flow with no job object (a UI-only action such as loading a roster, or asserting on what a
+run printed).
 
 ## Behaviour under automation
 
@@ -88,3 +113,8 @@ game data, which `PLAN.md` §0 forbids; press the button instead.
 This is not the MCP server. It is the same idea applied to the shell: a small, opt-in, loopback-only surface used to
 test the GUI and to let an agent operate it for a user. Phase 8 exposes the Core APIs over stdio for clients such as
 Claude Desktop; the driver exposes the *window*. The two are complementary and share nothing but `IAppLog`.
+
+What they will share is `JobRegistry`: an MCP `project_pack` tool can run a job and forward its `Started`/`Finished`
+events as `notifications/progress`, answer with the same `BuildResult`, and honour `notifications/cancelled` through
+`BuildJob.Cancel`. That is why the jobs live in Core rather than in the driver — and why an MCP client will not need a
+timeout either, just a progress token.

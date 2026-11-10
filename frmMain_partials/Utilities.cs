@@ -20,6 +20,15 @@ namespace ModdingGUI
         /// <summary>Read access for anything that needs the stream (future MCP bridge, tests).</summary>
         public IAppLog Output => _log;
 
+        /// <summary>
+        /// The long-running operations this window has started (unpack, pack, compile). A job carries state, result and
+        /// a completion task, so nothing has to poll the log for "Unpacking completed successfully."
+        /// </summary>
+        private readonly ModdingGUI.Core.Jobs.JobRegistry _jobs = new();
+
+        /// <summary>The job registry, for the driver and (Phase 8) the MCP bridge.</summary>
+        internal ModdingGUI.Core.Jobs.JobRegistry Jobs => _jobs;
+
         // Define static readonly colors for use in logging messages
         private static readonly Color SuccessColor = Color.Green; // Color for success messages
         private static readonly Color ErrorColor = Color.Red;     // Color for error messages

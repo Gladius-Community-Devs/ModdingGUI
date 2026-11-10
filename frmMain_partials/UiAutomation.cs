@@ -18,7 +18,8 @@ namespace ModdingGUI
     /// </para>
     /// <para>
     /// Tested surface as of Phase 7 UX work: <c>ping</c>, <c>snapshot</c>, <c>click</c>, <c>set</c>, <c>selectTab</c>,
-    /// <c>selectNode</c>, <c>screenshot</c>, <c>log</c>, <c>openTeamBuilder</c>, <c>clickMenuItem</c>, <c>quit</c>.
+    /// <c>selectNode</c>, <c>screenshot</c>, <c>log</c>, <c>openTeamBuilder</c>, <c>clickMenuItem</c>, <c>quit</c>, and
+    /// the waiting commands <c>jobs</c>, <c>waitForJob</c>, <c>waitForLog</c> (which run off the UI thread).
     /// </para>
     /// </remarks>
     public partial class frmMain
@@ -99,6 +100,190 @@ namespace ModdingGUI
         }
 
         // ---- Commands ------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Commands that must not run on the UI thread, because they wait: <c>jobs</c>, <c>waitForJob</c>,
+        /// <c>waitForLog</c>.
+        /// </summary>
+        /// <remarks>
+        /// Marshal one of these onto the UI thread and the wait freezes the window — the very repaint that shows the
+        /// unpack progressing would stop. They touch no control, so they run on the driver's own thread against the
+        /// job registry and the log, both of which are thread-safe.
+        /// </remarks>
+        internal bool TryExecuteBackgroundUiCommand(string requestJson, out string response)
+        {
+            response = string.Empty;
+
+            JsonDocument document;
+            try
+            {
+                document = JsonDocument.Parse(requestJson);
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+
+            using (document)
+            {
+                JsonElement request = document.RootElement;
+                string command = UiString(request, "cmd") ?? string.Empty;
+
+                try
+                {
+                    switch (command)
+                    {
+                        case "jobs":
+                            response = UiOk(new
+                            {
+                                active = Jobs.Active.Select(DescribeJob).ToArray(),
+                                recent = Jobs.Recent(10).Select(DescribeJob).ToArray(),
+                            });
+                            return true;
+
+                        case "waitForJob":
+                            response = WaitForJob(request);
+                            return true;
+
+                        case "waitForLog":
+                            response = WaitForLog(request);
+                            return true;
+
+                        case "cancelJob":
+                        {
+                            string? cancelId = UiString(request, "id");
+                            string? cancelKind = UiString(request, "kind");
+
+                            ModdingGUI.Core.Jobs.BuildJob? target = string.IsNullOrWhiteSpace(cancelId)
+                                ? Jobs.Latest(cancelKind)
+                                : Jobs.Find(cancelId);
+
+                            if (target is null) response = UiFail("no matching job");
+                            else if (target.IsFinished) response = UiFail($"job {target.Id} already finished");
+                            else
+                            {
+                                target.Cancel();
+                                response = UiOk(new { cancelled = target.Id, kind = target.Kind });
+                            }
+
+                            return true;
+                        }
+
+                        default:
+                            return false;
+                    }
+                }
+                catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
+                {
+                    response = UiFail(ex.Message);
+                    return true;
+                }
+            }
+        }
+
+        private static object DescribeJob(ModdingGUI.Core.Jobs.BuildJob job) => new
+        {
+            id = job.Id,
+            kind = job.Kind,
+            target = job.Target,
+            state = job.State.ToString(),
+            elapsedSeconds = Math.Round(job.Elapsed.TotalSeconds, 1),
+            exitCode = job.Result?.ExitCode,
+            failedStep = job.Result?.FirstFailure?.Name,
+            steps = job.Result?.Steps.Count,
+        };
+
+        /// <summary>
+        /// Wait for a job to finish — by id, or the latest of a kind — and answer with its result.
+        /// </summary>
+        /// <remarks>
+        /// This is the replacement for polling the log for a phrase: the response arrives when the work ends, with the
+        /// exit code, the failed step's name and the duration. A timeout is still accepted, but a caller that does not
+        /// pass one waits as long as the unpack takes.
+        /// </remarks>
+        private string WaitForJob(JsonElement request)
+        {
+            string? id = UiString(request, "id");
+            string? kind = UiString(request, "kind");
+
+            ModdingGUI.Core.Jobs.BuildJob? job = string.IsNullOrWhiteSpace(id) ? Jobs.Latest(kind) : Jobs.Find(id);
+            if (job is null)
+            {
+                return UiFail(string.IsNullOrWhiteSpace(id)
+                    ? $"no '{kind ?? "job"}' has run yet"
+                    : $"no job with id '{id}'");
+            }
+
+            TimeSpan timeout = request.TryGetProperty("timeoutMs", out JsonElement timeoutValue) && timeoutValue.GetInt32() > 0
+                ? TimeSpan.FromMilliseconds(timeoutValue.GetInt32())
+                : TimeSpan.FromMinutes(30);
+
+            if (!job.Completion.Wait(timeout))
+            {
+                return UiFail($"job {job.Id} ({job.Kind}) is still running after {timeout.TotalSeconds:0}s");
+            }
+
+            return UiOk(new
+            {
+                job = DescribeJob(job),
+                succeeded = job.Result?.Succeeded ?? false,
+                firstFailure = job.Result?.FirstFailure?.Name,
+            });
+        }
+
+        /// <summary>
+        /// Wait for a line of the log to appear. The fallback for a flow that has no job object (a UI-only action
+        /// such as loading a roster), and a way to assert on what a run printed.
+        /// </summary>
+        private string WaitForLog(JsonElement request)
+        {
+            string text = UiString(request, "text") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(text)) return UiFail("waitForLog needs text");
+
+            TimeSpan timeout = request.TryGetProperty("timeoutMs", out JsonElement timeoutValue) && timeoutValue.GetInt32() > 0
+                ? TimeSpan.FromMilliseconds(timeoutValue.GetInt32())
+                : TimeSpan.FromMinutes(30);
+
+            var found = new TaskCompletionSource<ModdingGUI.Core.Logging.LogEntry>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            void OnWritten(object? sender, ModdingGUI.Core.Logging.LogEntry entry)
+            {
+                if (entry.Message.Contains(text, StringComparison.OrdinalIgnoreCase)) found.TrySetResult(entry);
+            }
+
+            // Subscribe first, then look at the tail: a line written in between would otherwise be missed.
+            Output.Written += OnWritten;
+            try
+            {
+                var already = Output.Tail(2000)
+                    .Where(entry => entry.Message.Contains(text, StringComparison.OrdinalIgnoreCase))
+                    .Select(entry => (ModdingGUI.Core.Logging.LogEntry?)entry)
+                    .LastOrDefault();
+
+                if (already is not null)
+                {
+                    return UiOk(new
+                    {
+                        matched = already.Value.Message,
+                        level = already.Value.Level.ToString(),
+                        waitedSeconds = 0,
+                    });
+                }
+
+                if (!found.Task.Wait(timeout))
+                {
+                    return UiFail($"no log line containing '{text}' within {timeout.TotalSeconds:0}s");
+                }
+
+                var entry = found.Task.Result;
+                return UiOk(new { matched = entry.Message, level = entry.Level.ToString() });
+            }
+            finally
+            {
+                Output.Written -= OnWritten;
+            }
+        }
 
         private string Snapshot()
         {
@@ -203,12 +388,16 @@ namespace ModdingGUI
             Control? control = FindControl(name);
             if (control is null) return UiFail($"no control named '{name}'");
 
+            // A click may start a job (Unpack, Pack). Report its id so a script can wait on *that* job rather than
+            // guessing which one "the latest" was.
+            var before = Jobs.Latest();
+
             switch (control)
             {
                 case Button button:
                     if (!button.Enabled) return UiFail($"'{name}' is disabled");
                     button.PerformClick();
-                    return UiOk(new { clicked = name });
+                    return Clicked(name, before);
 
                 case CheckBox check:
                     check.Checked = !check.Checked;
@@ -221,6 +410,18 @@ namespace ModdingGUI
                 default:
                     return UiFail($"'{name}' is a {control.GetType().Name}; use set, not click");
             }
+        }
+
+        /// <summary>Answer a click, naming the job it started when it started one.</summary>
+        private string Clicked(string name, ModdingGUI.Core.Jobs.BuildJob? before)
+        {
+            var after = Jobs.Latest();
+            if (after is not null && !ReferenceEquals(after, before))
+            {
+                return UiOk(new { clicked = name, job = DescribeJob(after) });
+            }
+
+            return UiOk(new { clicked = name });
         }
 
         private string SetControl(JsonElement request)

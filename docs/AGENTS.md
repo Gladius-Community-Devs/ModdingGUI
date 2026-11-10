@@ -80,7 +80,7 @@ dol/                        Engine field tables extracted from the DOL (authorit
 
 ```
 dotnet build ModdingGUI.sln          # whole solution (shell + Core + Mcp + Tests)
-dotnet test ModdingGUI.sln           # xUnit suite: 775 pass / 0 fail / 0 skip
+dotnet test ModdingGUI.sln           # xUnit suite: 793 pass / 0 fail / 0 skip
 .\run-tests.ps1                      # colored runner w/ TRX, filters, -ProjectFolder
 .\run-tests.ps1 -Filter RealGameDataTests
 .\run-tests.ps1 -ProjectFolder REALDATA_v2
@@ -92,7 +92,7 @@ All commands run from inside `ModdingGUI/` (that is where the `.sln` and the git
 ### Test bar (mandatory, from PLAN.md)
 
 - `dotnet test -c Release` green at the end of every phase. No phase merges with failing tests.
-- Baseline is **775 passed / 0 failed / 0 skipped**. Every phase ends green.
+- Baseline is **793 passed / 0 failed / 0 skipped**. Every phase ends green.
 - `ModdingGUI.Tests/Core/Tok/TokRoundTripTests.cs` is the **corpus gate**: it parses and re-serializes every `.tok`/`.enc` in `clean-bec-unpacked/` (977 files) and fails on any byte diff. Never break this.
 - The `RealGameDataTests` are gated behind a `REALDATA_*` project folder + `vanilla.iso`. To enable them locally, run **`ModdingGUI/setup-realdata.ps1`** — it breaks the vanilla ISO down from scratch using the app's own unpack toolchain (`ngciso-tool.py` → `bec-tool-all.py` → `Gladius_Units_IDX_Unpack.py`, the same commands `BatchContentBuilder` emits), byte-verifies the result against `clean-bec-unpacked` (0 missing / 0 extra / 0 diffs), and installs it into `bin/{Debug|Release}/net8.0-windows/win-x64/REALDATA_<name>/` plus a `vanilla.iso` hardlink. The vanilla ISO + `clean-bec-unpacked` are outside the repo; `bin/` is gitignored.
 - Integration fixture: `ModdingGUI.Tests/Integration/GameDataFixture.cs` points at `clean-bec-unpacked/`. Do not check large new fixtures into the repo.
@@ -138,6 +138,10 @@ Stateless `open → mutate → write`. Per-project `ProjectLock`. Timestamped ba
   `Warn`/`Reject`-mode overloads of `Add`/`Update` returning `SkillMutationResult`.
   Rules/catalog live in `ModdingGUI.Core.Skills` (`SkillsCatalog`, `SkillsValidator`,
   `SkillsContext`).
+- Long-running work (unpack, pack, script compile) is a `Core.Jobs` job: `JobRegistry.Start` returns a `BuildJob` with
+  an id, a state, a `BuildResult` and a completion task, and raises `Started`/`Finished`. Front ends wait on it (the GUI
+  and the UI driver do; the MCP server will forward the events as progress). Do not add a sleep or a log-grep for
+  "is it done".
 - Skill *picking* lives in `ModdingGUI.Core.Units.LearnableSkills`: the engine's class-mask rule (no
   `SKILLUSECLASS` = any class) **plus** the table's structure — records named by another's `SKILLSUBSKILL` are combo
   hits and are never offered, `Innate`/`Command` categories are game-granted, and unrestricted records are opt-in.

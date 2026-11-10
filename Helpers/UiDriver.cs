@@ -211,6 +211,9 @@ public static class UiDriver
     /// <summary>Run one command on the UI thread and return its response line.</summary>
     public static string Invoke(frmMain window, string requestJson)
     {
+        // Waits must not run on the UI thread, or the window freezes while the unpack runs. They touch no control.
+        if (window.TryExecuteBackgroundUiCommand(requestJson, out string background)) return background;
+
         try
         {
             if (window.IsDisposed) return Failure("the window is closed");

@@ -713,7 +713,9 @@ cheaper after Phase 7.8 moves process handling into Core. Doing it earlier would
 Thin tools-over-stdio bridge. One tool per Core method.
 
 - Tool families: `items_*`, `skills_*`, `lookup_*`, `classes_*`, `encounters_*`, `leagues_*`, `schools_*`, `grids_*`, `gladiators_*`, `statsets_*`, `itemsets_*`, `skillsets_*`, `shops_*` (when built), `randomizer_*`, `project_*`, and `logs_*` over `IAppLog` (Phase 7.8).
-- All write tools accept `strict: bool = false`. `false` = `WarnInLog`/`None` (matches GUI). `true` = `RejectOnError`.
+- All write tools accept `strict: bool = false`.
+- Long operations (`project_pack`, `project_unpack`) run as Core jobs, so a tool answers with the `BuildResult` and can
+  forward `Started`/`Finished` as `notifications/progress`; `notifications/cancelled` maps to `BuildJob.Cancel`. `false` = `WarnInLog`/`None` (matches GUI). `true` = `RejectOnError`.
 - `skills_catalog_describe_field(fieldName)` returns slot types, enums, notes — so AIs can construct valid `SkillDto`s without guessing.
 - Trust model: stdio only, no network, no auth beyond OS process trust.
 - Settings checkbox in GUI: "Run as MCP server" relaunches process with `--mcp` flag (no WinForms init).

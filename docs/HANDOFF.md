@@ -22,12 +22,12 @@ E:\code_stuff\GladiusModdingToolsGUI\        workspace (not a git repo)
     ├── ModdingGUI.sln
     ├── ModdingGUI.csproj                    WinForms shell (net8.0-windows)
     ├── ModdingGUI.Core/                     net8.0, no UI: Tok, Schemas, APIs, Randomizer, History, Tools, Logging
-    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 775 tests
+    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 793 tests
     └── ModdingGUI.Mcp/                      Phase 8 stub: builds, Program.cs is inert (no stdio server yet)
 ```
 
 **State of the tree:** clean, `dotnet build` reports **0 warnings** in Debug and Release, suite is
-**775 passed / 0 failed / 0 skipped**.
+**793 passed / 0 failed / 0 skipped**.
 
 ---
 
@@ -101,6 +101,7 @@ calls, so its log is the GUI's log.
 | `IGridsApi` | done, Grid Builder saves through it |
 | `IHistoryApi` + `ChangeHistoryService` | done — list backups/backed-up files, restore (backs up the live file first) |
 | `Logging` (`IAppLog`, `AppLog`) | done — ring buffer, `Written` event, file sink |
+| `Jobs` (`BuildJob`, `JobRegistry`) | done — unpack/pack/compile are jobs with a state, a `BuildResult` and a completion task; `Started`/`Finished` events, cancellation, bounded history. The GUI and the driver wait on them; MCP will forward them as progress |
 | Build layer (`ToolStep`, `ToolRunner`, `PackService`, `UnpackService`, `ProjectBuildService`) | done (7.8 + 7.9) — no shell, no batch file |
 | `Randomizer` pipeline + `ProjectBuildService` | done (Phase 6), GUI-wired, CLI-wired |
 | `Units`: `ItemSetGear`, `ItemCategoryRules`, `JobPoints`, `LearnableSkills`, `InputRules` | done — engine rules as code |
@@ -221,6 +222,11 @@ missing-file check now goes through `ProjectRoots.ResolveBecFolder` so a project
 set, select, screenshot, log. It is opt-in, loopback-only, and drives the real controls, so it cannot reach a Core API
 except by pressing the button that does. Documented in `docs/UI_AUTOMATION.md`; the replayable scenario for this phase
 is `scripts/team-builder-smoke.txt`, and the checklist is `docs/testing/MANUAL_TESTING_TEAM_BUILDER.md`.
+
+Unpack, pack and compile are **jobs** (`Core.Jobs`), and a `click` that starts one answers with its id, so a script
+writes `waitForJob` and gets the result when the work ends. Never sleep for a guessed duration and never poll the log
+for "Unpacking completed successfully." — that was the first version of this, and it timed out at six minutes on the
+day the machine was busy.
 
 ---
 

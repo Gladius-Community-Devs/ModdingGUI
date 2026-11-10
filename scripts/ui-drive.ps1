@@ -16,7 +16,9 @@ param(
     [Parameter(Position = 0)][string]$Command,
     [string]$File,
     [int]$Port = 4571,
-    [int]$TimeoutMs = 180000,
+    # 0 means "wait for the response, however long the work takes" — the driver answers when the job finishes, so
+    # there is nothing to poll and no deadline to guess. Pass a positive value only when you want a deadline.
+    [int]$TimeoutMs = 0,
     [switch]$Json,
     [switch]$Quiet
 )
@@ -30,8 +32,17 @@ function Send-UiCommand {
     $Writer.Flush()
 
     $task = $Reader.ReadLineAsync()
-    if (-not $task.Wait($TimeoutMs)) {
-        throw "timed out after ${TimeoutMs}ms waiting for a response to: $Line"
+    if ($TimeoutMs -gt 0) {
+        if (-not $task.Wait($TimeoutMs)) {
+            throw "timed out after ${TimeoutMs}ms waiting for a response to: $Line"
+        }
+    }
+    else {
+        $task.Wait()   # parameterless Wait() returns void; the response is the only thing that unblocks it
+    }
+
+    if ($null -eq $task.Result) {
+        throw 'the app closed the connection (did it exit?) while waiting for a response to: ' + $Line
     }
 
     return $task.Result

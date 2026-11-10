@@ -44,7 +44,12 @@ namespace ModdingGUI
 
             using (MirrorLogInto(target ?? rtbUnpackOutput))
             {
-                return await Task.Run(() => new UnpackService(_log, "unpack").Unpack(request));
+                // A job, not a task: it has an id, a state and a result, so the driver can wait on completion instead
+                // of guessing how long a 1.4 GB unpack takes.
+                var job = _jobs.Start("unpack", UnpackService.ProjectFolderOf(request),
+                    token => new UnpackService(_log, "unpack").Unpack(request, token), _log);
+
+                return await job.Completion;
             }
         }
 
@@ -57,7 +62,10 @@ namespace ModdingGUI
 
             using (MirrorLogInto(target ?? rtbPackOutput))
             {
-                return await Task.Run(() => new PackService(_log, "pack").Pack(request));
+                var job = _jobs.Start("pack", projectFolder,
+                    token => new PackService(_log, "pack").Pack(request, token), _log);
+
+                return await job.Completion;
             }
         }
 
@@ -69,7 +77,16 @@ namespace ModdingGUI
 
             using (MirrorLogInto(target ?? rtbPackOutput))
             {
-                return await Task.Run(() => new ProjectBuildService(_log, "build").CompileScript(options, scriptName));
+                var job = _jobs.Start("compile", scriptName,
+                    token => new BuildResult(0, new[]
+                    {
+                        new ProjectBuildService(_log, "build").CompileScript(options, scriptName, token),
+                    }), _log);
+
+                var result = await job.Completion;
+                return result.Steps.Count > 0
+                    ? result.Steps[0]
+                    : new BuildStepResult(scriptName, 1, Array.Empty<string>());
             }
         }
 
