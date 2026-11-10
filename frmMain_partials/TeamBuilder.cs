@@ -1059,6 +1059,10 @@ namespace ModdingGUI
             tabTeamGearSelection.Text = "Gear";
             tabTeamSkillSelection.Text = "Skills";
             BuildLoadoutEditors();
+
+            // Cards replace the group boxes once the pages exist. This has to run here rather than in the ctor:
+            // the Team Builder builds its pages lazily, so at construction there was nothing to convert.
+            TeamBuilderPages.Build(this);
         }
 
         /// <summary>

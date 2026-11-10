@@ -312,7 +312,6 @@ namespace ModdingGUI
                     radio.ForeColor = Ink;
                     radio.FlatStyle = FlatStyle.Flat;
                     break;
-                    break;
 
                 case Panel:
                     root.BackColor = root.BackColor == SurfaceAlt ? SurfaceAlt : Surface;

@@ -57,6 +57,7 @@ namespace ModdingGUI
             PatchingPage.Build(this);
             BuildPages.Build(this);
             RandomizerPage.Build(this);
+            TeamBuilderPages.Build(this);
 
             // Right-click must move the tree selection, otherwise the context menu acts on a stale or missing node.
             tvwProjects.MouseDown += SelectNodeUnderCursor;

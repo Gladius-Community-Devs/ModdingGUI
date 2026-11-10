@@ -391,3 +391,28 @@ Two more defects came out of the same sweep:
 
 The verification loop for a page is therefore: build clean -> `snapshot` geometry against the client area ->
 `audit` (contrast **and** layout) -> `screenshot` -> toggle the theme and check the same page -> suite green.
+
+## 18. Option switches, the strip artefact, and Team Builder starts
+
+**Checkboxes on dark.** A `CheckBox` glyph is drawn from the system theme; no colour property reaches it, so on a dark
+surface it reads as a pale square. `Appearance = Appearance.Button` renders the same control as a flat toggle - same
+instance, same handlers, same `Checked` - tinted accent when on. Applied to the Randomizer's ten options only, as
+full-width rows; forcing it app-wide would restyle every checkbox in Team Builder and the editors before those pages
+have had their own pass. `UiTheme.TintToggle` is the shared tint; pages opt in.
+
+**The artefact under the tab strip.** Two separate things in the same band: the bright hairline was the TabControl's
+own themed frame (Windows draws it in the system colour), removed by turning visual styles off for that control alone;
+the pale text fragment was a stale designer caption from the old layout, retired with the other containers. Confirmed
+by cropping the band at 6x rather than guessing from a full screenshot.
+
+**Team Builder, first pass.** The Rules page is now cards: `TeamBuilderPages` replaces each `GroupBox` in place - the
+card takes the group's table cell, the group's children move into the card body, names and handlers untouched - so five
+pages convert without rewriting their logic. Two traps, both caught by looking:
+
+- the conversion has to run where the pages are *built* (`InitializeTeamBuilderUI`), not in the constructor: Team
+  Builder creates its pages lazily, so at construction there was nothing to convert;
+- the card height has to be measured **before** the children are detached. `PreferredSize` is derived from children, so
+  reading it afterwards reports the empty group and every card comes out short, clipping its rows.
+
+Unit Selection, Gear and Skills show an empty state until a unit exists, so their cards need a unit in the editor before
+they can be checked. Editors and Grid Builder are untouched.
