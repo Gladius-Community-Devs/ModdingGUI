@@ -36,6 +36,7 @@ namespace ModdingGUI
             // The pages are laid out at a fixed 1747x1212 from the designer, so on a 1080p screen the bottom of a tab
             // (Patching's "Create xDelta" panel, for one) was simply unreachable. Let them scroll instead of clipping.
             UiHelp.EnableTabScrolling(this);
+            UiHelp.FixPackingFooter(this);
 
             // Check if Python 3 is installed on the system
             if (!IsPythonInstalled())

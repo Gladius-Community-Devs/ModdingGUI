@@ -124,8 +124,11 @@ namespace ModdingGUI
             {
                 if (child is TabPage page)
                 {
+                    // Fit the page to the viewport, but do NOT set AutoScroll on it: that scrolls absolutely positioned
+                    // children too, and the Packing tab's "Make a patch" button then drifted down into the middle of the
+                    // log pane (the log is anchored to the bottom, the button sits at a fixed Y). Controls that must not
+                    // move live in docked footers; see FixPackingFooter.
                     page.Dock = DockStyle.Fill;
-                    page.AutoScroll = true;
                 }
 
                 // The content usually sits inside a split container, which docks its panels to itself: a docked panel
@@ -192,6 +195,41 @@ namespace ModdingGUI
 
                 foreach (Control deeper in Find(child, text)) yield return deeper;
             }
+        }
+        /// <summary>
+        /// Give the Packing tab a footer bar for "Make a patch", instead of a button at a hard-coded Y.
+        /// </summary>
+        /// <remarks>
+        /// The log pane is anchored to the bottom of the page, so it grows and shrinks with the window while the button
+        /// stayed at Y=1093 - on a 1080p screen the button ended up drawn inside the log, which is what "the make a
+        /// patch button is stuck" looked like. A bottom-docked panel and a filling log cannot overlap, whatever the
+        /// window size.
+        /// </remarks>
+        internal static void FixPackingFooter(Control root)
+        {
+            if (root.Controls.Find("btnToPatching", true).FirstOrDefault() is not Button button) return;
+            if (button.Parent is not Control page) return;
+            if (root.Controls.Find("rtbPackOutput", true).FirstOrDefault() is not RichTextBox log) return;
+
+            var footer = new Panel
+            {
+                Name = "pnlPackingFooter",
+                Dock = DockStyle.Bottom,
+                Height = 44,
+                Padding = new Padding(9, 6, 9, 6),
+            };
+
+            page.Controls.Remove(button);
+            button.Location = new Point(9, 6);
+            button.Size = new Size(196, 30);
+            button.Anchor = AnchorStyles.Left | AnchorStyles.Top;
+            footer.Controls.Add(button);
+
+            // The log fills whatever the footer leaves. Added after the footer so docking gives the footer the bottom
+            // strip first, then hands the remainder to the log.
+            log.Location = new Point(9, 143);
+            log.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            page.Controls.Add(footer);
         }
     }
 }
