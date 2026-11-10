@@ -580,7 +580,7 @@ namespace ModdingGUI
             // 
             // txtPatchingDownloadHeader
             // 
-            txtPatchingDownloadHeader.BackColor = SystemColors.Control;
+            txtPatchingDownloadHeader.BackColor = UiTheme.SurfaceAlt;
             txtPatchingDownloadHeader.Font = new Font("Segoe UI", 26.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtPatchingDownloadHeader.Location = new Point(4, 5);
             txtPatchingDownloadHeader.Margin = new Padding(4, 5, 4, 5);
@@ -930,7 +930,7 @@ namespace ModdingGUI
             // 
             // txtPackPath
             // 
-            txtPackPath.ForeColor = Color.Black;
+            txtPackPath.ForeColor = UiTheme.Ink;
             txtPackPath.Location = new Point(141, 10);
             txtPackPath.Margin = new Padding(4, 5, 4, 5);
             txtPackPath.Name = "txtPackPath";
@@ -1428,7 +1428,7 @@ namespace ModdingGUI
             // 
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label6.ForeColor = Color.Red;
+            label6.ForeColor = UiTheme.Error;
             label6.Location = new Point(3, 220);
             label6.Margin = new Padding(4, 0, 4, 0);
             label6.Name = "label6";
@@ -1509,7 +1509,7 @@ namespace ModdingGUI
             // lblTeamUnitCreator
             // 
             lblTeamUnitCreator.AutoSize = true;
-            lblTeamUnitCreator.BackColor = Color.LightGray;
+            lblTeamUnitCreator.BackColor = UiTheme.SurfaceAlt;
             lblTeamUnitCreator.BorderStyle = BorderStyle.Fixed3D;
             lblTeamUnitCreator.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             lblTeamUnitCreator.Location = new Point(237, 12);

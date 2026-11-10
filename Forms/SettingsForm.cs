@@ -25,7 +25,7 @@ namespace ModdingGUI.Forms
                 Text = "Leave blank to use the folder the application runs from.",
                 AutoSize = true,
                 Location = new Point(txtDefaultProjectDir.Left, txtDefaultProjectDir.Bottom + 2),
-                ForeColor = SystemColors.GrayText,
+                ForeColor = UiTheme.InkMuted,
             };
 
             tabGeneral.Controls.Add(hint);

@@ -81,7 +81,16 @@ namespace ModdingGUI
                         case "window":
                             return PlaceWindow(request);
 
-                        case "closeDialog":
+                        case "audit":
+                            return AuditPage(request);
+
+                        case "auditAll":
+                            return AuditAllPages(request);
+
+                        case "hit":
+                            return HitTest(request);
+
+                case "closeDialog":
                             return CloseDialog();
 
                         case "log":

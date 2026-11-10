@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ModdingGUI.Core.Grids;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -27,7 +27,7 @@ namespace ModdingGUI
             InitializeComponent();
             DoubleBuffered = true;
             this.Size = new Size(CellSize * GridFile.ArenaSize, CellSize * GridFile.ArenaSize);
-            this.BackColor = Color.White;
+            this.BackColor = UiTheme.SurfaceSunken;
 
             this.MouseDown += OnMouseDown;
             this.MouseMove += OnMouseMove; // Subscribing to the panel's own MouseMove event

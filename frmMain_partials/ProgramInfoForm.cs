@@ -26,7 +26,7 @@ namespace ModdingGUI.Forms
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.BackColor = Color.WhiteSmoke;
+            this.BackColor = UiTheme.Surface;
 
             // Create a TableLayoutPanel to organize the content
             TableLayoutPanel tableLayout = new TableLayoutPanel

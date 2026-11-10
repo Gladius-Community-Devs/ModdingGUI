@@ -56,6 +56,7 @@ namespace ModdingGUI
             UiHelp.FixSidebarLayout(this);
             UiHelp.FixUnitSelectionLayout(this);
             PatchingPage.Build(this);
+            BuildPages.Build(this);
 
             // Right-click must move the tree selection, otherwise the context menu acts on a stale or missing node.
             tvwProjects.MouseDown += SelectNodeUnderCursor;
@@ -1178,7 +1179,7 @@ namespace ModdingGUI
                 if (value >= 1 && value <= 30)
                 {
                     // Valid input
-                    lblTeamLevel.ForeColor = Color.Green; // Highlight in green
+                    lblTeamLevel.ForeColor = UiTheme.Success; // Highlight in green
                     UpdatePreview();
                 }
                 else
@@ -1187,7 +1188,7 @@ namespace ModdingGUI
                     txtTeamLevel.Clear(); // Clear invalid input
                     txtTeamLevel.Focus(); // Refocus on the control
                     lblTeamLevel.Text = "Please enter a number between 1 and 30.";
-                    lblTeamLevel.ForeColor = Color.Red; // Highlight in red
+                    lblTeamLevel.ForeColor = UiTheme.Error; // Highlight in red
                 }
             }
             else if (!string.IsNullOrEmpty(txtTeamLevel.Text)) // Handle non-numeric cases
@@ -1195,13 +1196,13 @@ namespace ModdingGUI
                 txtTeamLevel.Clear(); // Clear invalid input
                 txtTeamLevel.Focus(); // Refocus on the control
                 lblTeamLevel.Text = "Please enter a number between 1 and 30.";
-                lblTeamLevel.ForeColor = Color.Red; // Highlight in red
+                lblTeamLevel.ForeColor = UiTheme.Error; // Highlight in red
             }
             else
             {
                 // Clear the message and reset color if the input is empty
                 lblTeamLevel.Text = "";
-                lblTeamLevel.ForeColor = Color.Black;
+                lblTeamLevel.ForeColor = UiTheme.Ink;
             }
         }
 
@@ -1213,21 +1214,21 @@ namespace ModdingGUI
                 {
                     // Valid input
                     lblTeamLevel.Text = "Team level selected:";
-                    lblTeamLevel.ForeColor = Color.Green; // Highlight in green
+                    lblTeamLevel.ForeColor = UiTheme.Success; // Highlight in green
                 }
                 else
                 {
                     // Invalid input
                     txtTeamLevel.Clear(); // Clear invalid input
                     lblTeamLevel.Text = "Input a team level. (All units will have this level):";
-                    lblTeamLevel.ForeColor = Color.Black; // Highlight in red
+                    lblTeamLevel.ForeColor = UiTheme.Ink; // Highlight in red
                 }
             }
             else
             {
                 txtTeamLevel.Clear(); // Clear invalid input
                 lblTeamLevel.Text = "Input a team level. (All units will have this level):";
-                lblTeamLevel.ForeColor = Color.Black; // Highlight in red
+                lblTeamLevel.ForeColor = UiTheme.Ink; // Highlight in red
             }
         }
 

@@ -287,7 +287,7 @@ namespace ModdingGUI
             _internalLogRtb.ReadOnly = true;
             _internalLogRtb.WordWrap = true;
             _internalLogRtb.ScrollBars = RichTextBoxScrollBars.Vertical;
-            _internalLogRtb.BackColor = Color.FromArgb(240, 240, 240);
+            _internalLogRtb.BackColor = UiTheme.SurfaceSunken;
             _internalLogRtb.Font = new Font("Consolas", 9f);
 
             // NEW: Initialize Commands Help RichTextBox
@@ -303,7 +303,7 @@ namespace ModdingGUI
                        "• Ctrl + Left Click or Right Click: Erase all tags in cell(s).\n" +
                        "• Drag Mouse: Apply current action to a rectangular area.",
                 Font = new Font("Segoe UI", 9f), // A standard UI font
-                BackColor = SystemColors.Info, // A distinct background
+                BackColor = UiTheme.SurfaceAlt, // A distinct background
                 BorderStyle = BorderStyle.FixedSingle
             };
             // Optional: Add some padding inside the RichTextBox

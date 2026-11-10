@@ -265,3 +265,40 @@ The palette became a *setting* rather than constants:
 
 Verified by driving the toggle twice and reading the log: `Theme: light.` then `Theme: dark.`, with both screenshots at
 the launch size.
+
+## 13. Page-by-page UX pass (dark default)
+
+Two driver commands were added so this is repeatable instead of an opinion:
+
+- **`{"cmd":"audit","contrast":4.5}`** - walks the visible control tree and reports every control whose text/background
+  contrast is below the threshold, plus any control still painted with a *system* colour while the dark palette is
+  active (the latter is what leaves a white box or a pale band in a dark window).
+- **`{"cmd":"hit","x":N,"y":N}`** - names the deepest control at a point with its colours and bounds; this is what
+  identified the pale tab strip as the TabControl's own client area rather than mine.
+
+Result at 4.5:1 across all thirteen reachable pages (7 top tabs, 4 Team Builder pages, 2 editor pages, Grid Builder):
+**no failures**. The dimmest text was muted ink at **5.7:1**, so the palette was raised to AAA instead of just passing -
+`InkMuted` is now `#AEB8C6` on dark (`#4A5563` on light), which measures ~7.4:1 on the card surface.
+
+**Tab strip.** The pale run right of the last tab was Windows painting the tab control's own strip. It survived
+`SetWindowTheme` (visual styles off), painting over it in `WM_PAINT`, and `TabSizeMode.FillToRight` (verified with a
+magenta diagnostic fill that never appeared). The native row is now collapsed to 1x1 and **the strip is ours**: a
+`FlowLayoutPanel` of flat buttons above the pages, selected one bold on the surface colour. No band, and the strip can
+hold controls later (the theme toggle is the obvious candidate).
+
+**Colour literals.** 25 direct assignments (`Color.White`, `SystemColors.Window`, `SystemColors.GrayText`, `Color.Black`
+on team-level labels, `Color.FromArgb(240,240,240)` in Grid Builder) were replaced with palette references, so the
+scheme reaches them too.
+
+**Pages rebuilt on the kit:** Patching (section 12), Unpacking and Packing - one card each: what to work on, the options
+that change the outcome, the action, and the activity log filling the rest. Before, Packing was a path box, three
+loose checkboxes and a log, with most of the page empty at the launch size.
+
+**Known gaps this pass found but did not fix** (both are behaviour, not colour):
+
+1. **Disabled inputs ignore BackColor.** A disabled `TextBox` and a disabled `Button` are drawn by Windows in system
+   colours, so they read pale in a dark window whatever the palette says. The Randomizer page's path/school-name boxes
+   and its Status row are the visible cases. Fixing it means either `ReadOnly = true` instead of `Enabled = false`, or
+   owner-drawing those controls.
+2. **Randomizer, Team Builder, Editors and Grid Builder still use the designer canvas** - they are themed but not
+   reflowed, so their spacing does not follow the window the way Patching/Packing/Unpacking now do.

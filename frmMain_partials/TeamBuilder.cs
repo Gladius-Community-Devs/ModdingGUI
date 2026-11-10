@@ -1360,7 +1360,7 @@ namespace ModdingGUI
             Text = text,
             AutoSize = true,
             Anchor = AnchorStyles.Left,
-            ForeColor = SystemColors.GrayText,
+            ForeColor = UiTheme.InkMuted,
             Margin = new Padding(6, 6, 0, 0),
         };
 
@@ -1853,8 +1853,8 @@ namespace ModdingGUI
                 Name = name,
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleCenter,
-                BackColor = SystemColors.Control,
-                ForeColor = SystemColors.GrayText,
+                BackColor = UiTheme.SurfaceAlt,
+                ForeColor = UiTheme.InkMuted,
                 Padding = new Padding(40),
                 Font = new Font(SystemFonts.DefaultFont.FontFamily, 12F, FontStyle.Regular),
             };
@@ -1962,7 +1962,7 @@ namespace ModdingGUI
                 Name = "lblGearCount",
                 AutoSize = true,
                 Margin = new Padding(0, 8, 0, 0),
-                ForeColor = SystemColors.GrayText,
+                ForeColor = UiTheme.InkMuted,
             };
             filter.Controls.Add(_lblGearCount);
 
@@ -2093,7 +2093,7 @@ namespace ModdingGUI
                     Text = type.ToString(),
                     AutoSize = true,
                     Anchor = AnchorStyles.Left,
-                    ForeColor = SystemColors.GrayText,
+                    ForeColor = UiTheme.InkMuted,
                 };
 
                 var value = new Label
@@ -2130,7 +2130,7 @@ namespace ModdingGUI
                 ReadOnly = true,
                 ScrollBars = ScrollBars.Vertical,
                 BorderStyle = BorderStyle.None,
-                BackColor = SystemColors.Window,
+                BackColor = UiTheme.SurfaceSunken,
             };
             details.Controls.Add(_txtItemDetails);
             panel.Controls.Add(details, 0, 2);
@@ -2242,7 +2242,7 @@ namespace ModdingGUI
                 ReadOnly = true,
                 ScrollBars = ScrollBars.Vertical,
                 BorderStyle = BorderStyle.FixedSingle,
-                BackColor = SystemColors.Window,
+                BackColor = UiTheme.SurfaceSunken,
                 Margin = new Padding(0, 6, 0, 0),
             };
 
@@ -2257,7 +2257,7 @@ namespace ModdingGUI
             Text = text,
             AutoSize = true,
             Margin = new Padding(0, 8, 6, 0),
-            ForeColor = SystemColors.GrayText,
+            ForeColor = UiTheme.InkMuted,
         };
 
         private static Button ActionButton(string name, string text, int width, EventHandler onClick)
@@ -2421,7 +2421,7 @@ namespace ModdingGUI
                 _lblSelectedUnit.Text = "No unit selected";
                 _lblGearCount.Text = "Select a unit to load its gear.";
                 _lblLoadoutJp.Text = string.Empty;
-                _lblLoadoutJp.ForeColor = SystemColors.ControlText;
+                _lblLoadoutJp.ForeColor = UiTheme.Ink;
                 UpdateLoadoutEmptyState(null);
                 return;
             }
