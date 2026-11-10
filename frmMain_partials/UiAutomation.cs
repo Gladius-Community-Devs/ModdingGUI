@@ -93,6 +93,9 @@ namespace ModdingGUI
                         case "children":
                             return ListChildren(UiString(request, "name"));
 
+                        case "grid":
+                            return GridCommand(request);
+
                 case "closeDialog":
                             return CloseDialog();
 

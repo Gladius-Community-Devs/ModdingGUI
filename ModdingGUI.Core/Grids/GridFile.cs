@@ -148,6 +148,26 @@ namespace ModdingGUI.Core.Grids
             }
         }
 
+        /// <summary>
+        /// The bit index whose tag name matches, or -1 when this file has no such active tag.
+        /// </summary>
+        /// <remarks>
+        /// Tools address cells by tag name ("Start1"), not by bit number: the mapping comes from the file, so a fixed
+        /// table would be wrong for modded layouts. Comparison is case-insensitive and ignores inactive slots.
+        /// </remarks>
+        public int IndexOfTag(string? tagName)
+        {
+            if (string.IsNullOrWhiteSpace(tagName)) return -1;
+
+            for (int slot = 0; slot < NumSlots; slot++)
+            {
+                if (!_activeTags[slot]) continue;
+                if (string.Equals(_tags[slot], tagName.Trim(), StringComparison.OrdinalIgnoreCase)) return slot;
+            }
+
+            return -1;
+        }
+
         public string GetTagNameForSlot(int slotIndex)
         {
             if (slotIndex < 0 || slotIndex >= NumSlots) return string.Empty;

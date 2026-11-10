@@ -44,10 +44,11 @@ namespace ModdingGUI
             base.OnPaint(e);
             if (_ctx == null || _ctx.CurrentGrid == null)
             {
-                e.Graphics.Clear(Color.LightGray);
+                e.Graphics.Clear(UiTheme.SurfaceSunken);
                 using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                 {
-                    e.Graphics.DrawString("No Grid Loaded", Font, Brushes.Black, ClientRectangle, sf);
+                    using var ink = new SolidBrush(UiTheme.InkMuted);
+                    e.Graphics.DrawString("No grid loaded", Font, ink, ClientRectangle, sf);
                 }
                 return;
             }
@@ -95,10 +96,11 @@ namespace ModdingGUI
                     // Log or handle the exception appropriately
                     Console.WriteLine($"Error processing map image for drawing: {ex.Message}");
                     // Optionally, draw an error message on the panel
-                    g.Clear(Color.FromArgb(240, 240, 240)); // A light background for the error message
+                    g.Clear(UiTheme.SurfaceAlt);   // themed error plate
                     using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                     {
-                        g.DrawString("Map Error", Font, Brushes.Red, ClientRectangle, sf);
+                        using var errorInk = new SolidBrush(UiTheme.Error);
+                        g.DrawString("Map error", Font, errorInk, ClientRectangle, sf);
                     }
                 }
                 finally
@@ -109,8 +111,10 @@ namespace ModdingGUI
             else
             {
                 // If no map image, clear with a default background (e.g., white)
-                g.Clear(Color.White);
+                g.Clear(UiTheme.SurfaceSunken);
             }
+
+using var gridPen = new Pen(UiTheme.Border);
 
             // 2. Draw the grid cells on top
             for (int x = 0; x < GridFile.ArenaSize; x++)
@@ -125,15 +129,23 @@ namespace ModdingGUI
                         using var brush = new SolidBrush(cellColor);
                         g.FillRectangle(brush, cellPixelX + 1, cellPixelY + 1, CellSize - 1, CellSize - 1);
                     }
-                    // Draw cell border
-                    g.DrawRectangle(Pens.Black, cellPixelX, cellPixelY, CellSize, CellSize);
+                    // Grid lines from the palette: black lines vanish on a dark surface.
+                    g.DrawRectangle(gridPen, cellPixelX, cellPixelY, CellSize, CellSize);
                 }
+            }
+
+            // 2b. Mark the cell under the cursor: on a dark surface the painted colours alone do not say where you are.
+            if (CurrentMouseGridCell.X >= 0 && CurrentMouseGridCell.Y >= 0)
+            {
+                using var cursorPen = new Pen(UiTheme.Accent, 2f);
+                g.DrawRectangle(cursorPen,
+                    CurrentMouseGridCell.X * CellSize, CurrentMouseGridCell.Y * CellSize, CellSize, CellSize);
             }
 
             // 3. Draw the drag selection rectangle
             if (_drag)
             {
-                using var dashPen = new Pen(Color.DarkBlue) { DashStyle = DashStyle.Dash };
+                using var dashPen = new Pen(UiTheme.Accent) { DashStyle = DashStyle.Dash };
                 g.DrawRectangle(dashPen, GetDragRectangle());
             }
         }

@@ -146,3 +146,32 @@ ModdingGUI.exe --render-settings shots\settings.png
 ```
 
 That draws the Settings dialog off-screen and exits. The same switch pattern is the way to capture any other dialog.
+
+## Grid Builder (agent-driveable grid editing)
+
+The Grid Builder is a `UserControl` that paints a 32x32 arena itself, so the generic commands (click a button, set a
+text box) cannot express "put Start1 on cell 12,7". One command with an `action` covers it:
+
+| Command | Returns |
+|---|---|
+| `{"cmd":"grid","action":"state"}` | project, arena, all arenas, layout version, writable, dirty, size, painted cell count, draw mask, every slot (tag + active + is-draw-slot), the paint slot list, and whether a map image is loaded |
+| `{"cmd":"grid","action":"cell","row":12,"col":7}` | the cell's raw `value` and the `tags` whose bits are set |
+| `{"cmd":"grid","action":"setTag","row":12,"col":7,"tag":"Start1"}` | sets the bit; `"on":false` clears it (`on` defaults to true) |
+| `{"cmd":"grid","action":"clear","row":12,"col":7}` | value 0, reports `before` |
+| `{"cmd":"grid","action":"slot","tag":"Start1"}` | chooses which tag mouse painting applies and reports the mask |
+| `{"cmd":"grid","action":"arena","name":"expanse\\expansedunes\\dunesstartdefault.grd"}` | loads that grid from the selected project |
+| `{"cmd":"grid","action":"save"}` | writes through `GridsApi` (project lock + `.mod-history` backup) |
+| `{"cmd":"grid","action":"map","visible":true,"x":0,"y":0,"scale":2.5,"rotate":0}` | shows/hides the arena map and sets its transform |
+
+Three behaviours matter when scripting against it:
+
+1. **Tags are resolved against the loaded file, not a fixed table.** In one arena `Start1` is bit 1, in a new grid it is
+   bit 0: the same tag has different bit numbers per file. `GridFile.IndexOfTag` does that lookup, ignores inactive
+   slots, and is covered by four tests in `GridFileTests`.
+2. **Failures say what to try instead.** An unknown tag returns `availableTags`, a missing map image says so, and a
+   missing project says to select one - a script can recover without guessing.
+3. **`save` is a real save**: it goes through `GridsApi`, so the project lock and the timestamped backup apply exactly as
+   they do for a click on Save.
+
+An agent session looks like: select the project in `tvwProjects`, `{"cmd":"grid","action":"state"}` to see arenas and
+slots, `arena` to load one, `setTag` per cell, `cell` to verify, `save`. That is the whole loop with no mouse.

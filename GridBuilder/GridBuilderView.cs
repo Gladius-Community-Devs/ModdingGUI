@@ -200,9 +200,19 @@ namespace ModdingGUI
         private void BuildUi()
         {
             // ToolStrip setup
-            var bar = new ToolStrip();
+            var bar = new ToolStrip
+            {
+                // Same renderer as the main menu, so the tool strip stops being the one light band in a dark window.
+                Renderer = new UiMenuRenderer(),
+                BackColor = UiTheme.SurfaceAlt,
+                ForeColor = UiTheme.Ink,
+                GripStyle = ToolStripGripStyle.Hidden,
+                Padding = new Padding(UiTheme.Scale(this, 2), 0, 0, 0),
+            };
             bar.Items.Add(new ToolStripLabel("Paint slot:"));
             _paintSlotBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            _paintSlotBox.Width = 170;
+            _paintSlotBox.Font = UiTheme.Body;
             _paintSlotBox.SelectedIndexChanged += (_, __) =>
             {
                 if (_paintSlotBox.SelectedIndex >= 0)
@@ -215,7 +225,8 @@ namespace ModdingGUI
             bar.Items.Add(new ToolStripSeparator());
             bar.Items.Add(new ToolStripLabel("Arena:"));
             _arenaBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            _arenaBox.AutoSize = false; _arenaBox.Width = 200; _arenaBox.DropDownWidth = 300; _arenaBox.MaxDropDownItems = 25;
+            _arenaBox.Font = UiTheme.Body;
+            _arenaBox.AutoSize = false; _arenaBox.Width = 190; _arenaBox.DropDownWidth = 300; _arenaBox.MaxDropDownItems = 25;
             _arenaBox.SelectedIndexChanged += (_, __) => LoadSelectedArena();
             bar.Items.Add(_arenaBox);
 
@@ -262,7 +273,8 @@ namespace ModdingGUI
             _mapRotationBox.DropDownStyle = ComboBoxStyle.DropDownList;
             _mapRotationBox.Items.AddRange(new object[] { "None", "90°", "180°", "270°" });
             _mapRotationBox.SelectedIndex = 0;
-            _mapRotationBox.Width = 70;
+            _mapRotationBox.Width = 90;
+            _mapRotationBox.Font = UiTheme.Body;
             _mapRotationBox.SelectedIndexChanged += MapTransformControls_ValueChanged;
             bar.Items.Add(_mapRotationBox);
 
@@ -288,7 +300,8 @@ namespace ModdingGUI
             _internalLogRtb.WordWrap = true;
             _internalLogRtb.ScrollBars = RichTextBoxScrollBars.Vertical;
             _internalLogRtb.BackColor = UiTheme.SurfaceSunken;
-            _internalLogRtb.Font = new Font("Consolas", 9f);
+            _internalLogRtb.Font = new Font("Cascadia Mono", 9f);
+            _internalLogRtb.ForeColor = UiTheme.Ink;
 
             // NEW: Initialize Commands Help RichTextBox
             _commandsHelpRtb = new RichTextBox
@@ -302,7 +315,8 @@ namespace ModdingGUI
                        "• Shift + Left Click: Toggle selected tag in cell(s).\n" +
                        "• Ctrl + Left Click or Right Click: Erase all tags in cell(s).\n" +
                        "• Drag Mouse: Apply current action to a rectangular area.",
-                Font = new Font("Segoe UI", 9f), // A standard UI font
+                Font = UiTheme.Body,
+                ForeColor = UiTheme.Ink,
                 BackColor = UiTheme.SurfaceAlt, // A distinct background
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -322,7 +336,10 @@ namespace ModdingGUI
             };
             _lowerSplitContainer.Panel1.Controls.Add(_commandsHelpRtb);
             _lowerSplitContainer.Panel2.Controls.Add(_internalLogRtb);
-            _lowerSplitContainer.SplitterDistance = 90; // Height of the commands panel in pixels
+            // Vertical orientation: this is the WIDTH of the commands panel. At 90 px the help text wrapped to one
+            // word per line.
+            _lowerSplitContainer.SplitterDistance = 300;
+            _lowerSplitContainer.Panel1MinSize = 220;
 
             // Initialize Main SplitContainer (for Grid and Lower Area)
             _mainSplitContainer.Dock = DockStyle.Fill;

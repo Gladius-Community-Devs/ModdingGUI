@@ -486,3 +486,26 @@ control, nested ones included, which is why "all tabs" now show exactly one row.
 
 Checked the way this should have been checked all along: crop the band at 4x and compare hashes between builds. The
 Patching band shows the labels and then the page edge - no second row.
+
+## 22. Grid Builder: themed, and driveable by an agent
+
+**Styling.** The panel painted itself in system colours (`Color.White` background, `Pens.Black` grid lines, `LightGray`
+empty state, `Color.DarkBlue` drag rectangle) and its tool strip was the one light band in a dark window. Now:
+
+- tool strip uses `UiMenuRenderer` with the palette, and its combo boxes and check box are themed;
+- the grid clears to `SurfaceSunken`, draws grid lines in `Border`, shows an empty state in `InkMuted`, errors on
+  `SurfaceAlt` with `Error` ink, and drag selection in `Accent`;
+- the cell under the pointer gets a 2 px `Accent` outline - on a dark surface the painted colours alone do not say where
+  the cursor is;
+- the commands panel was 90 px wide (one word per line) because `SplitterDistance` was being read as a height in a
+  vertical split; it is 300 px with a 220 px minimum, and both text panes use the palette fonts.
+
+**Automation.** `GridBuilderView` now exposes `AutomationState`/`AutomationCell`/`AutomationSetTag`/`AutomationClearCell`/
+`AutomationSelectSlot`/`AutomationLoadArena`/`AutomationSave`/`AutomationSetMap`, and the driver exposes them as the
+`grid` command (see `docs/UI_AUTOMATION.md`). Verified end to end on the demo project: read cell 12,7 (0) -> `setTag`
+Start1 -> read back (value 2, tags `["Start1"]`) -> `clear` -> read back (0), plus arena load, slot selection and save.
+Failures are actionable: an unknown tag returns the tags that exist, and asking for the map when the arena has no image
+says exactly that.
+
+The tag-to-bit mapping is per file (`Start1` was bit 1 in that arena, bit 0 in a new grid), so the lookup lives in
+`GridFile.IndexOfTag` with four tests rather than in the UI.

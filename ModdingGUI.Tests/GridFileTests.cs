@@ -11,7 +11,52 @@ namespace ModdingGUI.Tests;
 /// </summary>
 public class GridFileTests
 {
-    // Construction -------------------------------------------------------------
+    // Tag lookup ----------------------------------------------------------------
+
+    [Fact]
+    public void IndexOfTag_FindsDefaultTeamTag()
+    {
+        var grid = new GridFile();
+
+        Assert.Equal(0, grid.IndexOfTag("Start1"));
+        Assert.Equal(1, grid.IndexOfTag("start2"));   // case-insensitive: tools should not have to care
+    }
+
+    [Fact]
+    public void IndexOfTag_ReturnsMinusOne_ForUnknownOrEmpty()
+    {
+        var grid = new GridFile();
+
+        Assert.Equal(-1, grid.IndexOfTag("NotARealTag"));
+        Assert.Equal(-1, grid.IndexOfTag(null));
+        Assert.Equal(-1, grid.IndexOfTag("  "));
+    }
+
+    [Fact]
+    public void IndexOfTag_IgnoresInactiveSlots()
+    {
+        var grid = new GridFile();
+        int slot = grid.IndexOfTag("Start1");
+        Assert.True(slot >= 0);
+
+        grid.AssignTagToSlot(slot, "Start1", isActive: false);
+
+        Assert.Equal(-1, grid.IndexOfTag("Start1"));
+    }
+
+    [Fact]
+    public void IndexOfTag_FindsGameplayTag()
+    {
+        var grid = new GridFile();
+
+        int slot = grid.IndexOfTag("NoMove");
+
+        Assert.True(slot >= 0);
+        Assert.Equal("NoMove", grid.GetTagNameForSlot(slot));
+    }
+
+    // Cell writing --------------------------------------------------------------
+
 
     [Fact]
     public void Constructor_NewGrid_IsNotDirty()
