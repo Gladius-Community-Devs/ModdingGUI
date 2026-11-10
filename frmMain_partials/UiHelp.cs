@@ -221,6 +221,140 @@ namespace ModdingGUI
         }
 
         /// <summary>
+        /// Reflow the Unit Selection page: a compact "Add a unit" panel, and a preview that fills the rest.
+        /// </summary>
+        /// <remarks>
+        /// The page was laid out by hand at fixed coordinates: the name/class boxes and both buttons hugged the far left,
+        /// then 130 px of nothing, then the preview group offset to x=365 with its own inset boxes. Nothing resized with
+        /// the window and there were two competing left margins. The controls are reparented, not recreated, so every
+        /// handler (and every control name the driver and tests use) still applies.
+        /// </remarks>
+        /// <summary>A caption for a two-column grid.</summary>
+        private static Label Caption(string text) => new()
+        {
+            Text = text,
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(0, 6, 8, 0),
+        };
+
+        internal static void FixUnitSelectionLayout(Control root)
+        {
+            if (root.Controls.Find("tabTeamUnitSelection", true).FirstOrDefault() is not TabPage page) return;
+            if (root.Controls.Find("grpPreview", true).FirstOrDefault() is not GroupBox preview) return;
+
+            Control? Find(string name) => root.Controls.Find(name, true).FirstOrDefault();
+
+            if (Find("txtTeamUnitName") is not TextBox nameBox ||
+                Find("ddlTeamClasses") is not ComboBox classBox ||
+                Find("btnTeamAddUnit") is not Button addButton ||
+                Find("btnTeamRemoveUnit") is not Button removeButton)
+            {
+                return;
+            }
+
+            // ---- "Add a unit": label/field pairs in a two-column grid, buttons underneath --------------------
+            var addGroup = new GroupBox
+            {
+                Name = "grpAddUnit",
+                Text = "Add a unit",
+                Location = new Point(11, 10),
+                Size = new Size(420, 132),
+            };
+
+            var grid = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 3,
+                Padding = new Padding(9, 6, 9, 6),
+            };
+            grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 62F));
+            grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
+            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
+            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
+
+            nameBox.Dock = DockStyle.Fill;
+            classBox.Dock = DockStyle.Fill;
+            grid.Controls.Add(Caption("Name"), 0, 0);
+            grid.Controls.Add(nameBox, 1, 0);
+            grid.Controls.Add(Caption("Class"), 0, 1);
+            grid.Controls.Add(classBox, 1, 1);
+
+            var buttons = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Margin = new Padding(0, 4, 0, 0),
+            };
+            addButton.Width = 110;
+            removeButton.Width = 118;
+            removeButton.Margin = new Padding(8, 0, 0, 0);
+            buttons.Controls.Add(addButton);
+            buttons.Controls.Add(removeButton);
+            grid.Controls.Add(buttons, 0, 2);
+            grid.SetColumnSpan(buttons, 2);
+
+            addGroup.Controls.Add(grid);
+
+            // Remove the old label placeholders; the grid has its own.
+            foreach (string stale in new[] { "label1", "label2" })
+            {
+                if (Find(stale) is Label label) label.Visible = false;
+            }
+
+            page.Controls.Add(addGroup);
+
+            // ---- Preview: same four rows, but stretching with the page ---------------------------------------
+            var previewGrid = new TableLayoutPanel
+            {
+                Name = "tblUnitPreview",
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 4,
+                Padding = new Padding(9, 6, 9, 6),
+            };
+            previewGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 84F));
+            previewGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            previewGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
+            previewGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 33F));
+            previewGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 34F));
+            previewGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 33F));
+
+            var rows = new (string Label, string Field, string Caption, int Row)[]
+            {
+                ("label3", "txtPreviewUnitName", "Name", 0),
+                ("label4", "txtPreviewStats", "Stats", 1),
+                ("label7", "txtPreviewAttributes", "Traits", 2),
+                ("label5", "txtPreviewAllowedGear", "Gear", 3),
+            };
+
+            foreach (var (labelName, fieldName, caption, row) in rows)
+            {
+                if (Find(fieldName) is not TextBox field) continue;
+
+                field.Dock = DockStyle.Fill;
+                field.Margin = new Padding(0, 3, 0, 3);
+                previewGrid.Controls.Add(Caption(caption), 0, row);
+                previewGrid.Controls.Add(field, 1, row);
+
+                if (Find(labelName) is Label stale) stale.Visible = false;
+            }
+
+            preview.Controls.Clear();
+            preview.Controls.Add(previewGrid);
+
+            // Fill the page to the right of the add panel, and down to the bottom with a margin for the team header.
+            preview.Location = new Point(addGroup.Right + 12, 10);
+            preview.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            preview.Size = new Size(
+                Math.Max(320, page.ClientSize.Width - preview.Left - 12),
+                Math.Max(240, page.ClientSize.Height - 30));
+        }
+
+        /// <summary>
         /// Give the Randomizer page a footer row instead of controls floating in the empty half of the options box.
         /// </summary>
         /// <remarks>
