@@ -389,14 +389,14 @@ namespace ModdingGUI
                 {
                     Name = "tblPatchApply",
                     Dock = DockStyle.Top,
-                    Height = 248,
+                    Height = 262,
                     ColumnCount = 2,
                     RowCount = 5,
                     Padding = new Padding(9, 6, 9, 6),
                 };
                 grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 106F));
                 grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-                grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));
+                grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F));
                 grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 22F));
                 grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
                 grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
@@ -404,7 +404,7 @@ namespace ModdingGUI
 
                 if (Find("txtPatchApplicationHeader") is Control title)
                 {
-                    title.Height = 46;
+                    title.Height = title is TextBox headerBox ? headerBox.PreferredHeight : title.Height;
                     title.Dock = DockStyle.None;
                     title.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                     title.Width = 520;
@@ -448,7 +448,7 @@ namespace ModdingGUI
             {
                 Name = "pnlPatchCreation",
                 Dock = DockStyle.Bottom,
-                Height = 236,
+                Height = 244,
                 Padding = new Padding(0),
             };
 
@@ -486,7 +486,7 @@ namespace ModdingGUI
             };
             creationGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 116F));
             creationGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            creationGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F));
+            creationGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F));
             creationGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
             creationGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
             creationGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
@@ -495,7 +495,7 @@ namespace ModdingGUI
             if (Find("txtPatchingCreationHeader") is Control creationTitle)
             {
                 nested.Panel2.Controls.Remove(creationTitle);
-                creationTitle.Height = 40;
+                creationTitle.Height = creationTitle is TextBox creationBox ? creationBox.PreferredHeight : creationTitle.Height;
                 creationTitle.Dock = DockStyle.None;
                 creationTitle.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                 creationTitle.Width = 520;

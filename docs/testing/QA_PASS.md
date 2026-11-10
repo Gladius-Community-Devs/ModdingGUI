@@ -205,5 +205,9 @@ Two traps worth remembering, both hit while doing this:
 1. **A docked control and a filling sibling need the right order.** WinForms docks from the *end* of the child
    collection, so a `Fill` sibling added last takes the whole area and paints over a `Top`/`Bottom` strip.
    `BringToFront()` makes it worse - it moves the control to the front of the collection, i.e. docks it last.
-2. **`Control.Visible` is not "what the user sees".** Geometry against the client area caught all of this; the
+2. **A big-font TextBox sets its own height.** The panel headers are TextBoxes at ~26 pt; they report a
+   54 px `PreferredHeight` and ignore an assigned `Height`, so a 46 px row made them overflow and paint over
+   the subtitle underneath ("Make a patch to share" was clipped to a sliver). The rows are now sized from
+   `PreferredHeight`, not from a number I guessed.
+3. **`Control.Visible` is not "what the user sees".** Geometry against the client area caught all of this; the
    screenshots confirmed it.
