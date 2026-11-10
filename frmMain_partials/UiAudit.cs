@@ -72,7 +72,7 @@ namespace ModdingGUI
             if (parent is null) return JsonSerializer.Serialize(new { error = $"no control named '{name}'" });
 
             var children = parent.Controls.Cast<Control>()
-                .Select(c => new { type = c.GetType().Name, name = c.Name, text = c.Text, visible = c.Visible })
+                .Select(c => new { type = c.GetType().Name, name = c.Name, text = c.Text, visible = c.Visible, bounds = $"{c.Left},{c.Top} {c.Width}x{c.Height}" })
                 .ToList();
 
             return JsonSerializer.Serialize(new { parent = $"{parent.GetType().Name} '{parent.Name}'", count = children.Count, children });

@@ -406,10 +406,16 @@ namespace ModdingGUI
             if (tabs.IsHandleCreated) SetWindowTheme(tabs.Handle, string.Empty, string.Empty);
             else tabs.HandleCreated += (_, _) => SetWindowTheme(tabs.Handle, string.Empty, string.Empty);
 
+            // Order matters: SizeMode and DrawMode must be set BEFORE ItemSize. While the control is still in its
+            // normal fixed mode, WinForms clamps ItemSize to the font height, so the native tab row survived at ~24 px
+            // and drew a second row of tab buttons underneath our strip.
             tabs.Appearance = TabAppearance.FlatButtons;
-            tabs.ItemSize = new Size(1, 1);
             tabs.Multiline = false;
             tabs.SizeMode = TabSizeMode.Fixed;
+            tabs.DrawMode = TabDrawMode.OwnerDrawFixed;
+            tabs.DrawItem -= DrawNothing;
+            tabs.DrawItem += DrawNothing;
+            tabs.ItemSize = new Size(1, 1);   // now honoured, and DrawNothing paints nothing in it
             tabs.BackColor = UiTheme.SurfaceAlt;
 
             if (tabs.Parent is not Control parent) return;
@@ -464,7 +470,39 @@ namespace ModdingGUI
             }
 
             host.ResumeLayout();
+
+            // WinForms clamps ItemSize to the font height even in owner-draw mode, so the native tab row survives and
+            // draws a second row of tabs under ours. Clipping it is deterministic: slide the control up by its own tab
+            // row height and grow it by the same amount, so the row sits above the strip and the page starts at the
+            // strip's bottom edge.
+            void ClipNativeRow()
+            {
+                int rowHeight = tabs.DisplayRectangle.Top;
+                if (rowHeight <= 2) return;
+
+                tabs.Dock = DockStyle.None;
+                tabs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+                tabs.Top = Math.Max(0, host.Bottom - rowHeight);
+                tabs.Left = host.Left;
+                tabs.Width = host.Width;
+                tabs.Height = Math.Max(UiTheme.Scale(tabs, 60), parent.ClientSize.Height - tabs.Top);
+            }
+
+            ClipNativeRow();
+            parent.SizeChanged -= (_, _) => { };
+            parent.SizeChanged += (_, _) =>
+            {
+                host.Width = parent.ClientSize.Width;
+                ClipNativeRow();
+            };
             TintTabStrip(tabs);
+        }
+
+        /// <summary>Paint nothing for a collapsed native tab. Kept as a named method so it can be unhooked.</summary>
+        private static void DrawNothing(object? sender, DrawItemEventArgs e)
+        {
+            using var brush = new SolidBrush(UiTheme.SurfaceAlt);
+            e.Graphics.FillRectangle(brush, e.Bounds);
         }
 
         /// <summary>Tint a strip's buttons so the selected page reads as selected.</summary>

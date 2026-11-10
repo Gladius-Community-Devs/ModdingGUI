@@ -451,3 +451,25 @@ proved the amount box was `visible=false` by design rather than missing.
 inside the `FitRun` local function, once in the options loop - producing duplicated headings. Line-based edits or the
 `edit` tool with unique context are the safe way to change code in this file; `Replace` is only safe for a string known
 to occur once.
+
+## 20. The tab-row remnant: root cause at last
+
+The pale text row under the tabs was the **native `TabControl` row**, and the reason it never went away is
+`ItemSize` clamping: WinForms clamps `ItemSize` to the font height while the control is still in its normal fixed
+mode, so `new Size(1, 1)` became roughly `(48, 24)` and a second row of tab buttons was drawn *underneath* our strip -
+same labels, so it read as "bits of something" rather than as a duplicate strip.
+
+Three things were tried and measured before the fix that worked:
+
+- owner-draw with an empty `DrawItem` (kept, and correct) - did not shrink the row, because the row was already 24 px;
+- setting `ItemSize` after `DrawMode = OwnerDrawFixed` (kept) - still clamped by this control;
+- painting diagnostic colours to find the owner (no effect, which is what ruled out our strip).
+
+What works: **clip it**. `UiKit.AttachTabStrip` slides the `TabControl` up by its own `DisplayRectangle.Top` and grows it
+by the same amount, so the native row sits above the strip and the page area begins exactly at the strip's bottom edge.
+Anchors keep that true across resizes. Verified on the Team Builder sub-tabs (`tabTeamBuilderMaster`) and the main
+`tabContainer`: `tabContainer` reports y=56 with its page at y=61, so nothing is clipped from the page itself.
+
+Lesson worth keeping: a screenshot that looks "clean" at 100 % can hide pixel-level artifacts; cropping the band at 4-5x
+was the only way to see whether a change had any effect - and two of my earlier "fixes" looked done in the full image
+while the cropped band was byte-identical.
