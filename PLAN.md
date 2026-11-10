@@ -561,9 +561,16 @@ Replace mockup with real implementation backed by `IClassesApi` + `ISkillsApi` +
   hand-built `_BEC` path checks (rule 7: one resolver).
 - Export writes through `ISchoolsApi`, so it gets the lock, the `.mod-history` backup and the byte-exact
   round trip for free; duplicate names are refused and the export summary lists what it skipped.
-- **Still open (UX, agreed with the user, not blocking):** loadout grouping/labels, gear search over 404 item
-  sets, "raise `JOBPOINTS` when a skill is added" offer, and the stat preview not always repainting after a
-  level/stat-set change. These are usability refinements; the data path is complete.
+- **UX pass (done 2026-11-09).** The Gear page is a searchable, slot-filtered list of the class's legal items next to
+  five labelled slots and the highlighted item's numbers; the Skills page is two labelled lists with a JP line and a
+  details box. Adding a skill that crosses the JP budget offers to raise `JOBPOINTS` (and logs the answer), a level
+  change re-reads the stat set at the new level and repaints, and the level box validates through `InputRules`
+  instead of clamping silently. Manual checklist: `docs/testing/MANUAL_TESTING_TEAM_BUILDER.md`.
+- **Verifying GUI work (added with the UX pass).** `--ui-server` / `--ui-script` attach a loopback JSON driver to the
+  window (snapshot, click, set, select, screenshot, log), so panel changes can be exercised and reviewed instead of
+  described. It is off by default, binds `127.0.0.1`, and drives real controls — it cannot reach a Core API except by
+  pressing the button that does. `docs/UI_AUTOMATION.md`, `scripts/ui-drive.ps1`,
+  `scripts/team-builder-smoke.txt`.
 
 ### Phase 7.5 — Restore from backup
 Expose the `.mod-history` archive as a first-class feature.

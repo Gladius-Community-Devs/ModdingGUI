@@ -1,0 +1,46 @@
+# Team Builder smoke scenario for the UI driver.
+#
+# Run the app with the driver, then replay this file:
+#   ModdingGUI.exe --ui-server 4571
+#   .\scripts\ui-drive.ps1 -File .\scripts\team-builder-smoke.txt
+#
+# It uses gold_test because that project ships next to the Debug exe. A relative project path is resolved
+# against the application directory, so "gold_test" is enough.
+
+{"cmd":"ping"}
+{"cmd":"openTeamBuilder","project":"gold_test"}
+{"cmd":"wait","ms":1200}
+
+# Create a unit at level 5 and select it.
+{"cmd":"set","name":"tabTeamBuilderMaster","item":"tabTeamUnitSelection"}
+{"cmd":"set","name":"txtTeamUnitName","text":"Driver Hero"}
+{"cmd":"set","name":"txtTeamLevel","text":"5"}
+{"cmd":"set","name":"ddlTeamClasses","item":"Murmillo"}
+{"cmd":"click","name":"btnTeamAddUnit"}
+{"cmd":"selectNode","name":"tvwTeam","text":"Driver Hero"}
+
+# Gear: filter, pick, assign.
+{"cmd":"set","name":"tabTeamBuilderMaster","item":"tabTeamGearSelection"}
+{"cmd":"set","name":"txtGearSearch","text":"ring"}
+{"cmd":"set","name":"lstLegalItems","index":0}
+{"cmd":"click","name":"btnAssignGear"}
+
+# Sets: stat set + item set in one press.
+{"cmd":"set","name":"cmbStatSet","index":0}
+{"cmd":"click","name":"btnApplySets"}
+
+# Level change re-reads the stat set at the new level and repaints the preview.
+{"cmd":"set","name":"txtUnitLevel","text":"20"}
+{"cmd":"click","name":"btnApplyLevel"}
+
+# Skills: add two expensive ones; the second pushes the unit over budget, so the JP offer fires
+# (auto-confirmed under automation, logged as "[automation] Job points: ... → yes").
+{"cmd":"set","name":"tabTeamBuilderMaster","item":"tabTeamSkillSelection"}
+{"cmd":"set","name":"lstLearnableSkills","index":45}
+{"cmd":"click","name":"btnAddSkill"}
+{"cmd":"set","name":"lstLearnableSkills","index":46}
+{"cmd":"click","name":"btnAddSkill"}
+
+# Evidence: a PNG of the window and the last 30 log lines.
+{"cmd":"screenshot","path":"%TEMP%\\team-builder-smoke.png"}
+{"cmd":"log","count":30}

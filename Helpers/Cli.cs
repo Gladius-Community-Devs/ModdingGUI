@@ -92,8 +92,13 @@ public sealed class CliInvocation
           --python <cmd>   Python command to run (default: python; use "py -3" for the launcher)
           --help           Show this text
 
-        Both modes run the same Core pipeline as the GUI (PackService / UnpackService),
-        so results match packing from the app, and neither creates a batch file.
+        GUI automation (opt-in, loopback only; see Helpers/UiDriver.cs)
+          --ui-server [port]   Listen on 127.0.0.1 (default 4571) for JSON-line commands
+          --ui-script <file>   Run a command file once the window is open
+          --ui-exit            Close the window when the script finishes
+
+        Pack and unpack run the same Core pipeline as the GUI (PackService /
+        UnpackService), so results match, and neither creates a batch file.
         """;
 
     /// <summary>

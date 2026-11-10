@@ -18,6 +18,10 @@ namespace ModdingGUI
             if (invocation is not null || cliError is not null)
                 return RunCli(invocation, cliError);
 
+            // --ui-server / --ui-script: let a script (or an AI agent) drive the window. Off unless asked for;
+            // see Helpers/UiDriver.cs.
+            UiDriver.Options? uiDriver = UiDriver.Options.Parse(args);
+
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
@@ -34,7 +38,10 @@ namespace ModdingGUI
             AppDomain.CurrentDomain.UnhandledException +=
                 (_, e) => ReportUnhandled("background thread", e.ExceptionObject as Exception);
 
-            Application.Run(new frmMain());
+            var form = new frmMain();
+            if (uiDriver is not null) UiDriver.Attach(form, uiDriver);
+
+            Application.Run(form);
             return 0;
         }
 

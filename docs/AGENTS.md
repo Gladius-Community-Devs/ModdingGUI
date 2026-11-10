@@ -24,9 +24,11 @@ The actual git repository lives at **`ModdingGUI/`** (origin `git@github.com:Gla
 
 - **`PLAN.md`** is the authoritative roadmap. Architecture is **locked** (section 0), and the phase sequence is **locked** (section 2). Read it before planning or implementing anything.
 - **`ModdingGUI/CLAUDE.md`** has the detailed per-subsystem agent guide (build commands, test infra, partial-class map, migration targets).
+- **`docs/UI_AUTOMATION.md`** is how to drive the window from a script or an agent (`--ui-server`, `scripts/ui-drive.ps1`). Use it to verify any GUI change.
 - **`docs/prd-template.md`** is the PRD template used by `/feature`.
 - `docs/testing/MANUAL_TESTING_PHASE_2_6.md` is the manual test checklist for the Item Editor migration.
 - `docs/testing/MANUAL_TESTING_PHASE_2_7.md` is the manual test checklist for Skill Editor validation.
+- `docs/testing/MANUAL_TESTING_TEAM_BUILDER.md` is the Team Builder checklist; `scripts/team-builder-smoke.txt` replays it.
 
 ## Layout
 
@@ -70,6 +72,7 @@ dol/                        Engine field tables extracted from the DOL (authorit
                             Writes go through `IGridsApi` (lock + `.mod-history` backup), never
                             through `GridFile.Save` from the shell
     SkillEditor/                Catalog-driven skills editor (Core-backed UI)
+    scripts/                    ui-drive.ps1 (UI driver client) + replayable GUI scenarios
     Helpers/ Parsers/ Models/ Validators/  Migration targets into Core
 ```
 
@@ -77,7 +80,7 @@ dol/                        Engine field tables extracted from the DOL (authorit
 
 ```
 dotnet build ModdingGUI.sln          # whole solution (shell + Core + Mcp + Tests)
-dotnet test ModdingGUI.sln           # xUnit suite: 763 pass / 0 fail / 0 skip
+dotnet test ModdingGUI.sln           # xUnit suite: 768 pass / 0 fail / 0 skip
 .\run-tests.ps1                      # colored runner w/ TRX, filters, -ProjectFolder
 .\run-tests.ps1 -Filter RealGameDataTests
 .\run-tests.ps1 -ProjectFolder REALDATA_v2
@@ -89,7 +92,7 @@ All commands run from inside `ModdingGUI/` (that is where the `.sln` and the git
 ### Test bar (mandatory, from PLAN.md)
 
 - `dotnet test -c Release` green at the end of every phase. No phase merges with failing tests.
-- Baseline is **763 passed / 0 failed / 0 skipped**. Every phase ends green.
+- Baseline is **768 passed / 0 failed / 0 skipped**. Every phase ends green.
 - `ModdingGUI.Tests/Core/Tok/TokRoundTripTests.cs` is the **corpus gate**: it parses and re-serializes every `.tok`/`.enc` in `clean-bec-unpacked/` (977 files) and fails on any byte diff. Never break this.
 - The `RealGameDataTests` are gated behind a `REALDATA_*` project folder + `vanilla.iso`. To enable them locally, run **`ModdingGUI/setup-realdata.ps1`** — it breaks the vanilla ISO down from scratch using the app's own unpack toolchain (`ngciso-tool.py` → `bec-tool-all.py` → `Gladius_Units_IDX_Unpack.py`, the same commands `BatchContentBuilder` emits), byte-verifies the result against `clean-bec-unpacked` (0 missing / 0 extra / 0 diffs), and installs it into `bin/{Debug|Release}/net8.0-windows/win-x64/REALDATA_<name>/` plus a `vanilla.iso` hardlink. The vanilla ISO + `clean-bec-unpacked` are outside the repo; `bin/` is gitignored.
 - Integration fixture: `ModdingGUI.Tests/Integration/GameDataFixture.cs` points at `clean-bec-unpacked/`. Do not check large new fixtures into the repo.
@@ -123,6 +126,7 @@ All commands run from inside `ModdingGUI/` (that is where the `.sln` and the git
 8. **No new dependencies** without explicit approval. **`System.Text.Json` only** for JSON (no Newtonsoft). tok I/O is **ISO-8859-1**.
 9. **`dotnet test -c Release` green** at end of every phase.
 10. **One phase at a time.** Don't expand scope mid-phase.
+11. **GUI work is verified in the GUI.** Start the app with `--ui-server` and drive it with `scripts/ui-drive.ps1`; the driver clicks real controls, so it can never be used to bypass an API.
 
 ## API discipline (Core)
 
@@ -174,7 +178,7 @@ zero warnings across all 1,811 vanilla records.
 | Phase 4 — Encounters, Leagues, Towns, Schools | **done**: encounters, schools, leagues and the flat config-table API; `ITownsApi` folded into `IConfigTableApi` (towns hold shops + `.tnt` tints, no `towns/*.tok`) |
 | Phase 5 — Units `.txt` family | **APIs done**, in-game QA pending |
 | Phase 6 — Randomizer rewrite | **done**, in-game QA pending |
-| Phase 7 — Team Builder (incl. 7.5, 7.8, 7.9) | **done** — Team Builder reads/writes only through Core APIs; pack/unpack/compile/xdelta run from Core with no batch file. UX refinement backlog is listed in `docs/HANDOFF.md` §5.3 |
+| Phase 7 — Team Builder (incl. 7.5, 7.8, 7.9) | **done** — Team Builder reads/writes only through Core APIs, UX pass landed (searchable gear, labelled slots, item details, JP offer, level-aware preview); pack/unpack/compile/xdelta run from Core with no batch file. GUI work is verified through the UI driver (`docs/UI_AUTOMATION.md`) |
 | Phase 8 — `ModdingGUI.Mcp` stdio server | **next** — `Program.cs` is a 46-line inert stub |
 | Phase 9 — Polish | not started |
 

@@ -406,14 +406,14 @@ namespace ModdingGUI
                 // Step 1: Trim trailing directory separators
                 projectPath = projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-                // Step 2: Resolve the three files Team Builder reads through the shell's project layout helper, so a
-                // project whose <name>_BEC folder is missing is reported the same way every other editor reports it.
-                string becFolder = ProjectPaths.BecFolder(projectPath);
+                // Step 2: resolve through the Core resolver, so a project whose BEC folder is not literally
+                // "<name>_BEC" (the REALDATA fixtures, for instance) still opens.
+                string becFolder = ModdingGUI.Core.ProjectRoots.ResolveBecFolder(projectPath);
                 var required = new (string Label, string Path)[]
                 {
-                    ("classdefs.tok", ProjectPaths.ClassDefsFile(projectPath)),
-                    ("gladiators.txt", ProjectPaths.GladiatorsFile(projectPath)),
-                    ("statsets.txt", ProjectPaths.StatSetsFile(projectPath)),
+                    ("data/config/classdefs.tok", Path.Combine(becFolder, "data", "config", "classdefs.tok")),
+                    ("data/units/gladiators.txt", Path.Combine(becFolder, "data", "units", "gladiators.txt")),
+                    ("data/units/statsets.txt", Path.Combine(becFolder, "data", "units", "statsets.txt")),
                 };
 
                 string[] missing = required
@@ -1440,14 +1440,29 @@ namespace ModdingGUI
 
         private Unit? _selectedUnit;
 
+        // ---- Gear page ----
         private ListBox _lstLegalItems = new();
+        private TextBox _txtGearSearch = new();
+        private ComboBox _cmbGearType = new();
+        private Label _lblGearCount = new();
+        private TextBox _txtItemDetails = new();
+        private Label _lblSelectedUnit = new();
+        private TextBox _txtUnitLevel = new();
+        private readonly Dictionary<GearType, Label> _slotValues = new();
+
+        /// <summary>Every item the selected unit's class may use, before the search/slot filter.</summary>
+        private List<ItemChoice> _classItems = new();
+
+        // ---- Skills page ----
         private ListBox _lstGrantedSkills = new();
         private ListBox _lstLearnableSkills = new();
+        private TextBox _txtSkillDetails = new();
+        private Label _lblLoadoutJp = new();
+
+        // ---- Sets / roster ----
         private ComboBox _cmbStatSet = new();
         private ComboBox _cmbItemSet = new();
         private ComboBox _cmbRoster = new();
-        private Label _lblLoadoutGear = new();
-        private Label _lblLoadoutJp = new();
 
         /// <summary>Roster name to the unit names that were loaded from it, so removals can be written back.</summary>
         private readonly Dictionary<string, HashSet<string>> _loadedRosterUnits =
@@ -1472,77 +1487,26 @@ namespace ModdingGUI
 
             _loadoutBuilt = true;
 
-            // ---- Gear page ----
-            _lstLegalItems = new ListBox { Dock = DockStyle.Fill, IntegralHeight = false };
-            _lstLegalItems.DoubleClick += (_, _) => AssignSelectedItem();
-
-            var gearButtons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 44, Padding = new Padding(4) };
-            var assign = new Button { Text = "Assign", Width = 90, Height = 30 };
-            assign.Click += (_, _) => AssignSelectedItem();
-            var clear = new Button { Text = "Clear gear", Width = 100, Height = 30 };
-            clear.Click += (_, _) =>
-            {
-                if (_selectedUnit is null) return;
-                _selectedUnit.EquippedGear.Clear();
-                RefreshLoadoutEditors();
-            };
-            var fromSet = new Button { Text = "From item set", Width = 120, Height = 30 };
-            fromSet.Click += (_, _) => FillGearFromItemSet();
-            gearButtons.Controls.AddRange(new Control[] { assign, clear, fromSet });
-
-            _lblLoadoutGear = new Label
-            {
-                Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(4), TextAlign = ContentAlignment.TopLeft,
-            };
-
-            var setRow = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 34, Padding = new Padding(4) };
-            _cmbItemSet = new ComboBox { Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
-            _cmbStatSet = new ComboBox { Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
-            var applySets = new Button { Text = "Apply sets", Width = 100, Height = 26 };
-            applySets.Click += (_, _) => ApplySetsToSelected();
-            setRow.Controls.Add(new Label { Text = "Item set", Width = 60, TextAlign = ContentAlignment.MiddleLeft });
-            setRow.Controls.Add(_cmbItemSet);
-            setRow.Controls.Add(new Label { Text = "Stat set", Width = 60, TextAlign = ContentAlignment.MiddleLeft });
-            setRow.Controls.Add(_cmbStatSet);
-            setRow.Controls.Add(applySets);
-
             tabTeamGearSelection.Controls.Clear();
-            tabTeamGearSelection.Controls.Add(_lstLegalItems);
-            tabTeamGearSelection.Controls.Add(gearButtons);
-            tabTeamGearSelection.Controls.Add(_lblLoadoutGear);
-            tabTeamGearSelection.Controls.Add(setRow);
-
-            // ---- Skills page ----
-            _lstLearnableSkills = new ListBox { Dock = DockStyle.Fill, IntegralHeight = false };
-            _lstGrantedSkills = new ListBox { Dock = DockStyle.Right, Width = 260, IntegralHeight = false };
-
-            var skillButtons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 44, Padding = new Padding(4) };
-            var add = new Button { Text = "Add -->", Width = 90, Height = 30 };
-            add.Click += (_, _) => AddSelectedSkill();
-            var remove = new Button { Text = "<-- Remove", Width = 90, Height = 30 };
-            remove.Click += (_, _) => RemoveSelectedSkill();
-            skillButtons.Controls.AddRange(new Control[] { add, remove });
-
-            _lblLoadoutJp = new Label
-            {
-                Dock = DockStyle.Bottom, Height = 40, Padding = new Padding(4), TextAlign = ContentAlignment.MiddleLeft,
-            };
+            tabTeamGearSelection.Controls.Add(BuildGearPage());
 
             tabTeamSkillSelection.Controls.Clear();
-            tabTeamSkillSelection.Controls.Add(_lstLearnableSkills);
-            tabTeamSkillSelection.Controls.Add(_lstGrantedSkills);
-            tabTeamSkillSelection.Controls.Add(skillButtons);
-            tabTeamSkillSelection.Controls.Add(_lblLoadoutJp);
+            tabTeamSkillSelection.Controls.Add(BuildSkillsPage());
 
             // ---- Roster loader, on the rules page ----
             Control parent = txtTeamLevel.Parent ?? tabTeamBuilder;
             var rosterRow = new FlowLayoutPanel
             {
+                Name = "pnlRosterPicker",
                 Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 112),
                 Size = new Size(400, 34),
             };
-            _cmbRoster = new ComboBox { Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
-            var loadRoster = new Button { Text = "Load roster", Width = 110, Height = 26 };
+            rosterRow.Controls.Add(new Label
+            {
+                Text = "Roster", AutoSize = true, Margin = new Padding(0, 8, 6, 0),
+            });
+            _cmbRoster = new ComboBox { Name = "cmbRoster", Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+            var loadRoster = new Button { Name = "btnLoadRoster", Text = "Load roster", Width = 110, Height = 26 };
             loadRoster.Click += (_, _) => LoadSelectedRoster();
             rosterRow.Controls.Add(_cmbRoster);
             rosterRow.Controls.Add(loadRoster);
@@ -1551,6 +1515,357 @@ namespace ModdingGUI
             RefreshRosterList();
             RefreshLoadoutEditors();
         }
+
+        /// <summary>
+        /// The gear page: browse legal items on the left (with a filter), the unit's five slots and the selected
+        /// item's numbers on the right.
+        /// </summary>
+        private Control BuildGearPage()
+        {
+            var root = new TableLayoutPanel
+            {
+                Name = "pnlGearPage",
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3,
+                Padding = new Padding(8),
+            };
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
+
+            // Filter row: search text, slot, and how much of the list is showing.
+            var filter = new FlowLayoutPanel
+            {
+                Name = "pnlGearFilter",
+                Dock = DockStyle.Fill,
+                WrapContents = false,
+                Margin = new Padding(0),
+            };
+            filter.Controls.Add(SmallLabel("Search"));
+            _txtGearSearch = new TextBox
+            {
+                Name = "txtGearSearch",
+                Width = 230,
+                PlaceholderText = "name, subtype or style",
+                Margin = new Padding(0, 4, 14, 0),
+            };
+            _txtGearSearch.TextChanged += (_, _) => RefreshGearList();
+            filter.Controls.Add(_txtGearSearch);
+
+            filter.Controls.Add(SmallLabel("Slot"));
+            _cmbGearType = new ComboBox
+            {
+                Name = "cmbGearType",
+                Width = 130,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Margin = new Padding(0, 3, 14, 0),
+            };
+            _cmbGearType.Items.AddRange(new object[] { "All slots", "Weapon", "Armor", "Shield", "Helmet", "Accessory" });
+            _cmbGearType.SelectedIndex = 0;
+            _cmbGearType.SelectedIndexChanged += (_, _) => RefreshGearList();
+            filter.Controls.Add(_cmbGearType);
+
+            _lblGearCount = new Label
+            {
+                Name = "lblGearCount",
+                AutoSize = true,
+                Margin = new Padding(0, 8, 0, 0),
+                ForeColor = SystemColors.GrayText,
+            };
+            filter.Controls.Add(_lblGearCount);
+
+            var content = new TableLayoutPanel
+            {
+                Name = "pnlGearContent",
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                Margin = new Padding(0, 6, 0, 0),
+            };
+            content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52F));
+            content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48F));
+
+            _lstLegalItems = new ListBox
+            {
+                Name = "lstLegalItems",
+                Dock = DockStyle.Fill,
+                IntegralHeight = false,
+                Margin = new Padding(0, 0, 10, 0),
+            };
+            _lstLegalItems.SelectedIndexChanged += (_, _) => ShowSelectedItemDetails();
+            _lstLegalItems.DoubleClick += (_, _) => AssignSelectedItem();
+            content.Controls.Add(_lstLegalItems, 0, 0);
+            content.Controls.Add(BuildLoadoutPanel(), 1, 0);
+
+            var buttons = new FlowLayoutPanel
+            {
+                Name = "pnlGearButtons",
+                Dock = DockStyle.Fill,
+                WrapContents = false,
+                Margin = new Padding(0, 6, 0, 0),
+            };
+            buttons.Controls.Add(ActionButton("btnAssignGear", "Assign to slot", 120, (_, _) => AssignSelectedItem()));
+            buttons.Controls.Add(ActionButton("btnClearGear", "Clear all gear", 110, (_, _) =>
+            {
+                if (_selectedUnit is null) return;
+                _selectedUnit.EquippedGear.Clear();
+                RefreshLoadoutEditors();
+                DisplayUnitStats(_selectedUnit);
+            }));
+            buttons.Controls.Add(ActionButton("btnGearFromSet", "From item set", 120, (_, _) => FillGearFromItemSet()));
+
+            root.Controls.Add(filter, 0, 0);
+            root.Controls.Add(content, 0, 1);
+            root.Controls.Add(buttons, 0, 2);
+            return root;
+        }
+
+        /// <summary>The right-hand column of the gear page: who is selected, the five slots, item details, sets.</summary>
+        private Control BuildLoadoutPanel()
+        {
+            var panel = new TableLayoutPanel
+            {
+                Name = "pnlLoadout",
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 4,
+                Margin = new Padding(0),
+            };
+            panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
+            panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 176F));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 88F));
+
+            var unitRow = new TableLayoutPanel
+            {
+                Name = "pnlSelectedUnit",
+                Dock = DockStyle.Fill,
+                ColumnCount = 3,
+                RowCount = 1,
+                Margin = new Padding(0),
+            };
+            unitRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            unitRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 50F));
+            unitRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 76F));
+
+            _lblSelectedUnit = new Label
+            {
+                Name = "lblSelectedUnit",
+                Text = "No unit selected",
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true,
+                Font = new Font(Font, FontStyle.Bold),
+            };
+            _txtUnitLevel = new TextBox { Name = "txtUnitLevel", Text = "1", Width = 46, Anchor = AnchorStyles.Left };
+            _txtUnitLevel.Leave += (_, _) => ApplyUnitLevel();
+            _txtUnitLevel.KeyDown += (_, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                ApplyUnitLevel();
+                e.SuppressKeyPress = true;
+            };
+            var applyLevel = new Button
+            {
+                Name = "btnApplyLevel",
+                Text = "Set level",
+                Width = 74,
+                Height = 24,
+                Anchor = AnchorStyles.Left,
+            };
+            applyLevel.Click += (_, _) => ApplyUnitLevel();
+
+            unitRow.Controls.Add(_lblSelectedUnit, 0, 0);
+            unitRow.Controls.Add(_txtUnitLevel, 1, 0);
+            unitRow.Controls.Add(applyLevel, 2, 0);
+            panel.Controls.Add(unitRow, 0, 0);
+
+            var loadout = new GroupBox
+            {
+                Name = "grpLoadout",
+                Text = "Loadout",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(8, 4, 8, 4),
+                Margin = new Padding(0, 4, 0, 0),
+            };
+            var grid = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 5, Margin = new Padding(0) };
+            grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90F));
+            grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+            foreach (GearType type in new[] { GearType.Weapon, GearType.Armor, GearType.Shield, GearType.Helmet, GearType.Accessory })
+            {
+                grid.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
+
+                var caption = new Label
+                {
+                    Text = type.ToString(),
+                    AutoSize = true,
+                    Anchor = AnchorStyles.Left,
+                    ForeColor = SystemColors.GrayText,
+                };
+
+                var value = new Label
+                {
+                    Name = $"lblSlot{type}",
+                    Text = "(empty)",
+                    Dock = DockStyle.Fill,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    AutoEllipsis = true,
+                    Anchor = AnchorStyles.Left | AnchorStyles.Right,
+                };
+
+                _slotValues[type] = value;
+                grid.Controls.Add(caption);
+                grid.Controls.Add(value);
+            }
+
+            loadout.Controls.Add(grid);
+            panel.Controls.Add(loadout, 0, 1);
+
+            var details = new GroupBox
+            {
+                Name = "grpItemDetails",
+                Text = "Selected item",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(8, 4, 8, 4),
+                Margin = new Padding(0, 6, 0, 0),
+            };
+            _txtItemDetails = new TextBox
+            {
+                Name = "txtItemDetails",
+                Dock = DockStyle.Fill,
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Vertical,
+                BorderStyle = BorderStyle.None,
+                BackColor = SystemColors.Window,
+            };
+            details.Controls.Add(_txtItemDetails);
+            panel.Controls.Add(details, 0, 2);
+
+            var sets = new GroupBox
+            {
+                Name = "grpSets",
+                Text = "Item and stat sets",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(8, 4, 8, 4),
+                Margin = new Padding(0, 6, 0, 0),
+            };
+            var setsRow = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Margin = new Padding(0) };
+            setsRow.Controls.Add(SmallLabel("Item set"));
+            _cmbItemSet = new ComboBox { Name = "cmbItemSet", Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
+            setsRow.Controls.Add(_cmbItemSet);
+            setsRow.Controls.Add(SmallLabel("Stat set"));
+            _cmbStatSet = new ComboBox { Name = "cmbStatSet", Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
+            setsRow.Controls.Add(_cmbStatSet);
+            setsRow.Controls.Add(ActionButton("btnApplySets", "Apply both", 96, (_, _) => ApplySetsToSelected()));
+            sets.Controls.Add(setsRow);
+            panel.Controls.Add(sets, 0, 3);
+
+            return panel;
+        }
+
+        /// <summary>The skills page: learnable on the left, granted on the right, JP status underneath.</summary>
+        private Control BuildSkillsPage()
+        {
+            var root = new TableLayoutPanel
+            {
+                Name = "pnlSkillsPage",
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3,
+                Padding = new Padding(8),
+            };
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 84F));
+
+            var lists = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = new Padding(0) };
+            lists.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55F));
+            lists.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45F));
+
+            var learnable = new GroupBox
+            {
+                Name = "grpLearnable",
+                Text = "Available for this class",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(6),
+                Margin = new Padding(0, 0, 8, 0),
+            };
+            _lstLearnableSkills = new ListBox { Name = "lstLearnableSkills", Dock = DockStyle.Fill, IntegralHeight = false };
+            _lstLearnableSkills.SelectedIndexChanged += (_, _) => ShowSelectedSkillDetails();
+            _lstLearnableSkills.DoubleClick += (_, _) => AddSelectedSkill();
+            learnable.Controls.Add(_lstLearnableSkills);
+
+            var granted = new GroupBox
+            {
+                Name = "grpGranted",
+                Text = "Granted (written as SKILL lines)",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(6),
+                Margin = new Padding(0),
+            };
+            _lstGrantedSkills = new ListBox { Name = "lstGrantedSkills", Dock = DockStyle.Fill, IntegralHeight = false };
+            _lstGrantedSkills.SelectedIndexChanged += (_, _) => ShowSelectedSkillDetails();
+            _lstGrantedSkills.DoubleClick += (_, _) => RemoveSelectedSkill();
+            granted.Controls.Add(_lstGrantedSkills);
+
+            lists.Controls.Add(learnable, 0, 0);
+            lists.Controls.Add(granted, 1, 0);
+
+            var buttons = new FlowLayoutPanel
+            {
+                Name = "pnlSkillButtons",
+                Dock = DockStyle.Fill,
+                WrapContents = false,
+                Margin = new Padding(0, 6, 0, 0),
+            };
+            buttons.Controls.Add(ActionButton("btnAddSkill", "Add →", 90, (_, _) => AddSelectedSkill()));
+            buttons.Controls.Add(ActionButton("btnRemoveSkill", "← Remove", 100, (_, _) => RemoveSelectedSkill()));
+
+            _lblLoadoutJp = new Label
+            {
+                Name = "lblLoadoutJp",
+                AutoSize = true,
+                Margin = new Padding(18, 11, 0, 0),
+                TextAlign = ContentAlignment.MiddleLeft,
+            };
+            buttons.Controls.Add(_lblLoadoutJp);
+
+            _txtSkillDetails = new TextBox
+            {
+                Name = "txtSkillDetails",
+                Dock = DockStyle.Fill,
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Vertical,
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = SystemColors.Window,
+                Margin = new Padding(0, 6, 0, 0),
+            };
+
+            root.Controls.Add(lists, 0, 0);
+            root.Controls.Add(buttons, 0, 1);
+            root.Controls.Add(_txtSkillDetails, 0, 2);
+            return root;
+        }
+
+        private static Label SmallLabel(string text) => new()
+        {
+            Text = text,
+            AutoSize = true,
+            Margin = new Padding(0, 8, 6, 0),
+            ForeColor = SystemColors.GrayText,
+        };
+
+        private static Button ActionButton(string name, string text, int width, EventHandler onClick)
+        {
+            var button = new Button { Name = name, Text = text, Width = width, Height = 28, Margin = new Padding(0, 2, 8, 0) };
+            button.Click += onClick;
+            return button;
+        }
+
 
         /// <summary>Populate the roster drop-down from the project's school files.</summary>
         private void RefreshRosterList()
@@ -1649,45 +1964,52 @@ namespace ModdingGUI
 
         private void RefreshLoadoutEditorsCore()
         {
-
             _lstLegalItems.Items.Clear();
             _lstGrantedSkills.Items.Clear();
             _lstLearnableSkills.Items.Clear();
             _cmbItemSet.Items.Clear();
             _cmbStatSet.Items.Clear();
+            _classItems = new List<ItemChoice>();
+            _txtItemDetails.Text = string.Empty;
+            _txtSkillDetails.Text = string.Empty;
+            foreach (Label value in _slotValues.Values) value.Text = "(empty)";
 
             Unit? unit = _selectedUnit;
             string project = txtPackPath.Text.Trim();
 
             if (unit is null || string.IsNullOrEmpty(project) || !Directory.Exists(project))
             {
-                _lblLoadoutGear.Text = "Select a unit.";
+                _lblSelectedUnit.Text = "No unit selected";
+                _lblGearCount.Text = "Select a unit to load its gear.";
                 _lblLoadoutJp.Text = string.Empty;
+                _lblLoadoutJp.ForeColor = SystemColors.ControlText;
                 return;
             }
+
+            _lblSelectedUnit.Text = $"{unit.UnitName} — {unit.Class.ClassName}";
+            _txtUnitLevel.Text = unit.Level.ToString();
 
             string className = unit.Class.ClassName;
             var classes = new ModdingGUI.Core.Api.ClassDefsApi();
             var classDef = classes.Get(project, className);
             var categories = ModdingGUI.Core.Units.ItemCategoryRules.Parse(classDef);
 
-            // Legal items for this class, with the level shown because the tier rule is the player's, not ours.
+            // Legal items for this class. The label carries the numbers a picker needs: slot, subtype, style, tier.
             var items = new ModdingGUI.Core.Api.ItemsApi().GetAll(project);
-            foreach (var item in items)
+            _classItems = items
+                .Where(item => ModdingGUI.Core.Units.ItemCategoryRules.Allows(
+                    categories, item.Type, item.SubType, item.Style))
+                .Select(item => new ItemChoice(item,
+                    $"{item.Name}  [{item.Type} / {item.SubType} / {item.Style}]" +
+                    (item.MinLevel is > 0 ? $"  lvl {item.MinLevel}" : string.Empty)))
+                .ToList();
+
+            RefreshGearList();
+
+            foreach (GearType type in _slotValues.Keys)
             {
-                if (!ModdingGUI.Core.Units.ItemCategoryRules.Allows(categories, item.Type, item.SubType, item.Style))
-                {
-                    continue;
-                }
-
-                string label = $"{item.Name}  [{item.Type} / {item.SubType} / {item.Style}]";
-                _lstLegalItems.Items.Add(new ItemChoice(item, label));
+                _slotValues[type].Text = Slot(unit, type);
             }
-
-            _lblLoadoutGear.Text =
-                $"Weapon: {Slot(unit, GearType.Weapon)}\nArmor: {Slot(unit, GearType.Armor)}\n" +
-                $"Shield: {Slot(unit, GearType.Shield)}\nHelmet: {Slot(unit, GearType.Helmet)}\n" +
-                $"Accessory: {Slot(unit, GearType.Accessory)}";
 
             // Learnable skills, priced.
             var allSkills = new ModdingGUI.Core.Api.SkillsApi().GetAll(project);
@@ -1709,16 +2031,15 @@ namespace ModdingGUI
                 unit.Level,
                 unit.LearnedSkills.Select(_ => 0));
 
-            int spent = 0;
-            var allSkillsByName = allSkills.ToDictionary(s => s.Name, StringComparer.OrdinalIgnoreCase);
-            foreach (var skill in unit.LearnedSkills)
-            {
-                if (allSkillsByName.TryGetValue(skill.InternalName, out var dto)) spent += ModdingGUI.Core.Units.JobPoints.CostOf(dto);
-            }
+            int spent = GrantedSkillCost(allSkills, unit);
+            int effective = unit.JobPointsOverridden ? unit.JobPoints : budget.Awarded;
+            int left = effective - spent;
 
-            _lblLoadoutJp.Text = $"Level {unit.Level}: {budget.Awarded} JP awarded, {spent} spent, " +
-                                 $"{Math.Max(0, budget.Awarded - spent)} left" +
-                                 (spent > budget.Awarded ? "  (over budget)" : string.Empty);
+            _lblLoadoutJp.Text = $"Level {unit.Level}: {effective} JP" +
+                                 (unit.JobPointsOverridden ? " (overridden)" : " awarded") +
+                                 $", {spent} spent, {Math.Max(0, left)} left" +
+                                 (left < 0 ? "  (over budget)" : string.Empty);
+            _lblLoadoutJp.ForeColor = left < 0 ? Color.Firebrick : SystemColors.ControlText;
 
             // Sets used by this class's existing gladiators.
             var records = gladiatorEntries.Where(g => g.Class.Equals(className, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -1734,6 +2055,192 @@ namespace ModdingGUI
 
             if (_cmbStatSet.Items.Count > 0) _cmbStatSet.SelectedIndex = 0;
             if (_cmbItemSet.Items.Count > 0) _cmbItemSet.SelectedIndex = 0;
+        }
+
+        /// <summary>Apply the search box and slot filter to the cached list of items this class may use.</summary>
+        private void RefreshGearList()
+        {
+            if (_lstLegalItems is null) return;
+
+            string needle = _txtGearSearch?.Text?.Trim() ?? string.Empty;
+            string slot = _cmbGearType?.SelectedItem as string ?? "All slots";
+
+            // Keep the highlight across a refresh: assigning an item or typing in the filter must not lose the
+            // selection the user is working with.
+            string? keep = (_lstLegalItems.SelectedItem as ItemChoice)?.Item.Name;
+
+            _lstLegalItems.BeginUpdate();
+            try
+            {
+                _lstLegalItems.Items.Clear();
+
+                foreach (ItemChoice choice in _classItems)
+                {
+                    if (!slot.StartsWith("All", StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(choice.Item.Type, slot, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (needle.Length > 0 && !ItemMatches(choice.Item, needle)) continue;
+
+                    _lstLegalItems.Items.Add(choice);
+                }
+
+                if (keep is not null)
+                {
+                    for (int i = 0; i < _lstLegalItems.Items.Count; i++)
+                    {
+                        if (_lstLegalItems.Items[i] is ItemChoice candidate
+                            && candidate.Item.Name.Equals(keep, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _lstLegalItems.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                _lstLegalItems.EndUpdate();
+            }
+
+            if (_lblGearCount is not null)
+            {
+                _lblGearCount.Text = _classItems.Count == 0
+                    ? "No legal items for this class"
+                    : $"{_lstLegalItems.Items.Count} of {_classItems.Count} legal items";
+            }
+
+            ShowSelectedItemDetails();
+        }
+
+        private static bool ItemMatches(ModdingGUI.Core.Api.ItemDto item, string needle) =>
+            (item.Name?.Contains(needle, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (item.Type?.Contains(needle, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (item.SubType?.Contains(needle, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (item.Style?.Contains(needle, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (item.Rarity?.Contains(needle, StringComparison.OrdinalIgnoreCase) ?? false);
+
+        /// <summary>Describe the highlighted item: what it is, what it needs, what it does.</summary>
+        private void ShowSelectedItemDetails()
+        {
+            if (_txtItemDetails is null) return;
+
+            if (_lstLegalItems.SelectedItem is not ItemChoice choice)
+            {
+                _txtItemDetails.Text = _classItems.Count == 0
+                    ? "No legal items: this class's ITEMCAT lines allow nothing."
+                    : "Select an item to see its numbers.";
+                return;
+            }
+
+            var item = choice.Item;
+            var lines = new List<string>
+            {
+                item.Name,
+                $"{item.Type} / {item.SubType} / {item.Style}",
+                $"min level {item.MinLevel?.ToString() ?? "0"}" +
+                (item.StarRating is > 0 ? $"   stars {item.StarRating}" : string.Empty) +
+                (item.Cost is > 0 ? $"   cost {item.Cost:N0}" : string.Empty) +
+                (string.IsNullOrWhiteSpace(item.Rarity) ? string.Empty : $"   {item.Rarity}"),
+            };
+
+            if (item.Affinity is { } affinity)
+            {
+                lines.Add($"affinity {affinity.Element} {affinity.Amount}");
+            }
+
+            if (item.StatMods.Count > 0)
+            {
+                lines.Add("stats: " + string.Join(", ", item.StatMods.Select(mod => $"{mod.Stat} {mod.Value:+#;-#;0}")));
+            }
+
+            if (item.Skills.Count > 0)
+            {
+                lines.Add("skills: " + string.Join(", ", item.Skills));
+            }
+
+            if (item.Attributes.Count > 0)
+            {
+                lines.Add("attributes: " + string.Join(", ", item.Attributes));
+            }
+
+            _txtItemDetails.Text = string.Join(Environment.NewLine, lines);
+        }
+
+        /// <summary>Describe the highlighted skill, from whichever list it was picked in.</summary>
+        private void ShowSelectedSkillDetails()
+        {
+            if (_txtSkillDetails is null) return;
+
+            var choice = _lstLearnableSkills.SelectedItem as SkillChoice
+                         ?? _lstGrantedSkills.SelectedItem as SkillChoice;
+
+            if (choice is null)
+            {
+                _txtSkillDetails.Text = _lstGrantedSkills.SelectedItem is string granted
+                    ? $"{granted}{Environment.NewLine}A granted skill. Its record is in skills.tok."
+                    : string.Empty;
+                return;
+            }
+
+            var skill = choice.Skill;
+            var lines = new List<string>
+            {
+                $"{skill.Name}  —  {ModdingGUI.Core.Units.JobPoints.CostOf(skill)} JP, " +
+                $"level {ModdingGUI.Core.Units.LearnableSkills.LevelOf(skill)}",
+            };
+
+            if (!string.IsNullOrWhiteSpace(skill.SkillType) || !string.IsNullOrWhiteSpace(skill.SkillSubType))
+            {
+                lines.Add($"{skill.SkillType} / {skill.SkillSubType}");
+            }
+
+            foreach (var field in skill.Fields.Take(8))
+            {
+                lines.Add($"{field.FieldName} {field.RawValue}");
+            }
+
+            _txtSkillDetails.Text = string.Join(Environment.NewLine, lines);
+        }
+
+        /// <summary>What the granted skills cost, by the catalog's prices.</summary>
+        private static int GrantedSkillCost(IReadOnlyList<ModdingGUI.Core.Api.SkillDto> allSkills, Unit unit)
+        {
+            var byName = allSkills.ToDictionary(skill => skill.Name, StringComparer.OrdinalIgnoreCase);
+            int spent = 0;
+
+            foreach (var skill in unit.LearnedSkills)
+            {
+                if (byName.TryGetValue(skill.InternalName, out var dto))
+                {
+                    spent += ModdingGUI.Core.Units.JobPoints.CostOf(dto);
+                }
+            }
+
+            return spent;
+        }
+
+        /// <summary>Set the selected unit's level, then re-read its stat set at that level.</summary>
+        private void ApplyUnitLevel()
+        {
+            if (_selectedUnit is null) return;
+
+            if (!int.TryParse(_txtUnitLevel.Text.Trim(), out int level)
+                || !ModdingGUI.Core.Units.InputRules.IsValidLevel(level))
+            {
+                AppendLog(ModdingGUI.Core.Units.InputRules.ExplainLevel(level) ??
+                          $"'{_txtUnitLevel.Text}' is not a level.", Color.Orange);
+                _txtUnitLevel.Text = _selectedUnit.Level.ToString();
+                return;
+            }
+
+            _selectedUnit.Level = level;
+            ApplyStatSetToSelected();
+            RefreshLoadoutEditors();
+            DisplayUnitStats(_selectedUnit);
+            UpdatePreview();
         }
 
         private static string Slot(Unit unit, GearType type) =>
@@ -1803,18 +2310,29 @@ namespace ModdingGUI
             string project = txtPackPath.Text.Trim();
             if (string.IsNullOrEmpty(project)) return;
 
-            if (_cmbStatSet.SelectedItem is int statIndex && statSets.TryGetValue(statIndex, out var rows) &&
-                rows.TryGetValue(_selectedUnit.Level, out var values) && values.Count >= 5)
-            {
-                _selectedUnit.BaseStats = new Stats
-                {
-                    CON = values[0], PWR = values[1], ACC = values[2], DEF = values[3], INI = values[4],
-                    MOV = values.Count > 5 ? values[5] : 1,
-                };
-            }
-
+            ApplyStatSetToSelected();
             FillGearFromItemSet();
             DisplayUnitStats(_selectedUnit);
+        }
+
+        /// <summary>Read the selected stat set at the unit's level and adopt those stats.</summary>
+        private void ApplyStatSetToSelected()
+        {
+            if (_selectedUnit is null) return;
+            if (_cmbStatSet.SelectedItem is not int statIndex) return;
+            if (!statSets.TryGetValue(statIndex, out var rows)) return;
+
+            if (!rows.TryGetValue(_selectedUnit.Level, out var values) || values.Count < 5)
+            {
+                AppendLog($"Stat set {statIndex} has no row for level {_selectedUnit.Level}.", Color.Orange);
+                return;
+            }
+
+            _selectedUnit.BaseStats = new Stats
+            {
+                CON = values[0], PWR = values[1], ACC = values[2], DEF = values[3], INI = values[4],
+                MOV = values.Count > 5 ? values[5] : 1,
+            };
         }
 
         private void AddSelectedSkill()
@@ -1826,7 +2344,11 @@ namespace ModdingGUI
                 _selectedUnit.LearnedSkills.Add(new Skill { InternalName = choice.Skill.Name, Name = choice.Skill.Name });
             }
 
+            OfferSkillJobPoints();
+
+            // The JP line and the stats panel both derive from the grant list, so refresh after the offer.
             RefreshLoadoutEditors();
+            DisplayUnitStats(_selectedUnit);
         }
 
         private void RemoveSelectedSkill()
@@ -1837,6 +2359,44 @@ namespace ModdingGUI
                 skill.InternalName.Equals(name, StringComparison.OrdinalIgnoreCase));
 
             RefreshLoadoutEditors();
+            DisplayUnitStats(_selectedUnit);
+        }
+
+        /// <summary>
+        /// A granted skill costs JP, so adding one can push a unit over its award. Offer to raise <c>JOBPOINTS</c>
+        /// instead of leaving a roster the engine would call illegal — the designer can always decline and keep the
+        /// over-budget build.
+        /// </summary>
+        private void OfferSkillJobPoints()
+        {
+            if (_selectedUnit is null) return;
+
+            string project = txtPackPath.Text.Trim();
+            if (string.IsNullOrEmpty(project)) return;
+
+            var classDef = new ModdingGUI.Core.Api.ClassDefsApi().Get(project, _selectedUnit.Class.ClassName);
+            var budget = ModdingGUI.Core.Units.JobPoints.Compute(classDef, _selectedUnit.Level);
+            var allSkills = new ModdingGUI.Core.Api.SkillsApi().GetAll(project);
+
+            int spent = GrantedSkillCost(allSkills, _selectedUnit);
+            int awarded = _selectedUnit.JobPointsOverridden ? _selectedUnit.JobPoints : budget.Awarded;
+
+            if (spent <= awarded) return;
+
+            string unitName = _selectedUnit.UnitName;
+            string question =
+                $"'{unitName}' now spends {spent} JP on granted skills but is awarded {awarded}.\n\n" +
+                $"Raise this unit's JOBPOINTS to {spent} so the roster stays legal?";
+
+            if (!UiConfirm(question, "Job points"))
+            {
+                AppendLog($"'{unitName}' is over its JP budget ({spent} of {awarded}); left as built.", Color.Orange);
+                return;
+            }
+
+            _selectedUnit.JobPoints = spent;
+            _selectedUnit.JobPointsOverridden = true;
+            AppendLog($"Raised '{unitName}' JOBPOINTS to {spent} so its granted skills stay legal.", Color.Green);
         }
 
         private sealed record ItemChoice(ModdingGUI.Core.Api.ItemDto Item, string Label)

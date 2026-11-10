@@ -22,12 +22,12 @@ E:\code_stuff\GladiusModdingToolsGUI\        workspace (not a git repo)
     ├── ModdingGUI.sln
     ├── ModdingGUI.csproj                    WinForms shell (net8.0-windows)
     ├── ModdingGUI.Core/                     net8.0, no UI: Tok, Schemas, APIs, Randomizer, History, Tools, Logging
-    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 763 tests
+    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 768 tests
     └── ModdingGUI.Mcp/                      Phase 8 stub: builds, Program.cs is inert (no stdio server yet)
 ```
 
 **State of the tree:** clean, `dotnet build` reports **0 warnings** in Debug and Release, suite is
-**763 passed / 0 failed / 0 skipped**.
+**768 passed / 0 failed / 0 skipped**.
 
 ---
 
@@ -54,6 +54,9 @@ From `PLAN.md` §0 and `docs/AGENTS.md` — violating any of these has already c
     `ProcessStartInfo.ArgumentList` through `ModdingGUI.Core.Tools.ToolRunner`. No `cmd.exe`, no generated `.bat`
     on any run path. If a new external tool appears, write a `ToolStep` — do not reach for a batch file, and do not
     pass `PathHelper.QuotePath` output to a directly-started process (a caret is literal there).
+11. **A GUI change is verified in the GUI.** Start the app with `--ui-server`, drive it with
+    `scripts/ui-drive.ps1`, and look at the screenshot before calling panel work done (`docs/UI_AUTOMATION.md`).
+    The driver clicks real controls, so it can never be used to bypass an API.
 
 Evidence discipline: `dol/` + `docs/DOL_FINDINGS.md` hold facts extracted from the game executable and its data. They
 are the authority. Do not re-derive a limit from a hunch when a measured number is recorded there.
@@ -109,7 +112,8 @@ calls, so its log is the GUI's log.
 |---|---|
 | Patch apply, unpack, pack | **done and Core-owned**: `BuildRunner.cs` calls `PackService`/`UnpackService`, mirrors the log into the panel, and reports a real failure instead of unconditional success |
 | Randomizer panel | parameter builder over `RandomizerOptions`; progress + log mirroring through `AppLog` |
-| Team Builder | Phase 7 done: reads through `IClassesApi`/`IGladiatorsApi`/`IStatSetsApi`/`IItemsApi`/`IItemSetsApi`/`ISkillsApi`, exports through `ISchoolsApi`; no shell-side parsing left |
+| Team Builder | Phase 7 done (incl. the UX pass): reads through `IClassesApi`/`IGladiatorsApi`/`IStatSetsApi`/`IItemsApi`/`IItemSetsApi`/`ISkillsApi`, exports through `ISchoolsApi`; searchable gear list, five labelled slots, item details, JP offer, level-aware preview |
+| UI driver | `Helpers/UiDriver.cs` + `frmMain_partials/UiAutomation.cs`: opt-in loopback JSON control of the window (snapshot/click/set/screenshot), used to verify the GUI and to let an agent operate it — see `docs/UI_AUTOMATION.md` |
 | Item Editor | on `IItemsApi`, completeness-gated, stale-load guards |
 | Skill Editor | catalog-driven, advisory validation |
 | Grid Builder | on `IGridsApi` |
@@ -153,12 +157,30 @@ before the GUI does.
 Undo UI over `.mod-history`, per-backup diff viewer, project-wide search, "validate project" aggregate, README + per
 format docs.
 
-### 5.3 Team Builder refinement backlog (agreed with the user, not started; the data path is complete)
+### 5.3 Team Builder refinement backlog — **closed**
 
-1. Loadout editor layout — currently dense; needs grouping (weapon/armor/shield/helmet/accessory) and clearer labels.
-2. Gear list search/filter (404 item sets, 1,852 items — the list is long).
-3. JP re-balance after skill edits: adding a skill should offer to raise `JOBPOINTS` so the unit stays legal.
-4. Preview refresh: the stat preview does not always repaint after a level or statset change.
+All four items the user asked for are done (Phase 7 UX pass):
+
+1. **Loadout layout** — the Gear page is search + slot filter over the class's legal items on the left, and on the
+   right: the selected unit with a level box, five labelled slots, the highlighted item's numbers, and the item/stat
+   set row. The Skills page is two labelled lists with a JP line and a details box. Every control has a `Name`.
+2. **Gear search/filter** — case-insensitive across name/type/subtype/style/rarity, plus a slot filter, with an
+   `N of M legal items` counter.
+3. **JP re-balance** — adding a skill that pushes the build over its award offers to raise `JOBPOINTS` to the spend
+   (once, on the crossing add), logs the decision, and the JP line shows `(overridden)` / `(over budget)` in red.
+4. **Preview refresh** — a level change re-reads the stat set at the new level and repaints; every gear/skill/set
+   mutation refreshes both the loadout and the stats panel.
+
+Also fixed on the way: the level box validates through `InputRules` (1–30) instead of clamping silently, and the
+missing-file check now goes through `ProjectRoots.ResolveBecFolder` so a project whose BEC folder is not literally
+`<name>_BEC` (the `REALDATA_*` fixtures) opens.
+
+### 5.4 The UI driver (how GUI work gets verified)
+
+`--ui-server` / `--ui-script` let a script or an agent drive the window over loopback JSON lines — snapshot, click,
+set, select, screenshot, log. It is opt-in, loopback-only, and drives the real controls, so it cannot reach a Core API
+except by pressing the button that does. Documented in `docs/UI_AUTOMATION.md`; the replayable scenario for this phase
+is `scripts/team-builder-smoke.txt`, and the checklist is `docs/testing/MANUAL_TESTING_TEAM_BUILDER.md`.
 
 ---
 
@@ -171,6 +193,7 @@ format docs.
 | `gold_test` project | rosters hold 999,999 gold; one item costs 999,999 with affinity 200 — confirm a purchase leaves 0 and the affinity display caps sanely |
 | Team Builder export | a roster exported through the panel boots and the edited unit matches the build |
 | Phase 7.8/7.9 GUI pass | pack/unpack from the buttons: output appears in the panel, a deliberately broken tool path reports failure instead of "completed successfully", and a project under a path containing `(` works |
+| Team Builder UX | `docs/testing/MANUAL_TESTING_TEAM_BUILDER.md`, or replay `scripts/team-builder-smoke.txt` against the running app |
 
 ---
 
@@ -200,6 +223,11 @@ format docs.
 11. **MSBuild on this machine:** a `Build FAILED` with `0 Errors` and no project errors is a restore/node failure, not
     a code error. Builds also fail with `MSB3491 … Access is denied` writing under `obj\` when the workspace file
     policy is read-only. Check the policy before debugging code.
+12. **The driver owns the UI thread**, so a modal dialog hangs it: `UiConfirm` is the safe way to ask (it logs and
+    answers yes under automation), while a legacy `MessageBox.Show` in a path the driver reaches will stall the run
+    until the app is killed. Also kill the app before rebuilding — a running exe locks `bin\…\ModdingGUI.exe`.
+13. **`DrawToBitmap` screenshots are the window at its logical size**, not what a scaled desktop shows; read the
+    snapshot's bounds when cropping, and do not trust a downscaled preview for pixel-level colour questions.
 
 ---
 
@@ -217,6 +245,7 @@ format docs.
 | Toolchain execution (no shell) | `ModdingGUI.Core/Tools/{ToolStep,ToolRunner,PackService,UnpackService}.cs` |
 | Shell features | `frmMain_partials/*.cs`, `Forms/`, `GridBuilder/`, `SkillEditor/` |
 | Manual test checklists | `docs/testing/*.md` |
+| Driving the GUI (tests, agents) | `docs/UI_AUTOMATION.md`, `scripts/ui-drive.ps1`, `scripts/team-builder-smoke.txt` |
 | Last QA ISO | `qa-pack/qa-pack.iso` (seed `phase6-qa4`) |
 
 ---
