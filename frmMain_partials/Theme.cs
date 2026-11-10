@@ -89,6 +89,7 @@ namespace ModdingGUI
             UiTheme.Use(UiTheme.Parse(appSettings.Theme));
             BuildThemeMenu();
             UiTheme.Apply(this);
+            UiTheme.Watch(this);
             ThemeChrome();
         }
     }

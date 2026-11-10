@@ -18,6 +18,16 @@ namespace ModdingGUI
 
             Control? Find(string name) => root.Controls.Find(name, true).FirstOrDefault();
 
+            // The designer group boxes held the controls that now live in the cards. Their children moved out, so what is
+            // left is three empty frames and two captions - visible evidence that an old layout is still on the page.
+            foreach (string retired in new[]
+                     {
+                         "grpBaseOptions", "grpHeroSelection", "grpGameVersion", "label16", "label15",
+                     })
+            {
+                if (Find(retired) is Control stale) stale.Visible = false;
+            }
+
             int pad = UiTheme.Space(page, 3);
             page.BackColor = UiTheme.Surface;
             page.Padding = new Padding(pad);
@@ -157,6 +167,18 @@ namespace ModdingGUI
                 if (progress.Visible) runFlow.Controls.Add(progress);
             }
 
+            if (Find("lblRandomizeStatus") is Label status)
+            {
+                // Driven by code ("Ready", "Randomizing..."), so it has to stay visible - it just belongs in the card.
+                status.Font = UiTheme.Body;
+                status.ForeColor = UiTheme.InkMuted;
+                status.BackColor = UiTheme.Surface;
+                status.AutoSize = true;
+                if (status.Text is "Status:" or "") status.Text = "Ready";   // designer placeholder, not a state
+                AddHeading(runFlow, page, "Status");
+                runFlow.Controls.Add(status);
+            }
+
             if (Find("txtSeed") is TextBox seed)
             {
                 seed.ReadOnly = true;   // themed, rather than a disabled box painted in system colours
@@ -178,7 +200,7 @@ namespace ModdingGUI
                     path.Width = Math.Max(UiTheme.Scale(page, 100), width - choose.Width - UiTheme.Scale(page, 12));
                 }
 
-                if (Find("txtSeed") is TextBox seed) seed.Width = width;
+            if (Find("txtSeed") is TextBox seed) seed.Width = width;
             }
 
             runFlow.SizeChanged += (_, _) => FitRun();

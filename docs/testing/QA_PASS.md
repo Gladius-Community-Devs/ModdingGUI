@@ -358,3 +358,36 @@ in a dark window (same class of problem as disabled inputs). The control is stil
   which are not, the tab-strip reason, the Settings dialog and `--render-settings`.
 - `docs/UI_AUTOMATION.md` gained the `audit` / `auditAll` / `hit` commands with their response shapes, and the
   `--render-settings` pattern for modal dialogs (they block the driver, which is why the section exists).
+
+## 17. How styling is validated (and what slipped through)
+
+The Randomizer shipped with three empty designer group boxes, two stale captions and a repeated "Status" heading, all
+themed and all passing the audit. Two real gaps, now closed:
+
+**Gap 1 - the audit only looked at text colour.** Empty frames have no text of their own; "Options" as a group caption
+has perfectly good contrast. `audit` now also returns `layout` findings for the pages rebuilt on the kit (Patching,
+Unpacking, Packing, Randomizer):
+
+- `empty-container` - a visible `GroupBox`/`Panel` with a caption and no visible children, i.e. its contents moved out
+  and the frame was left behind;
+- `outside-card` - a visible label/button/field on a migrated page whose ancestors contain no card, i.e. a leftover
+  rather than part of the new layout.
+
+Run across all thirteen pages it now reports **contrast 0 / layout 0** on every one.
+
+**Gap 2 - a local layout function created controls.** The "Status" heading appeared five times because the block that
+adds it had been pasted inside `FitRun()`, which runs on every layout pass: each pass added another heading and
+re-parented the status label. Rule for the kit: **a layout callback may only size things, never create them**. The
+duplicate was found by reading the file, not by the audit - worth remembering that an audit only finds the classes of
+problem it knows about.
+
+Two more defects came out of the same sweep:
+
+- the primary button failed AA: white on `#3D7DD8` measures **4.1:1**. Accent darkened to `#3468B5` (**5.4:1**);
+  `AccentHover` keeps the old brighter value so hover still reads as a change;
+- the Editors page had an **unnamed white `TextBox` with black text** in every audit run. It was created lazily by a
+  row builder long after `UiTheme.Apply` had walked the tree. `UiTheme.Watch(root)` now themes controls as they are
+  added, which covers every editor that builds rows on demand.
+
+The verification loop for a page is therefore: build clean -> `snapshot` geometry against the client area ->
+`audit` (contrast **and** layout) -> `screenshot` -> toggle the theme and check the same page -> suite green.

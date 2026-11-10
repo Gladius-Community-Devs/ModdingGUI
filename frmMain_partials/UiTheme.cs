@@ -54,8 +54,8 @@ namespace ModdingGUI
             Border: Color.FromArgb(51, 58, 67),
             Ink: Color.FromArgb(230, 233, 238),
             InkMuted: Color.FromArgb(174, 184, 198),
-            Accent: Color.FromArgb(61, 125, 216),
-            AccentHover: Color.FromArgb(76, 139, 230),
+            Accent: Color.FromArgb(52, 104, 181),      // white text clears AA (5.4:1); the previous #3D7DD8 did not (4.1:1)
+            AccentHover: Color.FromArgb(61, 125, 216),
             AccentInk: Color.FromArgb(255, 255, 255),
             Success: Color.FromArgb(76, 175, 125),
             Warning: Color.FromArgb(217, 164, 65),
@@ -266,6 +266,14 @@ namespace ModdingGUI
                     text.BorderStyle = BorderStyle.FixedSingle;
                     break;
 
+                case NumericUpDown spin:
+                    // The spinner's edit box is a child control, so it needs the colour too or it stays white in a dark
+                    // window (the audit reports it as an unnamed TextBox with a system background).
+                    spin.BackColor = SurfaceSunken;
+                    spin.ForeColor = Ink;
+                    spin.BorderStyle = BorderStyle.FixedSingle;
+                    break;
+
                 case ComboBox combo:
                     combo.BackColor = SurfaceSunken;
                     combo.ForeColor = Ink;
@@ -310,6 +318,29 @@ namespace ModdingGUI
                     root.BackColor = root.BackColor == SurfaceAlt ? SurfaceAlt : Surface;
                     root.ForeColor = Ink;
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Paint controls as they are added from now on, for anything built after the initial <see cref="Apply"/>.
+        /// </summary>
+        /// <remarks>
+        /// Editors create rows lazily - a stat row's text box did not exist when the palette was applied, so it kept the
+        /// system colours and the audit reported it as an unnamed white TextBox with black text. Watching additions is
+        /// the only way to cover that without every call site remembering to style what it creates.
+        /// </remarks>
+        public static void Watch(Control root)
+        {
+            foreach (Control child in root.Controls)
+            {
+                child.ControlAdded += (_, e) =>
+                {
+                    if (e.Control is not Control added) return;
+                    Apply(added);
+                    Watch(added);
+                };
+
+                Watch(child);
             }
         }
 

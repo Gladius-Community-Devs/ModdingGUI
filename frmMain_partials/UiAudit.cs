@@ -44,6 +44,7 @@ namespace ModdingGUI
                 {
                     name = control.Name,
                     type = control.GetType().Name,
+                    parent = control.Parent is null ? null : $"{control.Parent.GetType().Name} '{control.Parent.Name}'",
                     text = text.Length > 48 ? text[..48] : text,
                     fore = Hex(control.ForeColor),
                     back = Hex(back),
@@ -52,7 +53,16 @@ namespace ModdingGUI
                 });
             }
 
-            return JsonSerializer.Serialize(new { scheme = UiTheme.ToSetting(), threshold, count = findings.Count, findings });
+            var layout = LayoutFindings();
+            return JsonSerializer.Serialize(new
+            {
+                scheme = UiTheme.ToSetting(),
+                threshold,
+                count = findings.Count,
+                findings,
+                layoutCount = layout.Count,
+                layout,
+            });
         }
 
         /// <summary>Name the deepest control at a point and the colours it is painted with. Command: <c>{"cmd":"hit","x":1,"y":2}</c>.</summary>
@@ -112,6 +122,81 @@ namespace ModdingGUI
             }
 
             return JsonSerializer.Serialize(new { pages = report });
+        }
+
+        /// <summary>
+        /// Layout smells that a contrast check cannot see: a caption with nothing under it, or a control still sitting
+        /// outside the cards after a page was rebuilt on the kit.
+        /// </summary>
+        /// <remarks>
+        /// Added after an empty set of designer group boxes survived a rebuild and passed the contrast audit: the text
+        /// that was left ("Options", "Starting hero") had perfectly good contrast, it just should not have been there.
+        /// </remarks>
+        private List<object> LayoutFindings()
+        {
+            var issues = new List<object>();
+
+            // Pages already rebuilt on the kit; anything visible outside a card there is a leftover.
+            var migrated = new HashSet<string>(StringComparer.Ordinal)
+            {
+                "tabPatching", "tabUnpacking", "tabPacking", "tabRandomizer",
+            };
+
+            foreach (Control control in Descendants(this))
+            {
+                if (!IsOnScreen(control)) continue;
+
+                // An empty framed container: its contents moved and the frame was left behind.
+                bool framed = control is GroupBox or Panel;
+                if (framed && !string.IsNullOrWhiteSpace(control.Text) && !control.Controls.Cast<Control>().Any(c => c.Visible))
+                {
+                    issues.Add(new { name = control.Name, type = control.GetType().Name, text = control.Text, issue = "empty-container" });
+                    continue;
+                }
+
+                // Only the things a user reads or clicks: the cards and the layout panels that hold them have no card
+                // above them by definition, and flagging those buried the real findings in noise.
+                if (control is not (Label or Button or TextBox or CheckBox or RadioButton or GroupBox
+                    or TreeView or RichTextBox or ComboBox or ProgressBar or LinkLabel)) continue;
+
+                if (control.Name.StartsWith("card", StringComparison.Ordinal)) continue;
+
+                TabPage? page = AncestorPage(control);
+                if (page is null || !migrated.Contains(page.Name)) continue;
+                if (control is TabPage) continue;
+                if (control.Name.StartsWith("pnlTabStrip", StringComparison.Ordinal)) continue;
+
+                bool insideCard = false;
+                for (Control? parent = control.Parent; parent is not null; parent = parent.Parent)
+                {
+                    if (parent.Name.StartsWith("card", StringComparison.Ordinal)) { insideCard = true; break; }
+                    if (parent is TabPage) break;
+                }
+
+                if (!insideCard)
+                {
+                    issues.Add(new
+                    {
+                        name = control.Name,
+                        type = control.GetType().Name,
+                        text = control.Text,
+                        issue = "outside-card",
+                        bounds = $"{control.Left},{control.Top} {control.Width}x{control.Height}",
+                    });
+                }
+            }
+
+            return issues;
+        }
+
+        private static TabPage? AncestorPage(Control control)
+        {
+            for (Control? cursor = control; cursor is not null; cursor = cursor.Parent)
+            {
+                if (cursor is TabPage page) return page;
+            }
+
+            return null;
         }
 
         private static IEnumerable<Control> Descendants(Control root)
