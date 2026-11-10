@@ -110,7 +110,7 @@ affects, what the campaign rosters are.
 | D13 | Open | 134 `MessageBox.Show` call sites; only automation mode covers them | Route through one helper over time |
 | D14 | Open | Unit Selection page is still the old absolute layout | Cosmetic |
 | D15 | Fixed (see D23) | Driver `set` writes to hidden/disabled controls without complaint (it drove a retired field during this pass) | `set`/`click` refuse with a reason |
-| D16 | Open | Randomizer and Patching flows not exercised (destructive / needs real patch files) | Add to a later sweep |
+| D16 | Fixed | Randomizer and Patching flows not exercised (destructive / needs real patch files) | Both exercised: randomizer is deterministic and resettable (§6b); xDelta created from vanilla ? packed ISO (6.9 MB, 12.6 s) and applied back to a copy of vanilla (5.9 s) producing an ISO **byte-identical** to the packed one |
 | D19 | High | Randomizer: clicking Randomize with no options ticked disabled the button for the rest of the session (the early return skipped the re-enable) | Fixed |
 | D20 | Low | Automation guard reported an OK-only message as "answered yes" | Fixed - "acknowledged" |
 | D21 | Medium | Skills editor: every control was unnamed, so nothing there was reachable by the driver, a screen reader, or hover help | Fixed - 14 controls named |
@@ -130,6 +130,8 @@ affects, what the campaign rosters are.
 | Randomizer, seed `qa-seed-B` | changes `gladiators.txt` and both campaign rosters, compiles 7 campaign scripts, ~12 s |
 | Randomizer, same seed again | produces **identical files** - the seed really does reproduce the run |
 | Reset to Vanilla | restores all **960** files byte-exactly, twice |
+| xDelta create: vanilla ISO ? packed ISO | 6.9 MB patch in 12.6 s (`xdelta3 -e -s`), log says "Patch created successfully." |
+| xDelta apply: vanilla copy + patch | 5.9 s, and `Gladius_Patched.ISO` is **byte-identical** to the packed ISO |
 
 Two operational notes for anyone scripting this:
 - **A save finishes after the click returns.** Both editors write on a background task, so hashing or counting backups immediately after `click` reads the old state. Wait for the log/status, or poll until two hashes agree.
