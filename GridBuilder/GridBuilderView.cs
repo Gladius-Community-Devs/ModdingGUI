@@ -531,6 +531,43 @@ namespace ModdingGUI
             return null;
         }
 
+        /// <summary>The scale that makes an image of <paramref name="imageWidth"/> pixels fill one board edge.</summary>
+        /// <remarks>
+        /// Every arena page is 256 px and a board edge is 32 cells x 20 px = 640, so the untuned case is scale 2.5 - the
+        /// pages used to open at 1.0 and sit as a thumbnail in the corner.
+        /// </remarks>
+        internal static decimal FitScaleFor(int imageWidth) =>
+            imageWidth <= 0 ? 1m : (decimal)(GridFile.ArenaSize * GridPanel.CellSize) / imageWidth;
+
+        /// <summary>
+        /// Scale a page so it fills the board, for the arenas that have no hand-tuned transform.
+        /// </summary>
+        /// <returns>True when the controls were set, i.e. the image could be measured.</returns>
+        private bool TryFitMapToGrid(string mapPath)
+        {
+            try
+            {
+                using Image probe = Image.FromStream(new MemoryStream(File.ReadAllBytes(mapPath)));
+
+                if (probe.Width <= 0) return false;
+
+                decimal clamped = Math.Max(_mapScaleNumeric.Minimum, Math.Min(_mapScaleNumeric.Maximum, FitScaleFor(probe.Width)));
+
+                _mapOffsetXNumeric.Value = 0;
+                _mapOffsetYNumeric.Value = 0;
+                _mapScaleNumeric.Value = clamped;
+                if (_mapRotationBox.Items.Count > 0) _mapRotationBox.SelectedIndex = 0;
+
+                AppendLog($"Fitted '{Path.GetFileName(mapPath)}' ({probe.Width}x{probe.Height}) to the board at scale {clamped:0.00}.", "Purple", isDetail: true);
+                return true;
+            }
+            catch (Exception ex) when (ex is IOException or ArgumentException or OutOfMemoryException)
+            {
+                AppendLog($"Could not measure '{Path.GetFileName(mapPath)}' to fit it: {ex.Message}", "Orange", isDetail: false);
+                return false;
+            }
+        }
+
         private void ResetMapState()
         {
             AppendLog("ResetMapState called.", "CornflowerBlue", isDetail: true);
@@ -704,7 +741,15 @@ namespace ModdingGUI
                         }
                         else
                         {
-                            AppendLog($"INFO: No default transforms found in dictionary for key '{processedGrdKey}'. UI controls will retain neutral values from ResetMapState.", "Gray", isDetail: false);
+                            AppendLog($"INFO: No default transforms found in dictionary for key '{processedGrdKey}'.", "Gray", isDetail: false);
+
+                            // Fit the page to the board rather than leaving it at 1.0 in the corner: every arena page is
+                            // 256 px and the grid is 32 cells x 20 px = 640, so an untuned map would cover a quarter of
+                            // the arena. Only four of the arena keys have hand-tuned transforms, so this is the common path.
+                            if (!string.IsNullOrEmpty(_currentMapImagePath) && TryFitMapToGrid(_currentMapImagePath))
+                            {
+                                autoShowMap = true;
+                            }
                         }
                     }
                     else

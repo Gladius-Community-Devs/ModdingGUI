@@ -22,12 +22,12 @@ E:\code_stuff\GladiusModdingToolsGUI\        workspace (not a git repo)
     ├── ModdingGUI.sln
     ├── ModdingGUI.csproj                    WinForms shell (net8.0-windows)
     ├── ModdingGUI.Core/                     net8.0, no UI: Tok, Schemas, APIs, Randomizer, History, Tools, Logging
-    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 838 tests
+    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 843 tests
     └── ModdingGUI.Mcp/                      Phase 8 stub: builds, Program.cs is inert (no stdio server yet)
 ```
 
 **State of the tree:** clean, `dotnet build` reports **0 warnings** in Debug and Release, suite is
-**838 passed / 0 failed / 0 skipped**.
+**843 passed / 0 failed / 0 skipped**.
 
 ---
 

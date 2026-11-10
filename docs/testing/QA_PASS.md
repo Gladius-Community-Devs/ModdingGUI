@@ -624,3 +624,29 @@ already the house style.
 theme to dark) and the new `DiscImageConverterPath`; the Packing page's `chbAutoLaunchDolphin` had been left off the card
 by the old designer layout - invisible and unclickable - and now has an "After packing" row. All eight pages audit at
 contrast 0 / layout 0.
+
+## 26. Map decode validated against the 2015 reference set
+
+The app's converted pages were compared pixel-for-pixel with the reference PNGs the project owner supplied
+(`E:\Gladius-Workshop\ModdingGUI\maps`), not just eyeballed.
+
+| Check | Result |
+|---|---|
+| File names | 49 of 49 match; no extras, none missing |
+| Dimensions | 49 of 49 are 256x256 |
+| Colour difference | **mean 0.73/255**; 3,059 px of 3,211,264 (0.095%) differ by more than 8; worst single pixel 42 |
+| Alpha difference | mean 0.47/255; 15,190 px (0.473%) differ by more than 8; worst 22 |
+
+The alpha difference is **identical for every one of the 49 images** (310 px over 8, worst 22 in each), which says it is a
+systematic difference in the mask plane rather than per-image noise: the 2015 tool interpolated the mask, the current
+decode takes the CMPM block value as stored. At the ~47% opacity these pages are drawn with, it is invisible - the
+difference panel of the comparison sheet is black.
+
+Detailed arenas were used deliberately: `map_pirgosarena.png` (a colosseum with tiered seating) and
+`map_arenasuren.png` (a settlement with structures, roads and vegetation), because a flat arena proves nothing about the
+decode. `qa-maps-compare.png` shows ours | reference | difference x8 for both.
+
+**Fit-to-board fallback.** Only four arena keys have hand-tuned transforms, so every other arena opened with the page at
+scale 1.0 - a 256 px thumbnail in the corner of a 640 px board. When the map key has no tuned transform the page is now
+scaled to fill the board (`FitScaleFor`, 32 cells x 20 px / image width, so 2.5 for the standard page size) with zero
+offsets, and auto-shown. Five tests pin the arithmetic; the four tuned arenas still use their tuned values.
