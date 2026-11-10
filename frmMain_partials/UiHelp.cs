@@ -198,6 +198,29 @@ namespace ModdingGUI
         }
 
         /// <summary>
+        /// Make the project sidebar follow the window instead of the designer's 1199 px tree.
+        /// </summary>
+        /// <remarks>
+        /// <c>tvwProjects</c> is anchored on all four sides inside the split panel, but it keeps its design-time height
+        /// when the form shrinks, so at 1366x768 the tree runs 400 px past the bottom of the window and the lower half
+        /// of the project list is unreachable. Docking the header to the top and the tree to the rest is what the panel
+        /// actually means; the header is brought to the front so it docks last and keeps its strip.
+        /// </remarks>
+        internal static void FixSidebarLayout(Control root)
+        {
+            if (root.Controls.Find("tvwProjects", true).FirstOrDefault() is not TreeView tree) return;
+            if (root.Controls.Find("txtFileHeader", true).FirstOrDefault() is not TextBox header) return;
+            if (tree.Parent is not Control panel) return;
+
+            header.Dock = DockStyle.Top;
+            tree.Dock = DockStyle.Fill;
+            tree.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+            // Docking runs from the end of the child collection, so the header must come first in z-order.
+            header.BringToFront();
+        }
+
+        /// <summary>
         /// Give the Randomizer page a footer row instead of controls floating in the empty half of the options box.
         /// </summary>
         /// <remarks>

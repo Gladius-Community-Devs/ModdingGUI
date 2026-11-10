@@ -53,6 +53,7 @@ namespace ModdingGUI
 
             BuildBaselineControls();
             UiHelp.FixRandomizerLayout(this);
+            UiHelp.FixSidebarLayout(this);
 
             // Right-click must move the tree selection, otherwise the context menu acts on a stale or missing node.
             tvwProjects.MouseDown += SelectNodeUnderCursor;

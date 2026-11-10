@@ -182,4 +182,4 @@ Checked by geometry rather than by eye: every visible control's bounds against t
 
 New finding:
 
-| D26 | Medium | At 1366x768 the project sidebar keeps a 1173 px height and extends past the bottom of the window | Needs the sidebar panel to anchor or dock to the form instead of inheriting the designer height |
+| D26 | Fixed | At 1366x768 the project sidebar kept its 1173 px height and ran past the bottom of the window, hiding the lower half of the project list | The header docks to the top and the tree fills the rest (`UiHelp.FixSidebarLayout`); measured at 1366x768 the tree is 222x673 inside a 702 px panel |
