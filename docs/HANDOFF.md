@@ -207,6 +207,13 @@ missing-file check now goes through `ProjectRoots.ResolveBecFolder` so a project
    records for anyone who wants them.
 6. **The 40-gladiator confirmation and the export summary go through `UiConfirm`/`UiAlert`**, so an automated run does
    not deadlock on a modal.
+7. **A loaded unit round-trips.** Loading a roster carried LEVEL, stats and SKILL but not `ITEMSCOMP`, so a loaded unit
+   opened with an empty Gear page — and the next save wrote five empty slots over the roster's equipment. `Unit` now
+   carries `Experience` and `Customize` too (a save used to reset `EXPERIENCE` to 0 and `CUSTOMIZE` to `0`), and the
+   class item-set fallback only fills gear for a unit *made in the tool*, never a roster unit's empty slots.
+8. **Saving is idempotent.** The exporter compares each field and the whole skill list before writing, so loading a
+   roster and saving it untouched reports `1 added, 0 updated, 2 unchanged` and leaves the file byte-identical apart
+   from the new block. Before this every unit was rewritten whether or not anything had changed.
 
 ### 5.4 The UI driver (how GUI work gets verified)
 
@@ -259,6 +266,10 @@ is `scripts/team-builder-smoke.txt`, and the checklist is `docs/testing/MANUAL_T
 12. **The driver owns the UI thread**, so a modal dialog hangs it: `UiConfirm` is the safe way to ask (it logs and
     answers yes under automation), while a legacy `MessageBox.Show` in a path the driver reaches will stall the run
     until the app is killed. Also kill the app before rebuilding — a running exe locks `bin\…\ModdingGUI.exe`.
+14. **A roster unit is a snapshot of the file.** Loading reads the fields the model understands; anything it does not
+    carry must be written back verbatim or left alone. `ITEMSCOMP`, `EXPERIENCE` and `CUSTOMIZE` were each lost this
+    way, and the item-set fallback invented gear into deliberately empty slots. If you add a field to `Unit`, add it to
+    `LoadSelectedRoster` *and* `BuildSchoolUnit`, and make the writer compare before writing.
 13. **`DrawToBitmap` screenshots are the window at its logical size**, not what a scaled desktop shows; read the
     snapshot's bounds when cropping, and do not trust a downscaled preview for pixel-level colour questions.
 

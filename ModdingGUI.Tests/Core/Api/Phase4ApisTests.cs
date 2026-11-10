@@ -104,6 +104,21 @@ public sealed class Phase4ApisTests : IDisposable
     }
 
     [Fact]
+    public void Schools_ReadItemsCompAsFiveSlots()
+    {
+        if (!Ready) return;
+
+        // A unit loaded from a roster must carry its equipment: the Team Builder used to read LEVEL, stats and SKILL
+        // and skip ITEMSCOMP, so the Gear page opened empty and the next save wrote five empty slots.
+        var valens = new SchoolsApi().Get(_projectDir, "data/school/valensimperia.tok")!.Unit("Valens");
+
+        Assert.NotNull(valens);
+        Assert.Equal(new[] { "Machera", "Short Cape", "", "", "Air Badge of Aeris" }, valens!.ItemsComp);
+        Assert.Equal("0", valens.Value("EXPERIENCE")?.Trim());
+        Assert.Equal("1, \"\"", valens.Value("CUSTOMIZE")?.Trim());
+    }
+
+    [Fact]
     public void Schools_SetUnitField_ThenRevert_IsByteIdentical()
     {
         if (!Ready) return;

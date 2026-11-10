@@ -573,6 +573,10 @@ Replace mockup with real implementation backed by `IClassesApi` + `ISkillsApi` +
   per-roster writes. The skills picker also stopped offering combo hits and game-granted records — the rule is
   `LearnableSkills` (subskill links, `SKILLCREATE` category, opt-in "any class"), and it is documented in `HANDOFF.md`
   §4 because it is engine behaviour, not taste.
+- **Round trip (owner-reported).** A unit loaded from a roster carries its `ITEMSCOMP` gear, `EXPERIENCE` and
+  `CUSTOMIZE` back into the editor, and the exporter compares before writing, so loading and saving a roster unchanged
+  reports `0 updated, N unchanged` and leaves those blocks byte-identical. The class item-set fallback now fills gear
+  only for units created in the tool.
 - **Verifying GUI work (added with the UX pass).** `--ui-server` / `--ui-script` attach a loopback JSON driver to the
   window (snapshot, click, set, select, screenshot, log), so panel changes can be exercised and reviewed instead of
   described. It is off by default, binds `127.0.0.1`, and drives real controls — it cannot reach a Core API except by

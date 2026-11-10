@@ -99,6 +99,15 @@ namespace ModdingGUI
    /// <summary>Name the unit had in that roster when it was loaded.</summary>
    public string? LoadedName { get; set; }
 
+   /// <summary>
+   /// The <c>EXPERIENCE</c> value the roster block carried, or null for a unit made here. Written back on save, so
+   /// editing one unit does not reset the others' progress or outfit.
+   /// </summary>
+   public string? Experience { get; set; }
+
+   /// <summary>The raw <c>CUSTOMIZE</c> value the roster block carried, e.g. <c>1, ""</c>.</summary>
+   public string? Customize { get; set; }
+
             // BaseStats are set directly from statsets.txt
             public Stats BaseStats { get; set; } = new Stats();
 
@@ -1437,24 +1446,27 @@ namespace ModdingGUI
             var fields = new List<ModdingGUI.Core.Api.SchoolFieldDto>
             {
                 new("LEVEL", unit.Level.ToString()),
-                new("EXPERIENCE", "0"),
+                new("EXPERIENCE", string.IsNullOrWhiteSpace(unit.Experience) ? "0" : unit.Experience!.Trim()),
                 new("JOBPOINTS", unit.JobPoints.ToString()),
-                new("CUSTOMIZE", "0, \"\""),
+                new("CUSTOMIZE", string.IsNullOrWhiteSpace(unit.Customize) ? "0, \"\"" : unit.Customize!.Trim()),
             };
 
             var stats = unit.BaseStats;
             fields.Add(new ModdingGUI.Core.Api.SchoolFieldDto("CORESTATSCOMP2",
                 $"{stats.CON}, {stats.PWR}, {stats.ACC}, {stats.DEF}, {stats.INI}, {stats.MOV}"));
 
-            // Gear comes from the class's own gladiator records, chosen by items.tok Type at the unit's level.
+            // Gear comes from the unit's own loadout. The class item-set fallback is for a unit made here, which
+            // starts with nothing; filling a roster unit's empty slots would invent equipment the designer did not
+            // ask for (vanilla leaves Valens' shield and helmet empty on purpose).
             string weapon = GetItemNameByType(unit.EquippedGear, GearType.Weapon);
             string armor = GetItemNameByType(unit.EquippedGear, GearType.Armor);
             string shield = GetItemNameByType(unit.EquippedGear, GearType.Shield);
             string helmet = GetItemNameByType(unit.EquippedGear, GearType.Helmet);
             string accessory = GetItemNameByType(unit.EquippedGear, GearType.Accessory);
 
-            if ((string.IsNullOrEmpty(weapon) || string.IsNullOrEmpty(armor) || string.IsNullOrEmpty(shield)
-                 || string.IsNullOrEmpty(helmet) || string.IsNullOrEmpty(accessory))
+            if (unit.LoadedFromRoster is null
+                && (string.IsNullOrEmpty(weapon) || string.IsNullOrEmpty(armor) || string.IsNullOrEmpty(shield)
+                    || string.IsNullOrEmpty(helmet) || string.IsNullOrEmpty(accessory))
                 && itemSets is not null && itemTypes is not null && gladiatorEntries is { Count: > 0 })
             {
                 var matching = gladiatorEntries
@@ -1481,7 +1493,10 @@ namespace ModdingGUI
             }
 
             fields.Add(new ModdingGUI.Core.Api.SchoolFieldDto("ITEMSCOMP",
-                $"\"{weapon}\", \"{armor}\", \"{shield}\", \"{helmet}\", \"{accessory}\""));
+                ModdingGUI.Core.Values.QuotedList.Join(new[]
+                {
+                    weapon, armor, shield, helmet, accessory,
+                })));
 
             if (string.IsNullOrEmpty(weapon))
             {
@@ -1577,36 +1592,57 @@ namespace ModdingGUI
                 var schools = new ModdingGUI.Core.Api.SchoolsApi();
                 var skipped = new List<string>();
                 var perRoster = new List<string>();
-                int added = 0, updatedTotal = 0, removedTotal = 0;
+                int added = 0, updatedTotal = 0, unchangedTotal = 0, removedTotal = 0;
 
                 foreach (string roster in rosters)
                 {
                     string relative = "data/school/" + roster;
 
-                    var existing = schools.Get(projectPath, relative)?.Units
-                        .Select(u => u.Name)
-                        .ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var rosterUnits = schools.Get(projectPath, relative)?.Units ?? Array.Empty<ModdingGUI.Core.Api.SchoolUnitDto>();
+                    var existing = rosterUnits
+                        .ToDictionary(u => u.Name, StringComparer.OrdinalIgnoreCase);
 
-                    foreach (var unit in units.Where(unit => existing.Contains(unit.Name)))
+                    foreach (var unit in units.Where(unit => existing.ContainsKey(unit.Name)))
                     {
                         skipped.Add($"{unit.Name} (already in {roster})");
                     }
 
-                    // Units loaded from this roster are edited in place rather than appended again.
+                    // Units loaded from this roster are edited in place rather than appended again — and only where
+                    // the value actually differs, so a save that changes one unit leaves the others byte-identical
+                    // (experience, outfit and hand-placed comments included).
                     int updated = 0;
+                    int unchanged = 0;
                     foreach (var (unit, _) in built.Where(entry =>
                         string.Equals(entry.Source.LoadedFromRoster, roster, StringComparison.OrdinalIgnoreCase)))
                     {
+                        if (!existing.TryGetValue(unit.Name, out var current))
+                        {
+                            continue;   // renamed out of the roster; the old block is removed below
+                        }
+
+                        bool changed = false;
+
                         foreach (var field in unit.Fields)
                         {
                             if (field.Key.Equals("SKILL", StringComparison.OrdinalIgnoreCase)) continue;
+                            if (SameValue(current.Value(field.Key), field.RawValue)) continue;
+
                             schools.SetUnitField(projectPath, relative, unit.Name, field.Key, field.RawValue);
+                            changed = true;
                         }
 
-                        schools.SetUnitSkills(projectPath, relative, unit.Name,
-                            unit.Fields.Where(f => f.Key.Equals("SKILL", StringComparison.OrdinalIgnoreCase))
-                                .Select(f => f.RawValue).Select(v => v.Trim().Trim('"')).ToArray());
-                        updated++;
+                        var wantedSkills = unit.Fields
+                            .Where(f => f.Key.Equals("SKILL", StringComparison.OrdinalIgnoreCase))
+                            .Select(f => f.RawValue.Trim().Trim('"'))
+                            .ToArray();
+
+                        if (!wantedSkills.SequenceEqual(current.Skills, StringComparer.OrdinalIgnoreCase))
+                        {
+                            schools.SetUnitSkills(projectPath, relative, unit.Name, wantedSkills);
+                            changed = true;
+                        }
+
+                        if (changed) updated++; else unchanged++;
                     }
 
                     var fresh = built
@@ -1628,10 +1664,13 @@ namespace ModdingGUI
                     int freshAdded = schools.AddUnits(projectPath, relative, fresh);
                     added += freshAdded;
                     updatedTotal += updated;
+                    unchangedTotal += unchanged;
                     removedTotal += removedUnits;
 
-                    perRoster.Add($"{roster}: {freshAdded} added, {updated} updated, {removedUnits} removed");
-                    AppendLog($"'{roster}': +{freshAdded} added, {updated} updated, {removedUnits} removed.", Color.Blue);
+                    perRoster.Add($"{roster}: {freshAdded} added, {updated} updated, {unchanged} unchanged, " +
+                                  $"{removedUnits} removed");
+                    AppendLog($"'{roster}': +{freshAdded} added, {updated} updated, {unchanged} unchanged, " +
+                              $"{removedUnits} removed.", Color.Blue);
                 }
 
                 // One unit into two rosters is one unit, not two: the old message summed the per-roster counts and read
@@ -1645,8 +1684,8 @@ namespace ModdingGUI
                 if (skipped.Count > 0)
                 {
                     summary += Environment.NewLine + Environment.NewLine +
-                               $"{skipped.Distinct().Count()} unit(s) were already in a roster and were updated, not " +
-                               "duplicated:" + Environment.NewLine +
+                               $"{skipped.Distinct().Count()} unit(s) already existed in a roster, so they were matched " +
+                               "in place instead of being added twice:" + Environment.NewLine +
                                string.Join(Environment.NewLine, skipped.Distinct().Take(10));
                 }
 
@@ -1663,6 +1702,18 @@ namespace ModdingGUI
             {
                 projectPathForValidation = null;
             }
+        }
+
+        /// <summary>
+        /// Compare a roster value with the one we would write, ignoring whitespace runs. Tab/space differences in the
+        /// file are not edits, and treating them as such rewrote every block on every save.
+        /// </summary>
+        private static bool SameValue(string? current, string? wanted)
+        {
+            static string Normalise(string? value) =>
+                value is null ? string.Empty : string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+            return string.Equals(Normalise(current), Normalise(wanted), StringComparison.Ordinal);
         }
 
         /// <summary>The name of the equipped item of a given kind, or an empty string.</summary>
@@ -2235,8 +2286,16 @@ namespace ModdingGUI
                     Class = new ClassDefinition { ClassName = dto.ClassName },
                     Level = int.TryParse(dto.Value("LEVEL"), out int level) ? level : 1,
                     JobPoints = int.TryParse(dto.Value("JOBPOINTS"), out int jp) ? jp : 0,
+
+                    // A roster states its job points outright, so show that number rather than the class/level award.
+                    JobPointsOverridden = true,
+
                     LoadedFromRoster = roster,
                     LoadedName = dto.Name,
+
+                    // Carried verbatim so a save writes them back instead of resetting them to 0.
+                    Experience = dto.Value("EXPERIENCE"),
+                    Customize = dto.Value("CUSTOMIZE"),
                 };
 
                 var stats = dto.CoreStats;
@@ -2246,6 +2305,18 @@ namespace ModdingGUI
                     {
                         CON = stats[0], PWR = stats[1], ACC = stats[2], DEF = stats[3], INI = stats[4], MOV = stats[5],
                     };
+                }
+
+                // The five ITEMSCOMP slots, in the engine's order. Without this the Gear page opened empty for a
+                // loaded unit — and, worse, the next save wrote five empty slots over the roster's equipment.
+                var slots = dto.ItemsComp;
+                GearType[] slotOrder =
+                {
+                    GearType.Weapon, GearType.Armor, GearType.Shield, GearType.Helmet, GearType.Accessory,
+                };
+                for (int i = 0; i < slotOrder.Length && i < slots.Count; i++)
+                {
+                    AddGear(unit, slots[i], slotOrder[i]);
                 }
 
                 foreach (string skill in dto.Skills)

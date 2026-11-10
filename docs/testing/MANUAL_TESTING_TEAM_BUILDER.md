@@ -92,14 +92,20 @@ and leaves a screenshot behind; the list below is what to look at in it, plus th
 
 20. Rules Selection → **Load into the editor** (`valensimperia.tok` in a vanilla project).
     - [ ] Units appear in the tree; each is editable, and the ticked rosters decide what **Save team to rosters** writes.
-21. Add a unit and press **Save team to rosters**.
+21. Before saving, note `EXPERIENCE`/`CUSTOMIZE`/`ITEMSCOMP` of each loaded unit in the roster file. Press
+    **Save team to rosters** without editing them.
+    - [ ] The summary says `0 updated, N unchanged` for those units.
+    - [ ] The file diff contains only the new block — no reset experience, no changed `CUSTOMIZE`, no invented gear in
+          slots that were empty. (This was broken: loading skipped `ITEMSCOMP`, so the Gear page was empty and the save
+          wrote five empty slots over the equipment.)
+22. Add a unit and press **Save team to rosters**.
     - [ ] The summary counts **units**, not writes: "Team of 1 unit(s) written to 2 roster(s):" followed by one line per
           roster. It must not claim two units because two rosters were ticked.
     - [ ] The project gains `.mod-history/data/school/<roster>.tok/<timestamp>.bak`, and the roster's edited unit boots
           with the class, stats, `ITEMSCOMP` and `SKILL` lines the panel showed (this half needs the game — see
           `HANDOFF.md` §6).
-22. Press **Save team to rosters** again without changing anything.
-    - [ ] It reports the units as already present/updated rather than appending duplicates.
+23. Press **Save team to rosters** again without changing anything.
+    - [ ] It reports the units as `N added, 0 updated, M unchanged` rather than appending duplicates.
 
 ## Automated half
 

@@ -52,6 +52,26 @@ public sealed class SchoolUnitDto
     /// <summary>The granted skills, in file order.</summary>
     public IReadOnlyList<string> Skills =>
         Values("SKILL").Select(v => v.Trim().Trim('"')).Where(v => v.Length > 0).ToArray();
+
+    /// <summary>
+    /// <c>ITEMSCOMP</c> as exactly five slot names: weapon, armor, shield, helmet, accessory. An empty string means
+    /// the slot is empty.
+    /// </summary>
+    /// <remarks>
+    /// That order is the engine's: <c>CharacterChangeItem</c> is called for those five slots in it. A plain
+    /// <c>Split(',')</c> is not enough because an item name may contain a comma, so this uses the same
+    /// <see cref="ModdingGUI.Core.Values.QuotedList"/> helper that writes the line back.
+    /// </remarks>
+    public IReadOnlyList<string> ItemsComp
+    {
+        get
+        {
+            var slots = ModdingGUI.Core.Values.QuotedList.SplitUnquoted(Value("ITEMSCOMP"));
+            var padded = new string[5];
+            for (int i = 0; i < padded.Length; i++) padded[i] = i < slots.Count ? slots[i] : string.Empty;
+            return padded;
+        }
+    }
 }
 
 /// <summary>A parsed <c>data/school/*.tok</c> roster: school metadata plus its starting units.</summary>
