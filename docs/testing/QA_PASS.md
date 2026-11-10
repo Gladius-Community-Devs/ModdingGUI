@@ -211,3 +211,35 @@ Two traps worth remembering, both hit while doing this:
    `PreferredHeight`, not from a number I guessed.
 3. **`Control.Visible` is not "what the user sees".** Geometry against the client area caught all of this; the
    screenshots confirmed it.
+
+## 12. UI foundation: design tokens, a card kit, and the first page rebuilt
+
+The audit behind this section: the designer holds **161 absolute positions and 173 fixed sizes** on a **2127x1295**
+canvas for a window that opens at **1505x816**, eight hand-picked fonts (three of them 26 pt TextBoxes standing in for
+headings), and `Color.Red`/`Color.Blue` typed wherever a log line is written. The layout fixes in §10-§11 were patches
+over that, and patching it produced its own magic numbers (18 absolute row heights). What replaces it:
+
+- **`UiTheme`** - one palette (surface, surface-alt, sunken, border, ink, muted ink, accent, success/warning/error/info),
+  four type sizes in points, and a spacing scale in device pixels (4 px base, scaled by `DeviceDpi`). Fonts stay in
+  points because the framework already scales them; scaling both would double-scale.
+- **`UiKit`** - the primitives a page is made of: `Card(title, caption)`, `Form(labelWidth)`, `Row`, `RowWithButton`,
+  `Primary`/`Secondary`/`Browse` buttons, `Actions` strip, `Style` for logs and trees, and `CardHeight`/`HeaderHeight`
+  so a card is sized from its fonts instead of a guessed row height. Everything is Dock/TableLayout; the only numbers
+  are the theme's spacing steps.
+- **`PatchingPage`** - the first page rebuilt on the kit and the reference for the rest: two columns of cards (apply
+  form + activity log; available patches + make-a-patch), the three 26 pt TextBox headings replaced by styled labels,
+  a flat accent button for the primary action. Controls are reparented rather than recreated, so names, handlers and
+  the driver's scripts keep working.
+
+**Verified** at 1505x816, 1366x768, 1280x720 and 1920x1040: 0 controls past the client edge in every case, and
+`Create xDelta` still answers with "Please select valid Vanilla and Modified ISO files." when the paths are empty.
+
+Two things the kit fixed by construction, both of which had bitten this pass already:
+
+- a docked `Panel` has **no automatic height** - the card header kept its default 100 px and squeezed a two-row form
+  until only one row showed under the button; `HeaderHeight` now derives it from the fonts;
+- big-font `TextBox` headings **set their own height**, so they overflowed their rows and painted over captions;
+  section headings are `Label`s with a theme font, so the class of bug cannot recur.
+
+Next: Packing, Unpacking and Randomizer adopt the same kit, then the Team Builder pages, then the global chrome
+(menu, tab strip, status) - each is a page rebuild on the primitives above rather than another patch.

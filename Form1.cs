@@ -55,7 +55,7 @@ namespace ModdingGUI
             UiHelp.FixRandomizerLayout(this);
             UiHelp.FixSidebarLayout(this);
             UiHelp.FixUnitSelectionLayout(this);
-            UiHelp.FixPatchingLayout(this);
+            PatchingPage.Build(this);
 
             // Right-click must move the tree selection, otherwise the context menu acts on a stale or missing node.
             tvwProjects.MouseDown += SelectNodeUnderCursor;
