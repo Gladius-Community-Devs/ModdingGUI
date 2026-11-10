@@ -106,16 +106,16 @@ affects, what the campaign rosters are.
 | D9 | Medium | Team Builder: new unit not selected, so Gear/Skills/Remove did not apply to it | Fixed — selects the new node |
 | D10 | Low | 55 labels verbose or jargon; vague placeholders | Fixed — see §5 |
 | D11 | Fixed | Randomizer tab layout: the options box was 590 px tall for ~10 checkboxes, so Randomize, Reset to Vanilla and the baseline status floated in its dead space. The box is content-sized now, the two buttons and the status share a row beneath it, and the redundant sentence was dropped. Verified: a seeded run still completes (~8 s) and Reset restores 960 files |
-| D12 | Open | Patching log prints `Adding mod node: …` / `Successfully received file list JSON.` | Log copy pass |
+| D12 | Fixed | Patching log printed `Adding mod node: ...` / `Successfully received file list JSON.` | Now "Loading the patch list.", "Patch list received.", "Available patch: X" |
 | D13 | Open | 134 `MessageBox.Show` call sites; only automation mode covers them | Route through one helper over time |
 | D14 | Open | Unit Selection page is still the old absolute layout | Cosmetic |
 | D15 | Fixed (see D23) | Driver `set` writes to hidden/disabled controls without complaint (it drove a retired field during this pass) | `set`/`click` refuse with a reason |
 | D16 | Fixed | Randomizer and Patching flows not exercised (destructive / needs real patch files) | Both exercised: randomizer is deterministic and resettable (�6b); xDelta created from vanilla ? packed ISO (6.9 MB, 12.6 s) and applied back to a copy of vanilla (5.9 s) producing an ISO **byte-identical** to the packed one |
-| D19 | High | Randomizer: clicking Randomize with no options ticked disabled the button for the rest of the session (the early return skipped the re-enable) | Fixed |
-| D20 | Low | Automation guard reported an OK-only message as "answered yes" | Fixed - "acknowledged" |
-| D21 | Medium | Skills editor: every control was unnamed, so nothing there was reachable by the driver, a screen reader, or hover help | Fixed - 14 controls named |
-| D22 | Low | Driver: combo/list items were read and matched by `ToString()`, which for a bound list is the type name - the Items editor's 1,852 items were all `ModdingGUI.frmMain+ItemRow` | Fixed - `GetItemText`, i.e. what the user sees |
-| D23 | Low | Driver: `set`/`click` silently drove hidden or disabled controls (one sweep "passed" against a retired field) | Fixed - both refuse with a reason |
+| D19 | Fixed | Randomizer: clicking Randomize with no options ticked disabled the button for the rest of the session (the early return skipped the re-enable) | Fixed |
+| D20 | Fixed | Automation guard reported an OK-only message as "answered yes" | Fixed - "acknowledged" |
+| D21 | Fixed | Skills editor: every control was unnamed, so nothing there was reachable by the driver, a screen reader, or hover help | Fixed - 14 controls named |
+| D22 | Fixed | Driver: combo/list items were read and matched by `ToString()`, which for a bound list is the type name - the Items editor's 1,852 items were all `ModdingGUI.frmMain+ItemRow` | Fixed - `GetItemText`, i.e. what the user sees |
+| D23 | Fixed | Driver: `set`/`click` silently drove hidden or disabled controls (one sweep "passed" against a retired field) | Fixed - both refuse with a reason |
 | D18 | High | Packing tab: "Make a patch" was drawn inside the log pane after the page started resizing (page-level `AutoScroll` scrolled an absolutely placed button into the anchored log) | Fixed - the page only fits itself to the viewport now, and the button lives in a docked footer. Verified at 1920x1040 and 1024x700 |
 | D17 | Low | Team Builder: "Load into the editor" was clickable with no rosters, producing only a dialog; explanatory paragraphs on the Rules page duplicated their tooltips | Fixed - the button is disabled until a project with rosters is selected, and the paragraphs are tooltips only |
 
@@ -167,5 +167,5 @@ Two operational notes for anyone scripting this:
 3. Layout checks at 125 %/150 % DPI and at 1366×768 (the smallest plausible laptop screen).
 4. Make `set` refuse invisible targets (D15) and add a `waitFor` predicate, so scenarios stop needing `closeDialog`.
 
-| D24 | Low | My own edits to the designer lost the ellipsis character in four "Choose..." labels (`Choose project.`) | Fixed - plain labels without punctuation, matching Unpack/Pack |
-| D25 | Low | `capture` photographs the whole screen region, so it can capture the user's other windows; `screenshot` renders only the app | Documented - use `screenshot` for evidence, `capture` only to check what the compositor shows |
+| D24 | Fixed | My own edits to the designer lost the ellipsis character in four "Choose..." labels (`Choose project.`) | Fixed - plain labels without punctuation, matching Unpack/Pack |
+| D25 | Fixed | `capture` photographs the whole screen region, so it can capture the user's other windows; `screenshot` renders only the app | Documented - use `screenshot` for evidence, `capture` only to check what the compositor shows |

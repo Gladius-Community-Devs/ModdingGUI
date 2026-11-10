@@ -1,4 +1,4 @@
-﻿// frmMain.AuthAndDownload.cs
+// frmMain.AuthAndDownload.cs
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using System.Net;
@@ -139,14 +139,14 @@ namespace ModdingGUI
         {
             try
             {
-                AppendLog("Attempting to load file list...", InfoColor, rtbPatchingApplicationOutput);
+                AppendLog("Loading the patch list.", InfoColor, rtbPatchingApplicationOutput);
 
                 HttpResponseMessage response = await client.GetAsync("xdelta/list");
 
                 if (response.IsSuccessStatusCode)
                 {
                     string json = await response.Content.ReadAsStringAsync();
-                    AppendLog("Successfully received file list JSON.", SuccessColor, rtbPatchingApplicationOutput);
+                    AppendLog("Patch list received.", SuccessColor, rtbPatchingApplicationOutput);
 
                     List<XDeltaFile> files = JsonSerializer.Deserialize<List<XDeltaFile>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
@@ -171,7 +171,7 @@ namespace ModdingGUI
                     foreach (var group in groupedFiles)
                     {
                         TreeNode modNode = new TreeNode(group.ModName);
-                        AppendLog($"Adding mod node: {group.ModName}", InfoColor, rtbPatchingApplicationOutput);
+                        AppendLog($"Available patch: {group.ModName}", InfoColor, rtbPatchingApplicationOutput);
 
                         foreach (var file in group.Files)
                         {
@@ -185,7 +185,7 @@ namespace ModdingGUI
                         tvwxdeltaFiles.Nodes.Add(modNode);
                     }
 
-                    AppendLog("TreeView populated.", SuccessColor, rtbPatchingApplicationOutput);
+                    
                 }
                 else
                 {
