@@ -471,31 +471,23 @@ namespace ModdingGUI
 
             host.ResumeLayout();
 
-            // WinForms clamps ItemSize to the font height even in owner-draw mode, so the native tab row survives and
-            // draws a second row of tabs under ours. Clipping it is deterministic: slide the control up by its own tab
-            // row height and grow it by the same amount, so the row sits above the strip and the page starts at the
-            // strip's bottom edge.
+            // WinForms clamps ItemSize to the font height, so the native tab row cannot be shrunk away and stayed visible
+            // as a bar of tab labels under our strip. Shifting the control did not help either: the control is in front of
+            // the docked strip, so the extra row simply drew over it. A Region is the complete answer - the native row is
+            // excluded from the control's own painting area, so Windows never draws it, and the page area below is
+            // untouched.
             void ClipNativeRow()
             {
                 int rowHeight = tabs.DisplayRectangle.Top;
-                if (rowHeight <= 2) return;
+                if (rowHeight <= 0) return;
 
-                tabs.Dock = DockStyle.None;
-                tabs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-                tabs.Top = Math.Max(0, host.Bottom - rowHeight);
-                tabs.Left = host.Left;
-                tabs.Width = host.Width;
-                tabs.Height = Math.Max(UiTheme.Scale(tabs, 60), parent.ClientSize.Height - tabs.Top);
+                var region = new Region(new Rectangle(0, rowHeight, tabs.Width, Math.Max(1, tabs.Height - rowHeight)));
+                tabs.Region?.Dispose();
+                tabs.Region = region;
             }
 
             ClipNativeRow();
-            parent.SizeChanged -= (_, _) => { };
-            parent.SizeChanged += (_, _) =>
-            {
-                host.Width = parent.ClientSize.Width;
-                ClipNativeRow();
-            };
-            TintTabStrip(tabs);
+            tabs.Resize += (_, _) => ClipNativeRow();
         }
 
         /// <summary>Paint nothing for a collapsed native tab. Kept as a named method so it can be unhooked.</summary>

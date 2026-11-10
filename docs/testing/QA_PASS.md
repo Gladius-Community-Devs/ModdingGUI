@@ -473,3 +473,16 @@ Anchors keep that true across resizes. Verified on the Team Builder sub-tabs (`t
 Lesson worth keeping: a screenshot that looks "clean" at 100 % can hide pixel-level artifacts; cropping the band at 4-5x
 was the only way to see whether a change had any effect - and two of my earlier "fixes" looked done in the full image
 while the cropped band was byte-identical.
+
+## 21. Tab row, final: exclusive Region
+
+Shifting the `TabControl` up to clip its native row made the bar *worse* rather than better: the control sits in front of
+the docked strip in z-order, so the native tab labels were drawn **over** our strip instead of being hidden above it.
+
+The complete fix is a `Region`: exclude the control's own tab-row band (`DisplayRectangle.Top`) from the region it paints,
+so Windows never draws those labels, and the page area below keeps its full size. The region is rebuilt on
+`Resize`/`DisplayRectangle` changes. No overlap, no z-order juggling, no shifting - and it applies to every attached tab
+control, nested ones included, which is why "all tabs" now show exactly one row.
+
+Checked the way this should have been checked all along: crop the band at 4x and compare hashes between builds. The
+Patching band shows the labels and then the page edge - no second row.
