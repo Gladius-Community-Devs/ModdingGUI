@@ -566,6 +566,13 @@ Replace mockup with real implementation backed by `IClassesApi` + `ISkillsApi` +
   details box. Adding a skill that crosses the JP budget offers to raise `JOBPOINTS` (and logs the answer), a level
   change re-reads the stat set at the new level and repaints, and the level box validates through `InputRules`
   instead of clamping silently. Manual checklist: `docs/testing/MANUAL_TESTING_TEAM_BUILDER.md`.
+- **Second UX round (owner review).** The Rules page is now grouped by what each control does (team type, size and
+  starting level, job points for new units, the two campaign rosters, loading an existing team); only
+  `valensimperia.tok` and `ursulanordagh.tok` are offered, because the campaign loads nothing else; Gear and Skills
+  show a "make a unit first" message instead of a live-but-empty editor; the export summary counts units rather than
+  per-roster writes. The skills picker also stopped offering combo hits and game-granted records — the rule is
+  `LearnableSkills` (subskill links, `SKILLCREATE` category, opt-in "any class"), and it is documented in `HANDOFF.md`
+  §4 because it is engine behaviour, not taste.
 - **Verifying GUI work (added with the UX pass).** `--ui-server` / `--ui-script` attach a loopback JSON driver to the
   window (snapshot, click, set, select, screenshot, log), so panel changes can be exercised and reviewed instead of
   described. It is off by default, binds `127.0.0.1`, and drives real controls — it cannot reach a Core API except by

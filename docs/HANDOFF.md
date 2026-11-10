@@ -22,12 +22,12 @@ E:\code_stuff\GladiusModdingToolsGUI\        workspace (not a git repo)
     ├── ModdingGUI.sln
     ├── ModdingGUI.csproj                    WinForms shell (net8.0-windows)
     ├── ModdingGUI.Core/                     net8.0, no UI: Tok, Schemas, APIs, Randomizer, History, Tools, Logging
-    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 768 tests
+    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 775 tests
     └── ModdingGUI.Mcp/                      Phase 8 stub: builds, Program.cs is inert (no stdio server yet)
 ```
 
 **State of the tree:** clean, `dotnet build` reports **0 warnings** in Debug and Release, suite is
-**768 passed / 0 failed / 0 skipped**.
+**775 passed / 0 failed / 0 skipped**.
 
 ---
 
@@ -137,6 +137,19 @@ calls, so its log is the GUI's log.
   "Ludo") without sharing data. `InputRules.DisplayNameOf` encodes it.
 - **Skill availability**: `CharacterCanLearnSkillEventually` builds a 64-bit class mask by repeating `SKILLUSECLASS`
   (empty mask = any class); `SKILLLEVEL` gates nothing; price is `SKILLJOBPOINTCOST`.
+- **Skills have three layers the .tok makes easy to confuse** (measured 2026-11-09 against 1,811 records):
+  - *Combo hits are records too.* 185 skills are named by another record's `SKILLSUBSKILL` (`Amazon Combo I` →
+    `Amazon ComboChain I` → `…II` → `…III` → `…IV`). They cost 0 JP because they are bought with the root, and many
+    have no `SKILLUSECLASS` at all, which is how they appeared in other classes' pickers. `SKILLMETER`'s third value
+    bounds how many shared hits a given root uses (`Combo I` = 2, `Combo IV` = 5), the same rule UsusBot's combo
+    reader applies. `LearnableSkills.ChainOf` follows it and never offers a hit on its own.
+  - *Category is `SKILLCREATE`'s second argument*: `Attack` (1,090), `Innate` (316), `Support` (241),
+    `Secondary` (162), `Command` (2). `Innate` (e.g. `Gwazi OffBalance`) and `Command` (`Pass`, `Continue`) are
+    placed by the game, not the designer, so the picker hides them.
+  - *Level 0 means "the class's basic"*: `Amazon Attack`, `Amazon Daze`, `Amazon Evade` are 0 JP / level 0 and
+    **are** written into rosters (vanilla grants `SKILL: "Valens Attack"`), so they stay in the list. The 8
+    unrestricted records left over (`Crowd Status I–IV`, `Pass`, `Continue`, `Gwazi OffBalance`, `Other HellGate`)
+    are behind an opt-in "any class" toggle, marked `· any class`.
 - **Job points**: `JobPoints.Awarded` continues from the last listed `LEVELUPJPGIVEN`; `Compute` deducts skill costs.
 
 ---
@@ -174,6 +187,26 @@ All four items the user asked for are done (Phase 7 UX pass):
 Also fixed on the way: the level box validates through `InputRules` (1–30) instead of clamping silently, and the
 missing-file check now goes through `ProjectRoots.ResolveBecFolder` so a project whose BEC folder is not literally
 `<name>_BEC` (the `REALDATA_*` fixtures) opens.
+
+### 5.3b Second UX round, from the owner's screen-by-screen review
+
+1. **Rules page rebuilt** — four labelled groups instead of loose controls: *Team type* (campaign only; PvP is not
+   built, so the radio pair is gone and the level box is no longer locked to 1), *Team size and starting level*,
+   *Job points for new units* (the derived number with "auto — what the class awards by this level", and an explicit
+   "Give new units a custom amount instead" checkbox), *Rosters to save into*, *Edit an existing team*.
+2. **Only the two campaign rosters are offered** — `valensimperia.tok` and `ursulanordagh.tok`, in the export ticks and
+   in the load drop-down, with a line saying why: the campaign reads only those, the rest of `data/school` are test
+   rosters. Picking one used to write a team the game never loads.
+3. **Gear and skills are blank until there is a unit to edit** — the page is replaced by "No units yet…" (or "select a
+   unit") instead of an empty list with live buttons, and both pages name the selected unit.
+4. **The export message counts units, not writes** — "Team of 1 unit(s) written to 2 roster(s)" plus a per-roster
+   breakdown. The old line summed the per-roster counts and read as a phantom second unit.
+5. **Skills list is the class's real, teachable set** — see the domain facts below. `Amazon` went from 59 entries
+   (combo hits and other classes' abilities included) to 39, tagged `· combo ×N` where a skill starts a chain, with a
+   details panel that shows the chain and says why its hits cost nothing. An opt-in checkbox lists the unrestricted
+   records for anyone who wants them.
+6. **The 40-gladiator confirmation and the export summary go through `UiConfirm`/`UiAlert`**, so an automated run does
+   not deadlock on a modal.
 
 ### 5.4 The UI driver (how GUI work gets verified)
 

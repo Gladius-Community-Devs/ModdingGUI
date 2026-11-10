@@ -1227,9 +1227,10 @@ namespace ModdingGUI
         {
             if (rbnTeamCampaign.Checked)
             {
-                // Set team level to 1 for campaign mode
-                txtTeamLevel.Text = "1";
-                txtTeamLevel.Enabled = false;
+                // A campaign unit is created at whatever level the designer picks (1-30). Locking this to 1 made the
+                // level field look broken, since PvP — the only mode that used to unlock it — is not implemented.
+                if (string.IsNullOrWhiteSpace(txtTeamLevel.Text)) txtTeamLevel.Text = "1";
+                txtTeamLevel.Enabled = true;
 
                 // Update equipment rules visibility
                 UpdateEquipmentRulesVisibility(false);

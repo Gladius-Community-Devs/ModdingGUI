@@ -33,12 +33,13 @@
 {"cmd":"set","name":"txtUnitLevel","text":"20"}
 {"cmd":"click","name":"btnApplyLevel"}
 
-# Skills: add two expensive ones; the second pushes the unit over budget, so the JP offer fires
+# Skills: two expensive Murmillo skills; the second pushes the unit over budget, so the JP offer fires
 # (auto-confirmed under automation, logged as "[automation] Job points: ... → yes").
+# Selection is by name so the scenario does not depend on list indexes.
 {"cmd":"set","name":"tabTeamBuilderMaster","item":"tabTeamSkillSelection"}
-{"cmd":"set","name":"lstLearnableSkills","index":45}
+{"cmd":"set","name":"lstLearnableSkills","item":"Murmillo HeavyStrike"}
 {"cmd":"click","name":"btnAddSkill"}
-{"cmd":"set","name":"lstLearnableSkills","index":46}
+{"cmd":"set","name":"lstLearnableSkills","item":"Murmillo ShieldRam"}
 {"cmd":"click","name":"btnAddSkill"}
 
 # Evidence: a PNG of the window and the last 30 log lines.

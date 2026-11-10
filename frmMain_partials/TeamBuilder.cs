@@ -1019,20 +1019,8 @@ namespace ModdingGUI
 
         private void InitializeTeamBuilderUI()
         {
-            BuildJobPointControls();
+            BuildRulesPage();
 
-            // Set Campaign mode as default
-            rbnTeamCampaign.Checked = true;
-            
-            // Disable PVP radio button since it's not ready yet
-            rbnTeamPVP.Enabled = false;
-            
-            // Set team level text and enable/disable based on mode
-            txtTeamLevel.Text = "1";
-            
-            // Hide PVP-only controls
-            UpdateEquipmentRulesVisibility(false);
-            
             // The gear and skill pages used to be placeholders that were removed. They are editors now.
             tabTeamGearSelection.Text = "Gear";
             tabTeamSkillSelection.Text = "Skills";
@@ -1040,62 +1028,290 @@ namespace ModdingGUI
         }
 
         /// <summary>
-        /// Job points are derived from the class's LEVELUPJPGIVEN and the unit's level, so a level-N unit is worth
-        /// what one that levelled to N would be. The override exists for deliberate departures.
+        /// The Rules page, rebuilt as labelled groups: what team type this build writes, how big it is, what level new
+        /// units start at, what job points they get, and which two rosters are written.
         /// </summary>
-        private void BuildJobPointControls()
+        /// <remarks>
+        /// The designer puts these controls on a bare panel with absolute positions, which is why "Override JP" and
+        /// its box read as unrelated to anything. They are re-parented into groups here so each one says what it does,
+        /// and the roster choice is limited to the two files the campaign actually loads — the other 60-odd files in
+        /// <c>data/school</c> are test rosters, and picking one produced a team the game never reads.
+        /// </remarks>
+        private void BuildRulesPage()
         {
-            Control parent = txtTeamLevel.Parent ?? tabTeamBuilder;
+            if (_rulesBuilt) return;
+            _rulesBuilt = true;
+
+            tabTeamRulesSelection.Controls.Clear();
+
+            var root = new TableLayoutPanel
+            {
+                Name = "pnlRulesPage",
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 6,
+                Padding = new Padding(12),
+            };
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            for (int i = 0; i < 5; i++) root.RowStyles.Add(new RowStyle(SizeType.Absolute, 0F));
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            var campaign = new GroupBox
+            {
+                Name = "grpCampaign",
+                Text = "Team type",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(10, 6, 10, 6),
+                Margin = new Padding(0, 0, 0, 10),
+            };
+            var campaignContent = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(0),
+            };
+            campaignContent.RowStyles.Add(new RowStyle(SizeType.Absolute, 26F));
+            campaignContent.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            var campaignTitle = new Label
+            {
+                Name = "lblCampaignTitle",
+                Text = "Campaign team",
+                AutoSize = true,
+                Font = new Font(Font, FontStyle.Bold),
+            };
+            var campaignHint = HintLabel(
+                "This build writes the campaign rosters the game loads. PvP teams are not implemented yet, so the " +
+                "old PvP/campaign switch is gone.");
+            campaignContent.Controls.Add(campaignTitle, 0, 0);
+            campaignContent.Controls.Add(campaignHint, 0, 1);
+
+            // The radios stay parented and checked: several handlers read them, but the user never needs to see them.
+            grpTeamType.Controls.Clear();
+            rbnTeamCampaign.Checked = true;
+            rbnTeamPVP.Enabled = false;
+            campaignContent.Controls.Add(grpTeamType);
+            grpTeamType.Visible = false;
+            campaignContent.Controls.Add(rbnTeamCampaign);
+            campaignContent.Controls.Add(rbnTeamPVP);
+            rbnTeamCampaign.Visible = false;
+            rbnTeamPVP.Visible = false;
+
+            campaign.Controls.Add(campaignContent);
+            root.Controls.Add(campaign, 0, 0);
+
+            // ---- Size and level ----
+            var size = new GroupBox
+            {
+                Name = "grpSize",
+                Text = "Team size and starting level",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(10, 6, 10, 6),
+                Margin = new Padding(0, 0, 0, 10),
+            };
+            var sizeGrid = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Margin = new Padding(0),
+            };
+            sizeGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 210F));
+            sizeGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            sizeGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+            sizeGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+
+            chbTeam40Glads.Text = "Allow 34 units";
+            sizeGrid.Controls.Add(chbTeam40Glads, 0, 0);
+            sizeGrid.Controls.Add(HintLabel(
+                "Campaign rosters hold 14 units; 34 needs the 40-gladiator gecko code enabled in Dolphin."), 1, 0);
+
+            txtTeamLevel.Enabled = true;
+            sizeGrid.Controls.Add(RowLabel("New units start at level"), 0, 1);
+            var levelRow = new FlowLayoutPanel { Dock = DockStyle.Fill, Margin = new Padding(0), WrapContents = false };
+            levelRow.Controls.Add(txtTeamLevel);
+            levelRow.Controls.Add(HintLabel("1–30. An existing unit's level is set on the Gear page."));
+            sizeGrid.Controls.Add(levelRow, 1, 1);
+
+            size.Controls.Add(sizeGrid);
+            root.Controls.Add(size, 0, 1);
+
+            // ---- Job points ----
+            var jp = new GroupBox
+            {
+                Name = "grpJobPoints",
+                Text = "Job points for new units",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(10, 6, 10, 6),
+                Margin = new Padding(0, 0, 0, 10),
+            };
+            var jpGrid = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 3, Margin = new Padding(0),
+            };
+            jpGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 210F));
+            jpGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            jpGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+            jpGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+            jpGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            _lblJpDerived = RowLabel("Awarded by class and level");
+            jpGrid.Controls.Add(_lblJpDerived, 0, 0);
+
+            _txtTeamJobPoints = new TextBox { Name = "txtTeamJobPoints", Width = 70, ReadOnly = true };
+            var jpRow = new FlowLayoutPanel { Dock = DockStyle.Fill, Margin = new Padding(0), WrapContents = false };
+            jpRow.Controls.Add(_txtTeamJobPoints);
+            _lblJpHint = HintLabel(string.Empty);
+            jpRow.Controls.Add(_lblJpHint);
+            jpGrid.Controls.Add(jpRow, 1, 0);
 
             _chbTeamOverrideJp = new CheckBox
             {
-                Text = "Override JP",
-                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 6),
+                Name = "chbTeamOverrideJp",
+                Text = "Give new units a custom amount instead",
                 AutoSize = true,
+                Margin = new Padding(0, 4, 0, 0),
             };
-
-            _txtTeamJobPoints = new TextBox
-            {
-                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 30),
-                Size = new Size(txtTeamLevel.Width, txtTeamLevel.Height),
-                ReadOnly = true,
-            };
-
-            parent.Controls.Add(_chbTeamOverrideJp);
-            parent.Controls.Add(_txtTeamJobPoints);
-
-            // Which rosters to write to. Both campaign schools ship with the same starting team, so both is the
-            // sensible default, but a mod may only want one.
-            chbTeamRosterValens = new CheckBox
-            {
-                Text = "Valens school",
-                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 60),
-                AutoSize = true,
-                Checked = true,
-            };
-
-            chbTeamRosterUrsula = new CheckBox
-            {
-                Text = "Ursula school",
-                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 84),
-                AutoSize = true,
-                Checked = true,
-            };
-
-            parent.Controls.Add(chbTeamRosterValens);
-            parent.Controls.Add(chbTeamRosterUrsula);
+            jpGrid.Controls.Add(_chbTeamOverrideJp, 0, 1);
+            jpGrid.SetColumnSpan(_chbTeamOverrideJp, 2);
+            jpGrid.Controls.Add(HintLabel(
+                "Job points are what the class's LEVELUPJPGIVEN awards by that level. The selected unit's own budget, " +
+                "and what it has spent, is shown on the Skills page."), 0, 2);
+            jpGrid.SetColumnSpan(jpGrid.GetControlFromPosition(0, 2)!, 2);
 
             _chbTeamOverrideJp.CheckedChanged += (_, _) =>
             {
                 _txtTeamJobPoints.ReadOnly = !_chbTeamOverrideJp.Checked;
                 UpdateJobPointPreview();
             };
-
             txtTeamLevel.TextChanged += (_, _) => UpdateJobPointPreview();
             ddlTeamClasses.SelectedIndexChanged += (_, _) => UpdateJobPointPreview();
 
+            jp.Controls.Add(jpGrid);
+            root.Controls.Add(jp, 0, 2);
+
+            // ---- Rosters ----
+            var rosters = new GroupBox
+            {
+                Name = "grpRosters",
+                Text = "Rosters to save into",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(10, 6, 10, 6),
+                Margin = new Padding(0, 0, 0, 10),
+            };
+            var rosterGrid = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 4, Margin = new Padding(0),
+            };
+            rosterGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 210F));
+            rosterGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            for (int i = 0; i < 4; i++) rosterGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+
+            chbTeamRosterValens = new CheckBox
+            {
+                Name = "chbTeamRosterValens",
+                Text = "Valens campaign",
+                AutoSize = true,
+                Checked = true,
+                Margin = new Padding(0, 4, 0, 0),
+            };
+            chbTeamRosterUrsula = new CheckBox
+            {
+                Name = "chbTeamRosterUrsula",
+                Text = "Ursula campaign",
+                AutoSize = true,
+                Checked = true,
+                Margin = new Padding(0, 4, 0, 0),
+            };
+
+            rosterGrid.Controls.Add(chbTeamRosterValens, 0, 0);
+            rosterGrid.Controls.Add(HintLabel("valensimperia.tok"), 1, 0);
+            rosterGrid.Controls.Add(chbTeamRosterUrsula, 0, 1);
+            rosterGrid.Controls.Add(HintLabel("ursulanordagh.tok"), 1, 1);
+
+            var saveRow = new FlowLayoutPanel { Dock = DockStyle.Fill, Margin = new Padding(0), WrapContents = false };
+            btnTeamAddToFile.Text = "Save team to rosters";
+            btnTeamAddToFile.Width = 170;
+            btnTeamAddToFile.Height = 28;
+            btnTeamAddToFile.Margin = new Padding(0, 2, 10, 0);
+            saveRow.Controls.Add(btnTeamAddToFile);
+            saveRow.Controls.Add(HintLabel(
+                "Writes the team list above into the ticked rosters. Existing units are updated in place; new ones " +
+                "are appended."));
+            rosterGrid.Controls.Add(saveRow, 0, 2);
+            rosterGrid.SetColumnSpan(saveRow, 2);
+            rosterGrid.Controls.Add(HintLabel(
+                "The campaign reads only these two school files. The rest of data/school is test rosters that a " +
+                "normal playthrough never loads."), 0, 3);
+            rosterGrid.SetColumnSpan(rosterGrid.GetControlFromPosition(0, 3)!, 2);
+
+            rosters.Controls.Add(rosterGrid);
+            root.Controls.Add(rosters, 0, 3);
+
+            // ---- Load an existing team ----
+            var load = new GroupBox
+            {
+                Name = "grpLoadTeam",
+                Text = "Edit an existing team",
+                Dock = DockStyle.Fill,
+                Padding = new Padding(10, 6, 10, 6),
+                Margin = new Padding(0, 0, 0, 0),
+            };
+            var loadRow = new FlowLayoutPanel { Dock = DockStyle.Fill, Margin = new Padding(0), WrapContents = false };
+            _cmbRoster = new ComboBox
+            {
+                Name = "cmbRoster",
+                Width = 200,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Margin = new Padding(0, 2, 8, 0),
+            };
+            var loadRoster = new Button
+            {
+                Name = "btnLoadRoster",
+                Text = "Load into the editor",
+                Width = 150,
+                Height = 26,
+                Margin = new Padding(0, 2, 10, 0),
+            };
+            loadRoster.Click += (_, _) => LoadSelectedRoster();
+            loadRow.Controls.Add(_cmbRoster);
+            loadRow.Controls.Add(loadRoster);
+            loadRow.Controls.Add(HintLabel(
+                "Adds that roster's units to the team list so they can be edited; saving rewrites them in place."));
+            load.Controls.Add(loadRow);
+            root.Controls.Add(load, 0, 4);
+
+            // Rows 0-4 are absolute; give each its content height so the page does not clip on a small window.
+            root.RowStyles[0] = new RowStyle(SizeType.Absolute, 96F);
+            root.RowStyles[1] = new RowStyle(SizeType.Absolute, 108F);
+            root.RowStyles[2] = new RowStyle(SizeType.Absolute, 120F);
+            root.RowStyles[3] = new RowStyle(SizeType.Absolute, 156F);
+            root.RowStyles[4] = new RowStyle(SizeType.Absolute, 76F);
+
+            tabTeamRulesSelection.Controls.Add(root);
+
+            // A new unit needs a level: the designer left the box empty and the campaign handler no longer fills it.
+            if (string.IsNullOrWhiteSpace(txtTeamLevel.Text)) txtTeamLevel.Text = "1";
+
             UpdateJobPointPreview();
+            UpdateUnitCountAndButtons();
         }
+
+        private bool _rulesBuilt;
+        private Label _lblJpDerived = new();
+        private Label _lblJpHint = new();
+
+        private static Label RowLabel(string text) => new()
+        {
+            Text = text,
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(0, 6, 8, 0),
+        };
+
+        private static Label HintLabel(string text) => new()
+        {
+            Text = text,
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            ForeColor = SystemColors.GrayText,
+            Margin = new Padding(6, 6, 0, 0),
+        };
 
         /// <summary>The budget for the class and level currently selected, or null when nothing is selected.</summary>
         private ModdingGUI.Core.Units.JobPointBudget? CurrentJobPointBudget()
@@ -1118,10 +1334,18 @@ namespace ModdingGUI
         private void UpdateJobPointPreview()
         {
             if (_txtTeamJobPoints is null || _chbTeamOverrideJp is null) return;
-            if (_chbTeamOverrideJp.Checked) return;
+
+            if (_chbTeamOverrideJp.Checked)
+            {
+                _lblJpHint.Text = "custom — new units start with this amount";
+                return;
+            }
 
             var budget = CurrentJobPointBudget();
-            _txtTeamJobPoints.Text = budget is null ? string.Empty : budget.Remaining.ToString();
+            _txtTeamJobPoints.Text = budget is null ? string.Empty : budget.Awarded.ToString();
+            _lblJpHint.Text = budget is null
+                ? "select a project and a class"
+                : "auto — what the class awards by this level";
         }
 
         /// <summary>
@@ -1131,8 +1355,8 @@ namespace ModdingGUI
         {
             bool isPvpMode = rbnTeamPVP.Checked;
             
-            // Enable/disable team level input based on mode
-            txtTeamLevel.Enabled = isPvpMode;
+            // The level of a new unit is always the designer's choice; PvP (the old reason to lock it) is not built.
+            txtTeamLevel.Enabled = true;
             
             // Show/hide equipment rules
             UpdateEquipmentRulesVisibility(isPvpMode);
@@ -1177,14 +1401,13 @@ namespace ModdingGUI
         {
             if (chbTeam40Glads.Checked)
             {
-                var confirmResult = MessageBox.Show(
+                // A modal here would deadlock the UI driver; UiConfirm logs and answers under automation.
+                bool confirmed = UiConfirm(
                     "This option requires the 40 glads gecko code to be enabled in Dolphin.\n\n" +
                     "Do you have this code enabled?",
-                    "40 Glads Gecko Code Required",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                    "40 Glads Gecko Code Required");
 
-                if (confirmResult != DialogResult.Yes)
+                if (!confirmed)
                 {
                     // User doesn't have the code enabled, uncheck the box
                     chbTeam40Glads.Checked = false;
@@ -1352,8 +1575,9 @@ namespace ModdingGUI
                 var units = built.Select(entry => entry.Dto).ToList();
 
                 var schools = new ModdingGUI.Core.Api.SchoolsApi();
-                int written = 0;
                 var skipped = new List<string>();
+                var perRoster = new List<string>();
+                int added = 0, updatedTotal = 0, removedTotal = 0;
 
                 foreach (string roster in rosters)
                 {
@@ -1401,18 +1625,33 @@ namespace ModdingGUI
                         }
                     }
 
-                    written += schools.AddUnits(projectPath, relative, fresh);
-                    AppendLog($"'{roster}': +{fresh.Count} added, {updated} updated, {removedUnits} removed.", Color.Blue);
+                    int freshAdded = schools.AddUnits(projectPath, relative, fresh);
+                    added += freshAdded;
+                    updatedTotal += updated;
+                    removedTotal += removedUnits;
+
+                    perRoster.Add($"{roster}: {freshAdded} added, {updated} updated, {removedUnits} removed");
+                    AppendLog($"'{roster}': +{freshAdded} added, {updated} updated, {removedUnits} removed.", Color.Blue);
                 }
 
-                string summary = $"Added {written} unit(s) across {rosters.Count} roster(s).";
+                // One unit into two rosters is one unit, not two: the old message summed the per-roster counts and read
+                // as a phantom second unit. The headline counts units, the lines below count writes.
+                string summary = added + updatedTotal + removedTotal == 0
+                    ? $"Nothing to write: {units.Count} unit(s) already match the ticked roster(s)."
+                    : $"Team of {units.Count} unit(s) written to {rosters.Count} roster(s):" +
+                      Environment.NewLine + Environment.NewLine +
+                      string.Join(Environment.NewLine, perRoster);
+
                 if (skipped.Count > 0)
                 {
-                    summary += $"\n\nSkipped {skipped.Count} duplicate(s):\n" + string.Join("\n", skipped.Distinct().Take(10));
+                    summary += Environment.NewLine + Environment.NewLine +
+                               $"{skipped.Distinct().Count()} unit(s) were already in a roster and were updated, not " +
+                               "duplicated:" + Environment.NewLine +
+                               string.Join(Environment.NewLine, skipped.Distinct().Take(10));
                 }
 
-                AppendLog(summary, written > 0 ? Color.Green : Color.Orange);
-                MessageBox.Show(summary, "Team Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                AppendLog(summary, added + updatedTotal > 0 ? Color.Green : Color.Orange);
+                UiAlert(summary, "Team Export");
             }
             catch (Exception ex)
             {
@@ -1450,12 +1689,16 @@ namespace ModdingGUI
         private TextBox _txtUnitLevel = new();
         private readonly Dictionary<GearType, Label> _slotValues = new();
 
+        /// <summary>Every skill in the project, cached for the details panel's chain lookup.</summary>
+        private IReadOnlyList<ModdingGUI.Core.Api.SkillDto> _skillsCache = Array.Empty<ModdingGUI.Core.Api.SkillDto>();
+
         /// <summary>Every item the selected unit's class may use, before the search/slot filter.</summary>
         private List<ItemChoice> _classItems = new();
 
         // ---- Skills page ----
         private ListBox _lstGrantedSkills = new();
         private ListBox _lstLearnableSkills = new();
+        private CheckBox _chkAnyClassSkills = new();
         private TextBox _txtSkillDetails = new();
         private Label _lblLoadoutJp = new();
 
@@ -1488,33 +1731,88 @@ namespace ModdingGUI
             _loadoutBuilt = true;
 
             tabTeamGearSelection.Controls.Clear();
-            tabTeamGearSelection.Controls.Add(BuildGearPage());
+            _gearPage = BuildGearPage();
+            tabTeamGearSelection.Controls.Add(_gearPage);
+            _lblGearEmpty = AddEmptyStateOverlay(tabTeamGearSelection, "lblGearEmpty");
 
             tabTeamSkillSelection.Controls.Clear();
-            tabTeamSkillSelection.Controls.Add(BuildSkillsPage());
-
-            // ---- Roster loader, on the rules page ----
-            Control parent = txtTeamLevel.Parent ?? tabTeamBuilder;
-            var rosterRow = new FlowLayoutPanel
-            {
-                Name = "pnlRosterPicker",
-                Location = new Point(txtTeamLevel.Left, txtTeamLevel.Bottom + 112),
-                Size = new Size(400, 34),
-            };
-            rosterRow.Controls.Add(new Label
-            {
-                Text = "Roster", AutoSize = true, Margin = new Padding(0, 8, 6, 0),
-            });
-            _cmbRoster = new ComboBox { Name = "cmbRoster", Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
-            var loadRoster = new Button { Name = "btnLoadRoster", Text = "Load roster", Width = 110, Height = 26 };
-            loadRoster.Click += (_, _) => LoadSelectedRoster();
-            rosterRow.Controls.Add(_cmbRoster);
-            rosterRow.Controls.Add(loadRoster);
-            parent.Controls.Add(rosterRow);
+            _skillsPage = BuildSkillsPage();
+            tabTeamSkillSelection.Controls.Add(_skillsPage);
+            _lblSkillsEmpty = AddEmptyStateOverlay(tabTeamSkillSelection, "lblSkillsEmpty");
 
             RefreshRosterList();
             RefreshLoadoutEditors();
         }
+
+        private Control? _gearPage;
+        private Control? _skillsPage;
+        private Label? _lblGearEmpty;
+        private Label? _lblSkillsEmpty;
+
+        /// <summary>
+        /// A message that covers the page until there is a unit to edit. Gear and skills are per unit, so showing an
+        /// empty list with live buttons invited clicks that did nothing.
+        /// </summary>
+        private static Label AddEmptyStateOverlay(Control page, string name)
+        {
+            var label = new Label
+            {
+                Name = name,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = SystemColors.Control,
+                ForeColor = SystemColors.GrayText,
+                Padding = new Padding(40),
+                Font = new Font(SystemFonts.DefaultFont.FontFamily, 12F, FontStyle.Regular),
+            };
+
+            page.Controls.Add(label);
+            label.BringToFront();
+            return label;
+        }
+
+        /// <summary>Show the "make a unit first" message, or the editors when there is a unit.</summary>
+        /// <remarks>
+        /// The message replaces the page rather than covering it: two Dock=Fill siblings paint in an order the window
+        /// renderer does not always honour, and a blank list with live buttons invited clicks that did nothing.
+        /// </remarks>
+        private void UpdateLoadoutEmptyState(Unit? unit)
+        {
+            string message = unit is not null
+                ? string.Empty
+                : teamUnits.Count > 0
+                    ? "Select a unit in the team list on the right to edit its gear and skills."
+                    : "No units yet.\n\nCreate one on the Unit Selection tab — type a name, pick a class, press Add Unit " +
+                      "— then come back here to give it gear and skills.";
+
+            ShowPageOrMessage(tabTeamGearSelection, _gearPage, _lblGearEmpty, unit is not null, message);
+            ShowPageOrMessage(tabTeamSkillSelection, _skillsPage, _lblSkillsEmpty, unit is not null, message);
+        }
+
+        private static void ShowPageOrMessage(
+            TabPage host, Control? page, Label? message, bool showPage, string text)
+        {
+            if (page is null || message is null) return;
+
+            if (showPage)
+            {
+                if (host.Controls.Count == 1 && ReferenceEquals(host.Controls[0], page)) return;
+
+                host.Controls.Clear();
+                page.Enabled = true;
+                host.Controls.Add(page);
+                return;
+            }
+
+            if (host.Controls.Count == 1 && ReferenceEquals(host.Controls[0], message)) return;
+
+            host.Controls.Clear();
+            message.Text = text;
+            host.Controls.Add(message);
+        }
+
+        /// <summary>The two rosters the campaign loads. Everything else in <c>data/school</c> is test content.</summary>
+        private static readonly string[] CampaignRosters = { "valensimperia.tok", "ursulanordagh.tok" };
 
         /// <summary>
         /// The gear page: browse legal items on the left (with a filter), the unit's five slots and the selected
@@ -1824,6 +2122,16 @@ namespace ModdingGUI
             buttons.Controls.Add(ActionButton("btnAddSkill", "Add →", 90, (_, _) => AddSelectedSkill()));
             buttons.Controls.Add(ActionButton("btnRemoveSkill", "← Remove", 100, (_, _) => RemoveSelectedSkill()));
 
+            _chkAnyClassSkills = new CheckBox
+            {
+                Name = "chkAnyClassSkills",
+                Text = "Also list skills any class can learn",
+                AutoSize = true,
+                Margin = new Padding(8, 8, 0, 0),
+            };
+            _chkAnyClassSkills.CheckedChanged += (_, _) => RefreshLoadoutEditors();
+            buttons.Controls.Add(_chkAnyClassSkills);
+
             _lblLoadoutJp = new Label
             {
                 Name = "lblLoadoutJp",
@@ -1868,6 +2176,7 @@ namespace ModdingGUI
 
 
         /// <summary>Populate the roster drop-down from the project's school files.</summary>
+        /// <summary>Populate the roster drop-down with the two campaign rosters, in a fixed order.</summary>
         private void RefreshRosterList()
         {
             _cmbRoster.Items.Clear();
@@ -1875,9 +2184,16 @@ namespace ModdingGUI
             string project = txtPackPath.Text.Trim();
             if (string.IsNullOrEmpty(project) || !Directory.Exists(project)) return;
 
-            foreach (string file in new ModdingGUI.Core.Api.SchoolsApi().ListFiles(project))
+            var present = new ModdingGUI.Core.Api.SchoolsApi().ListFiles(project)
+                .Select(Path.GetFileName)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            // Only the campaign's two files: the other ~60 in data/school are test rosters, and offering them
+            // produced a team the game never reads.
+            foreach (string roster in CampaignRosters)
             {
-                _cmbRoster.Items.Add(Path.GetFileName(file));
+                if (present.Contains(roster)) _cmbRoster.Items.Add(roster);
             }
 
             if (_cmbRoster.Items.Count > 0) _cmbRoster.SelectedIndex = 0;
@@ -1983,8 +2299,11 @@ namespace ModdingGUI
                 _lblGearCount.Text = "Select a unit to load its gear.";
                 _lblLoadoutJp.Text = string.Empty;
                 _lblLoadoutJp.ForeColor = SystemColors.ControlText;
+                UpdateLoadoutEmptyState(null);
                 return;
             }
+
+            UpdateLoadoutEmptyState(unit);
 
             _lblSelectedUnit.Text = $"{unit.UnitName} — {unit.Class.ClassName}";
             _txtUnitLevel.Text = unit.Level.ToString();
@@ -2011,13 +2330,32 @@ namespace ModdingGUI
                 _slotValues[type].Text = Slot(unit, type);
             }
 
-            // Learnable skills, priced.
+            // Learnable skills. The picker shows what a designer can actually place: the class's own skills, without
+            // the combo hits (granted by their root) or the innate/command records a roster gets for free.
             var allSkills = new ModdingGUI.Core.Api.SkillsApi().GetAll(project);
-            foreach (var skill in ModdingGUI.Core.Units.LearnableSkills.For(allSkills, className))
+            _skillsCache = allSkills;
+
+            var options = new ModdingGUI.Core.Units.LearnableSkillOptions
+            {
+                IncludeAnyClass = _chkAnyClassSkills.Checked,
+            };
+
+            foreach (var skill in ModdingGUI.Core.Units.LearnableSkills.For(allSkills, className, options))
             {
                 int cost = ModdingGUI.Core.Units.JobPoints.CostOf(skill);
                 int level = ModdingGUI.Core.Units.LearnableSkills.LevelOf(skill);
-                _lstLearnableSkills.Items.Add(new SkillChoice(skill, $"{skill.Name}  ({cost} JP, lvl {level})"));
+
+                string tags = string.Empty;
+                if (ModdingGUI.Core.Units.LearnableSkills.IsComboRoot(skill))
+                {
+                    // The chain length is what a hit list shows: Combo I uses two of the shared combo records.
+                    int hits = ModdingGUI.Core.Units.LearnableSkills.ChainOf(skill, allSkills).Count;
+                    tags += hits > 1 ? $"  · combo ×{hits}" : "  · combo";
+                }
+
+                if (ModdingGUI.Core.Units.LearnableSkills.ClassesOf(skill).Count == 0) tags += "  · any class";
+
+                _lstLearnableSkills.Items.Add(new SkillChoice(skill, $"{skill.Name}  ({cost} JP, lvl {level}){tags}"));
             }
 
             foreach (var skill in unit.LearnedSkills)
@@ -2192,9 +2530,26 @@ namespace ModdingGUI
                 $"level {ModdingGUI.Core.Units.LearnableSkills.LevelOf(skill)}",
             };
 
-            if (!string.IsNullOrWhiteSpace(skill.SkillType) || !string.IsNullOrWhiteSpace(skill.SkillSubType))
+            string category = ModdingGUI.Core.Units.LearnableSkills.CategoryOf(skill);
+            if (category.Length > 0) lines.Add($"category: {category}");
+
+            var classes = ModdingGUI.Core.Units.LearnableSkills.ClassesOf(skill);
+            lines.Add(classes.Count == 0
+                ? "classes: any — the record has no SKILLUSECLASS line"
+                : "classes: " + string.Join(", ", classes));
+
+            if (ModdingGUI.Core.Units.LearnableSkills.IsComboRoot(skill))
             {
-                lines.Add($"{skill.SkillType} / {skill.SkillSubType}");
+                var chain = ModdingGUI.Core.Units.LearnableSkills.ChainOf(skill, _skillsCache);
+                lines.Add(string.Empty);
+                lines.Add($"combo of {chain.Count}: the later hits come with this skill and are never bought on their " +
+                          "own, which is why they cost no job points.");
+                for (int i = 0; i < chain.Count; i++)
+                {
+                    var hit = chain[i];
+                    string label = i == 0 ? "buys" : $"hit {i + 1}";
+                    lines.Add($"  {label}: {hit.Name} ({ModdingGUI.Core.Units.JobPoints.CostOf(hit)} JP)");
+                }
             }
 
             foreach (var field in skill.Fields.Take(8))

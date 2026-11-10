@@ -15,7 +15,10 @@ and leaves a screenshot behind; the list below is what to look at in it, plus th
 1. Set a project (Pack tab path, or the tree), then **Debug Options → Team Builder**.
    - [ ] Tab opens, no "classdefs.tok not found" dialog. A project whose `_BEC` folder is named differently (the
          `REALDATA_*` fixtures use `vanilla_BEC`) also opens, because the check goes through `ProjectRoots`.
-   - [ ] Rules Selection page: campaign selected, level 1, roster drop-down lists `data/school/*.tok`.
+   - [ ] Rules Selection page shows four labelled groups (team type, size and starting level, job points for new
+         units, rosters) and a fifth for loading a team. No bare "Override JP" checkbox floating on the page.
+   - [ ] The level box is editable and reads 1; the roster drop-down lists only `valensimperia.tok` and
+         `ursulanordagh.tok`, and the page says why the other school files are not offered.
 2. Add a unit: name `QA Hero`, class `Murmillo`, level `5`, **Add Unit**.
    - [ ] It appears in the tree as `QA Hero (Murmillo)` and in the preview with 5's stats.
    - [ ] `Current Team: (1/14)`.
@@ -55,6 +58,14 @@ and leaves a screenshot behind; the list below is what to look at in it, plus th
 11. **Skills** tab.
     - [ ] Left: `Available for this class` with `(cost JP, lvl N)` per skill. Right: `Granted`, empty.
     - [ ] The JP line reads `Level 20: <awarded> JP awarded, 0 spent, <left> left`.
+    - [ ] The list is the class's own skills only: no `…ComboChain …` records, no `Innate`/`Command` entries
+          (`Gwazi OffBalance`, `Pass`, `Continue`), and no other class's abilities. An Amazon sees ~39 entries.
+    - [ ] A skill that starts a chain is tagged `· combo ×N`; its cost is the only JP charged (the hits are free).
+    - [ ] Tick **Also list skills any class can learn**: the list grows by the 8 records with no `SKILLUSECLASS`
+          (`Crowd Status I–IV`, `Pass`, `Continue`, `Gwazi OffBalance`, `Other HellGate`), each tagged `· any class`.
+          Untick and they go away again.
+    - [ ] Select a combo root (`Amazon Combo I`): the details box lists the chain, marks which hit is bought, and says
+          the later hits cost nothing because they come with it.
 12. Add skills until the total cost passes the award.
     - [ ] The first additions are silent.
     - [ ] The one that crosses the budget asks: *"'QA Hero' now spends X JP on granted skills but is awarded Y.
@@ -67,16 +78,28 @@ and leaves a screenshot behind; the list below is what to look at in it, plus th
 14. Select a learnable skill, then a granted one.
     - [ ] The details box describes the selection (cost, level, type, first fields).
 
-## 5. Roster round trip
+## 5. Empty state (before any unit exists)
 
-15. Rules Selection → **Load roster** (`valensimperia.tok` in a vanilla project).
-    - [ ] Units appear in the tree; each is editable, and the checkbox set (Valens/Ursula) decides which rosters the
-          export writes.
-16. Add to file (**Add all to team file** / the export button).
-    - [ ] The summary lists written, skipped and duplicate units; duplicates are refused rather than silently renamed.
+17. With no unit in the tree, open **Gear**, then **Skills**.
+    - [ ] Both pages read "No units yet. Create one on the Unit Selection tab …" instead of an empty list with live
+          buttons. Nothing is clickable behind the message.
+18. Add one unit, remove it, and open the pages again.
+    - [ ] The message changes to "Select a unit in the team list on the right…" (units exist, none selected).
+19. Select a unit.
+    - [ ] The editors come back, and the right-hand panel names the unit (`QA Hero — Murmillo`).
+
+## 6. Roster round trip
+
+20. Rules Selection → **Load into the editor** (`valensimperia.tok` in a vanilla project).
+    - [ ] Units appear in the tree; each is editable, and the ticked rosters decide what **Save team to rosters** writes.
+21. Add a unit and press **Save team to rosters**.
+    - [ ] The summary counts **units**, not writes: "Team of 1 unit(s) written to 2 roster(s):" followed by one line per
+          roster. It must not claim two units because two rosters were ticked.
     - [ ] The project gains `.mod-history/data/school/<roster>.tok/<timestamp>.bak`, and the roster's edited unit boots
           with the class, stats, `ITEMSCOMP` and `SKILL` lines the panel showed (this half needs the game — see
           `HANDOFF.md` §6).
+22. Press **Save team to rosters** again without changing anything.
+    - [ ] It reports the units as already present/updated rather than appending duplicates.
 
 ## Automated half
 
@@ -86,14 +109,16 @@ Start-Process .\bin\Debug\net8.0-windows\win-x64\ModdingGUI.exe -ArgumentList '-
 .\scripts\ui-drive.ps1 -File .\scripts\team-builder-smoke.txt
 ```
 
-All 24 commands should answer `{"ok":true,…}`; the last one is a log tail that should contain the JP decision and the
+Every command should answer `{"ok":true,…}`; the last one is a log tail that should contain the JP decision and the
 screenshot path. This is the regression net for the panel: run it after touching `TeamBuilder.cs`, `UiAutomation.cs` or
-`UiDriver.cs`.
+`UiDriver.cs`. It does not export, so it cannot touch your rosters.
 
 ## Notes
 
 - A unit added at level 5 keeps level-5 stats until **Set level** or **Apply both** re-reads the set — that is
   deliberate, so a level change never destroys a hand-tuned stat row without the designer asking.
-- `Override JP` on the Rules page and the JP offer write the same field (`JOBPOINTS`); the offer only ever raises it.
-  Lowering is a deliberate edit, so it stays manual.
+- The custom-JP checkbox on the Rules page and the JP offer on the Skills page write the same field (`JOBPOINTS`); the
+  offer only ever raises it. Lowering is a deliberate edit, so it stays manual.
+- A skill's `JOBPOINTS` price is the record's `SKILLJOBPOINTCOST`; a combo's later hits are separate records with no
+  price, because the root is what the designer places.
 - Anything the panel cannot do yet is listed in `HANDOFF.md` §5.3 (currently: nothing — the UX backlog is closed).

@@ -276,6 +276,21 @@ namespace ModdingGUI
                 changed = true;
             }
 
+            if (request.TryGetProperty("item", out JsonElement listItemValue) && control is ListBox listItem)
+            {
+                // Select by (partial) text so a scenario survives a list whose indexes moved.
+                string wanted = listItemValue.GetString() ?? string.Empty;
+                int index = listItem.Items.Cast<object>()
+                    .Select((candidate, i) => (candidate, i))
+                    .Where(pair => Shorten(pair.candidate?.ToString(), 200)?.Contains(wanted, StringComparison.OrdinalIgnoreCase) == true)
+                    .Select(pair => pair.i)
+                    .DefaultIfEmpty(-1)
+                    .First();
+                if (index < 0) return UiFail($"{name} has no item containing '{wanted}'");
+                listItem.SelectedIndex = index;
+                changed = true;
+            }
+
             if (request.TryGetProperty("item", out JsonElement tabValue) && control is TabControl tabs)
             {
                 string wanted = tabValue.GetString() ?? string.Empty;
@@ -464,6 +479,21 @@ namespace ModdingGUI
             }
 
             return MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
+        }
+
+        /// <summary>
+        /// An informational popup. Under automation a modal would deadlock the driver (it owns the UI thread), so the
+        /// message goes to the log instead — which is where a script is reading anyway.
+        /// </summary>
+        internal void UiAlert(string message, string title)
+        {
+            if (UiAutomationActive)
+            {
+                AppendLog($"[automation] {title}: {message}", Color.Black);
+                return;
+            }
+
+            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private Control? FindControl(string name)
