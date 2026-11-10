@@ -11,6 +11,10 @@ namespace ModdingGUI.Forms
         private AppSettings _currentSettings;
         private readonly Action<AppSettings> _onSave;
 
+        // Created in code rather than the designer: this row was added after the dialog was rebuilt on the kit.
+        private readonly TextBox _txtConverterPath = new() { Name = "txtDiscImageConverterPath", Width = 320 };
+        private readonly Button _btnBrowseConverterPath = new() { Name = "btnBrowseDiscImageConverterPath", Text = "Browse..." };
+
         public SettingsForm(AppSettings settings, Action<AppSettings> onSave)
         {
             InitializeComponent();
@@ -31,6 +35,7 @@ namespace ModdingGUI.Forms
             chkAutoOpenFolder.Checked = _currentSettings.AutoOpenFolderAfterOperation;
             txtDefaultProjectDir.Text = _currentSettings.DefaultProjectDirectory;
             txtDolphinPath.Text = _currentSettings.DolphinExecutablePath;
+            _txtConverterPath.Text = _currentSettings.DiscImageConverterPath;
 
             // Randomizer settings
             chkEnableRandomizerLogs.Checked = _currentSettings.EnableRandomizerLogs;
@@ -51,6 +56,7 @@ namespace ModdingGUI.Forms
             _currentSettings.AutoOpenFolderAfterOperation = chkAutoOpenFolder.Checked;
             _currentSettings.DefaultProjectDirectory = txtDefaultProjectDir.Text;
             _currentSettings.DolphinExecutablePath = txtDolphinPath.Text;
+            _currentSettings.DiscImageConverterPath = _txtConverterPath.Text;
 
             // Randomizer settings
             _currentSettings.EnableRandomizerLogs = chkEnableRandomizerLogs.Checked;
@@ -100,6 +106,18 @@ namespace ModdingGUI.Forms
                     txtDefaultProjectDir.Text = folderDialog.SelectedPath;
                 }
             }
+        }
+
+        private void BrowseConverterPath(object? sender, EventArgs e)
+        {
+            using var dialog = new OpenFileDialog
+            {
+                Title = "Select a disc image converter",
+                Filter = "dolphin-tool (dolphin-tool.exe)|dolphin-tool.exe|Executables (*.exe)|*.exe|All files (*.*)|*.*",
+            };
+
+            if (File.Exists(_txtConverterPath.Text)) dialog.InitialDirectory = Path.GetDirectoryName(_txtConverterPath.Text);
+            if (dialog.ShowDialog(this) == DialogResult.OK) _txtConverterPath.Text = dialog.FileName;
         }
 
         private void btnBrowseDolphinPath_Click(object sender, EventArgs e)

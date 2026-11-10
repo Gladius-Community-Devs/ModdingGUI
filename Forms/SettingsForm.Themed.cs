@@ -17,6 +17,9 @@ namespace ModdingGUI.Forms
         {
             SuspendLayout();
 
+            // The stock dialog is 500 px wide, which leaves a caption column too narrow for "Disc image converter".
+            ClientSize = new Size(Math.Max(ClientSize.Width, 640), ClientSize.Height);
+
             BackColor = UiTheme.Surface;
             ForeColor = UiTheme.Ink;
             Font = UiTheme.Body;
@@ -61,6 +64,7 @@ namespace ModdingGUI.Forms
             var rows = new List<(string Caption, Control Field, Control? Button)>
             {
                 ("Dolphin executable", txtDolphinPath, btnBrowseDolphinPath),
+                ("Disc image converter", _txtConverterPath, _btnBrowseConverterPath),
                 ("Projects folder", txtDefaultProjectDir, btnBrowseProjectDir),
             };
 
@@ -98,7 +102,7 @@ namespace ModdingGUI.Forms
                 if (button is not null)
                 {
                     UiKit.Look((Button)button, this, primary: false);
-                    UiKit.RowWithButton(grid, this, caption, field, (Button)button);
+                    UiKit.RowWithButton(grid, this, caption, field, (Button)button, labelWidth: 150);
                 }
                 else
                 {

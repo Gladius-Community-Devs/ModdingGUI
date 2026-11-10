@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Drawing;
 using System.IO;
+using ModdingGUI.Core.Discs;
 using ModdingGUI.Core.Logging;
 using ModdingGUI.Core.Tools;
 
@@ -37,19 +38,52 @@ namespace ModdingGUI
         /// <summary>Unpack <paramref name="isoPath"/> into a project named <paramref name="projectName"/>.</summary>
         private async Task<BuildResult> RunUnpackAsync(string isoPath, string projectName, RichTextBox? target = null)
         {
-            var request = new UnpackRequest(
-                isoPath, projectName, ProjectsFolder(), ToolbeltDirectory(), PythonCommand);
+            // The unpack tool seeks raw ISO offsets, so a compressed container is converted to a temporary plain ISO
+            // first. NKit is the exception: it is a valid disc with padding stripped and its file table still resolves,
+            // so unpacking works on it directly - only patching needs the rebuilt image.
+            DiscImageFormat detected = DiscImageProbe.Detect(isoPath);
+            DiscImagePreparation prepared;
 
-            SaveToolCommandsOnce(UnpackService.ProjectFolderOf(request), UnpackService.Steps(request), "unpack");
-
-            using (MirrorLogInto(target ?? rtbUnpackOutput))
+            if (detected == DiscImageFormat.Nkit)
             {
-                // A job, not a task: it has an id, a state and a result, so the driver can wait on completion instead
-                // of guessing how long a 1.4 GB unpack takes.
-                var job = _jobs.Start("unpack", UnpackService.ProjectFolderOf(request),
-                    token => new UnpackService(_log, "unpack").Unpack(request, token), _log);
+                AppendLog("This is an NKit (scrubbed) image. Unpacking works, but patching needs a rebuilt ISO: an NKit " +
+                    "image has had its padding removed, so no vanilla patch can apply to it.", WarningColor, target ?? rtbUnpackOutput);
+                prepared = new DiscImagePreparation(true, isoPath, detected, "Unpacking the NKit image directly.");
+            }
+            else
+            {
+                prepared = PrepareDiscImage(isoPath, target ?? rtbUnpackOutput);
+            }
+            if (!prepared.Ok || prepared.IsoPath is null)
+            {
+                // A one-step result carrying the reason: the caller shows the log, and the text is in it.
+                return new BuildResult(1, new[]
+                {
+                    new BuildStepResult("disc image", 1, new[] { prepared.Message }),
+                });
+            }
 
-                return await job.Completion;
+            try
+            {
+                var request = new UnpackRequest(
+                    prepared.IsoPath, projectName, ProjectsFolder(), ToolbeltDirectory(), PythonCommand);
+
+                SaveToolCommandsOnce(UnpackService.ProjectFolderOf(request), UnpackService.Steps(request), "unpack");
+
+                using (MirrorLogInto(target ?? rtbUnpackOutput))
+                {
+                    // A job, not a task: it has an id, a state and a result, so the driver can wait on completion
+                    // instead of guessing how long a 1.4 GB unpack takes.
+                    var job = _jobs.Start("unpack", UnpackService.ProjectFolderOf(request),
+                        token => new UnpackService(_log, "unpack").Unpack(request, token), _log);
+
+                    return await job.Completion;
+                }
+            }
+            finally
+            {
+                // The temporary ISO can be a gigabyte and a half; it never outlives the unpack.
+                if (prepared.IsTemporary) DiscImagePreparer.Cleanup(prepared.IsoPath);
             }
         }
 

@@ -141,7 +141,7 @@ namespace ModdingGUI
         public static int FieldWidth(Control owner) => UiTheme.Scale(owner, 420);
 
         /// <summary>Add a caption + field row, growing the grid by one 30 px row.</summary>
-        public static void Row(TableLayoutPanel grid, Control owner, string caption, Control field, string? hint = null)
+        public static void Row(TableLayoutPanel grid, Control owner, string caption, Control field, string? hint = null, int labelWidth = 112)
         {
             int row = grid.RowCount;
             grid.RowCount = row + 1;
@@ -164,7 +164,7 @@ namespace ModdingGUI
             {
                 Text = caption,
                 AutoSize = false,
-                Width = UiTheme.Scale(owner, 112),
+                Width = UiTheme.Scale(owner, labelWidth),
                 Height = FieldHeight(owner),
                 TextAlign = ContentAlignment.MiddleLeft,
                 ForeColor = UiTheme.Ink,
@@ -198,7 +198,8 @@ namespace ModdingGUI
 
         /// <summary>A label + field row where the field is followed by a button, e.g. a path and its Browse.</summary>
         public static FlowLayoutPanel RowWithButton(
-            TableLayoutPanel grid, Control owner, string caption, Control field, Button button, string? hint = null)
+                TableLayoutPanel grid, Control owner, string caption, Control field, Button button, string? hint = null,
+                int labelWidth = 112)
         {
             // Same single-container shape as Row: caption, field and button share one line, so they cannot drift apart.
             int row = grid.RowCount;
@@ -218,7 +219,7 @@ namespace ModdingGUI
             {
                 Text = caption,
                 AutoSize = false,
-                Width = UiTheme.Scale(owner, 112),
+                Width = UiTheme.Scale(owner, labelWidth),
                 Height = FieldHeight(owner),
                 TextAlign = ContentAlignment.MiddleLeft,
                 ForeColor = UiTheme.Ink,

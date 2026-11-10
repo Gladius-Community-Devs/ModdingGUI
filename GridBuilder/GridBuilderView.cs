@@ -101,7 +101,7 @@ namespace ModdingGUI
             { "scorchedoasis", new MapTransformDefaults { OffsetX = 125, OffsetY = 25, Scale = 2.4M, RotationIndex = 2 } },
             { "belfortarena", new MapTransformDefaults { OffsetX = 75, OffsetY = -100, Scale = 2.6M, RotationIndex = 2 } },
             { "bloodyhalo", new MapTransformDefaults { OffsetX = 75, OffsetY = -75, Scale = 2.5M, RotationIndex = 2 } },
-            { "caltharena", new MapTransformDefaults { OffsetX = 75, OffsetY = 37, Scale = 2.4M, RotationIndex = 2 } },
+            { "calthaarena", new MapTransformDefaults { OffsetX = 75, OffsetY = 37, Scale = 2.4M, RotationIndex = 2 } },
         };
 
 
@@ -476,22 +476,58 @@ namespace ModdingGUI
         /// </remarks>
         private string? ResolveMapImagePath(string arenaKey, string fileName)
         {
-            var candidates = new List<string>();
+            string baseName = Path.GetFileNameWithoutExtension(fileName);   // map_<arenaKey>
 
+            var fileNames = new List<string> { fileName };
+
+            // The disc does not have one image per arena in every case: some arenas are numbered (darkgod -> darkgod1..4,
+            // nordaghforest -> nordaghforest1..3) and one directory name is misspelled in the data
+            // (channelerstemple holds map_channellerstemple). Try the numbered variants and the known alias before
+            // giving up, rather than showing no map for four arenas.
+            if (baseName.EndsWith("channelerstemple", StringComparison.OrdinalIgnoreCase))
+            {
+                fileNames.Add(baseName.Replace("channelerstemple", "channellerstemple", StringComparison.OrdinalIgnoreCase) + ".png");
+            }
+            else if (baseName.StartsWith("map_channellerstemple", StringComparison.OrdinalIgnoreCase))
+            {
+                fileNames.Add(baseName.Replace("channellerstemple", "channelerstemple", StringComparison.OrdinalIgnoreCase) + ".png");
+            }
+
+            for (int index = 1; index <= 4; index++)
+            {
+                fileNames.Add(baseName + index + ".png");
+            }
+
+            // A directory that already carries a number ("darkgod2") also maps onto the unnumbered page.
+            int trimLength = baseName.Length - 1;
+            if (trimLength > 0 && char.IsDigit(baseName[trimLength]))
+            {
+                fileNames.Add(baseName[..trimLength] + ".png");
+            }
+
+            var folders = new List<string>();
             if (!string.IsNullOrWhiteSpace(_projectRoot))
             {
-                candidates.Add(Path.Combine(_projectRoot, "maps", fileName));
-                candidates.Add(Path.Combine(_projectRoot, Path.GetFileName(_projectRoot) + "_BEC", "maps", fileName));
+                folders.Add(Path.Combine(_projectRoot, "maps"));
+                folders.Add(Path.Combine(_projectRoot, Path.GetFileName(_projectRoot) + "_BEC", "maps"));
             }
 
-            candidates.Add(Path.Combine(GetAppDirectory(), "maps", fileName));
+            folders.Add(Path.Combine(GetAppDirectory(), "maps"));
 
-            foreach (string candidate in candidates)
+            foreach (string folder in folders)
             {
-                AppendLog($"Attempting to find map image at: '{candidate}'", "Black", isDetail: true);
-                if (File.Exists(candidate)) return candidate;
+                foreach (string name in fileNames)
+                {
+                    string candidate = Path.Combine(folder, name);
+                    if (File.Exists(candidate))
+                    {
+                        AppendLog($"Map image '{name}' found for arena '{arenaKey}' at '{candidate}'.", "Green", isDetail: true);
+                        return candidate;
+                    }
+                }
             }
 
+            AppendLog($"No map image tried for arena '{arenaKey}' ({string.Join(", ", fileNames)}) in {folders.Count} folder(s).", "OrangeRed", isDetail: true);
             return null;
         }
 

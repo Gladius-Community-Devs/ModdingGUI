@@ -530,3 +530,60 @@ Proved by copying a reference PNG into a scratch project's `maps/` folder, switc
 
 256 x 256 at the default transform scale of 2.5 is exactly 640 px = 32 cells x 20 px, which is why the built-in transform
 defaults in the view are what they are.
+
+## 24. Arena maps come from the project itself; disc images are no longer ISO-only
+
+### Arena maps at unpack
+
+The map art is **not TGA**: all 49 files under `<project>_BEC/data/texture/gui/maps/` are PTTP texture pages
+(magic `PTTP`, 256x256, `PFHD` format byte `0x22` = GameCube CMPR colour plus an alpha mask in a second plane - 65,536
+bytes = 256x256 x 4bpp x 2 planes). `Converter-Arena-Map.py` in GladiusTools is not a map converter at all (it is a
+PAO/PAX geometry tool needing numpy), and the sibling `convert_pttp_to_tga.py` mis-decodes `0x22` as DXT5 and produces
+noise. The correct converter is `GladiusTools/_tga_view/pttp_tga.py`: stdlib only, `--png <dir> <outdir>`.
+
+- Vendored into the repo as `TextureConversion/pttp_tga.py` and copied to `tools/pttp_tga.py` on build, because the
+  shipped toolbelt has no texture converter.
+- A fourth unpack step runs it after the BEC unpack: `<project>_BEC/data/texture/gui/maps` -> `<project>/maps`, and it is
+  only added when the script and the source folder exist. Measured on the demo project: **49 PNGs from 49 pages in
+  4.4 s, 3.82 MB total, all 256x256**.
+- Output goes to `<project>/maps`, deliberately **not** `_BEC/maps`: `bec-tool-all.py -pack` walks the whole `_BEC` tree
+  and packs anything not listed in `filelist.txt`, so PNGs there would be shipped inside the ISO.
+- Grid Builder resolves, in order: `<project>/maps`, `<project>/<name>_BEC/maps`, `<app>/maps`; with fallbacks for the
+  arenas whose art is numbered (`darkgod` -> `darkgod1..4`, `nordaghforest` -> `nordaghforest1..3`) and the one
+  misspelled directory (`channelerstemple` holds `map_channellerstemple`). Verified: all four previously map-less arenas
+  now resolve. Also fixed the transform-defaults typo `caltharena` -> `calthaarena`, which meant those defaults never
+  applied.
+- The overlay draws the art **as-is**: the reference pages carry ~47 % alpha already, and two attempts to dim them
+  (55 %, 85 %) made the map vanish on a dark surface. The cells are painted afterwards, so the map only shows through
+  cell gaps and empty cells.
+
+### Disc images: RVZ, WIA, GCZ, CISO, NKit
+
+The app's tools seek raw ISO offsets (`ngciso-tool.py` even opens the file `rb+`), so they can only read a plain ISO.
+Detection is by bytes, not extension: `ModdingGUI.Core/Discs/DiscImageProbe` reads 0x208 bytes and checks, in order,
+RVZ (`52 56 5A 01`), WIA (`57 49 41 01`), GCZ (`01 C0 0B B1`), CISO (`CISO`), the NKit marker `"NKIT v01"` at 0x200,
+then the GameCube magic word `C2 33 9F 3D` at 0x1C. Every pattern was verified against a real file produced by
+Dolphin 2606a on this machine - the Dolphin source's own comment for the GCZ magic is stale, so it was not trusted.
+
+`DiscImagePreparer` converts anything else to a temporary plain ISO and the caller deletes it:
+
+- RVZ/WIA/GCZ/CISO -> `dolphin-tool convert -i <in> -o <tmp>.iso -f iso` (no block-size/compression flags needed for a
+  plain-ISO output);
+- NKit -> NKit's `ConvertToISO.exe`, which always writes into its own `utils/Processed/GameCube` and appends `_1` on a
+  collision, so the file is discovered rather than assumed. Its exit code is 2 on success *and* failure, so the output
+  file is the only signal;
+- **nothing is bundled**: Dolphin is GPL-2.0-or-later and NKit is closed-source freeware with no licence grant, so the
+  converter is a setting (`Disc image converter`) that is auto-derived from `DolphinTool.exe` sitting beside the
+  configured Dolphin executable.
+
+Verified end to end: `g.rvz` -> detected RVZ -> converted in **2.1 s** -> 1,459,978,240-byte ISO with MD5
+`a78d6e1c9de69886ce827ad2a7507339`, i.e. exactly the vanilla hash. Through the UI (with the Dolphin path configured and
+the converter auto-discovered) the patching tab logged detection, conversion, **"Verified against the vanilla ISO
+hash"**, then ran xdelta against the converted ISO - failing only because the test patch was a dummy.
+
+Consequences wired in: the MD5 gate now runs on a **plain ISO** (a container hash would always mismatch) - at selection
+for plain images, and after conversion for everything else. NKit is allowed for **unpack** with a warning (it is a valid
+disc with padding stripped and its file table still resolves; 182 of 185 extracted files are byte-identical to a
+rebuilt ISO) but patching requires conversion, since a scrubbed image can never match a vanilla patch. The five
+file pickers now offer `iso/gcm/nkit.iso/rvz/wia/gcz/ciso`, and the old "go find Swift's tool in Discord" message is
+gone. `DiscImagePreparerTests` covers the decisions without an external process; `DiscImageProbeTests` covers the magics.

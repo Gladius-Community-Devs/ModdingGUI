@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using ModdingGUI.Core.Tools;
 
+using ModdingGUI.Core.Discs;
+
 namespace ModdingGUI
 {
     public partial class frmMain : Form
@@ -32,17 +34,28 @@ namespace ModdingGUI
                     return;
                 }
 
-                // Proceed with MD5 verification
-                AppendLog("Verifying ISO MD5 hash...", InfoColor, rtbPatchingApplicationOutput);
-                string md5Hash = await ComputeMD5Async(isoPath);
-                if (!string.Equals(md5Hash, "a78d6e1c9de69886ce827ad2a7507339", StringComparison.OrdinalIgnoreCase))
+                // Only a plain ISO can be hashed directly. Compressed containers are converted at apply time, and the
+                // vanilla check runs on the converted bytes then - hashing the container would always "fail".
+                DiscImageFormat format = DiscImageProbe.Detect(isoPath);
+                AppendLog($"Detected {DiscImageProbe.Describe(format)}.", InfoColor, rtbPatchingApplicationOutput);
+
+                if (format == DiscImageFormat.PlainIso)
                 {
-                    MessageBox.Show("The selected ISO does not match the expected Vanilla ISO. Proceeding may cause unexpected results.", "MD5 Mismatch", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    AppendLog("MD5 hash does not match the expected Vanilla ISO hash.\nProceed if you know what you are doing.", ErrorColor, rtbPatchingApplicationOutput);
+                    await VerifyVanillaIsoAsync(isoPath);
                 }
-                else
+                else if (format is DiscImageFormat.Rvz or DiscImageFormat.Wia or DiscImageFormat.Gcz or DiscImageFormat.Ciso)
                 {
-                    AppendLog("Verified!", SuccessColor, rtbPatchingApplicationOutput);
+                    string? converter = ResolveDiscImageConverter();
+                    AppendLog(converter is null
+                            ? "This image will need converting to a plain ISO first: set File > Settings > General > 'Disc image converter'."
+                            : $"This image will be converted with '{Path.GetFileName(converter)}' when the patch is applied.",
+                        converter is null ? WarningColor : InfoColor, rtbPatchingApplicationOutput);
+                }
+                else if (format == DiscImageFormat.Nkit)
+                {
+                    AppendLog("NKit (scrubbed) image: Dolphin can play it but cannot rebuild it, and xdelta needs real disc " +
+                        "bytes. Convert it with NKit's ConvertToISO first, or supply a plain ISO.",
+                        WarningColor, rtbPatchingApplicationOutput);
                 }
 
                 btnPatchingApplicationApply.Enabled = true;
@@ -76,22 +89,54 @@ namespace ModdingGUI
                 return;
             }
 
-            if (isoPath.EndsWith(".nkit.iso", StringComparison.OrdinalIgnoreCase))
+            // xdelta needs real disc bytes, so any container is converted to a plain ISO first (and the temporary file is
+            // removed whatever happens). The MD5 gate ran on the selected file earlier; this path is the actual source.
+            btnPatchingApplicationApply.Enabled = false;
+            DiscImagePreparation prepared = PrepareDiscImage(isoPath, rtbPatchingApplicationOutput);
+            if (!prepared.Ok || prepared.IsoPath is null)
             {
-                MessageBox.Show("The selected ISO is an .nkit.iso file. Please use Swift's linked tool in Discord to convert it to a standard ISO.");
+                btnPatchingApplicationApply.Enabled = true;
+                return;
             }
+
+            await VerifyVanillaIsoAsync(prepared.IsoPath);
 
             AppendLog("Applying xDelta patch...", InfoColor, rtbPatchingApplicationOutput);
 
             try
             {
-                await ApplyXDeltaPatchAsync(isoPath, xdeltaPath);
+                await ApplyXDeltaPatchAsync(prepared.IsoPath, xdeltaPath);
                 AppendLog("Patching completed successfully.", SuccessColor, rtbPatchingApplicationOutput);
             }
             catch (Exception ex)
             {
                 AppendLog("Error during patching: " + ex.Message, ErrorColor, rtbPatchingApplicationOutput);
             }
+            finally
+            {
+                if (prepared.IsTemporary) DiscImagePreparer.Cleanup(prepared.IsoPath);
+                btnPatchingApplicationApply.Enabled = true;
+            }
+        }
+
+        /// <summary>
+        /// The vanilla-ISO gate, on a plain ISO. Warns but never blocks: modded discs are a legitimate thing to patch.
+        /// </summary>
+        private async Task VerifyVanillaIsoAsync(string isoPath)
+        {
+            AppendLog("Verifying ISO MD5 hash...", InfoColor, rtbPatchingApplicationOutput);
+            string md5Hash = await ComputeMD5Async(isoPath);
+
+            if (string.Equals(md5Hash, VanillaIsoMd5, StringComparison.OrdinalIgnoreCase))
+            {
+                AppendLog("Verified against the vanilla ISO hash.", SuccessColor, rtbPatchingApplicationOutput);
+                return;
+            }
+
+            AppendLog($"MD5 {md5Hash} does not match the vanilla ISO hash {VanillaIsoMd5}; proceeding may cause unexpected results.",
+                WarningColor, rtbPatchingApplicationOutput);
+            MessageBox.Show("The selected ISO does not match the expected Vanilla ISO. Proceeding may cause unexpected results.",
+                "MD5 Mismatch", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private async Task<string> ComputeMD5Async(string filePath)
@@ -105,6 +150,9 @@ namespace ModdingGUI
         }
 
         /// <summary>The xdelta3 executable that ships in the toolbelt beside the app.</summary>
+        /// <summary>The MD5 of the retail USA disc; the app has always used this one hash as its "clean ISO" marker.</summary>
+        private const string VanillaIsoMd5 = "a78d6e1c9de69886ce827ad2a7507339";
+
         private static string XDeltaPath() =>
             Path.Combine(GetAppDirectory(), "tools", "xdelta3.exe");
 

@@ -93,7 +93,7 @@ public static class BatchContentBuilder
 
         // The tools were written expecting forward slashes (the app has always normalised paths for them), and
         // nothing here needs the Windows form: the argument reaches Python byte for byte.
-        return new[]
+        var steps = new List<ToolStep>
         {
             ToolStep.PythonIn(topLevelFolder, pythonCommand, ngcisoToolPath,
                 "-unpack", PathHelper.NormalizePath(isoPath), isoFolder, fileListName),
@@ -101,6 +101,26 @@ public static class BatchContentBuilder
                 "--platform", "GC", "-unpack", becInputPath, becFolder),
             ToolStep.PythonIn(topLevelFolder, pythonCommand, unitsUnpackToolPath, dataFolder),
         };
+
+        // Arena maps for the Grid Builder's overlay. The BEC unpack above is what extracts the texture pages, and the
+        // converter writes PNGs to <project>/maps - deliberately outside _BEC, because the packer walks that whole tree
+        // and would ship the images inside the ISO.
+        string mapConverterPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "pttp_tga.py"));
+        if (File.Exists(mapConverterPath))
+        {
+            string mapSourceFolder = PathHelper.NormalizePath(
+                Path.Combine(becFolder, "data", "texture", "gui", "maps"));
+            string mapOutputFolder = PathHelper.NormalizePath(
+                Path.Combine(topLevelFolder, "maps"));
+
+            if (Directory.Exists(mapSourceFolder))
+            {
+                steps.Add(ToolStep.PythonIn(topLevelFolder, pythonCommand, mapConverterPath,
+                    "--png", PathHelper.NormalizePath(mapSourceFolder), mapOutputFolder));
+            }
+        }
+
+        return steps;
     }
 
     /// <summary>

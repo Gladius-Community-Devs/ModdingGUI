@@ -90,6 +90,7 @@ public static class AppSettingsReader
             SettingsFilePath: settingsFilePath,
             ProjectsFolder: projectsFolder,
             DolphinExecutablePath: stored.DolphinExecutablePath ?? string.Empty,
+        DiscImageConverterPath: stored.DiscImageConverterPath ?? string.Empty,
             AutoLaunchDolphin: stored.AutoLaunchDolphin,
             ValidateBeforePacking: stored.ValidateBeforePacking,
             AutoOpenFolderAfterOperation: stored.AutoOpenFolderAfterOperation,
@@ -116,6 +117,7 @@ public static class AppSettingsReader
         public bool AutoOpenFolderAfterOperation { get; set; }
         public string? DefaultProjectDirectory { get; set; } = string.Empty;
         public string? DolphinExecutablePath { get; set; } = string.Empty;
+    public string? DiscImageConverterPath { get; set; } = string.Empty;
         public bool AutoLaunchDolphin { get; set; }
         public bool EnableRandomizerLogs { get; set; }
         public int DefaultRandomIterations { get; set; } = 10;

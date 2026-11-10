@@ -26,6 +26,13 @@ namespace ModdingGUI.Models
         public bool AutoOpenFolderAfterOperation { get; set; } = false;
         public string DefaultProjectDirectory { get; set; } = string.Empty;
         public string DolphinExecutablePath { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Path to a disc-image converter (Dolphin's <c>dolphin-tool</c> or equivalent) used when the supplied image is
+        /// not a plain ISO. Empty means "not configured": the app then refuses the format with an explanation rather
+        /// than guessing.
+        /// </summary>
+        public string DiscImageConverterPath { get; set; } = string.Empty;
         /// <summary>
         /// Launch the packed ISO in Dolphin automatically. Off by default: it used to default to true, so simply
         /// setting a Dolphin path made every pack launch the emulator.
@@ -56,12 +63,15 @@ namespace ModdingGUI.Models
             AutoOpenFolderAfterOperation = source.AutoOpenFolderAfterOperation;
             DefaultProjectDirectory = source.DefaultProjectDirectory;
             DolphinExecutablePath = source.DolphinExecutablePath;
+            DiscImageConverterPath = source.DiscImageConverterPath;
+            Theme = source.Theme;
             AutoLaunchDolphin = source.AutoLaunchDolphin;
             EnableRandomizerLogs = source.EnableRandomizerLogs;
             DefaultRandomIterations = source.DefaultRandomIterations;
             AutoCheckUpdates = source.AutoCheckUpdates;
             LastUsedPatchServer = source.LastUsedPatchServer;
             ShowAdvancedOptions = source.ShowAdvancedOptions;
+            LastScpRecompileUtc = source.LastScpRecompileUtc;
         }
     }
     public class ProjectSettings

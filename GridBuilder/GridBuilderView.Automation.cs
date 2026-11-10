@@ -61,7 +61,10 @@ namespace ModdingGUI
                 slots,
                 mapVisible = _btnToggleMap.Text == "Hide Map",
                 paintTags = _paintSlotBox.Items.Cast<object>().Select(o => o.ToString()).ToArray(),
-                hasMapImage = _currentArenaMapImage is not null,
+                // "resolved" rather than "loaded": the image is only decoded when the overlay is turned on, so a null
+                // here would make a perfectly good map look missing.
+                hasMapImage = _currentMapImagePath is not null || _currentArenaMapImage is not null,
+                mapImagePath = _currentMapImagePath,   // which file the overlay resolved, or null
             });
         }
 
