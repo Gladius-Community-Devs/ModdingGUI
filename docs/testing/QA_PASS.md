@@ -650,3 +650,34 @@ decode. `qa-maps-compare.png` shows ours | reference | difference x8 for both.
 scale 1.0 - a 256 px thumbnail in the corner of a 640 px board. When the map key has no tuned transform the page is now
 scaled to fill the board (`FitScaleFor`, 32 cells x 20 px / image width, so 2.5 for the standard page size) with zero
 offsets, and auto-shown. Five tests pin the arithmetic; the four tuned arenas still use their tuned values.
+
+## 27. Map placement: what could not be derived, and what replaced it
+
+**Do not trust the machine's guesses about map orientation.** Two attempts were made to derive the page alignment from the
+`.grd` data, both failed, and both are recorded here so nobody repeats them:
+
+1. *Luminance under wall cells*: score each of 8 orientations by "walls darker than floor". It favoured a different
+   orientation for almost every arena and contradicted the hand-tuned values (it wanted flipX for `belfortarena` and
+   rot90 for `calthaarena`, both hand-tuned to rot180). Walls are not consistently darker than floor, so the metric is
+   measuring nothing.
+2. *Registration of wall boundaries onto map edges*: exhaustive search over 8 orientations and a 33x33 offset grid. It ran
+   to the edges of the search box and matched none of the ten hand-tuned arenas. Sparse boundary samples against an edge map
+   with strong axes give a degenerate optimum.
+
+Conclusion: the alignment is a property of the art, not of the grid data. The only trustworthy source is the hand-tuned
+table in the original `GridBuilderView` (ten arenas) plus a human saying "that is where it goes".
+
+**What changed instead.**
+
+- The rotation list gains **Flip H** and **Flip V** (indices 4 and 5). Indices 0-3 keep their original meaning, so every
+  value in the hand-tuned table still means what it did. A mirrored page cannot be aligned by rotation alone, and a flipped
+  page was previously unexpressible.
+- **Remember placement / Clear placement** buttons on the Grid Builder toolbar save the current offset, scale and rotation
+  for the open arena (key = the `.grd`'s parent folder) to `<app>/map_placements.json`, and **saved placements win** over
+  the built-in table and over fit-to-board. The file is camelCase, indented and keyed by arena so it can be hand-edited or
+  shipped with a project.
+- Driver: `{"cmd":"grid","action":"placement"}` reads current + saved; `"remember":true` saves; `"remember":false` forgets.
+- Verified end to end: set Flip V on `arenasuren`, `remember:true` wrote the JSON, an arena round-trip came back with
+  `hasSavedPlacement: true` and rotation still 5, and `remember:false` emptied it. 8 store tests cover round-trip,
+  case-insensitive keys, corruption, precedence-independent removal and the hand-readability of the file.
+- Precedence on load: saved placement -> built-in table -> fit-to-board.

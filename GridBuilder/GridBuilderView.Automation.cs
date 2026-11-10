@@ -215,6 +215,44 @@ namespace ModdingGUI
             });
         }
 
+        /// <summary>
+        /// Read or change the saved map placement for the open arena.
+        /// </summary>
+        /// <param name="remember">Null reads, true saves the current transform, false forgets it.</param>
+        public string AutomationPlacement(bool? remember)
+        {
+            string? key = CurrentArenaKey();
+            MapPlacement current = CurrentPlacement();
+            bool hasSaved = key is not null && Placements.TryGet(key, out _);
+
+            if (remember is true)
+            {
+                if (key is null) return Fail("no arena open, so there is no placement to remember");
+                RememberCurrentPlacement();
+                hasSaved = true;
+            }
+            else if (remember is false)
+            {
+                if (key is null) return Fail("no arena open, so there is no placement to clear");
+                ClearCurrentPlacement();
+                hasSaved = false;
+            }
+
+            Placements.TryGet(key ?? string.Empty, out MapPlacement saved);
+
+            return Json(new
+            {
+                ok = true,
+                arena = key,
+                hasSavedPlacement = hasSaved,
+                current = new { rotationIndex = current.RotationIndex, rotation = _mapRotationBox.SelectedItem, offsetX = current.OffsetX, offsetY = current.OffsetY, scale = current.Scale },
+                saved = key is not null && hasSaved
+                    ? new { rotationIndex = saved.RotationIndex, offsetX = saved.OffsetX, offsetY = saved.OffsetY, scale = saved.Scale }
+                    : null,
+                known = Placements.All.Count,
+            });
+        }
+
         /// <summary>Every tag this grid can address, for failure messages.</summary>
         private string[] AvailableTags()
         {

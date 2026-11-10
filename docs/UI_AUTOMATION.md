@@ -161,7 +161,10 @@ text box) cannot express "put Start1 on cell 12,7". One command with an `action`
 | `{"cmd":"grid","action":"slot","tag":"Start1"}` | chooses which tag mouse painting applies and reports the mask |
 | `{"cmd":"grid","action":"arena","name":"expanse\\expansedunes\\dunesstartdefault.grd"}` | loads that grid from the selected project |
 | `{"cmd":"grid","action":"save"}` | writes through `GridsApi` (project lock + `.mod-history` backup) |
-| `{"cmd":"grid","action":"map","visible":true,"x":0,"y":0,"scale":2.5,"rotate":0}` | shows/hides the arena map and sets its transform |
+| `{"cmd":"grid","action":"map","visible":true,"x":0,"y":0,"scale":2.5,"rotate":0}
+{"cmd":"grid","action":"placement"}                      current + saved placement for the open arena
+{"cmd":"grid","action":"placement","remember":true}    save the current transform for this arena
+{"cmd":"grid","action":"placement","remember":false}   forget it` | shows/hides the arena map and sets its transform |
 
 Three behaviours matter when scripting against it:
 

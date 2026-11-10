@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
-using System.Drawing.Drawing2D; // Required for InterpolationMode and RotateFlipType
+using System.Drawing.Drawing2D;
 using System.Collections.Generic; // For Dictionary
 
 namespace ModdingGUI
@@ -49,6 +49,8 @@ namespace ModdingGUI
         private readonly ToolStripComboBox _arenaBox = new ToolStripComboBox();
         private readonly ToolStripLabel _hoverLbl = new ToolStripLabel();
         private readonly ToolStripButton _btnSave = new ToolStripButton("Save");
+        private readonly ToolStripButton _btnRememberPlacement = new("Remember placement");
+        private readonly ToolStripButton _btnClearPlacement = new("Clear placement");
         private ToolStripButton _btnToggleMap;
 
         private CheckBox _chkVerboseLoggingRegular;
@@ -78,6 +80,9 @@ namespace ModdingGUI
 
         /* ───── state ────────────────────────────────────────────────── */
         private string? _projectRoot;
+
+        /// <summary>Per-arena placements saved by the user; loaded lazily from beside the exe.</summary>
+        private MapPlacementStore? _placements;
         private string? _currentArenaPath;
         private Image? _currentArenaMapImage = null;
         private string? _currentMapImagePath = null;
@@ -235,6 +240,14 @@ namespace ModdingGUI
             _btnSave.Click += (_, __) => SaveArena();
             bar.Items.Add(_btnSave);
 
+            // Saving a placement is how an arena whose page disagrees with its grid gets fixed for good: the original
+            // code hand-tuned ten arenas and left the rest, and the alignment cannot be derived from the grd data.
+            _btnRememberPlacement.Click += (_, _) => RememberCurrentPlacement();
+            bar.Items.Add(_btnRememberPlacement);
+
+            _btnClearPlacement.Click += (_, _) => ClearCurrentPlacement();
+            bar.Items.Add(_btnClearPlacement);
+
             bar.Items.Add(new ToolStripSeparator());
             _hoverLbl.Text = ""; _hoverLbl.AutoSize = false; _hoverLbl.Width = 350;
             bar.Items.Add(_hoverLbl);
@@ -271,7 +284,9 @@ namespace ModdingGUI
             _mapRotLabel = new ToolStripLabel("Rot:");
             bar.Items.Add(_mapRotLabel);
             _mapRotationBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            _mapRotationBox.Items.AddRange(new object[] { "None", "90°", "180°", "270°" });
+            // The first four indices are the original list; the flips are additions. A page whose art is mirrored cannot be
+            // aligned by rotation alone, which matters when one disagrees with its grid.
+            _mapRotationBox.Items.AddRange(new object[] { "None", "90�", "180�", "270�", "Flip H", "Flip V" });
             _mapRotationBox.SelectedIndex = 0;
             _mapRotationBox.Width = 90;
             _mapRotationBox.Font = UiTheme.Body;
@@ -414,6 +429,79 @@ namespace ModdingGUI
         }
 
 
+        /// <summary>Saved placements for this installation, loaded on first use.</summary>
+        private MapPlacementStore Placements => _placements ??= MapPlacementStore.LoadFrom(AppContext.BaseDirectory);
+
+        /// <summary>Put the current controls at a stored placement.</summary>
+        private void ApplyPlacement(MapPlacement placement, string arenaKey, string source)
+        {
+            _mapOffsetXNumeric.Value = Math.Max(_mapOffsetXNumeric.Minimum, Math.Min(_mapOffsetXNumeric.Maximum, placement.OffsetX));
+            _mapOffsetYNumeric.Value = Math.Max(_mapOffsetYNumeric.Minimum, Math.Min(_mapOffsetYNumeric.Maximum, placement.OffsetY));
+            _mapScaleNumeric.Value = Math.Max(_mapScaleNumeric.Minimum, Math.Min(_mapScaleNumeric.Maximum, placement.Scale));
+
+            if (placement.RotationIndex >= 0 && placement.RotationIndex < _mapRotationBox.Items.Count)
+            {
+                _mapRotationBox.SelectedIndex = placement.RotationIndex;
+            }
+
+            AppendLog($"Applied {source} for '{arenaKey}': X={placement.OffsetX}, Y={placement.OffsetY}, Scale={placement.Scale}, Rot={placement.RotationIndex}.",
+                "Purple", isDetail: false);
+        }
+
+        /// <summary>The placement the controls are showing right now.</summary>
+        private MapPlacement CurrentPlacement() =>
+            new(_mapRotationBox.SelectedIndex, (int)_mapOffsetXNumeric.Value, (int)_mapOffsetYNumeric.Value, _mapScaleNumeric.Value);
+
+        /// <summary>The arena key the current grid belongs to, or null when it cannot be derived.</summary>
+        private string? CurrentArenaKey() =>
+            string.IsNullOrEmpty(_currentArenaPath) ? null : Path.GetFileName(Path.GetDirectoryName(_currentArenaPath));
+
+        /// <summary>Remember the current placement for the open arena.</summary>
+        private void RememberCurrentPlacement()
+        {
+            string? key = CurrentArenaKey();
+            if (key is null)
+            {
+                AppendLog("No arena open, so there is no placement to remember.", "OrangeRed", isDetail: false);
+                return;
+            }
+
+            MapPlacement placement = CurrentPlacement();
+            Placements.Set(key, placement);
+
+            try
+            {
+                string path = Placements.Save(AppContext.BaseDirectory);
+                AppendLog($"Remembered placement for '{key}': X={placement.OffsetX}, Y={placement.OffsetY}, Scale={placement.Scale}, Rot={_mapRotationBox.SelectedItem}. Saved to '{path}'.",
+                    "DarkGreen", isDetail: false);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                AppendLog($"Could not save the placement: {ex.Message}", "OrangeRed", isDetail: false);
+            }
+        }
+
+        /// <summary>Forget the saved placement for the open arena and fall back to the table or fitting.</summary>
+        private void ClearCurrentPlacement()
+        {
+            string? key = CurrentArenaKey();
+            if (key is null || !Placements.Remove(key))
+            {
+                AppendLog($"No saved placement to clear for '{key ?? "(no arena)"}'.", "Orange", isDetail: false);
+                return;
+            }
+
+            try
+            {
+                Placements.Save(AppContext.BaseDirectory);
+                AppendLog($"Cleared the saved placement for '{key}'.", "DarkGreen", isDetail: false);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                AppendLog($"Could not save after clearing: {ex.Message}", "OrangeRed", isDetail: false);
+            }
+        }
+
         private void MapTransformControls_ValueChanged(object? sender, EventArgs e)
         {
             MapDisplayOffset = new Point((int)_mapOffsetXNumeric.Value, (int)_mapOffsetYNumeric.Value);
@@ -425,6 +513,8 @@ namespace ModdingGUI
                 1 => RotateFlipType.Rotate90FlipNone,
                 2 => RotateFlipType.Rotate180FlipNone,
                 3 => RotateFlipType.Rotate270FlipNone,
+                4 => RotateFlipType.RotateNoneFlipX,
+                5 => RotateFlipType.RotateNoneFlipY,
                 _ => RotateFlipType.RotateNoneFlipNone,
             };
             _panel.Invalidate();
@@ -704,8 +794,17 @@ namespace ModdingGUI
                         AppendLog("Path.GetDirectoryName for the GRD file returned NULL or EMPTY. Cannot derive map image or lookup defaults.", "OrangeRed", isDetail: false);
                     }
 
-                    AppendLog($"Checking for default transforms with key: '{processedGrdKey ?? "NULL_KEY"}'", "Magenta", isDetail: false);
-                    if (!string.IsNullOrEmpty(processedGrdKey))
+                    // A saved placement wins over the built-in table and over fitting: it is the only source of truth that was
+            // set by somebody looking at the overlay.
+            bool placementApplied = false;
+            if (!string.IsNullOrEmpty(processedGrdKey) && Placements.TryGet(processedGrdKey, out MapPlacement saved))
+            {
+                ApplyPlacement(saved, processedGrdKey, "saved placement");
+                placementApplied = !string.IsNullOrEmpty(_currentMapImagePath);
+            }
+
+            AppendLog($"Checking for default transforms with key: '{processedGrdKey ?? "NULL_KEY"}'", "Magenta", isDetail: false);
+                    if (!string.IsNullOrEmpty(processedGrdKey) && !placementApplied)
                     {
                         bool keyFound = _mapDefaultTransforms.TryGetValue(processedGrdKey, out var defaults);
                         AppendLog($"_mapDefaultTransforms.TryGetValue result for key '{processedGrdKey}': {keyFound}", "Magenta", isDetail: false);

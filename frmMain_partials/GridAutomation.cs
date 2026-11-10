@@ -28,7 +28,7 @@ namespace ModdingGUI
     {
         private static readonly string[] GridActions =
         {
-            "state", "cell", "setTag", "clear", "slot", "arena", "save", "map",
+            "state", "cell", "setTag", "clear", "slot", "arena", "save", "map", "placement",
         };
 
         /// <summary>Dispatch a <c>grid</c> command to the Grid Builder view.</summary>
@@ -71,6 +71,11 @@ namespace ModdingGUI
 
                 case "save":
                     return view.AutomationSave();
+
+                case "placement":
+                    return request.TryGetProperty("remember", out JsonElement remember) && remember.ValueKind is JsonValueKind.True or JsonValueKind.False
+                        ? view.AutomationPlacement(remember.GetBoolean())
+                        : view.AutomationPlacement(null);
 
                 case "map":
                     return view.AutomationSetMap(
