@@ -183,3 +183,27 @@ Checked by geometry rather than by eye: every visible control's bounds against t
 New finding:
 
 | D26 | Fixed | At 1366x768 the project sidebar kept its 1173 px height and ran past the bottom of the window, hiding the lower half of the project list | The header docks to the top and the tree fills the rest (`UiHelp.FixSidebarLayout`); measured at 1366x768 the tree is 222x673 inside a 702 px panel |
+
+## 11. Designed for the launch size (1505x816)
+
+The app opens at **1505x816** (a 1220x722 tab area) but the tabs were laid out on a 1747x1212 designer canvas, so
+at the size people actually get, Patching clipped its own "Create xDelta" panel and showed horizontal scrollbars.
+Fixed by reflowing the tab instead of expecting a bigger window:
+
+- Patching: the apply form is a grid (header, subtitle, two path rows, Apply) with the log filling under it; the
+  right side is two docked panels - downloads tree above, creation form below with its actions in a docked strip.
+- Project sidebar and the Team Builder team list: both trees were anchored but kept their design-time height
+  (1173 and 977 px), so at 1080p and at the launch size they ran below the window; both are docked now.
+- Randomizer and Unit Selection were reflowed in the previous rounds; the editors and Grid Builder already scale.
+
+Measured after the change, every visible control against the client area, all seven tabs at **1505x816: 0 past the
+edge**. The wiring survived the reparenting: Apply patch still answers with "Please select valid ISO and xDelta
+files." when the paths are empty.
+
+Two traps worth remembering, both hit while doing this:
+
+1. **A docked control and a filling sibling need the right order.** WinForms docks from the *end* of the child
+   collection, so a `Fill` sibling added last takes the whole area and paints over a `Top`/`Bottom` strip.
+   `BringToFront()` makes it worse - it moves the control to the front of the collection, i.e. docks it last.
+2. **`Control.Visible` is not "what the user sees".** Geometry against the client area caught all of this; the
+   screenshots confirmed it.
