@@ -111,6 +111,7 @@ affects, what the campaign rosters are.
 | D14 | Open | Unit Selection page is still the old absolute layout | Cosmetic |
 | D15 | Open | Driver `set` writes to hidden/disabled controls without complaint (it drove a retired field during this pass) | Should fail loudly |
 | D16 | Open | Randomizer and Patching flows not exercised (destructive / needs real patch files) | Add to a later sweep |
+| D17 | Low | Team Builder: "Load into the editor" was clickable with no rosters, producing only a dialog; explanatory paragraphs on the Rules page duplicated their tooltips | Fixed - the button is disabled until a project with rosters is selected, and the paragraphs are tooltips only |
 
 ## 7. Performance (this machine, Debug build)
 

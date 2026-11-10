@@ -1045,6 +1045,9 @@ namespace ModdingGUI
         /// <summary>
         /// Handles UI initialization when opening the Team Builder tab.
         /// </summary>
+        /// <summary>The "Load into the editor" button; disabled when the project has no rosters to load.</summary>
+        private Button? _btnLoadRoster;
+
         private CheckBox? _chbTeamOverrideJp;
         private TextBox? _txtTeamJobPoints;
 
@@ -1109,9 +1112,7 @@ namespace ModdingGUI
                 AutoSize = true,
                 Font = new Font(Font, FontStyle.Bold),
             };
-            var campaignHint = HintLabel(
-                "This build writes the campaign rosters the game loads. PvP teams are not implemented yet, so the " +
-                "old PvP/campaign switch is gone.");
+            var campaignHint = HintLabel("Campaign rosters only; PvP teams are not built yet.");
             campaignContent.Controls.Add(campaignTitle, 0, 0);
             campaignContent.Controls.Add(campaignHint, 0, 1);
 
@@ -1149,14 +1150,11 @@ namespace ModdingGUI
 
             chbTeam40Glads.Text = "Allow 34 units";
             sizeGrid.Controls.Add(chbTeam40Glads, 0, 0);
-            sizeGrid.Controls.Add(HintLabel(
-                "Campaign rosters hold 14 units; 34 needs the 40-gladiator gecko code enabled in Dolphin."), 1, 0);
 
             txtTeamLevel.Enabled = true;
             sizeGrid.Controls.Add(RowLabel("New units start at level"), 0, 1);
             var levelRow = new FlowLayoutPanel { Dock = DockStyle.Fill, Margin = new Padding(0), WrapContents = false };
             levelRow.Controls.Add(txtTeamLevel);
-            levelRow.Controls.Add(HintLabel("1–30. An existing unit's level is set on the Gear page."));
             sizeGrid.Controls.Add(levelRow, 1, 1);
 
             size.Controls.Add(sizeGrid);
@@ -1200,10 +1198,6 @@ namespace ModdingGUI
             };
             jpGrid.Controls.Add(_chbTeamOverrideJp, 0, 1);
             jpGrid.SetColumnSpan(_chbTeamOverrideJp, 2);
-            jpGrid.Controls.Add(HintLabel(
-                "Job points are what the class's LEVELUPJPGIVEN awards by that level. The selected unit's own budget, " +
-                "and what it has spent, is shown on the Skills page."), 0, 2);
-            jpGrid.SetColumnSpan(jpGrid.GetControlFromPosition(0, 2)!, 2);
 
             _chbTeamOverrideJp.CheckedChanged += (_, _) =>
             {
@@ -1261,15 +1255,8 @@ namespace ModdingGUI
             btnTeamAddToFile.Height = 28;
             btnTeamAddToFile.Margin = new Padding(0, 2, 10, 0);
             saveRow.Controls.Add(btnTeamAddToFile);
-            saveRow.Controls.Add(HintLabel(
-                "Writes the team list above into the ticked rosters. Existing units are updated in place; new ones " +
-                "are appended."));
             rosterGrid.Controls.Add(saveRow, 0, 2);
             rosterGrid.SetColumnSpan(saveRow, 2);
-            rosterGrid.Controls.Add(HintLabel(
-                "The campaign reads only these two school files. The rest of data/school is test rosters that a " +
-                "normal playthrough never loads."), 0, 3);
-            rosterGrid.SetColumnSpan(rosterGrid.GetControlFromPosition(0, 3)!, 2);
 
             rosters.Controls.Add(rosterGrid);
             root.Controls.Add(rosters, 0, 3);
@@ -1291,7 +1278,7 @@ namespace ModdingGUI
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Margin = new Padding(0, 2, 8, 0),
             };
-            var loadRoster = new Button
+            _btnLoadRoster = new Button
             {
                 Name = "btnLoadRoster",
                 Text = "Load into the editor",
@@ -1299,16 +1286,14 @@ namespace ModdingGUI
                 Height = 26,
                 Margin = new Padding(0, 2, 10, 0),
             };
-            loadRoster.Click += (_, _) => LoadSelectedRoster();
+            _btnLoadRoster.Click += (_, _) => LoadSelectedRoster();
             loadRow.Controls.Add(_cmbRoster);
-            loadRow.Controls.Add(loadRoster);
-            loadRow.Controls.Add(HintLabel(
-                "Adds that roster's units to the team list so they can be edited; saving rewrites them in place."));
+            loadRow.Controls.Add(_btnLoadRoster);
             load.Controls.Add(loadRow);
             root.Controls.Add(load, 0, 4);
 
             // Rows 0-4 are absolute; give each its content height so the page does not clip on a small window.
-            root.RowStyles[0] = new RowStyle(SizeType.Absolute, 96F);
+            root.RowStyles[0] = new RowStyle(SizeType.Absolute, 72F);
             root.RowStyles[1] = new RowStyle(SizeType.Absolute, 108F);
             root.RowStyles[2] = new RowStyle(SizeType.Absolute, 120F);
             root.RowStyles[3] = new RowStyle(SizeType.Absolute, 156F);
@@ -2290,7 +2275,14 @@ namespace ModdingGUI
             _cmbRoster.Items.Clear();
 
             string project = txtPackPath.Text.Trim();
-            if (string.IsNullOrEmpty(project) || !Directory.Exists(project)) return;
+            if (string.IsNullOrEmpty(project) || !Directory.Exists(project))
+            {
+                // Nothing to load: say so by disabling the button rather than offering a click that only produces a
+                // dialog. The page is fully usable the moment a project is selected.
+                _btnLoadRoster.Enabled = false;
+
+                return;
+            }
 
             var present = new ModdingGUI.Core.Api.SchoolsApi().ListFiles(project)
                 .Select(Path.GetFileName)
@@ -2305,6 +2297,9 @@ namespace ModdingGUI
             }
 
             if (_cmbRoster.Items.Count > 0) _cmbRoster.SelectedIndex = 0;
+
+            // Only offer the action when there is something to load.
+            if (_btnLoadRoster is not null) _btnLoadRoster.Enabled = _cmbRoster.Items.Count > 0;
         }
 
         /// <summary>

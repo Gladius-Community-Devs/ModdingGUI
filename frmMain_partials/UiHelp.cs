@@ -155,7 +155,12 @@ namespace ModdingGUI
             ["Edit an existing team"] = "Load a roster so its units can be changed and written back.",
             ["Allow 34 units"] = "Raise the cap to 34. Requires the 40-gladiator gecko code enabled in Dolphin.",
             ["Save team to rosters"] = "Write the team into the ticked roster files, with a backup of each file first.",
-            ["Load into the editor"] = "Add the roster's units to the team list so they can be edited.",
+            ["Load into the editor"] = "Add the roster's units to the team list so they can be edited, then saving rewrites them in place.",
+            ["New units start at level"] = "1-30. A unit's level can also be changed later on the Gear tab.",
+            ["Campaign team"] = "This build writes the campaign rosters the game loads; PvP teams are not implemented yet.",
+            ["Save team to rosters"] = "Writes the team list into the ticked rosters: existing units are updated in place, new ones are appended.",
+            ["Rosters to save into"] = "The campaign loads only valensimperia.tok and ursulanordagh.tok; the rest of data/school are test rosters a normal playthrough never loads.",
+            ["Job points for new units"] = "Job points are what the class's LEVELUPJPGIVEN awards by that level. The selected unit's own budget and spending are on the Skills tab.",
         };
 
         /// <summary>Apply every tip whose control exists. Safe to call again after building new controls.</summary>
