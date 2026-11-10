@@ -105,11 +105,11 @@ affects, what the campaign rosters are.
 | D8 | Medium | Team Builder: retired PvP-era Rules page shown until a project was selected | Fixed — built on tab entry |
 | D9 | Medium | Team Builder: new unit not selected, so Gear/Skills/Remove did not apply to it | Fixed — selects the new node |
 | D10 | Low | 55 labels verbose or jargon; vague placeholders | Fixed — see §5 |
-| D11 | Open | Randomizer tab layout: option list cramped in the left third, "Reset to Vanilla" floats far from the options, no visible inputs for the two custom-amount options | Needs a layout pass |
+| D11 | Fixed | Randomizer tab layout: the options box was 590 px tall for ~10 checkboxes, so Randomize, Reset to Vanilla and the baseline status floated in its dead space. The box is content-sized now, the two buttons and the status share a row beneath it, and the redundant sentence was dropped. Verified: a seeded run still completes (~8 s) and Reset restores 960 files |
 | D12 | Open | Patching log prints `Adding mod node: …` / `Successfully received file list JSON.` | Log copy pass |
 | D13 | Open | 134 `MessageBox.Show` call sites; only automation mode covers them | Route through one helper over time |
 | D14 | Open | Unit Selection page is still the old absolute layout | Cosmetic |
-| D15 | Open | Driver `set` writes to hidden/disabled controls without complaint (it drove a retired field during this pass) | Should fail loudly |
+| D15 | Fixed (see D23) | Driver `set` writes to hidden/disabled controls without complaint (it drove a retired field during this pass) | `set`/`click` refuse with a reason |
 | D16 | Open | Randomizer and Patching flows not exercised (destructive / needs real patch files) | Add to a later sweep |
 | D19 | High | Randomizer: clicking Randomize with no options ticked disabled the button for the rest of the session (the early return skipped the re-enable) | Fixed |
 | D20 | Low | Automation guard reported an OK-only message as "answered yes" | Fixed - "acknowledged" |
@@ -164,3 +164,6 @@ Two operational notes for anyone scripting this:
 2. Drive every `MessageBox.Show` through one helper (D13) so validation feedback is inline and testable.
 3. Layout checks at 125 %/150 % DPI and at 1366×768 (the smallest plausible laptop screen).
 4. Make `set` refuse invisible targets (D15) and add a `waitFor` predicate, so scenarios stop needing `closeDialog`.
+
+| D24 | Low | My own edits to the designer lost the ellipsis character in four "Choose..." labels (`Choose project.`) | Fixed - plain labels without punctuation, matching Unpack/Pack |
+| D25 | Low | `capture` photographs the whole screen region, so it can capture the user's other windows; `screenshot` renders only the app | Documented - use `screenshot` for evidence, `capture` only to check what the compositor shows |

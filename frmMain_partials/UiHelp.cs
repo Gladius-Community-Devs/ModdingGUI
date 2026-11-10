@@ -196,6 +196,57 @@ namespace ModdingGUI
                 foreach (Control deeper in Find(child, text)) yield return deeper;
             }
         }
+
+        /// <summary>
+        /// Give the Randomizer page a footer row instead of controls floating in the empty half of the options box.
+        /// </summary>
+        /// <remarks>
+        /// The options group is sized for about ten checkboxes of content but declared 590 px tall, so Randomize,
+        /// Reset to Vanilla and the baseline status sat in the dead space below the ticks with no visible relationship
+        /// to anything. The group is shrunk to its content and those three get a row beneath it.
+        /// </remarks>
+        internal static void FixRandomizerLayout(Control root)
+        {
+            if (root.Controls.Find("grpBaseOptions", true).FirstOrDefault() is not GroupBox options) return;
+            if (options.Parent is not Control page) return;
+
+            int contentBottom = options.Controls.Cast<Control>()
+                .Select(child => child.Bottom + child.Margin.Bottom)
+                .DefaultIfEmpty(160)
+                .Max();
+
+            options.Height = Math.Max(180, contentBottom + 18);
+
+            int row = options.Top + options.Height + 14;
+            int left = options.Left + 9;
+
+            // Randomize is a child of the options group, so moving it would only move it inside the box that just
+            // shrank. Pull it out onto the page first, then the row below the group is its own.
+            if (options.Controls.Find("btnRandomize", true).FirstOrDefault() is Button randomize)
+            {
+                options.Controls.Remove(randomize);
+                page.Controls.Add(randomize);
+                randomize.Location = new Point(left, row);
+                left = randomize.Right + 12;
+            }
+
+            if (root.Controls.Find("btnRandomizerReset", true).FirstOrDefault() is Button reset)
+            {
+                reset.Location = new Point(left, row + 2);
+                left = reset.Right + 16;
+            }
+
+            if (root.Controls.Find("lblRandomizerBaseline", true).FirstOrDefault() is Label baseline)
+            {
+                baseline.Location = new Point(left, row + 9);
+                baseline.AutoEllipsis = true;
+            }
+
+            // The sentence "each run restores the vanilla baseline first" is now carried by the baseline status label
+            // beside it and by the tooltip; leaving it here only collided with the row above.
+            if (root.Controls.Find("label15", true).FirstOrDefault() is Label paragraph) paragraph.Visible = false;
+        }
+
         /// <summary>
         /// Give the Packing tab a footer bar for "Make a patch", instead of a button at a hard-coded Y.
         /// </summary>

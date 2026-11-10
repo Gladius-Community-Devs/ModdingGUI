@@ -488,7 +488,7 @@ namespace ModdingGUI
             btnPatchingApplicationISOPath.Name = "btnPatchingApplicationISOPath";
             btnPatchingApplicationISOPath.Size = new Size(217, 38);
             btnPatchingApplicationISOPath.TabIndex = 4;
-            btnPatchingApplicationISOPath.Text = "Browse.";
+            btnPatchingApplicationISOPath.Text = "Browse";
             btnPatchingApplicationISOPath.UseVisualStyleBackColor = true;
             btnPatchingApplicationISOPath.Click += btnPatchingApplicationISOPath_Click;
             // 
@@ -791,7 +791,7 @@ namespace ModdingGUI
             btnSelectISO.Name = "btnSelectISO";
             btnSelectISO.Size = new Size(124, 38);
             btnSelectISO.TabIndex = 1;
-            btnSelectISO.Text = "Choose ISO.";
+            btnSelectISO.Text = "Choose ISO";
             btnSelectISO.UseVisualStyleBackColor = true;
             btnSelectISO.Click += btnSelectISO_Click;
             // 
@@ -924,7 +924,7 @@ namespace ModdingGUI
             btnPackPath.Name = "btnPackPath";
             btnPackPath.Size = new Size(124, 38);
             btnPackPath.TabIndex = 2;
-            btnPackPath.Text = "Choose project.";
+            btnPackPath.Text = "Choose project";
             btnPackPath.UseVisualStyleBackColor = true;
             btnPackPath.Click += btnPackPath_Click;
             // 
@@ -1282,7 +1282,7 @@ namespace ModdingGUI
             btnRandomizerPath.Name = "btnRandomizerPath";
             btnRandomizerPath.Size = new Size(124, 38);
             btnRandomizerPath.TabIndex = 4;
-            btnRandomizerPath.Text = "Choose project.";
+            btnRandomizerPath.Text = "Choose project";
             btnRandomizerPath.UseVisualStyleBackColor = true;
             btnRandomizerPath.Click += btnRandomizerPath_Click;
             // 
