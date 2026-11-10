@@ -416,3 +416,38 @@ pages convert without rewriting their logic. Two traps, both caught by looking:
 
 Unit Selection, Gear and Skills show an empty state until a unit exists, so their cards need a unit in the editor before
 they can be checked. Editors and Grid Builder are untouched.
+
+## 19. Randomizer polish, remnants, and what "(randomized)" means
+
+**Row alignment.** `Row`/`RowWithButton` put the caption in one grid column and the field in the other, so the two only
+lined up while both rows agreed - which is why the Unpacking page showed "Project" under its own box. Each row is now a
+single `FlowLayoutPanel` holding caption, field and button, sized from `FieldHeight`, so a caption cannot drift from its
+field.
+
+**Option switches.** `Appearance.Button` draws the checked face from `FlatAppearance.CheckedBackColor`, not `BackColor`;
+leaving that at the system default is why the list showed a pale blue row, a grey row and a light blue row while moving
+through it. Every state is set in `UiTheme.TintToggle` and the rows no longer take focus rectangles.
+
+**The gold amount.** It was a designer text box at an absolute position, so it drew beside whichever row happened to be
+at those coordinates. It now lives in a host panel under its own option, with the host collapsing when the amount is
+hidden - the amount box is only shown while the option is on (the shell already did that; the heading and the spacing
+now follow the same flag).
+
+**The remnant under the tabs, finally.** `tabTeamBuilderMaster` is created lazily by the Team Builder, *after* the
+chrome pass, so its native tab row and frame were still drawn: that was the pale text fragment plus hairline. The strip
+is now attached to nested tab controls after the Team Builder builds its pages, and the frame fix moved into
+`UiKit.AttachTabStrip` so any control it attaches to loses the system frame.
+
+**"(randomized)" was derived, and slightly wrong.** It tested whether `.mod-history/_randomizer-baseline` exists. Reset
+to Vanilla restores *from* that folder and keeps it (`RandomizerBaseline.Restore` copies files back, backs up the current
+ones, deletes nothing), so a project that had been reset still showed "(randomized)". It now compares file contents
+against the pinned baseline, so the marker means what it says: this project differs from its baseline.
+
+**New driver command: `children`.** `{"cmd":"children","name":"pnlRandomGold"}` lists a container's children in order
+with type, name, text and visibility. It settled a duplicated-heading argument I had been having with a screenshot, and
+proved the amount box was `visible=false` by design rather than missing.
+
+**A note on tooling.** Twice in this round a `string.Replace` insertion landed in a *second* copy of the same line - once
+inside the `FitRun` local function, once in the options loop - producing duplicated headings. Line-based edits or the
+`edit` tool with unique context are the safe way to change code in this file; `Replace` is only safe for a string known
+to occur once.

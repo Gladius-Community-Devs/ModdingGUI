@@ -354,9 +354,15 @@ namespace ModdingGUI
             bool on = check.Checked;
             check.BackColor = on ? Accent : SurfaceAlt;
             check.ForeColor = on ? AccentInk : Ink;
+
+            // Appearance.Button draws the checked face from CheckedBackColor, not BackColor - leaving it at the system
+            // default is why some rows looked pale blue and others grey while moving through the list.
+            check.FlatAppearance.CheckedBackColor = Accent;
             check.FlatAppearance.BorderColor = on ? Accent : Border;
             check.FlatAppearance.BorderSize = 1;
-            check.FlatAppearance.MouseOverBackColor = on ? AccentHover : Border;
+            check.FlatAppearance.MouseOverBackColor = on ? AccentHover : Surface;
+            check.FlatAppearance.MouseDownBackColor = on ? AccentHover : Border;
+            check.TabStop = false;   // no dotted focus rectangle on a switch row
         }
 
         private static void TintMenuItem(ToolStripItem item)

@@ -166,6 +166,35 @@ namespace ModdingGUI
         /// The log level a legacy colour implies. The shell has always signalled severity by colour;
         /// this keeps that mapping in one place while the stream itself carries a real level.
         /// </summary>
+        /// <summary>
+        /// True when the project's randomizer files differ from the pinned baseline, i.e. a randomize has been applied
+        /// and not reset. Compares content: a restore rewrites every file, so timestamps move with it and would lie.
+        /// </summary>
+        private static bool DiffersFromBaseline(string becFolder)
+        {
+            string root = Path.Combine(becFolder, ".mod-history", RandomizerBaseline.Folder);
+            if (!Directory.Exists(root)) return false;
+
+            try
+            {
+                foreach (string baselineFile in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+                {
+                    string relative = Path.GetRelativePath(root, baselineFile).Replace('\\', '/');
+                    string current = Path.Combine(becFolder, relative.Replace('/', Path.DirectorySeparatorChar));
+
+                    if (!File.Exists(current)) return true;
+                    if (!File.ReadAllBytes(current).AsSpan().SequenceEqual(File.ReadAllBytes(baselineFile))) return true;
+                }
+            }
+            catch (IOException)
+            {
+                // A file is in use: report randomized rather than claiming the project is clean.
+                return true;
+            }
+
+            return false;
+        }
+
         private static LogLevel LevelFor(Color color)
         {
             if (color.R > 150 && color.G < 100 && color.B < 100) return LogLevel.Error;      // red

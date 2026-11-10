@@ -25,6 +25,14 @@ namespace ModdingGUI
                 if (root.Controls.Find(name, true).FirstOrDefault() is not TabPage page) continue;
 
                 ConvertGroups(root, page);
+
+                // Team Builder builds its sub-tabs lazily, so the chrome pass never saw them and their native tab rows
+                // still drew - the pale text fragment and hairline under the main strip.
+                foreach (TabControl tabs in Descendants(page).OfType<TabControl>().ToArray())
+                {
+                    UiKit.AttachTabStrip(tabs);
+                }
+
                 UiTheme.Apply(page);
             }
         }

@@ -89,14 +89,66 @@ namespace ModdingGUI
                 UiTheme.TintToggle(check);
                 check.CheckedChanged += (sender, _) => { if (sender is CheckBox self) UiTheme.TintToggle(self); };
 
+                // The custom-gold amount belongs under its own option. It sits in a host with explicit positions
+                // rather than in the flow, so its line cannot depend on layout order.
+                if (name == "chbRandomCustomCash" && Find("txtRandomCustomCash") is TextBox amount)
+                {
+                    int rowHeight = UiTheme.Scale(page, 30);
+                    var host = new Panel
+                    {
+                        Name = "pnlRandomGold",
+                        Width = UiTheme.Scale(page, 300),
+                        Height = rowHeight + UiTheme.Scale(page, 30),
+                        BackColor = UiTheme.Surface,
+                        Margin = new Padding(0),
+                    };
+
+                    check.Dock = DockStyle.Top;
+                    check.Width = host.Width;
+                    amount.Dock = DockStyle.None;
+                    amount.AutoSize = false;
+                    amount.Left = UiTheme.Space(page, 3);
+                    amount.Top = rowHeight + UiTheme.Scale(page, 2);
+                    amount.Width = UiTheme.Scale(page, 110);
+                    amount.Height = UiKit.FieldHeight(page);
+                    amount.Font = UiTheme.Body;
+                    amount.Visible = check.Checked;
+
+                    // Collapse the host when the amount is hidden, or the list keeps a blank band where it would be.
+                    void FitGold()
+                    {
+                        amount.Visible = check.Checked;
+                        host.Height = check.Checked ? rowHeight + UiTheme.Scale(page, 30) : rowHeight;
+                    }
+
+                    FitGold();
+                    check.CheckedChanged += (_, _) => FitGold();
+
+                    host.Controls.Add(amount);
+                    host.Controls.Add(check);
+                    check.BringToFront();
+                    optionsFlow.Controls.Add(host);
+                    continue;
+                }
+
                 optionsFlow.Controls.Add(check);
+
             }
 
             // Full-width rows, like a list of switches: on their own the toggles shrink to the text.
             void FitOptions()
             {
                 int width = Math.Max(UiTheme.Scale(page, 180), optionsFlow.ClientSize.Width - UiTheme.Scale(page, 2));
-                foreach (Control control in optionsFlow.Controls) control.Width = width;
+                foreach (Control control in optionsFlow.Controls)
+                {
+                    // Only the switch rows take the full width; the amount box beside a toggle keeps its own size.
+                    if (control is CheckBox toggle) toggle.Width = width;
+                    else if (control is Panel host)
+                    {
+                        host.Width = width;
+                        foreach (Control inner in host.Controls) if (inner is CheckBox t) t.Width = width;
+                    }
+                }
             }
 
             optionsFlow.SizeChanged += (_, _) => FitOptions();
@@ -162,6 +214,7 @@ namespace ModdingGUI
             // from its box once the progress bar joined it.
             var runFlow = new FlowLayoutPanel
             {
+                Name = "flpRandomRun",
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.TopDown,
                 WrapContents = false,

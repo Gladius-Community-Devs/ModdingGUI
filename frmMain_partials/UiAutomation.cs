@@ -90,6 +90,9 @@ namespace ModdingGUI
                         case "hit":
                             return HitTest(request);
 
+                        case "children":
+                            return ListChildren(UiString(request, "name"));
+
                 case "closeDialog":
                             return CloseDialog();
 

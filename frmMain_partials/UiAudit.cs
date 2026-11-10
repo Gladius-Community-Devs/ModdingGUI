@@ -65,6 +65,19 @@ namespace ModdingGUI
             });
         }
 
+        /// <summary>List a container's children in order. Command: <c>{"cmd":"children","name":"runFlow"}</c>.</summary>
+        private string ListChildren(string? name)
+        {
+            Control? parent = string.IsNullOrEmpty(name) ? null : Controls.Find(name, true).FirstOrDefault();
+            if (parent is null) return JsonSerializer.Serialize(new { error = $"no control named '{name}'" });
+
+            var children = parent.Controls.Cast<Control>()
+                .Select(c => new { type = c.GetType().Name, name = c.Name, text = c.Text, visible = c.Visible })
+                .ToList();
+
+            return JsonSerializer.Serialize(new { parent = $"{parent.GetType().Name} '{parent.Name}'", count = children.Count, children });
+        }
+
         /// <summary>Name the deepest control at a point and the colours it is painted with. Command: <c>{"cmd":"hit","x":1,"y":2}</c>.</summary>
         private string HitTest(JsonElement command)
         {

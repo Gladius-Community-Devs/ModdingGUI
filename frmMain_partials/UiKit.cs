@@ -145,77 +145,113 @@ namespace ModdingGUI
         {
             int row = grid.RowCount;
             grid.RowCount = row + 1;
-            // The row must be tall enough for a 30 px field plus its 4 px margins, or the field is clipped by its host.
+
+            // The row must be tall enough for a 30 px field plus its margins, or the field is clipped by its host.
             grid.RowStyles.Add(new RowStyle(SizeType.Absolute, FieldHeight(owner) + UiTheme.Scale(owner, 8)));
+
+            // Caption and field live in ONE container. As two grid columns their vertical alignment depended on both
+            // rows agreeing, which is how "Project" ended up under its own box on the Unpacking page.
+            var line = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Margin = new Padding(0, UiTheme.Scale(owner, 4), 0, UiTheme.Scale(owner, 4)),
+                BackColor = Color.Transparent,
+            };
 
             var label = new Label
             {
                 Text = caption,
-                Dock = DockStyle.Fill,
+                AutoSize = false,
+                Width = UiTheme.Scale(owner, 112),
+                Height = FieldHeight(owner),
                 TextAlign = ContentAlignment.MiddleLeft,
                 ForeColor = UiTheme.Ink,
                 Font = UiTheme.Body,
-                AutoSize = false,
                 Margin = new Padding(0),
             };
-            grid.Controls.Add(label, 0, row);
+
+            if (!string.IsNullOrWhiteSpace(hint)) label.Tag = hint;   // surfaced by the tooltip table
 
             field.Font = UiTheme.Body;
             field.Margin = new Padding(0);
-
-            // Fields keep their own width instead of stretching across the card: a 1000 px path box reads badly and
-            // drags its button to the far edge. The host fills the cell and the field sits at its left.
-            var host = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = Color.Transparent,
-                Margin = new Padding(0, UiTheme.Scale(owner, 4), 0, UiTheme.Scale(owner, 4)),
-            };
-
-            // Fill with a maximum instead of a fixed width: the field takes the cell when the card is narrow (the
-            // Settings dialog is only ~250 px wide) and stops growing at the cap on a wide one, which keeps its button
-            // on screen instead of pushing it past the edge.
-            field.Dock = DockStyle.Fill;
-            field.MaximumSize = new Size(FieldWidth(owner), 0);
-            host.Controls.Add(field);
             field.Height = FieldHeight(owner);
-            grid.Controls.Add(host, 1, row);
+            field.Dock = DockStyle.None;
 
-            if (!string.IsNullOrWhiteSpace(hint)) label.Tag = hint;   // surfaced by the tooltip table
+            line.Controls.Add(label);
+            line.Controls.Add(field);
+
+            // Fields keep their own width instead of stretching across the card: a 1000 px path box reads badly.
+            void FitRow()
+            {
+                int available = Math.Max(UiTheme.Scale(owner, 140), line.ClientSize.Width - label.Width);
+                field.Width = Math.Min(FieldWidth(owner), available);
+            }
+
+            FitRow();
+            line.SizeChanged += (_, _) => FitRow();
+
+            grid.Controls.Add(line, 0, row);
+            grid.SetColumnSpan(line, 2);
         }
 
         /// <summary>A label + field row where the field is followed by a button, e.g. a path and its Browse.</summary>
         public static FlowLayoutPanel RowWithButton(
             TableLayoutPanel grid, Control owner, string caption, Control field, Button button, string? hint = null)
         {
+            // Same single-container shape as Row: caption, field and button share one line, so they cannot drift apart.
+            int row = grid.RowCount;
+            grid.RowCount = row + 1;
+            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, FieldHeight(owner) + UiTheme.Scale(owner, 8)));
+
             var line = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = false,
+                Margin = new Padding(0, UiTheme.Scale(owner, 4), 0, UiTheme.Scale(owner, 4)),
+                BackColor = Color.Transparent,
+            };
+
+            var label = new Label
+            {
+                Text = caption,
+                AutoSize = false,
+                Width = UiTheme.Scale(owner, 112),
+                Height = FieldHeight(owner),
+                TextAlign = ContentAlignment.MiddleLeft,
+                ForeColor = UiTheme.Ink,
+                Font = UiTheme.Body,
                 Margin = new Padding(0),
             };
 
-            // The button and the field share one height and one baseline; they used to differ by a few pixels, which is
-            // exactly what "Browse does not match the text box" looks like.
+            if (!string.IsNullOrWhiteSpace(hint)) label.Tag = hint;
+
+            // The button and the field share one height and one baseline.
             button.Width = UiTheme.Scale(owner, 88);
             button.Height = FieldHeight(owner);
             button.Margin = new Padding(UiTheme.Scale(owner, 2), 0, 0, 0);
             field.Margin = new Padding(0);
             field.Height = FieldHeight(owner);
+            field.Dock = DockStyle.None;
+
+            line.Controls.Add(label);
             line.Controls.Add(field);
             line.Controls.Add(button);
 
             void Fit()
             {
-                int taken = button.Width + button.Margin.Horizontal + UiTheme.Scale(owner, 2);
-                field.Width = Math.Max(UiTheme.Scale(owner, 120), line.ClientSize.Width - taken);
+                int taken = label.Width + button.Width + button.Margin.Horizontal + UiTheme.Scale(owner, 6);
+                int available = Math.Max(UiTheme.Scale(owner, 120), line.ClientSize.Width - taken);
+                field.Width = Math.Min(FieldWidth(owner), available);
             }
 
             Fit();
             line.SizeChanged += (_, _) => Fit();
-            line.ControlAdded += (_, _) => Fit();
-            Row(grid, owner, caption, line, hint);
+
+            grid.Controls.Add(line, 0, row);
+            grid.SetColumnSpan(line, 2);
             return line;
         }
 
@@ -359,8 +395,17 @@ namespace ModdingGUI
         /// band across a dark window because of it. This replaces that row with our own buttons and keeps them in step
         /// with the pages, including pages added or removed at run time.
         /// </remarks>
+        [System.Runtime.InteropServices.DllImport("uxtheme.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern int SetWindowTheme(IntPtr window, string appName, string? idList);
+
+        /// <summary>Attach a themed strip to a tab control, including ones created after the window was themed.</summary>
         public static void AttachTabStrip(TabControl tabs)
         {
+            // The native frame around the pages is drawn in the system (light) colour and shows as a bright hairline
+            // in a dark window; turning visual styles off for this control alone removes it.
+            if (tabs.IsHandleCreated) SetWindowTheme(tabs.Handle, string.Empty, string.Empty);
+            else tabs.HandleCreated += (_, _) => SetWindowTheme(tabs.Handle, string.Empty, string.Empty);
+
             tabs.Appearance = TabAppearance.FlatButtons;
             tabs.ItemSize = new Size(1, 1);
             tabs.Multiline = false;

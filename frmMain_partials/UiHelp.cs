@@ -174,7 +174,7 @@ namespace ModdingGUI
                 Control[] found = root.Controls.Find(name, searchAllChildren: true);
                 foreach (Control control in found)
                 {
-                    _tips.SetToolTip(control, text);
+                    _tips.SetToolTip(control, Wrap(text));
                 }
             }
 
@@ -182,9 +182,38 @@ namespace ModdingGUI
             {
                 foreach (Control control in Find(root, visible))
                 {
-                    _tips.SetToolTip(control, text);
+                    _tips.SetToolTip(control, Wrap(text));
                 }
             }
+        }
+
+        /// <summary>
+        /// Break a tip into lines of about 70 characters.
+        /// </summary>
+        /// <remarks>
+        /// A ToolTip does not wrap by itself: a long hint is drawn as one line and Windows clips it at the screen edge,
+        /// which reads as a truncated sentence with the tail of another one behind it.
+        /// </remarks>
+        private static string Wrap(string text, int width = 70)
+        {
+            var lines = new List<string>();
+            int start = 0;
+
+            while (start < text.Length)
+            {
+                int length = Math.Min(width, text.Length - start);
+                if (start + length < text.Length)
+                {
+                    int space = text.LastIndexOf(' ', start + length - 1, length);
+                    if (space > start) length = space - start;
+                }
+
+                lines.Add(text.Substring(start, length).Trim());
+                start += length;
+                while (start < text.Length && text[start] == ' ') start++;
+            }
+
+            return string.Join(Environment.NewLine, lines);
         }
 
         private static IEnumerable<Control> Find(Control root, string text)
