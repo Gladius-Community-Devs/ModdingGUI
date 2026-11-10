@@ -1105,7 +1105,7 @@ namespace ModdingGUI
             lblRandomizeStatus.Name = "lblRandomizeStatus";
             lblRandomizeStatus.Size = new Size(64, 25);
             lblRandomizeStatus.TabIndex = 8;
-            lblRandomizeStatus.Text = "Last run:";
+            lblRandomizeStatus.Text = "Status:";
             // 
             // pgbRandomizeStatus
             // 

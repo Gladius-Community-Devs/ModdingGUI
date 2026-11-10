@@ -14,6 +14,7 @@ namespace ModdingGUI
     internal static class NativeDialogs
     {
         private const uint WmClose = 0x0010;
+        private const uint BmClick = 0x00F5;
 
         private delegate bool EnumWindowsProc(IntPtr window, IntPtr state);
 
@@ -85,6 +86,43 @@ namespace ModdingGUI
             string title = caption.Length == 0 ? "(untitled dialog)" : caption.ToString();
             return body.Length == 0 ? title : $"{title}: {body}";
         }
+
+        /// <summary>
+        /// Find a push button in the dialog by its label, so a confirmation can be answered instead of dismissed.
+        /// </summary>
+        /// <param name="window">The dialog.</param>
+        /// <param name="labels">Labels to accept, in preference order ("&amp;Yes" and "Yes" both match).</param>
+        public static IntPtr FindButton(IntPtr window, params string[] labels)
+        {
+            IntPtr found = IntPtr.Zero;
+
+            foreach (string label in labels)
+            {
+                if (found != IntPtr.Zero) break;
+
+                EnumChildWindows(window, (child, _) =>
+                {
+                    var className = new StringBuilder(64);
+                    GetClassName(child, className, className.Capacity);
+                    if (!className.ToString().Equals("Button", StringComparison.Ordinal)) return true;
+
+                    var text = new StringBuilder(64);
+                    GetWindowText(child, text, text.Capacity);
+                    if (!text.ToString().Trim().TrimStart('&').Equals(label.TrimStart('&'), StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+
+                    found = child;
+                    return false;
+                }, IntPtr.Zero);
+            }
+
+            return found;
+        }
+
+        /// <summary>Press a button the way a mouse would.</summary>
+        public static void PostClick(IntPtr button) => PostMessage(button, BmClick, IntPtr.Zero, IntPtr.Zero);
 
         /// <summary>Ask the dialog to close the same way the title-bar X would.</summary>
         public static void PostClose(IntPtr window) =>

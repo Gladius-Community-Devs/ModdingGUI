@@ -292,18 +292,42 @@ public static class UiDriver
     /// </remarks>
     private static void StartDialogGuard(frmMain window)
     {
+        // One line per dialog, not one per timer tick: a Yes/No box refuses WM_CLOSE, so an un-answerable dialog used to
+        // be re-reported five times a second while the run waited for a human.
+        IntPtr lastDialog = IntPtr.Zero;
+        string lastText = string.Empty;
+
         var timer = new System.Windows.Forms.Timer { Interval = 250 };
         timer.Tick += (_, _) =>
         {
             IntPtr dialog = NativeDialogs.FindMessageBox((uint)Environment.ProcessId);
-            if (dialog == IntPtr.Zero) return;
+            if (dialog == IntPtr.Zero)
+            {
+                lastDialog = IntPtr.Zero;
+                lastText = string.Empty;
+                return;
+            }
+
+            string text = NativeDialogs.TextOf(dialog);
+            if (dialog == lastDialog && text == lastText) return;
+
+            lastDialog = dialog;
+            lastText = text;
+
+            // A confirmation gets the answer a scripted run would give the user's own prompt: yes, and it is logged.
+            IntPtr affirmative = NativeDialogs.FindButton(dialog, "Yes", "Continue");
+            IntPtr acknowledgement = affirmative == IntPtr.Zero ? NativeDialogs.FindButton(dialog, "OK") : IntPtr.Zero;
+            string answer = affirmative != IntPtr.Zero ? "answered yes"
+                : acknowledgement != IntPtr.Zero ? "acknowledged"
+                : "dismissed";
+            if (affirmative != IntPtr.Zero) NativeDialogs.PostClick(affirmative);
+            else if (acknowledgement != IntPtr.Zero) NativeDialogs.PostClick(acknowledgement);
+            else NativeDialogs.PostClose(dialog);
 
             window.Output.Write(
                 ModdingGUI.Core.Logging.LogLevel.Warning,
-                $"[automation] dialog dismissed: {NativeDialogs.TextOf(dialog)}",
+                $"[automation] dialog {answer}: {text}",
                 "driver");
-
-            NativeDialogs.PostClose(dialog);
         };
 
         timer.Start();

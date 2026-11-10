@@ -111,8 +111,29 @@ affects, what the campaign rosters are.
 | D14 | Open | Unit Selection page is still the old absolute layout | Cosmetic |
 | D15 | Open | Driver `set` writes to hidden/disabled controls without complaint (it drove a retired field during this pass) | Should fail loudly |
 | D16 | Open | Randomizer and Patching flows not exercised (destructive / needs real patch files) | Add to a later sweep |
+| D19 | High | Randomizer: clicking Randomize with no options ticked disabled the button for the rest of the session (the early return skipped the re-enable) | Fixed |
+| D20 | Low | Automation guard reported an OK-only message as "answered yes" | Fixed - "acknowledged" |
+| D21 | Medium | Skills editor: every control was unnamed, so nothing there was reachable by the driver, a screen reader, or hover help | Fixed - 14 controls named |
+| D22 | Low | Driver: combo/list items were read and matched by `ToString()`, which for a bound list is the type name - the Items editor's 1,852 items were all `ModdingGUI.frmMain+ItemRow` | Fixed - `GetItemText`, i.e. what the user sees |
+| D23 | Low | Driver: `set`/`click` silently drove hidden or disabled controls (one sweep "passed" against a retired field) | Fixed - both refuse with a reason |
 | D18 | High | Packing tab: "Make a patch" was drawn inside the log pane after the page started resizing (page-level `AutoScroll` scrolled an absolutely placed button into the anchored log) | Fixed - the page only fits itself to the viewport now, and the button lives in a docked footer. Verified at 1920x1040 and 1024x700 |
 | D17 | Low | Team Builder: "Load into the editor" was clickable with no rosters, producing only a dialog; explanatory paragraphs on the Rules page duplicated their tooltips | Fixed - the button is disabled until a project with rosters is selected, and the paragraphs are tooltips only |
+
+## 6b. Round trips proved in the app (not just in Core)
+
+| Flow | Result |
+|---|---|
+| Items editor: change Machera's cost 1125 ? 1126 ? save | `ITEMCOST: 1126` written, `.mod-history/data/config/items.tok/*.bak` holds the 1125 version, no other line changed |
+| Items editor: change it back and save | file returns to 1125, a second backup holds the 1126 version, hash equals the pre-test hash |
+| Skills editor: `SKILLLEVEL: 0` ? `3` ? save | body field written, backup created |
+| Skills editor: back to `0` and save | second backup, and `skills.tok` is **byte-identical to the pre-test file** (32,219 lines, CRLF preserved) |
+| Randomizer, seed `qa-seed-B` | changes `gladiators.txt` and both campaign rosters, compiles 7 campaign scripts, ~12 s |
+| Randomizer, same seed again | produces **identical files** - the seed really does reproduce the run |
+| Reset to Vanilla | restores all **960** files byte-exactly, twice |
+
+Two operational notes for anyone scripting this:
+- **A save finishes after the click returns.** Both editors write on a background task, so hashing or counting backups immediately after `click` reads the old state. Wait for the log/status, or poll until two hashes agree.
+- **`waitForLog` matches lines already in the log.** Repeating a run with identical output needs a unique marker (a different seed), otherwise the wait returns instantly and the test asserts nothing.
 
 ## 7. Performance (this machine, Debug build)
 

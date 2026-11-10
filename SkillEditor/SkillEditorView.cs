@@ -46,18 +46,19 @@ public sealed partial class SkillEditorView : UserControl
     // ---- controls ---------------------------------------------------------
 
     // Top bar — skill picker
-    private readonly ComboBox   _cmbSkills   = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 320 };
-    private readonly Button     _btnNewSkill = new() { Text = "New Skill", Width = 90 };
-    private readonly Button     _btnReload   = new() { Text = "Reload",    Width = 70 };
+    private readonly ComboBox   _cmbSkills   = new() { Name = "cmbSkillEditorSkills", DropDownStyle = ComboBoxStyle.DropDownList, Width = 320 };
+    private readonly Button     _btnNewSkill = new() { Name = "btnSkillEditorNew", Text = "New Skill", Width = 90 };
+    private readonly Button     _btnReload   = new() { Name = "btnSkillEditorReload", Text = "Reload",    Width = 70 };
 
     // Identity panel
-    private readonly TextBox   _txtName    = new() { Width = 180 };
-    private readonly ComboBox  _cmbType    = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 130 };
-    private readonly ComboBox  _cmbSubType = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 150 };
+    private readonly TextBox   _txtName    = new() { Name = "txtSkillEditorName", Width = 180 };
+    private readonly ComboBox  _cmbType    = new() { Name = "cmbSkillEditorType", DropDownStyle = ComboBoxStyle.DropDownList, Width = 130 };
+    private readonly ComboBox  _cmbSubType = new() { Name = "cmbSkillEditorSubType", DropDownStyle = ComboBoxStyle.DropDownList, Width = 150 };
 
     // Skill Box
     private readonly TextBox _txtSkillBox = new()
     {
+        Name        = "txtSkillEditorBody",
         Multiline   = true,
         ScrollBars  = ScrollBars.Vertical,
         Font        = new Font("Consolas", 9f),
@@ -67,15 +68,15 @@ public sealed partial class SkillEditorView : UserControl
     };
 
     // Add-field helper panel
-    private readonly ComboBox         _cmbField    = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 210 };
+    private readonly ComboBox         _cmbField    = new() { Name = "cmbSkillEditorField", DropDownStyle = ComboBoxStyle.DropDownList, Width = 210 };
     private readonly FlowLayoutPanel  _flpSlots    = new() { AutoSize = false, FlowDirection = FlowDirection.TopDown, WrapContents = false };
-    private readonly Button           _btnAddField = new() { Text = "Add Field", Width = 90 };
+    private readonly Button           _btnAddField = new() { Name = "btnSkillEditorAddField", Text = "Add Field", Width = 90 };
 
     // Bottom bar
-    private readonly Button _btnSave   = new() { Text = "Save to Project", Width = 120, Enabled = false };
-    private readonly Button _btnDelete = new() { Text = "Delete Skill",    Width = 100, Enabled = false };
-    private readonly Button _btnValidate = new() { Text = "Validate",      Width = 80,  Enabled = false };
-    private readonly Label  _lblStatus = new() { AutoSize = true };
+    private readonly Button _btnSave   = new() { Name = "btnSkillEditorSave", Text = "Save to Project", Width = 120, Enabled = false };
+    private readonly Button _btnDelete = new() { Name = "btnSkillEditorDelete", Text = "Delete Skill",    Width = 100, Enabled = false };
+    private readonly Button _btnValidate = new() { Name = "btnSkillEditorValidate", Text = "Validate",      Width = 80,  Enabled = false };
+    private readonly Label  _lblStatus = new() { Name = "lblSkillEditorStatus", AutoSize = true };
 
     // ---- fixed values -----------------------------------------------------
 

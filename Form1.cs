@@ -578,6 +578,7 @@ namespace ModdingGUI
         {
             _btnResetToVanilla = new Button
             {
+                Name = "btnRandomizerReset",
                 Text = "Reset to Vanilla",
                 Location = new Point(200, 542),
                 Size = new Size(150, 38),
@@ -588,6 +589,7 @@ namespace ModdingGUI
 
             _lblBaselineStatus = new Label
             {
+                Name = "lblRandomizerBaseline",
                 Text = "Baseline: not pinned yet",
                 Location = new Point(370, 552),
                 Size = new Size(430, 22),
@@ -751,12 +753,15 @@ namespace ModdingGUI
                 return;
             }
 
-            var confirm = MessageBox.Show(
-                "Restore every file the randomizer touches to the pinned vanilla state?\n\n" +
-                "The current files are backed up first, so this is undoable from .mod-history.",
-                "Reset to Vanilla", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (confirm != DialogResult.Yes) return;
+            // UiConfirm logs and answers itself when the window is driven by a script, instead of leaving a modal box
+            // nobody is there to click (which hangs the run).
+            if (!UiConfirm(
+                    "Restore every file the randomizer touches to the pinned vanilla state? " +
+                    "The current files are backed up first, so this is undoable from .mod-history.",
+                    "Reset to Vanilla"))
+            {
+                return;
+            }
 
             try
             {
@@ -853,6 +858,10 @@ namespace ModdingGUI
                 if (options.IsEmpty)
                 {
                     AppendLog("Nothing selected: pick at least one randomizer option.", WarningColor, rtbPackOutput);
+                    // Re-enable before leaving: the method disabled the button on entry, and returning without this left
+                    // it dead until the app was restarted.
+                    btnRandomize.Enabled = true;
+                    lblRandomizeStatus.Text = "Ready";
                     return;
                 }
 

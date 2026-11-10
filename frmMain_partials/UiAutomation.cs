@@ -302,31 +302,33 @@ namespace ModdingGUI
             }
         }
 
+        /// <summary>
+        /// Is this control actually in front of the user right now?
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Control.Visible"/> is the native window flag and lags a programmatic <c>SelectedTab</c> change, so
+        /// it reported the previous tab's page as visible and the new one as hidden. Walk the selected-tab chain
+        /// instead: a control is on screen only if every ancestor is visible AND every TabPage ancestor is the selected
+        /// page of its TabControl. Commands use this too — driving a control that is not on screen is how a QA sweep
+        /// ended up writing to a retired field and reporting "everything passed".
+        /// </remarks>
+        private static bool IsOnScreen(Control control)
+        {
+            for (Control? cursor = control; cursor is not null; cursor = cursor.Parent)
+            {
+                if (cursor is TabPage page &&
+                    (page.Parent is not TabControl tabs || !ReferenceEquals(tabs.SelectedTab, page)))
+                {
+                    return false;
+                }
+            }
+
+            return control.Visible;
+        }
+
         private string Snapshot()
         {
             var controls = new List<object>();
-
-            // Control.Visible is the native window flag and lags a programmatic SelectedTab change, so it reported the
-            // *previous* tab's page as the visible one and the new page as hidden. Walk the selected-tab chain instead:
-            // a control is on screen only if every ancestor is visible AND every TabPage ancestor is the selected page
-            // of its TabControl. Without this a caller cannot tell what the user is looking at.
-            static bool OnScreen(Control control)
-            {
-                for (Control? cursor = control; cursor is not null; cursor = cursor.Parent)
-                {
-                    if (cursor is TabPage page)
-                    {
-                        if (page.Parent is not TabControl tabs || !ReferenceEquals(tabs.SelectedTab, page)) return false;
-                    }
-
-                    if (cursor is TabControl tabControl && !ReferenceEquals(tabControl.SelectedTab, null))
-                    {
-                        // the page check above covers it; a TabControl itself is visible with its parent
-                    }
-                }
-
-                return control.Visible;
-            }
 
             void Walk(Control parent)
             {
@@ -350,7 +352,7 @@ namespace ModdingGUI
                             ["type"] = child.GetType().Name,
                             ["text"] = Shorten(child.Text, 200),
                             ["enabled"] = child.Enabled,
-                            ["visible"] = OnScreen(child),
+                            ["visible"] = IsOnScreen(child),
                             ["x"] = origin.X,
                             ["y"] = origin.Y,
                             ["w"] = child.Width,
@@ -362,7 +364,7 @@ namespace ModdingGUI
                             case ListBox list:
                                 entry["items"] = list.Items.Cast<object>()
                                     .Take(UiSnapshotItemLimit)
-                                    .Select(item => Shorten(item?.ToString(), 120))
+                                    .Select(item => Shorten(list.GetItemText(item), 120))
                                     .ToArray();
                                 entry["itemCount"] = list.Items.Count;
                                 entry["selectedIndex"] = list.SelectedIndex;
@@ -371,7 +373,7 @@ namespace ModdingGUI
                             case ComboBox combo:
                                 entry["items"] = combo.Items.Cast<object>()
                                     .Take(UiSnapshotItemLimit)
-                                    .Select(item => Shorten(item?.ToString(), 120))
+                                    .Select(item => Shorten(combo.GetItemText(item), 120))
                                     .ToArray();
                                 entry["itemCount"] = combo.Items.Count;
                                 entry["selectedIndex"] = combo.SelectedIndex;
@@ -435,6 +437,7 @@ namespace ModdingGUI
             {
                 case Button button:
                     if (!button.Enabled) return UiFail($"'{name}' is disabled");
+                    if (!IsOnScreen(button)) return UiFail($"'{name}' is not on screen — open its tab first");
                     button.PerformClick();
                     return Clicked(name, before);
 
@@ -470,6 +473,11 @@ namespace ModdingGUI
 
             Control? control = FindControl(name);
             if (control is null) return UiFail($"no control named '{name}'");
+
+            // Only drive what the user could reach. Writing to a hidden or disabled field reported success and let a
+            // sweep "pass" against a control that is no longer in the UI.
+            if (!IsOnScreen(control)) return UiFail($"'{name}' is not on screen — open its tab first");
+            if (!control.Enabled) return UiFail($"'{name}' is disabled");
 
             bool changed = false;
 
@@ -507,7 +515,7 @@ namespace ModdingGUI
                 string wanted = itemValue.GetString() ?? string.Empty;
                 int index = comboItem.Items.Cast<object>()
                     .Select((candidate, i) => (candidate, i))
-                    .Where(pair => Shorten(pair.candidate?.ToString(), 120)?.Contains(wanted, StringComparison.OrdinalIgnoreCase) == true)
+                    .Where(pair => comboItem.GetItemText(pair.candidate)?.Contains(wanted, StringComparison.OrdinalIgnoreCase) == true)
                     .Select(pair => pair.i)
                     .DefaultIfEmpty(-1)
                     .First();
@@ -522,7 +530,7 @@ namespace ModdingGUI
                 string wanted = listItemValue.GetString() ?? string.Empty;
                 int index = listItem.Items.Cast<object>()
                     .Select((candidate, i) => (candidate, i))
-                    .Where(pair => Shorten(pair.candidate?.ToString(), 200)?.Contains(wanted, StringComparison.OrdinalIgnoreCase) == true)
+                    .Where(pair => listItem.GetItemText(pair.candidate)?.Contains(wanted, StringComparison.OrdinalIgnoreCase) == true)
                     .Select(pair => pair.i)
                     .DefaultIfEmpty(-1)
                     .First();
