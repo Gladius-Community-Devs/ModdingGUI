@@ -22,12 +22,12 @@ E:\code_stuff\GladiusModdingToolsGUI\        workspace (not a git repo)
     ├── ModdingGUI.sln
     ├── ModdingGUI.csproj                    WinForms shell (net8.0-windows)
     ├── ModdingGUI.Core/                     net8.0, no UI: Tok, Schemas, APIs, Randomizer, History, Tools, Logging
-    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 793 tests
+    ├── ModdingGUI.Tests/                    xUnit (net8.0-windows), 800 tests
     └── ModdingGUI.Mcp/                      Phase 8 stub: builds, Program.cs is inert (no stdio server yet)
 ```
 
 **State of the tree:** clean, `dotnet build` reports **0 warnings** in Debug and Release, suite is
-**793 passed / 0 failed / 0 skipped**.
+**800 passed / 0 failed / 0 skipped**.
 
 ---
 
@@ -376,3 +376,31 @@ day the machine was busy.
 - **Validate against the DOL and with the user**, both, for anything battle-facing.
 - **Explain the provenance** of any limit or number that lands in the code.
 - Both builds matter: the user runs the **Debug** exe.
+
+## 8. The interface layer (added after Phase 7)
+
+The shell now has a design system instead of per-control values:
+
+- **`frmMain_partials/UiTheme.cs`** - two palettes (Dark default, Light), fonts, DPI-scaled spacing, log colours, and
+  `Apply(root)` which repaints an existing control tree. Colours are properties over the current palette, so switching
+  scheme needs no restart; `AppSettings.Theme` remembers the choice and Options > "Dark theme" toggles it.
+- **`frmMain_partials/UiKit.cs`** - the primitives pages are made of: `Card(title, caption)`, `Form`, `Row`,
+  `RowWithButton`, `Primary`/`Secondary`/`Browse`, `Actions`, `AttachTabStrip`, plus `FieldHeight`/`FieldWidth` and
+  `CardHeight`/`HeaderHeight`, so sizes come from fonts and metrics rather than guessed numbers.
+- **Rebuilt pages**: Patching (`PatchingPage.cs`), Unpacking and Packing (`BuildPages.cs`), Randomizer
+  (`RandomizerPage.cs`). Each is cards plus grids; the existing controls are reparented so names, handlers and the
+  driver scripts keep working. **Still on the designer canvas:** Team Builder's four pages, the two Editor pages and
+  Grid Builder.
+- **Chrome**: `Chrome.cs` themes the menu (own renderer, own check mark) and replaces the native tab strip with a row of
+  themed buttons - Windows paints a tab control's strip itself, so the run right of the last tab could not be themed any
+  other way. The strip follows pages added or removed at run time, which is what finally retired "Ingame Random".
+- **Settings dialog** (`Forms/SettingsForm.Themed.cs`) is built on the kit as well; modal dialogs block the UI driver,
+  so `ModdingGUI.exe --render-settings <png>` draws it off-screen for screenshots.
+
+Verification tooling lives with the driver: `audit`/`auditAll` report contrast and system-colour use per page, and `hit`
+names the control at a point (see `docs/UI_AUTOMATION.md`). `docs/testing/QA_PASS.md` �10-�15 record the findings and
+the two traps that cost the most time: a docked `Panel` has no automatic height, and a single-line `TextBox` (or a
+disabled control) is painted by the framework whatever colour you assign.
+
+Remaining UI work: the five pages above, a themed progress bar (the Randomizer's is hidden for now because a
+`ProgressBar` is system-painted), and the sidebar/tree chrome.

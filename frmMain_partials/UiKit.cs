@@ -120,8 +120,19 @@ namespace ModdingGUI
             return grid;
         }
 
-        /// <summary>The height every single-line field and its button share, so they line up pixel for pixel.</summary>
-        public static int FieldHeight(Control owner) => UiTheme.Scale(owner, 30);
+        /// <summary>
+        /// The height every single-line field and its button share, so they line up pixel for pixel.
+        /// </summary>
+        /// <remarks>
+        /// A single-line TextBox ignores an assigned Height — its height comes from the font — so a button forced to a
+        /// fixed 30 px stood taller than the box beside it and a pixel lower. The metric is measured from a probe text
+        /// box in the body font instead of being picked.
+        /// </remarks>
+        public static int FieldHeight(Control owner)
+        {
+            using var probe = new TextBox { Font = UiTheme.Body };
+            return Math.Max(probe.PreferredHeight, UiTheme.Scale(owner, 24));
+        }
 
         /// <summary>
         /// Cap on a field's width. A path box that spans a 1000 px card is unreadable and pushes its Browse button miles
@@ -135,7 +146,7 @@ namespace ModdingGUI
             int row = grid.RowCount;
             grid.RowCount = row + 1;
             // The row must be tall enough for a 30 px field plus its 4 px margins, or the field is clipped by its host.
-            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, UiTheme.Scale(owner, 38)));
+            grid.RowStyles.Add(new RowStyle(SizeType.Absolute, FieldHeight(owner) + UiTheme.Scale(owner, 8)));
 
             var label = new Label
             {

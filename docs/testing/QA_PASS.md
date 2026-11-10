@@ -330,3 +330,31 @@ for any dialog that cannot be captured while the driver is attached.
 **Menu.** The system check glyph and selection plate are replaced by our own renderer: flat hover plate, accent
 underline on an open top-level item, a hand-drawn check mark, themed separators, and text that stays readable in every
 state. Popup menus are separate windows, so this has no automated screenshot - it needs a human look.
+
+## 15. Alignment, the Randomizer page, and a docs sweep
+
+**Browse vs field.** The buttons were taller than their boxes and a pixel lower. Cause: a single-line `TextBox` ignores
+an assigned `Height` (its height comes from the font), so a button forced to the kit's 30 px metric could not match. The
+metric is now measured from a probe text box in the body font (`FieldHeight`), and both the field and its button are set
+to it. Verified by snapshot rather than by eye: `txtPatchingApplicationISOPath` and `btnPatchingApplicationISOPath`
+both report `y=143 h=25`, and likewise on every other path row.
+
+**Randomizer page.** Rebuilt on the kit as three cards: *What to randomize* (the ten option checkboxes), *Starting
+setup* (hero, game version, school name) and *Run* (project folder + Choose, seed, actions, baseline note). The two
+floating status labels and the five fixed-position group boxes are gone, the Seed box is `ReadOnly` rather than
+disabled so it stays on theme, and `UiHelp.FixRandomizerLayout` - the old patch that positioned those floats - is
+deleted rather than left to fight the new layout.
+
+One thing is deliberately hidden: the `ProgressBar`. A WinForms `ProgressBar` is painted by the system and stays white
+in a dark window (same class of problem as disabled inputs). The control is still driven and still in the tree, with
+`Visible = false` and no caption, until there is a themed bar.
+
+## 16. Documentation sweep (same round)
+
+- `CLAUDE.md` / `docs/AGENTS.md` / `docs/HANDOFF.md`: test count 793 -> 800; the `frmMain_partials` table now lists
+  `UiTheme`, `UiKit`, `Chrome`/`Theme`, the rebuilt pages and `UiAudit`; the logging note says severity colours come
+  from the palette and that the panes re-render on a scheme change.
+- `docs/HANDOFF.md` gained section 8, "The interface layer", covering the tokens, the kit, which pages are rebuilt and
+  which are not, the tab-strip reason, the Settings dialog and `--render-settings`.
+- `docs/UI_AUTOMATION.md` gained the `audit` / `auditAll` / `hit` commands with their response shapes, and the
+  `--render-settings` pattern for modal dialogs (they block the driver, which is why the section exists).

@@ -121,3 +121,28 @@ What they will share is `JobRegistry`: an MCP `project_pack` tool can run a job 
 events as `notifications/progress`, answer with the same `BuildResult`, and honour `notifications/cancelled` through
 `BuildJob.Cancel`. That is why the jobs live in Core rather than in the driver — and why an MCP client will not need a
 timeout either, just a progress token.
+
+## Visual and contrast auditing
+
+Three commands exist so UI review is measured rather than guessed:
+
+| Command | What it returns |
+|---|---|
+| `{"cmd":"audit","contrast":4.5}` | Every visible control whose text/background contrast is below the threshold, plus any control still painted with a *system* colour while the dark palette is active. Reports `scheme`, `threshold`, `count`, and a `findings` array of `{name, type, text, fore, back, contrast, issue}`. |
+| `{"cmd":"auditAll","contrast":4.5}` | Runs the audit on every tab page in turn, grouped by page. |
+| `{"cmd":"hit","x":N,"y":N}` | The deepest control at a point, with its type, name, colours and bounds, plus the parent chain. Use it to identify what a patch of colour actually belongs to. |
+
+`audit` at 4.5:1 is the release bar; the app currently clears AAA (~7.4:1) for muted text. Two gotchas found by using
+it: a docked `Panel` has no automatic height, and disabled `TextBox`/`Button` controls are painted by Windows in system
+colours whatever the palette says - prefer `ReadOnly` for fields that should stay on theme.
+
+## Screenshotting a modal dialog
+
+Modal dialogs run their own message loop, so they block this driver: a `clickMenuItem` that opens one never returns.
+Dialogs get screenshots from a separate process instead:
+
+```powershell
+ModdingGUI.exe --render-settings shots\settings.png
+```
+
+That draws the Settings dialog off-screen and exits. The same switch pattern is the way to capture any other dialog.

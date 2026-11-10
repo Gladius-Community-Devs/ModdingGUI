@@ -52,11 +52,11 @@ namespace ModdingGUI
             tabEditorSkills.Controls.Add(_skillEditorView);
 
             BuildBaselineControls();
-            UiHelp.FixRandomizerLayout(this);
             UiHelp.FixSidebarLayout(this);
             UiHelp.FixUnitSelectionLayout(this);
             PatchingPage.Build(this);
             BuildPages.Build(this);
+            RandomizerPage.Build(this);
 
             // Right-click must move the tree selection, otherwise the context menu acts on a stale or missing node.
             tvwProjects.MouseDown += SelectNodeUnderCursor;
