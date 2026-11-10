@@ -260,6 +260,9 @@ namespace ModdingGUI
             {
                 LoadAppSettings(); // Apply application settings
 
+            // The palette is a setting: apply it once the tree exists and the settings are known.
+            ApplySavedTheme();
+
                 // Record the process context once: a low-integrity (sandboxed) instance cannot drive the shell, and
                 // knowing that up front saves chasing features that are blocked by it.
                 AppendLog($"Running as: {ModdingGUI.Helpers.ProcessContext.Describe()}", InfoColor);

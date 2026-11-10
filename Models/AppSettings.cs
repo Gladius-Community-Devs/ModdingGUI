@@ -12,6 +12,12 @@ namespace ModdingGUI.Models
         public bool ValidateBeforePacking { get; set; } = true;
 
         /// <summary>
+        /// Which palette to draw with: <c>dark</c> (the default) or <c>light</c>. Stored as text so a future third
+        /// scheme does not need a schema bump.
+        /// </summary>
+        public string Theme { get; set; } = "dark";
+
+        /// <summary>
         /// Settings-schema version for this file. Version 1 turned <see cref="ValidateBeforePacking"/> back on (it used
         /// to default to off, and a saved file keeps that), so the Pack tab runs the validation pass unless the user
         /// deliberately skips it.

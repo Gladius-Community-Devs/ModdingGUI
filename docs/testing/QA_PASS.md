@@ -243,3 +243,25 @@ Two things the kit fixed by construction, both of which had bitten this pass alr
 
 Next: Packing, Unpacking and Randomizer adopt the same kit, then the Team Builder pages, then the global chrome
 (menu, tab strip, status) - each is a page rebuild on the primitives above rather than another patch.
+
+### 12b. Dark by default, light on request
+
+The palette became a *setting* rather than constants:
+
+- **`UiTheme`** holds two palettes (`Dark`, `Light`) as records and exposes colours as properties over the current
+  one, so `UiKit`'s cards and the log colours follow the scheme instead of being baked in. `UiTheme.Use(scheme)` swaps,
+  `UiTheme.Apply(root)` repaints an existing window in place, and `AppSettings.Theme` (`"dark"` default) remembers it.
+- **Options ? "Dark theme"** toggles it (`CheckOnClick` off: the checked state mirrors the scheme, so a scripted click
+  cannot leave the menu lying about which palette is in use). It is created in code, next to the theme, so a third
+  scheme is a palette plus a radio item rather than a designer edit.
+- **Chrome** needed more than a BackColor: `UiColorTable`/`UiMenuRenderer` theme the menu, and the tab strips are
+  owner-drawn (selected tab bold, accent underline) because the system paints them otherwise.
+- **Log panes are re-rendered** on a switch. A RichTextBox keeps the colour of spans it has already drawn, so after
+  toggling, old lines stayed in the old palette - dark-theme blue on a white page. The panes are rebuilt from
+  `IAppLog.Tail`, which has the level for every entry. Side effect worth knowing: a pane shows the whole recent stream
+  after a switch, not only the lines it received while it was visible.
+- **Primary buttons** are registered with the theme (`UiKit.Primary` / `UiKit.Look(..., primary: true)`) so a repaint
+  keeps them accent-coloured instead of demoting them to secondary grey.
+
+Verified by driving the toggle twice and reading the log: `Theme: light.` then `Theme: dark.`, with both screenshots at
+the launch size.

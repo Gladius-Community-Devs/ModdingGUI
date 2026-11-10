@@ -2,38 +2,105 @@ namespace ModdingGUI
 {
     using ModdingGUI.Core.Logging;
 
+    /// <summary>Which palette the interface is drawn with.</summary>
+    internal enum UiColorScheme
+    {
+        /// <summary>Dark surface, light ink. The default.</summary>
+        Dark,
+
+        /// <summary>Light surface, dark ink.</summary>
+        Light,
+    }
+
+    /// <summary>Every colour the interface uses, in one place, for one scheme.</summary>
+    internal sealed record UiPalette(
+        Color Surface,
+        Color SurfaceAlt,
+        Color SurfaceSunken,
+        Color Border,
+        Color Ink,
+        Color InkMuted,
+        Color Accent,
+        Color AccentHover,
+        Color AccentInk,
+        Color Success,
+        Color Warning,
+        Color Error,
+        Color Info);
+
     /// <summary>
-    /// The one place the interface gets its colours, fonts and spacing from.
+    /// The one place the interface gets its colours, fonts and spacing from, and the switch that changes them.
     /// </summary>
     /// <remarks>
     /// <para>
     /// Before this, every value was decided at the point of use: 161 absolute positions and 173 fixed sizes in the
     /// designer (on a 2127x1295 canvas for a window that opens at 1505x816), eight hand-picked fonts including three
     /// 26 pt TextBoxes standing in for headings, and <c>Color.Red</c>/<c>Color.Blue</c> typed wherever a log line was
-    /// written. That is why a layout change is a fight: there is no shared vocabulary to change.
+    /// written.
     /// </para>
     /// <para>
-    /// Spacing is in device pixels scaled from a 4 px base, so 125 % and 150 % displays stay proportional. Fonts are in
-    /// points, which the framework already scales, so they are <em>not</em> scaled here — doing both would double-scale.
+    /// Colours are properties over <see cref="Current"/> rather than constants, because the scheme can change while the
+    /// app runs: <see cref="Use"/> swaps the palette and <see cref="Apply"/> repaints an existing window in place.
+    /// Spacing is in device pixels scaled from a 4 px base; fonts are in points, which the framework already scales, so
+    /// they are not scaled here.
     /// </para>
     /// </remarks>
     internal static class UiTheme
     {
-        // ---- Colour: one light palette, low chroma, borders instead of boxes everywhere ----
-        public static readonly Color Surface = Color.FromArgb(255, 255, 255);
-        public static readonly Color SurfaceAlt = Color.FromArgb(247, 248, 250);
-        public static readonly Color SurfaceSunken = Color.FromArgb(251, 252, 253);
-        public static readonly Color Border = Color.FromArgb(216, 221, 228);
-        public static readonly Color Ink = Color.FromArgb(31, 35, 40);
-        public static readonly Color InkMuted = Color.FromArgb(90, 100, 114);
-        public static readonly Color Accent = Color.FromArgb(47, 111, 191);
-        public static readonly Color AccentDark = Color.FromArgb(38, 91, 158);
-        public static readonly Color AccentInk = Color.White;
+        private static readonly UiPalette DarkPalette = new(
+            Surface: Color.FromArgb(30, 34, 40),
+            SurfaceAlt: Color.FromArgb(37, 42, 49),
+            SurfaceSunken: Color.FromArgb(22, 25, 30),
+            Border: Color.FromArgb(51, 58, 67),
+            Ink: Color.FromArgb(230, 233, 238),
+            InkMuted: Color.FromArgb(154, 164, 178),
+            Accent: Color.FromArgb(61, 125, 216),
+            AccentHover: Color.FromArgb(76, 139, 230),
+            AccentInk: Color.FromArgb(255, 255, 255),
+            Success: Color.FromArgb(76, 175, 125),
+            Warning: Color.FromArgb(217, 164, 65),
+            Error: Color.FromArgb(224, 108, 96),
+            Info: Color.FromArgb(111, 168, 232));
 
-        public static readonly Color Success = Color.FromArgb(31, 122, 61);
-        public static readonly Color Warning = Color.FromArgb(154, 103, 0);
-        public static readonly Color Error = Color.FromArgb(180, 35, 24);
-        public static readonly Color Info = Color.FromArgb(31, 94, 158);
+        private static readonly UiPalette LightPalette = new(
+            Surface: Color.FromArgb(255, 255, 255),
+            SurfaceAlt: Color.FromArgb(247, 248, 250),
+            SurfaceSunken: Color.FromArgb(251, 252, 253),
+            Border: Color.FromArgb(216, 221, 228),
+            Ink: Color.FromArgb(31, 35, 40),
+            InkMuted: Color.FromArgb(90, 100, 114),
+            Accent: Color.FromArgb(47, 111, 191),
+            AccentHover: Color.FromArgb(38, 91, 158),
+            AccentInk: Color.FromArgb(255, 255, 255),
+            Success: Color.FromArgb(31, 122, 61),
+            Warning: Color.FromArgb(154, 103, 0),
+            Error: Color.FromArgb(180, 35, 24),
+            Info: Color.FromArgb(31, 94, 158));
+
+        private static UiColorScheme _scheme = UiColorScheme.Dark;
+
+        /// <summary>Buttons registered as the page's primary action, so a repaint can keep them accent-coloured.</summary>
+        private static readonly HashSet<Control> PrimaryButtons = new();
+
+        /// <summary>The scheme in use.</summary>
+        public static UiColorScheme Scheme => _scheme;
+
+        /// <summary>The palette in use.</summary>
+        public static UiPalette Current => _scheme == UiColorScheme.Dark ? DarkPalette : LightPalette;
+
+        public static Color Surface => Current.Surface;
+        public static Color SurfaceAlt => Current.SurfaceAlt;
+        public static Color SurfaceSunken => Current.SurfaceSunken;
+        public static Color Border => Current.Border;
+        public static Color Ink => Current.Ink;
+        public static Color InkMuted => Current.InkMuted;
+        public static Color Accent => Current.Accent;
+        public static Color AccentHover => Current.AccentHover;
+        public static Color AccentInk => Current.AccentInk;
+        public static Color Success => Current.Success;
+        public static Color Warning => Current.Warning;
+        public static Color Error => Current.Error;
+        public static Color Info => Current.Info;
 
         // ---- Type: points, deliberately few sizes ----
         public const float BodyPoints = 9.75F;
@@ -52,6 +119,35 @@ namespace ModdingGUI
         public static Font Caption => _caption ??= new Font("Segoe UI", CaptionPoints);
         public static Font Heading => _heading ??= new Font("Segoe UI", HeadingPoints, FontStyle.Bold);
         public static Font Title => _title ??= new Font("Segoe UI", TitlePoints, FontStyle.Bold);
+
+        /// <summary>Raised after the palette changes, so pages can re-tint anything they draw themselves.</summary>
+        public static event EventHandler? Changed;
+
+        /// <summary>Register a button as a primary action so a repaint keeps it accent-coloured.</summary>
+        public static void RegisterPrimary(Control button) => PrimaryButtons.Add(button);
+
+        /// <summary>Forget a button's primary status (used when a control is restyled as secondary).</summary>
+        public static void ForgetPrimary(Control button) => PrimaryButtons.Remove(button);
+
+        /// <summary>Register a button as a primary action so a repaint keeps it accent-coloured.</summary>
+
+        /// <summary>Switch scheme without restarting.</summary>
+        public static void Use(UiColorScheme scheme)
+        {
+            if (_scheme == scheme) return;
+
+            _scheme = scheme;
+            Changed?.Invoke(null, EventArgs.Empty);
+        }
+
+        /// <summary>Parse a stored setting; anything unrecognised is the default (dark).</summary>
+        public static UiColorScheme Parse(string? stored) =>
+            stored is not null && stored.Equals("light", StringComparison.OrdinalIgnoreCase)
+                ? UiColorScheme.Light
+                : UiColorScheme.Dark;
+
+        /// <summary>The setting name for the current scheme.</summary>
+        public static string ToSetting() => _scheme == UiColorScheme.Dark ? "dark" : "light";
 
         /// <summary>Scale a 96-dpi pixel value for the display this control is on.</summary>
         public static int Scale(Control control, int pixels)
@@ -74,35 +170,156 @@ namespace ModdingGUI
         };
 
         /// <summary>
-        /// Walk a control tree and give anything that has not been styled explicitly the body font and surface ink.
+        /// Paint an existing control tree in the current palette.
         /// </summary>
         /// <remarks>
-        /// Deliberately conservative: it sets the font only where none was chosen, so the deliberately large and bold
-        /// pieces keep their size while everything else stops being whatever the designer default happened to be.
+        /// The designer's controls are all still default-coloured, so switching scheme means walking them rather than
+        /// rebuilding the window. Structures keep their shape; only colours, borders and flatness change.
         /// </remarks>
         public static void Apply(Control root)
         {
-            foreach (Control child in root.Controls)
-            {
-                Apply(child);
-            }
+            foreach (Control child in root.Controls) Apply(child);
 
             switch (root)
             {
-                case Label label when label.Font.SizeInPoints is < 8F or > 40F:
-                    label.Font = Body;
+                case Form form:
+                    form.BackColor = Surface;
+                    form.ForeColor = Ink;
                     break;
 
+                case MenuStrip menu:
+                    menu.BackColor = SurfaceAlt;
+                    menu.ForeColor = Ink;
+                    foreach (ToolStripItem item in menu.Items) TintMenuItem(item);
+                    break;
+
+                case TabControl tabs:
+                    tabs.BackColor = SurfaceAlt;
+                    tabs.ForeColor = Ink;
+                    break;
+
+                case TabPage page:
+                    page.BackColor = Surface;
+                    page.ForeColor = Ink;
+                    break;
+
+                case GroupBox group:
+                    group.BackColor = Surface;
+                    group.ForeColor = InkMuted;
+                    break;
+
+                case SplitContainer split:
+                    split.BackColor = Border;
+                    split.Panel1.BackColor = Surface;
+                    split.Panel2.BackColor = Surface;
+                    break;
+
+                case StatusStrip status:
+                    status.BackColor = SurfaceAlt;
+                    status.ForeColor = Ink;
+                    break;
+
+                // LinkLabel derives from Label, so it has to be matched first.
                 case LinkLabel link:
                     link.LinkColor = Accent;
-                    link.ActiveLinkColor = AccentDark;
+                    link.ActiveLinkColor = AccentHover;
+                    break;
+
+                case Label label:
+                    // Muted ink for the small print, full ink for anything given a heading-sized font.
+                    label.ForeColor = label.Font.SizeInPoints >= HeadingPoints - 1 ? Ink : InkMuted;
+                    break;
+                case Button button when PrimaryButtons.Contains(button):
+                    button.FlatStyle = FlatStyle.Flat;
+                    button.BackColor = Accent;
+                    button.ForeColor = AccentInk;
+                    button.FlatAppearance.BorderSize = 0;
+                    button.FlatAppearance.MouseOverBackColor = AccentHover;
+                    button.UseVisualStyleBackColor = false;
+                    break;
+
+                case Button button:
+                    button.FlatStyle = FlatStyle.Flat;
+                    button.BackColor = SurfaceAlt;
+                    button.ForeColor = Ink;
+                    button.FlatAppearance.BorderColor = Border;
+                    button.FlatAppearance.BorderSize = 1;
+                    button.FlatAppearance.MouseOverBackColor = Border;
+                    button.UseVisualStyleBackColor = false;
+                    break;
+
+                case RichTextBox log:
+                    log.BackColor = SurfaceSunken;
+                    log.ForeColor = Ink;
+                    log.BorderStyle = BorderStyle.FixedSingle;
+                    break;
+
+                case TextBox text when text.ReadOnly:
+                    text.BackColor = SurfaceAlt;
+                    text.ForeColor = InkMuted;
+                    text.BorderStyle = BorderStyle.FixedSingle;
+                    break;
+
+                case TextBox text:
+                    text.BackColor = SurfaceSunken;
+                    text.ForeColor = Ink;
+                    text.BorderStyle = BorderStyle.FixedSingle;
+                    break;
+
+                case ComboBox combo:
+                    combo.BackColor = SurfaceSunken;
+                    combo.ForeColor = Ink;
+                    combo.FlatStyle = FlatStyle.Flat;
+                    break;
+
+                case ListBox list:
+                    list.BackColor = SurfaceSunken;
+                    list.ForeColor = Ink;
+                    list.BorderStyle = BorderStyle.FixedSingle;
+                    break;
+
+                case ListView view:
+                    view.BackColor = SurfaceSunken;
+                    view.ForeColor = Ink;
+                    break;
+
+                case TreeView tree:
+                    tree.BackColor = Surface;
+                    tree.ForeColor = Ink;
+                    tree.LineColor = Border;
+                    tree.BorderStyle = BorderStyle.None;
+                    tree.HideSelection = false;
+                    break;
+
+                case CheckBox check:
+                    check.BackColor = Surface;
+                    check.ForeColor = Ink;
+                    break;
+
+                case RadioButton radio:
+                    radio.BackColor = Surface;
+                    radio.ForeColor = Ink;
+                    break;
+
+                case ProgressBar bar:
+                    bar.BackColor = SurfaceAlt;
+                    bar.ForeColor = Accent;
+                    break;
+
+                case Panel:
+                    root.BackColor = root.BackColor == SurfaceAlt ? SurfaceAlt : Surface;
+                    root.ForeColor = Ink;
                     break;
             }
+        }
 
-            if (root.BackColor == SystemColors.Control || root.BackColor == Color.Transparent)
-            {
-                // Leave the host form's own background alone; only the pages are painted.
-            }
+        private static void TintMenuItem(ToolStripItem item)
+        {
+            item.ForeColor = Ink;
+            item.BackColor = SurfaceAlt;
+
+            if (item is not ToolStripMenuItem menuItem) return;
+            foreach (ToolStripItem child in menuItem.DropDownItems) TintMenuItem(child);
         }
     }
 }

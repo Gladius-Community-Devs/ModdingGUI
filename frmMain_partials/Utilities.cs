@@ -33,10 +33,11 @@ namespace ModdingGUI
         internal ModdingGUI.Core.Jobs.JobRegistry Jobs => _jobs;
 
         // Define static readonly colors for use in logging messages
-        private static readonly Color SuccessColor = Color.Green; // Color for success messages
-        private static readonly Color ErrorColor = Color.Red;     // Color for error messages
-        private static readonly Color InfoColor = Color.Blue;     // Color for informational messages
-        private static readonly Color WarningColor = Color.Orange; // Assuming WarningColor was intended
+        // Log colours come from the palette so they follow the scheme instead of being green/red/blue everywhere.
+        private static Color SuccessColor => UiTheme.Success;
+        private static Color ErrorColor => UiTheme.Error;
+        private static Color InfoColor => UiTheme.Info;
+        private static Color WarningColor => UiTheme.Warning;
         /// <summary>
         /// Window and taskbar icon. Read from the icon embedded in the executable (the project sets
         /// <c>ApplicationIcon=ludo.ico</c>), falling back to a loose <c>ludo.ico</c> beside the exe and

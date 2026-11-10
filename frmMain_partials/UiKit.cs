@@ -197,9 +197,10 @@ namespace ModdingGUI
             };
 
             button.FlatAppearance.BorderSize = 0;
-            button.FlatAppearance.MouseOverBackColor = UiTheme.AccentDark;
-            button.FlatAppearance.MouseDownBackColor = UiTheme.AccentDark;
+            button.FlatAppearance.MouseOverBackColor = UiTheme.AccentHover;
+            button.FlatAppearance.MouseDownBackColor = UiTheme.AccentHover;
             button.Click += onClick;
+            UiTheme.RegisterPrimary(button);
             return button;
         }
 
@@ -289,12 +290,15 @@ namespace ModdingGUI
             button.Width = Math.Max(button.Width, UiTheme.Scale(owner, 128));
             button.UseVisualStyleBackColor = false;
 
+            // A repaint (theme switch) needs to know which buttons are the page's primary action.
+            if (primary) UiTheme.RegisterPrimary(button); else UiTheme.ForgetPrimary(button);
+
             if (primary)
             {
                 button.BackColor = UiTheme.Accent;
                 button.ForeColor = UiTheme.AccentInk;
                 button.FlatAppearance.BorderSize = 0;
-                button.FlatAppearance.MouseOverBackColor = UiTheme.AccentDark;
+                button.FlatAppearance.MouseOverBackColor = UiTheme.AccentHover;
             }
             else
             {

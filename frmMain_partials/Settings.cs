@@ -99,6 +99,9 @@ namespace ModdingGUI
             }
 
             chbValidationSkip.Checked = !appSettings.ValidateBeforePacking;
+
+            // The scheme is applied by the shell (it owns the control tree); this only records the choice.
+            if (darkThemeMenuItem is not null) darkThemeMenuItem.Checked = UiTheme.Scheme == UiColorScheme.Dark;
             
             // Apply randomizer settings
             randomizerLogsMenuItem.Checked = appSettings.EnableRandomizerLogs;
