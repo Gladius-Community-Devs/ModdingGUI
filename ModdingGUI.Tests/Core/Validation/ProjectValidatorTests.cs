@@ -87,8 +87,8 @@ public sealed class ProjectValidatorTests : IDisposable
 
         ValidationReport report = ProjectValidator.Validate(_project);
 
-        var finding = Assert.Single(report.Findings.Where(f => f.Area == "skillsets" &&
-            f.Message.Contains("Test Only Skill That Does Not Exist", StringComparison.Ordinal)));
+        var finding = Assert.Single(report.Findings, f => f.Area == "skillsets" &&
+            f.Message.Contains("Test Only Skill That Does Not Exist", StringComparison.Ordinal));
         Assert.Equal(ModdingGUI.Core.Validation.ValidationSeverity.Warning, finding.Severity);
         Assert.Contains("set 209", finding.Message, StringComparison.Ordinal);
     }
