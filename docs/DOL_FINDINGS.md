@@ -74,3 +74,46 @@ is a weapon. A helmet written in position 1 sits in the weapon slot, and a unit 
 
 **Consequence for tooling:** when writing `ITEMSCOMP`, place each item in the position its `items.tok` Type belongs
 to, and never leave a class that needs a weapon without one.
+
+## `UNITDB` rows and the requirement test
+
+Two functions settle what a `UNITDB` row means, and they are not the same struct.
+
+`EncounterSetup` (`0x80106ddc`), case `0x1d`, reads exactly 21 values in this order and type:
+
+| Slot | Reader | Meaning seen in the code |
+|---|---|---|
+| 1 | `FUN_800c41d8` (string) | unit name; empty means "generate from the school" |
+| 2 | `FUN_800c3fb4` (int) | `(rand % 100 + 1) <= value` gates the spawn; `100` therefore always spawns |
+| 3 | string | start marker, handed to unit creation |
+| 4, 5 | ints | placement coordinates: when slot 6 is non-zero they get `rand()` added and are clamped to `>= 1` |
+| 6 | int | jitter switch |
+| 7, 8 | ints | requirement values (see below) |
+| 9-12 | four strings | class tags accumulated on the unit |
+| 13-16 | ints | normalised to 0/1 and used as the four prohibition flags |
+| 17 | int | passed to unit creation |
+| 18 | int | passed to unit creation |
+| 19 | int | passed to unit creation |
+| 20, 21 | ints | non-zero OR `0x100` / `0x200` into the spawn flags |
+
+**This refutes the old `devnotes.txt` reading of slots 4-6 as level bounds.** They are coordinates and a jitter switch;
+the level-looking numbers belong to the *other* struct below.
+
+`FUN_8010ad40(requirement, unit)` tests a requirement record:
+
+- `+0x00` / `+0x04` - minimum / maximum level, compared against the unit's level at `+0x90`.
+- `+0x08` - one integer holding three masks: `0x103f` attributes, `0xf00` class tags, `0xc0` unclaimed bits. The attribute
+  and class-tag groups are each inverted by their own prohibit flag.
+- `+0x0c` - affinity id, compared against the unit's affinity byte at `+0x82` (`-1` skips the test).
+- `+0x11`, `+0x12`, `+0x13` - prohibit-classes, prohibit-attributes, prohibit-affinity flags.
+- `+0x14` - up to four class names, matched with `FUN_800f95a0` / `FUN_800f95d0`.
+- `+0x1c` - tri-state checked against bit 1 of the unit's `+0x9c` byte: `2` requires the bit, `1` requires it clear.
+
+The level fields in that struct do **not** come from a `UNITDB` row (a row has coordinates at those positions), so the
+requirement record is a different, recruit/roster-shaped structure. Slot 7 is nonetheless the same three-mask integer, which
+is why `EncounterUnitFields.SplitMask` exists.
+
+**Affinity names** sit as one contiguous block of strings at `0x80489768`: `Air`, `Earth`, `Fire`, `Water`, `Light`, `Dark`
+(each preceded by `None`, `Basic`, `Chain`, `Special`, `Attack` for other enums). The ids are therefore index-based in that
+order. `devnotes.txt` claims "5 would be fire", which does not fit that order, so the note is unverified; the base offset
+(`None` = 0 or 1 = `Air`) still needs pinning from the parser that reads `AFFINITY:` in `classdefs.tok`.

@@ -93,8 +93,8 @@ public static class EncounterUnitFields
             "Non-zero adds rand() to the coordinates, so the unit scatters around the marker."),
 
         new(7, "attributeMask", "Attribute mask", EncounterFieldKind.Bitmask,
-            "Bitmask tested against the candidate's class tags. Bit meanings are not in the data; only the mask values are " +
-            "known, so this is edited as a number (or by ticking known bits).",
+            "One integer carrying three sub-masks, which the requirement test reads separately (FUN_8010ad40): bits 0x103f " +
+            "are attributes, bits 0xf00 are class tags, bits 0xc0 are a third group whose meaning is unknown. Edited as a number.",
             ObservedValues: new[] { "0", "1", "2", "4", "8", "16", "17", "24", "28", "32", "56", "64", "68", "128" }),
 
         new(8, "affinityRequirement", "Affinity", EncounterFieldKind.Choice,
@@ -141,6 +141,26 @@ public static class EncounterUnitFields
         new(21, "flag200", "Spawn flag 0x200", EncounterFieldKind.Switch,
             "Sets spawn flag 0x200 (engine-confirmed)."),
     };
+
+    /// <summary>Bits of slot 7 that the engine tests as attributes (<c>0x103f</c>).</summary>
+    public const int AttributeBits = 0x103F;
+
+    /// <summary>Bits of slot 7 that the engine tests as class tags (<c>0xf00</c>).</summary>
+    public const int ClassTagBits = 0x0F00;
+
+    /// <summary>Bits of slot 7 whose meaning is not established (<c>0xc0</c>); vanilla uses them rarely.</summary>
+    public const int UnclaimedBits = 0x00C0;
+
+    /// <summary>
+    /// Split a slot-7 value into the three groups the requirement test reads.
+    /// </summary>
+    /// <remarks>
+    /// <c>FUN_8010ad40</c> tests <c>value &amp; 0x103f</c> against the candidate's attribute bits, <c>value &amp; 0xf00</c>
+    /// against its class-derived tag bits (inverting when the "prohibit" flag at +0x10 is set), and separately requires that
+    /// <c>value &amp; 0xc0</c> is either clear or already present on the candidate. They are one integer in the file.
+    /// </remarks>
+    public static (int Attributes, int ClassTags, int Unclaimed) SplitMask(int mask) =>
+        (mask & AttributeBits, mask & ClassTagBits, mask & UnclaimedBits);
 
     /// <summary>The field for a 1-based slot, or null when the slot is out of range.</summary>
     public static EncounterUnitField? ForSlot(int slot) => All.FirstOrDefault(f => f.Slot == slot);

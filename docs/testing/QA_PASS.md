@@ -800,3 +800,31 @@ the three left the file **byte-identical** (SHA-256).
 **Still unknown, and deliberately not invented**: the attribute bitmask (slot 7) has no name table in the data, and the
 affinity ids (slot 8) are known as values but not as names; slot 17 (0-3) is passed into unit creation with no known
 meaning, and slot 2's `1000` sentinel is unexplained. They are surfaced with their observed values and documented as open.
+
+## 32. UNITDB from the DOL, and the two school tokens
+
+Followed the owner's leads into `bootfile.dol` (Ghidra project already loaded, `bootfile.dol` analysed):
+
+**`EncounterSetup` (`0x80106ddc`) case `0x1d`** reads the 21 values in a fixed order and type - string, int, string, int,
+int, int, int, int, four strings, seven ints - and the code shows what each does: slot 2 gates the spawn with
+`(rand % 100 + 1) <= value`, slots 4-5 are coordinates that get `rand()` added and are clamped to `>= 1` when slot 6 is
+non-zero, slots 9-12 are class names accumulated on the unit, slots 13-16 are normalised to 0/1 prohibition flags, and
+slots 20-21 OR `0x100`/`0x200` into the spawn flags. **`devnotes.txt`'s "slots 1-2 are min/max level" is wrong** - those
+are coordinates.
+
+**`FUN_8010ad40`** tests a requirement record: min/max level at `+0`/`+4`, one integer at `+8` carrying three masks
+(`0x103f` attributes, `0xf00` class tags, `0xc0` unclaimed), affinity id at `+0xc` compared to the unit's affinity byte at
+`+0x82` (`-1` skips), three prohibition bytes at `+0x11`/`+0x12`/`+0x13`, four class names at `+0x14`, and a tri-state at
+`+0x1c` tested against bit 1 of the unit's `+0x9c`. Because a `UNITDB` row carries coordinates where this struct carries
+levels, the record is a different (recruit/roster-shaped) struct - but slot 7 is the same three-mask integer, so
+`EncounterUnitFields.SplitMask` and two tests were added for it.
+
+**Affinity names** are one contiguous string block at `0x80489768`: `Air, Earth, Fire, Water, Light, Dark`. Ids are
+index-based in that order, which contradicts `devnotes.txt`'s "5 would be fire"; the note is recorded as unverified and the
+base offset is still open.
+
+**The two school tokens.** `HOMETOWNSCHOOL` (248 references) is the town's school list: each league file
+(`data/towns/leagues/*.tok`) carries `SCHOOL "..."` lines directly under its `RECRUIT` block - `altahrunruins_leagues.tok`
+lists Borte Hulagu, Eyes of the Beast, Krakens, School of Past Glory and School of Suyhron. `REGIONSCHOOL` (17 references)
+appears **only** inside `.enc` files; nothing in `data/config`, `schools.txt` or `enemyschools.tok` names it, so it is resolved
+by the engine from the current region rather than from a table we can read.

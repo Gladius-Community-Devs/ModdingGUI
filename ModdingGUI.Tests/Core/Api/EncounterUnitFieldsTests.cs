@@ -74,6 +74,37 @@ public class EncounterUnitFieldsTests
     }
 
     [Fact]
+    public void SplitMask_SeparatesTheThreeGroupsTheEngineTests()
+    {
+        // FUN_8010ad40 reads one integer as three masks: 0x103f attributes, 0xf00 class tags, 0xc0 unclaimed bits.
+        (int attributes, int classTags, int unclaimed) = EncounterUnitFields.SplitMask(0x103F);
+        Assert.Equal(0x103F, attributes);
+        Assert.Equal(0, classTags);
+        Assert.Equal(0, unclaimed);
+
+        (attributes, classTags, unclaimed) = EncounterUnitFields.SplitMask(0x0F00);
+        Assert.Equal(0, attributes);
+        Assert.Equal(0x0F00, classTags);
+        Assert.Equal(0, unclaimed);
+
+        (attributes, classTags, unclaimed) = EncounterUnitFields.SplitMask(0x00C0);
+        Assert.Equal(0, attributes);
+        Assert.Equal(0, classTags);
+        Assert.Equal(0x00C0, unclaimed);
+    }
+
+    [Fact]
+    public void SplitMask_GroupsAddBackUpForVanillaValues()
+    {
+        // 1056 = 1024 + 32 and 4224 = 4096 + 128 are real vanilla masks.
+        foreach (int value in new[] { 0, 1, 4, 17, 56, 1056, 4224 })
+        {
+            (int attributes, int classTags, int unclaimed) = EncounterUnitFields.SplitMask(value);
+            Assert.Equal(value, attributes | classTags | unclaimed);
+        }
+    }
+
+    [Fact]
     public void StartMarkers_ComeFromTheGridTags()
     {
         // The corpus grids are the real input for this list; a brand-new GridFile has no layout version and refuses to save.
