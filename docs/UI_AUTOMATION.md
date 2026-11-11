@@ -209,3 +209,20 @@ Notes that matter when scripting it:
   that would collide with the source file, so `rvz -> rvz` does not target the input.
 - `target` other than `iso` needs Dolphin's CLI; `availableTargets` in `state` reports what is actually possible before
   you try.
+
+### `encounters` - encounters before they have a page
+
+A `.enc` file is a header plus `TEAM:` blocks of `UNITDB:` rows, each row 21 positional slots. The command speaks
+file/team/unit indices and raw rows, and validates rows with `EncounterUnit.TryParse` before writing.
+
+| Action | Fields | Returns |
+|---|---|---|
+| `list` | optional `filter`, optional `project` | `total`, `count`, `files` (relative paths) |
+| `get` | `path` | header `fields`, `teams` with their fields and `units` (raw + parsed name/chance/startSlot/class/subType) |
+| `setHeader` | `path`, `key`, `value` | `changed: true` |
+| `setTeamField` | `path`, `team`, `key`, `value` | `changed: true` |
+| `setUnits` | `path`, `team`, `units` (array of raw rows) | `count`; every row is validated first, so a bad row writes nothing |
+| `setUnit` | `path`, `team`, `index`, `raw` | `name` |
+| `validate` | `path` | `teams`, `units`, `problems` (`row-does-not-parse`) |
+
+`project` defaults to the project selected in the tree, so a scenario rarely needs to pass it.

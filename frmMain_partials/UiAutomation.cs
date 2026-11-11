@@ -95,9 +95,12 @@ namespace ModdingGUI
 
                         case "grid":
                             return GridCommand(request);
+
                         case "convert":
                             return ConvertCommand(request);
 
+                        case "encounters":
+                            return EncountersCommand(request);
                 case "closeDialog":
                             return CloseDialog();
 

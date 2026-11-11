@@ -734,3 +734,31 @@ The remainder is a workflow rather than a table, for the arenas nobody has tuned
 
 Saved placements win over the built-in table, so a user can correct an arena the table gets wrong without waiting for a
 code change, and a value confirmed here can be promoted into the table for everyone (as `arenasuren` just was).
+
+## 30. Encounters, Leagues, Towns: what exists, and the first surface for encounters
+
+Surveyed before building anything, because the four domains the owner asked for are in very different states:
+
+| Domain | Corpus | Core | GUI | Agent surface |
+|---|---|---|---|---|
+| Encounters | `data/encounters/**/*.enc` - **834 files** | `IEncountersApi` complete: header fields, teams, per-team fields, `SetTeamUnits`/`SetTeamUnit`, `EncounterUnit.TryParse` (21 slots), validation | **none** | `encounters` command (this pass) |
+| Leagues | `data/towns/leagues/*.tok` - **44 files** (OFFICENAME/OFFICER/RECRUIT rows/LEAGUEPTSNEEDED) | `ILeaguesApi` + `LeagueValidator` + `LeaguesCatalog` complete | **none** | none |
+| Towns | no town table: `towns/` holds only `leagues/` (44), `shops/` (**59** `.tok`), `schools/` (**27** `.tnt` tints). Town identity lives in scripts/menus (`data/script/cnv*town.scp`) | **none** - shops and tints have no API | none | none |
+| Schools | `data/school/*.tok` - **~76 files**; 144 names in `data/units/schools.txt`; tints in `towns/schools/*.tnt` | `ISchoolsApi` lists **every** school file | Team Builder opens only the two campaign rosters | `openTeamBuilder` only |
+
+So the "schools" question settles as: the **enemy** school files are the ones not editable today. `data/school/*.tok` are roster-shaped
+(`NAME:`, `HERO:`, `GOLD:`, `CREATEUNIT` blocks) and encounters reference them by name - `HOMETOWNSCHOOL` 248 times,
+`Dynamic Statues` 56, `NoSchool` 46, `Story Characters` 38, `Suyhron` 24, `RollOutTheBarrels` 23, `BelfortMilitary` 21,
+`Eyes of the Beast` 19, `Riot Gyhrls` 17, `REGIONSCHOOL` 17, and so on. The API already lists all 76; only the Team
+Builder's roster picker is restricted to the two campaign files.
+
+**Built this pass - the `encounters` driver command** (`list`, `get`, `setHeader`, `setTeamField`, `setUnits`, `setUnit`,
+`validate`), so encounters have an agent surface even before they have a page. It speaks in file/team/unit indices and raw
+`UNITDB` rows rather than 21 positional slots, and validates every row with `EncounterUnit.TryParse` before writing.
+
+Verified on `demo_hero`: `list` returns 834 files (52 for `pirgosarena`); `get` on `battle1.enc` returns 15 header fields,
+3 teams and 7 units with class/sub-type/start-slot/chance parsed; `setHeader ENCOUNTERNAME` took effect and reverting it
+left the file **byte-identical** (SHA-256 compared before/after) with a `.mod-history` backup written per write.
+
+One defect found by that test and fixed: the command lowercased the action name but compared camelCase literals, so every
+write action reported "unknown action" while the read actions worked.
