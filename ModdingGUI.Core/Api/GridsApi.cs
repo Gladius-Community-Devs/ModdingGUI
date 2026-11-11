@@ -123,7 +123,7 @@ public sealed class GridsApi : IGridsApi
 
         using (ProjectLock.Acquire(root))
         {
-            string? backup = ChangeHistoryService.Backup(root, full);
+            string? backup = ChangeHistoryService.Backup(ProjectRoots.ProjectFolderOf(root), full);
             Directory.CreateDirectory(Path.GetDirectoryName(full)!);
             grid.Save(full);   // overwrites: the backup above holds the previous bytes
             return backup;

@@ -860,3 +860,45 @@ The encounter path already carries both (`data/encounters/<region>/<arena>/<file
 **Still open.** Slot 17 is copied to `unit+0x38` and slot 19 to `+0x39` by `FUN_80108828` (both single bytes), but no reader
 of `+0x38` has been traced yet, so its meaning remains unknown. The attribute bit names and the affinity id order still need
 the `classdefs.tok` parser; the owner will validate affinity with a test encounter in game.
+
+## 34. Pack performance: what it actually is, and one real defect found on the way
+
+Packing the demo project took 178.7 s. Splitting that up (same tool, same data, same machine):
+
+| Measurement | Time | What it means |
+|---|---|---|
+| App, before the log fix | **178.7 s** (bec step 171.2 s) | |
+| The tool alone, output to a file | **43.2 s** | so ~128 s was not packing |
+| App, after batching the log | **22.8 s** (bec step 15.7 s) | warm cache |
+| App, first run after moving 11k history files | **97.9 s** (bec step 90.5 s) | cold cache |
+| App, immediately after that | **13.8 s** (bec step 8.0 s) | warm cache |
+| `scripts/bench-pack.ps1` (tool only) | **14.7 s**, then **7.9 s** | warm |
+
+So there were **two** costs, and the owner was right that the second is not log plumbing:
+
+1. **Log plumbing (fixed).** Every one of the ~33,000 lines printed by `bec-tool-all.py` did an `Invoke`, a
+   `SelectionColor` change, an `AppendText` and a `ScrollToCaret` - each forcing a RichTextBox layout and repaint. Lines are
+   now queued from any thread and drained on a UI timer every 120 ms, appended in colour runs with one scroll per flush, and
+   the pane trims itself to 4,000 lines (`frmMain_partials/LogBatch.cs`). That removed ~130 s.
+2. **Cold I/O (structural, not fixed).** The pack opens and reads **27,305 files / 456 MB**, then writes a **431 MB**
+   archive, then `ngciso-tool.py` writes a **1.4 GB** ISO. A cold run is 6-7x a warm one purely because the OS has to read
+   the tree from disk. `bec-tool-all.py` holds every file's bytes in memory as it goes, re-reads every file on every pack,
+   and compresses nothing for GC (`compress = False`), so there is no CPU cost to attack - only I/O.
+
+**A real defect found while measuring: `.mod-history` was inside `_BEC`.** `ChangeHistoryService` writes wherever the caller
+points it, and `EncountersApi`/`GridsApi`/`RandomizerBaseline` were pointing it at the BEC folder. `bec-tool-all.py -pack`
+ships every file under `_BEC` that `filelist.txt` does not name, so **11,100 backup files (37 MB) were being packed into the
+ISO**, and because backups keep changing, two identical packs produced different ISOs. Fixed by passing the project folder
+(`ProjectRoots.ProjectFolderOf`, strict: only when `*_BEC` has a sibling `*_ISO`, so test fixtures are untouched) and by
+moving the existing history up a level. The demo ISO dropped from **1430.7 MB to 1393.1 MB**; all 869 tests still pass.
+
+**Still nondeterministic, smaller cause: six "extras".** `data/units/{gladiators,itemsets,schools,skillsets,statsets,tints}.txt`
+are not in `filelist.txt`, so the packer treats them as new entries and assigns their data offsets in scan order; two packs
+after the history fix still differed (`5933ee9a.` vs `25544fed.`). Recording the order - or listing those six files
+explicitly - would make the ISO reproducible.
+
+**The structural fix for cold packs** is an incremental repack: read the existing `.bec`, keep the entries whose source size
+and timestamp (or hash) are unchanged by copying their byte ranges straight into the new archive, and only read the files
+that actually changed. The write side stays (431 MB archive, 1.4 GB ISO), but the 27,305 file opens and 456 MB of source
+reads collapse to the handful of edited files - seconds rather than a minute, cold. `scripts/bench-pack.ps1` measures the
+current baseline so the gain can be checked rather than assumed.

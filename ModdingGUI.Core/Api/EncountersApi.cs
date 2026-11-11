@@ -125,7 +125,7 @@ public sealed class EncountersApi : IEncountersApi
                     TokLineEditing.Insert(lines, 0, "ENCOUNTERNAME", $"\"{encounterName}\"");
             }
 
-            ChangeHistoryService.Backup(bec, destinationPath);
+            ChangeHistoryService.Backup(projectPath, destinationPath);
             RawLineFile.Write(bec, destinationRelativePath, lines, trailing);
         }
     }

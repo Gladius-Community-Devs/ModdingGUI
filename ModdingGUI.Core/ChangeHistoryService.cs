@@ -41,6 +41,23 @@ public static class ChangeHistoryService
     /// (e.g. first-time write) no backup is written and the method returns null.
     /// </summary>
     /// <param name="projectPath">Root of the project the file belongs to.</param>
+    /// <summary>
+    /// Where <c>.mod-history</c> belongs for a project path: the project folder, never its <c>_BEC</c> child.
+    /// </summary>
+    /// <remarks>
+    /// The packer ships every file under the BEC folder that its file list does not name, so a history folder inside
+    /// <c>_BEC</c> is packed into the archive - the ISO grows by the whole history and every repack differs from the last
+    /// because the backups keep changing. Callers that only have the BEC folder are normalised to its parent here.
+    /// </remarks>
+    internal static string HistoryRootFor(string projectPath)
+    {
+        string full = Path.GetFullPath(projectPath);
+        if (!Path.GetFileName(full).EndsWith("_BEC", StringComparison.OrdinalIgnoreCase)) return full;
+
+        string? parent = Directory.GetParent(full)?.FullName;
+        return string.IsNullOrEmpty(parent) ? full : parent;
+    }
+
     /// <param name="filePath">Fully qualified path of the file about to be overwritten.</param>
     /// <returns>The absolute path of the backup file, or null if none was created.</returns>
     public static string? Backup(string projectPath, string filePath)
@@ -52,12 +69,14 @@ public static class ChangeHistoryService
         string projectFull = Path.GetFullPath(projectPath);
         string fileFull = Path.GetFullPath(filePath);
 
-        string relative = Path.GetRelativePath(projectFull, fileFull);
+        string historyRoot = projectFull;
+
+        string relative = Path.GetRelativePath(historyRoot, fileFull);
         if (relative.StartsWith("..", StringComparison.Ordinal))
             throw new InvalidOperationException(
                 $"File '{fileFull}' is not inside project '{projectFull}'.");
 
-        string historyDir = Path.Combine(projectFull, RootFolderName, relative);
+        string historyDir = Path.Combine(historyRoot, RootFolderName, relative);
         Directory.CreateDirectory(historyDir);
 
         string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss-fff", CultureInfo.InvariantCulture);

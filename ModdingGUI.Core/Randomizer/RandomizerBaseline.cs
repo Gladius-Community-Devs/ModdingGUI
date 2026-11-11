@@ -121,7 +121,7 @@ public sealed class RandomizerBaseline
                 string target = Full(bec, relative);
 
                 // Preserve the current file first: a reset must be undoable through the same history.
-                if (File.Exists(target)) ChangeHistoryService.Backup(bec, target);
+                if (File.Exists(target)) ChangeHistoryService.Backup(ProjectRoots.ProjectFolderOf(bec), target);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                 File.Copy(baselineFile, target, overwrite: true);

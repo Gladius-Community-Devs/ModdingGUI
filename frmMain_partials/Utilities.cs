@@ -144,16 +144,9 @@ namespace ModdingGUI
 
             try
             {
-                if (targetRtb.InvokeRequired)
-                {
-                    targetRtb.Invoke(new Action(() => AppendLogText(message, color, targetRtb)));
-                    return;
-                }
-
-                targetRtb.SelectionStart = targetRtb.TextLength;
-                targetRtb.SelectionColor = color.Value;
-                targetRtb.AppendText(message + Environment.NewLine);
-                targetRtb.ScrollToCaret();
+                // Queued rather than drawn immediately: see LogBatch.cs - a pack is ~33,000 lines, and a repaint per
+                // line cost more than the pack itself (171 s against 43 s with the same output going to a file).
+                QueueLogLine(targetRtb, message ?? string.Empty, color.Value);
             }
             catch (InvalidOperationException)
             {

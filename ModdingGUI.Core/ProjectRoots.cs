@@ -99,6 +99,35 @@ public static class ProjectRoots
     }
 
     /// <summary>
+    /// The project folder that owns a BEC folder, or the argument itself when this is not a real project layout.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Used where a caller only has the BEC path but needs somewhere that is not packed into the archive: the history
+    /// folder is the case in point, because the packer ships every file under _BEC that its file list does not name.
+    /// </para>
+    /// <para>
+    /// The check is strict - the folder must end in <c>_BEC</c> and have a sibling <c>*_ISO</c> - so a test fixture or a
+    /// hand-made folder called <c>something_BEC</c> is returned unchanged. Real projects always have both halves.
+    /// </para>
+    /// </remarks>
+    public static string ProjectFolderOf(string becFolder)
+    {
+        if (string.IsNullOrWhiteSpace(becFolder)) return becFolder ?? string.Empty;
+
+        string full = Path.GetFullPath(becFolder).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        string name = Path.GetFileName(full);
+
+        if (!name.EndsWith("_BEC", StringComparison.OrdinalIgnoreCase)) return full;
+
+        string? parent = Directory.GetParent(full)?.FullName;
+        if (string.IsNullOrEmpty(parent)) return full;
+
+        string stem = name[..^4];
+        return Directory.Exists(Path.Combine(parent, stem + "_ISO")) ? parent : full;
+    }
+
+    /// <summary>
     /// The <c>*_BEC</c> children of a folder, or an empty array when the folder is missing or unreadable.
     /// </summary>
     private static string[] EnumerateBecChildren(string folder)
