@@ -828,3 +828,35 @@ base offset is still open.
 lists Borte Hulagu, Eyes of the Beast, Krakens, School of Past Glory and School of Suyhron. `REGIONSCHOOL` (17 references)
 appears **only** inside `.enc` files; nothing in `data/config`, `schools.txt` or `enemyschools.tok` names it, so it is resolved
 by the engine from the current region rather than from a table we can read.
+
+## 33. Correction: slots 4-6 are levels, not coordinates. The region tokens are data-driven.
+
+**Slots 4-6.** The previous pass called them placement coordinates. Following `EncounterSetup` into `FUN_80108828` shows
+otherwise: `FUN_800f7c50(seed, school)` walks the school roster (levels at `+0x90`), averages them and clamps the result by
+difficulty (`DAT_803c44ac` ? 5, 10, 13, 15, 18, 30); `EncounterSetup` **adds that average to slot 4 and to slot 5**, adds it
+again independently for each bound when slot 6 is set, clamps both to `>= 1`, and `FUN_80108828` stores the pair on the
+created unit at `+0x10`/`+0x14`. That is the "enemies spawn a couple of levels either side of the school average" behaviour
+the randomizer depends on, so `devnotes.txt` had the right meaning and the wrong slot numbers (its "1, 2, 0" were slots
+4, 5, 6).
+
+Renamed and re-labelled end to end: `EncounterUnit.Slot4LevelMinOffset` / `Slot5LevelMaxOffset` / `Slot6LevelJitter`, and the
+field catalog now offers `levelMin`, `levelMax`, `levelJitter` with the description of the average-and-clamp behaviour. The
+driver's `get` returns `levelMinOffset`, `levelMaxOffset` and `levelJitter` instead of a bogus `level`.
+
+**The two runtime school tokens are resolvable from data, with no DOL edit.** `data/config/world.tok` is the
+region ? town ? arena table: 4 regions (Expanse, Imperia, Nordagh, Steppes), 44 towns, 44 arenas. Each arena owns
+`data/towns/leagues/<arena>_leagues.tok`, whose `SCHOOL` lines are that town's school list. Therefore:
+
+| Token | Resolution | Example |
+|---|---|---|
+| `HOMETOWNSCHOOL` | the arena's own league-file school list | `pirgosarena` ? **8** schools (BelfortMilitary, ImperiaPirgosBrutes, .) |
+| `REGIONSCHOOL` | union of the region's arenas' lists | `Imperia` ? **30** schools |
+
+The encounter path already carries both (`data/encounters/<region>/<arena>/<file>.enc`), so nothing needs configuring.
+`WorldRegions` (`Read`, `ForArena`, `ArenaSchools`, `RegionSchools`) does the parsing with six corpus tests, and the
+`encounters` driver's `fields` action now returns `region`, `arena`, `resolvedSchools.{homeTown,region}` and a per-team
+`resolvedSchools`.
+
+**Still open.** Slot 17 is copied to `unit+0x38` and slot 19 to `+0x39` by `FUN_80108828` (both single bytes), but no reader
+of `+0x38` has been traced yet, so its meaning remains unknown. The attribute bit names and the affinity id order still need
+the `classdefs.tok` parser; the owner will validate affinity with a test encounter in game.

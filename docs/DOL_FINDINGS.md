@@ -86,8 +86,8 @@ Two functions settle what a `UNITDB` row means, and they are not the same struct
 | 1 | `FUN_800c41d8` (string) | unit name; empty means "generate from the school" |
 | 2 | `FUN_800c3fb4` (int) | `(rand % 100 + 1) <= value` gates the spawn; `100` therefore always spawns |
 | 3 | string | start marker, handed to unit creation |
-| 4, 5 | ints | placement coordinates: when slot 6 is non-zero they get `rand()` added and are clamped to `>= 1` |
-| 6 | int | jitter switch |
+| 4, 5 | ints | **level bounds as offsets**: `EncounterSetup` adds `FUN_800f7c50`'s result to each, then `FUN_80108828` stores them on the created unit at `+0x10` / `+0x14` |
+| 6 | int | level jitter: non-zero adds the school average a second time, independently for each bound, clamped to `>= 1` |
 | 7, 8 | ints | requirement values (see below) |
 | 9-12 | four strings | class tags accumulated on the unit |
 | 13-16 | ints | normalised to 0/1 and used as the four prohibition flags |
@@ -96,8 +96,13 @@ Two functions settle what a `UNITDB` row means, and they are not the same struct
 | 19 | int | passed to unit creation |
 | 20, 21 | ints | non-zero OR `0x100` / `0x200` into the spawn flags |
 
-**This refutes the old `devnotes.txt` reading of slots 4-6 as level bounds.** They are coordinates and a jitter switch;
-the level-looking numbers belong to the *other* struct below.
+**Correction (second pass).** Slots 4-6 *are* level bounds, and the earlier reading of this file was wrong to call them
+coordinates: `FUN_800f7c50(seed, school)` walks the school's roster (levels at `+0x90`), computes its average and clamps it
+by difficulty (`DAT_803c44ac` ? 5, 10, 13, 15, 18, 30), and `EncounterSetup` adds that average to slot 4 and slot 5. When
+slot 6 is non-zero it adds the average a second time, once per bound, and clamps both to `>= 1`, which is exactly the
+"enemies spawn a couple of levels either side of the school average" behaviour the randomizer depends on. Placement comes
+from the start marker on the arena grid, not from these slots. `devnotes.txt` was right about the levels and wrong about
+their slot numbers.
 
 `FUN_8010ad40(requirement, unit)` tests a requirement record:
 
@@ -117,3 +122,18 @@ is why `EncounterUnitFields.SplitMask` exists.
 (each preceded by `None`, `Basic`, `Chain`, `Special`, `Attack` for other enums). The ids are therefore index-based in that
 order. `devnotes.txt` claims "5 would be fire", which does not fit that order, so the note is unverified; the base offset
 (`None` = 0 or 1 = `Air`) still needs pinning from the parser that reads `AFFINITY:` in `classdefs.tok`.
+
+## The two runtime school tokens are data-resolvable - no DOL edit needed
+
+`HOMETOWNSCHOOL` and `REGIONSCHOOL` appear only inside `.enc` files, and an earlier pass concluded they were engine-resolved
+with nothing in the data to read. That was wrong: `data/config/world.tok` is the region ? town ? arena table
+(4 `REGION` blocks, 44 towns, 44 arenas), and every arena owns a league file whose `SCHOOL` lines list its town's schools.
+
+- `HOMETOWNSCHOOL` = the arena's own league-file list. `pirgosarena_leagues.tok` yields 8 schools.
+- `REGIONSCHOOL` = the union of the league-file lists of every arena in the region. Imperia yields 30 schools.
+- The encounter path already names both (`data/encounters/<region>/<arena>/<file>.enc`), so the editor resolves the tokens
+  with no configuration at all.
+
+`WorldRegions` implements this (`Read`, `ForArena`, `ArenaSchools`, `RegionSchools`) with six tests against the corpus, and
+the `encounters` driver's `fields` action now returns `region`, `arena`, `resolvedSchools.homeTown`, `resolvedSchools.region`
+and a per-team `resolvedSchools` for teams that use either token.

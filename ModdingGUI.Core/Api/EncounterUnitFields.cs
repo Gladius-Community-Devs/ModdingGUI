@@ -81,16 +81,17 @@ public static class EncounterUnitFields
         new(3, "startMarker", "Start", EncounterFieldKind.Text,
             "Grid start marker this row spawns at, e.g. Start1. The values come from the arena's .grd tags."),
 
-        new(4, "positionX", "X", EncounterFieldKind.Integer,
-            "Placement X in grid cells (jittered when slot 6 is set).", Minimum: -32, Maximum: 63,
+        new(4, "levelMin", "Level -", EncounterFieldKind.Integer,
+            "Lower bound on the spawned level, as an offset added to the school's average level (the engine adds " +
+            "FUN_800f7c50's average, capped by difficulty at 5/10/13/15/18/30).", Minimum: -30, Maximum: 30,
             ObservedValues: new[] { "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5", "6", "7", "10", "15" }),
 
-        new(5, "positionY", "Y", EncounterFieldKind.Integer,
-            "Placement Y in grid cells (jittered when slot 6 is set).", Minimum: -32, Maximum: 63,
+        new(5, "levelMax", "Level +", EncounterFieldKind.Integer,
+            "Upper bound on the spawned level, added to the school average like slot 4.", Minimum: -30, Maximum: 30,
             ObservedValues: new[] { "-4", "-2", "-1", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }),
 
-        new(6, "jitter", "Jitter", EncounterFieldKind.Switch,
-            "Non-zero adds rand() to the coordinates, so the unit scatters around the marker."),
+        new(6, "levelJitter", "Level jitter", EncounterFieldKind.Switch,
+            "Non-zero randomises both level bounds per spawn: the school average is computed twice and added independently."),
 
         new(7, "attributeMask", "Attribute mask", EncounterFieldKind.Bitmask,
             "One integer carrying three sub-masks, which the requirement test reads separately (FUN_8010ad40): bits 0x103f " +

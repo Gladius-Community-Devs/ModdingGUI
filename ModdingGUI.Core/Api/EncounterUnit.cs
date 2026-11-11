@@ -12,13 +12,13 @@ using ModdingGUI.Core.Tok.Values;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Slots 1-3 (name, spawn chance, start marker), 4-6 (x, y, jitter) and 20-21 (spawn flags 0x100,
-/// 0x200) are confirmed by the engine: the jitter flag adds <c>rand()</c> to the coordinates and the
-/// two flags are OR-ed straight into the spawn flags passed to unit creation. A separate modder's
-/// notes (devnotes.txt) guessed slots 4-6 were level bounds; the code disproves that — they are
-/// coordinates, and <c>0</c> is clamped to <c>1</c> before use.
-/// </para>
-/// <para>
+/// Slots 1-3 (name, spawn chance, start marker), 4-6 (level bounds and their jitter) and 20-21 (spawn
+/// flags 0x100, 0x200) are confirmed by the engine. Slots 4-6 are LEVELS, not coordinates:
+/// <c>EncounterSetup</c> adds the school's average level (<c>FUN_800f7c50</c>) to slot 4 and slot 5, adds it
+/// again at random when slot 6 is set, clamps both to at least 1, and <c>FUN_80108828</c> stores the pair on the
+/// created unit at +0x10 and +0x14. Placement comes from the start marker (slot 3) on the arena grid instead.
+/// A previous note in this file - and devnotes.txt before it - called these three slots coordinates; tracing the
+/// struct into <c>FUN_80108828</c> showed otherwise.
 /// Slots 7-8 (attribute / affinity requirement), 14-16 (the three "prohibited" flips), 18 (mercenary)
 /// and 19 (item drop chance) come from those modder notes; slot 19's vanilla values (multiples of 5
 /// up to 90) and the engine storing 7-8 on the unit spec both fit. Unknown and left as numbers: slot
@@ -48,14 +48,14 @@ public sealed class EncounterUnit
     /// <summary>Slot 3 — grid start marker, e.g. <c>Start1</c> … <c>Start8</c>.</summary>
     public string StartSlot { get; init; } = string.Empty;
 
-    /// <summary>Slot 4 — placement X (jittered when <see cref="PositionJitter"/> is set).</summary>
-    public int PositionX { get; init; }
+    /// <summary>Slot 4 - lower bound on the spawned level, as an offset added to the school's average level.</summary>
+    public int Slot4LevelMinOffset { get; init; }
 
-    /// <summary>Slot 5 — placement Y (jittered when <see cref="PositionJitter"/> is set).</summary>
-    public int PositionY { get; init; }
+    /// <summary>Slot 5 - upper bound on the spawned level, added to the school average like slot 4.</summary>
+    public int Slot5LevelMaxOffset { get; init; }
 
-    /// <summary>Slot 6 — non-zero adds a random offset to the placement.</summary>
-    public int PositionJitter { get; init; }
+    /// <summary>Slot 6 - non-zero makes both bounds random per spawn: the school average is added twice, independently.</summary>
+    public int Slot6LevelJitter { get; init; }
 
     /// <summary>
     /// Slot 7 — attribute requirement as a bitmask over the unit's class tags (vanilla uses 1, 2, 4, 8,
@@ -187,9 +187,9 @@ public sealed class EncounterUnit
             UnitName = Unquote(slots[0]),
             SpawnChancePercent = numbers[1],
             StartSlot = Unquote(slots[2]),
-            PositionX = numbers[3],
-            PositionY = numbers[4],
-            PositionJitter = numbers[5],
+            Slot4LevelMinOffset = numbers[3],
+            Slot5LevelMaxOffset = numbers[4],
+            Slot6LevelJitter = numbers[5],
             AttributeRequirement = numbers[6],
             AffinityRequirement = numbers[7],
             ClassTag1 = Unquote(slots[8]),
@@ -223,9 +223,9 @@ public sealed class EncounterUnit
         slots[0] = Quote(UnitName);
         slots[1] = SpawnChancePercent.ToString(CultureInfo.InvariantCulture);
         slots[2] = Quote(StartSlot);
-        slots[3] = PositionX.ToString(CultureInfo.InvariantCulture);
-        slots[4] = PositionY.ToString(CultureInfo.InvariantCulture);
-        slots[5] = PositionJitter.ToString(CultureInfo.InvariantCulture);
+        slots[3] = Slot4LevelMinOffset.ToString(CultureInfo.InvariantCulture);
+        slots[4] = Slot5LevelMaxOffset.ToString(CultureInfo.InvariantCulture);
+        slots[5] = Slot6LevelJitter.ToString(CultureInfo.InvariantCulture);
         slots[6] = AttributeRequirement.ToString(CultureInfo.InvariantCulture);
         slots[7] = AffinityRequirement.ToString(CultureInfo.InvariantCulture);
         slots[8] = Quote(ClassTag1);
@@ -263,9 +263,9 @@ public sealed class EncounterUnit
             UnitName = unitName ?? UnitName,
             SpawnChancePercent = spawnChance ?? SpawnChancePercent,
             StartSlot = startSlot ?? StartSlot,
-            PositionX = PositionX,
-            PositionY = PositionY,
-            PositionJitter = PositionJitter,
+            Slot4LevelMinOffset = Slot4LevelMinOffset,
+            Slot5LevelMaxOffset = Slot5LevelMaxOffset,
+            Slot6LevelJitter = Slot6LevelJitter,
             AttributeRequirement = AttributeRequirement,
             AffinityRequirement = AffinityRequirement,
             ClassTag1 = ClassTag1,

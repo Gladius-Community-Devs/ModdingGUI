@@ -32,9 +32,9 @@ public sealed class EncounterUnitTests
         Assert.Equal("Bjolf", unit.UnitName);
         Assert.Equal(100, unit.SpawnChancePercent);
         Assert.Equal("Start3", unit.StartSlot);
-        Assert.Equal(1, unit.PositionX);
-        Assert.Equal(1, unit.PositionY);
-        Assert.Equal(0, unit.PositionJitter);
+        Assert.Equal(1, unit.Slot4LevelMinOffset);
+        Assert.Equal(1, unit.Slot5LevelMaxOffset);
+        Assert.Equal(0, unit.Slot6LevelJitter);
         Assert.Equal(0, unit.AttributeRequirement);
         Assert.Equal(-1, unit.AffinityRequirement);
         Assert.Empty(unit.ClassTags);

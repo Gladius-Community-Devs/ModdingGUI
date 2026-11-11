@@ -87,7 +87,9 @@ namespace ModdingGUI
                                         startSlot = unit?.StartSlot,
                                         @class = unit?.ClassTag1,
                                         subType = unit?.ClassTag2,
-                                        level = unit?.PositionX,
+                                        levelMinOffset = unit?.Slot4LevelMinOffset,
+                                        levelMaxOffset = unit?.Slot5LevelMaxOffset,
+                                        levelJitter = unit?.Slot6LevelJitter,
                                     };
                                 }).ToArray(),
                             }).ToArray(),
@@ -123,6 +125,17 @@ namespace ModdingGUI
                             if (File.Exists(candidate)) startMarkers = EncounterChoices.StartMarkers(candidate);
                         }
 
+
+                        // The two runtime tokens are resolvable from data: the encounter lives in
+                        // data/encounters/<region>/<arena>/, the arena's league file lists the town's schools, and the region
+                        // is the union of its arenas' lists. HOMETOWNSCHOOL/REGIONSCHOOL then have something to show.
+                        string[] segments = path.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+                        string regionGuess = segments.Length >= 4 ? segments[2] : string.Empty;
+                        string arenaGuess = segments.Length >= 5 ? segments[3] : string.Empty;
+
+                        IReadOnlyList<string> homeTownSchools = WorldRegions.ArenaSchools(project, arenaGuess);
+                        IReadOnlyList<string> regionSchools = WorldRegions.RegionSchools(project, regionGuess);
+
                         var teams = new List<object>();
                         foreach (EncounterTeamDto team in encounter.Teams)
                         {
@@ -137,12 +150,30 @@ namespace ModdingGUI
                                 ? names
                                 : Array.Empty<string>();
 
-                            teams.Add(new { index = team.Index, school = schoolName, unitsInSchool = unitNames.Count, unitNames });
+                            // A team naming a runtime token gets the schools it will actually draw from.
+                            IReadOnlyList<string> resolved = schoolName switch
+                            {
+                                var s when string.Equals(s, "HOMETOWNSCHOOL", StringComparison.OrdinalIgnoreCase) => homeTownSchools,
+                                var s when string.Equals(s, "REGIONSCHOOL", StringComparison.OrdinalIgnoreCase) => regionSchools,
+                                _ => Array.Empty<string>(),
+                            };
+
+                            teams.Add(new
+                            {
+                                index = team.Index,
+                                school = schoolName,
+                                resolvedSchools = resolved,
+                                unitsInSchool = unitNames.Count,
+                                unitNames,
+                            });
                         }
 
                         return UiOk(new
                         {
                             file = path,
+                            region = regionGuess,
+                            arena = arenaGuess,
+                            resolvedSchools = new { homeTown = homeTownSchools, region = regionSchools },
                             unitFields = EncounterUnitFields.All.Select(f => new
                             {
                                 slot = f.Slot,
