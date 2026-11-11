@@ -107,6 +107,10 @@ namespace ModdingGUI
             { "belfortarena", new MapTransformDefaults { OffsetX = 75, OffsetY = -100, Scale = 2.6M, RotationIndex = 2 } },
             { "bloodyhalo", new MapTransformDefaults { OffsetX = 75, OffsetY = -75, Scale = 2.5M, RotationIndex = 2 } },
             { "calthaarena", new MapTransformDefaults { OffsetX = 75, OffsetY = 37, Scale = 2.4M, RotationIndex = 2 } },
+            // Confirmed against the arena's own .grd: the page is stored rotated 180 from the grid. This was missing from the
+            // original table, so the arena was never shown correctly; scale 2.5 fills the 640 px board, and the offsets are
+            // left at zero because they can be nudged and remembered in the UI.
+            { "arenasuren", new MapTransformDefaults { OffsetX = 0, OffsetY = 0, Scale = 2.5M, RotationIndex = 2 } },
         };
 
 
@@ -312,6 +316,11 @@ namespace ModdingGUI
 
             bar.Dock = DockStyle.Top;
 
+            // Nudging: arrow keys move the page one board pixel at a time (ten with Shift) when the overlay is on.
+            // Nothing else in this view uses the keyboard, and the numeric X/Y boxes are too coarse for fine alignment.
+            KeyDown += NudgeMapOnKeyDown;
+            SetStyle(ControlStyles.Selectable, true);
+
             // Initialize GridPanel
             _panel.Initialise(this);
             _panel.MouseMove += Panel_MouseMove;
@@ -436,6 +445,30 @@ namespace ModdingGUI
             _panel.Invalidate();
         }
 
+
+        /// <summary>Arrow keys nudge the map: one pixel, or ten with Shift.</summary>
+        private void NudgeMapOnKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (_btnToggleMap.Text != "Hide Map") return;   // only when the overlay is actually showing
+
+            int step = e.Shift ? 10 : 1;
+            switch (e.KeyCode)
+            {
+                case Keys.Left: Nudge(-step, 0); break;
+                case Keys.Right: Nudge(step, 0); break;
+                case Keys.Up: Nudge(0, -step); break;
+                case Keys.Down: Nudge(0, step); break;
+                default: return;
+            }
+
+            e.Handled = true;
+        }
+
+        private void Nudge(int dx, int dy)
+        {
+            _mapOffsetXNumeric.Value = Math.Max(_mapOffsetXNumeric.Minimum, Math.Min(_mapOffsetXNumeric.Maximum, _mapOffsetXNumeric.Value + dx));
+            _mapOffsetYNumeric.Value = Math.Max(_mapOffsetYNumeric.Minimum, Math.Min(_mapOffsetYNumeric.Maximum, _mapOffsetYNumeric.Value + dy));
+        }
 
         /// <summary>Saved placements for this installation, loaded on first use.</summary>
         private MapPlacementStore Placements => _placements ??= MapPlacementStore.LoadFrom(AppContext.BaseDirectory);

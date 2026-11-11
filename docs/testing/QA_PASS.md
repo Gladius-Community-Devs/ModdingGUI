@@ -716,3 +716,21 @@ rotation list was **`None / 90 / 180 / 270` only**, plus a ten-entry `_mapDefaul
 mean what they meant), and to let any placement be remembered per arena (section 27). `qa-suren-orientations.png` renders
 one arena's page under all eight, labelled with the index, so the right one can be identified by looking rather than
 described.
+
+## 29. Arena Suren confirmed: 180°, and how the rest of the alignment gets fixed
+
+`arenasuren` is now in the built-in table at **180° / scale 2.5 / offset 0,0**, confirmed against that arena's own `.grd`
+by the project owner. It had been missing from the original table entirely, so every version of the app showed it at
+scale 1 with no rotation. Verified in the running app: opening any `steppes/arenasuren/*.grd` now lands at
+`rotationIndex 2, offset 0,0, scale 2.5` with the overlay shown.
+
+The remainder is a workflow rather than a table, for the arenas nobody has tuned yet:
+
+1. Open the arena; the page shows at fit-to-board with no rotation.
+2. Pick one of the **eight** orientations (None, 90, 180, 270, Flip H, Flip V, 90+Flip H, 270+Flip H).
+3. **Nudge** with the X/Y boxes, or with the arrow keys while the overlay is showing - one board pixel per press, ten with
+   Shift. Nothing else in the view used the keyboard, and the numeric boxes alone are too coarse for fine alignment.
+4. **Remember placement** writes it to `map_placements.json`; **Clear placement** returns the arena to the table or the fit.
+
+Saved placements win over the built-in table, so a user can correct an arena the table gets wrong without waiting for a
+code change, and a value confirmed here can be promoted into the table for everyone (as `arenasuren` just was).
