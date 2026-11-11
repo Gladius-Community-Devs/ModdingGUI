@@ -143,6 +143,38 @@ public static class EncounterUnitFields
             "Sets spawn flag 0x200 (engine-confirmed)."),
     };
 
+    /// <summary>
+    /// The twelve unit attributes and their bits, exactly as <c>UnitConditionalLookUpAttr</c> (<c>0x800f1444</c>) assigns them.
+    /// </summary>
+    /// <remarks>
+    /// The function matches the tokens <c>unitattr req HEAVY</c> / <c>unitattr ign HEAVY</c> (and the eleven siblings) and ORs
+    /// the bit into the required / ignored masks. It is the authority for this table: <c>Heavy = 0x4</c>, which is what
+    /// <c>devnotes.txt</c> recorded, and the rest follow from the same function.
+    /// </remarks>
+    public static IReadOnlyList<(string Name, int Bit)> AttributeTable { get; } = new[]
+    {
+        ("Light", 0x1),
+        ("Medium", 0x2),
+        ("Heavy", 0x4),
+        ("Arcane", 0x8),
+        ("Support", 0x10),
+        ("Beast", 0x20),
+        ("Male", 0x40),
+        ("Female", 0x80),
+        ("Nordagh", 0x100),
+        ("Imperia", 0x200),
+        ("Expanse", 0x400),
+        ("Steppes", 0x800),
+    };
+
+    /// <summary>The names of the bits set in an attribute mask.</summary>
+    public static IReadOnlyList<string> AttributeNamesFor(int mask) =>
+        AttributeTable.Where(entry => (mask & entry.Bit) != 0).Select(entry => entry.Name).ToArray();
+
+    /// <summary>The bit for an attribute name, or 0 when the name is unknown.</summary>
+    public static int AttributeBitFor(string name) =>
+        AttributeTable.FirstOrDefault(entry => string.Equals(entry.Name, name, StringComparison.OrdinalIgnoreCase)).Bit;
+
     /// <summary>Bits of slot 7 that the engine tests as attributes (<c>0x103f</c>).</summary>
     public const int AttributeBits = 0x103F;
 

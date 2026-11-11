@@ -74,6 +74,29 @@ public class EncounterUnitFieldsTests
     }
 
     [Fact]
+    public void AttributeTable_MatchesTheEngineBitAssignments()
+    {
+        // UnitConditionalLookUpAttr (0x800f1444) ORs these bits for the "unitattr req/ign" tokens.
+        Assert.Equal(0x4, EncounterUnitFields.AttributeBitFor("Heavy"));      // devnotes' "4 = heavy"
+        Assert.Equal(0x1, EncounterUnitFields.AttributeBitFor("Light"));
+        Assert.Equal(0x20, EncounterUnitFields.AttributeBitFor("Beast"));
+        Assert.Equal(0x80, EncounterUnitFields.AttributeBitFor("Female"));
+        Assert.Equal(0x800, EncounterUnitFields.AttributeBitFor("Steppes"));
+        Assert.Equal(0, EncounterUnitFields.AttributeBitFor("nonsense"));
+        Assert.Equal(12, EncounterUnitFields.AttributeTable.Count);
+        Assert.Equal(12, EncounterUnitFields.AttributeTable.Select(a => a.Bit).Distinct().Count());
+    }
+
+    [Fact]
+    public void AttributeNamesFor_DecodesAVanillaMask()
+    {
+        // 1056 = 0x420 = Beast|Expanse; 4224 = 0x1080 = Female plus 0x1000, which no attribute claims.
+        Assert.Equal(new[] { "Beast", "Expanse" }, EncounterUnitFields.AttributeNamesFor(1056));
+        Assert.Equal(new[] { "Female" }, EncounterUnitFields.AttributeNamesFor(4224));
+        Assert.Empty(EncounterUnitFields.AttributeNamesFor(0));
+    }
+
+    [Fact]
     public void SplitMask_SeparatesTheThreeGroupsTheEngineTests()
     {
         // FUN_8010ad40 reads one integer as three masks: 0x103f attributes, 0xf00 class tags, 0xc0 unclaimed bits.

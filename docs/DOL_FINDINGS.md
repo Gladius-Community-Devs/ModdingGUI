@@ -137,3 +137,28 @@ with nothing in the data to read. That was wrong: `data/config/world.tok` is the
 `WorldRegions` implements this (`Read`, `ForArena`, `ArenaSchools`, `RegionSchools`) with six tests against the corpus, and
 the `encounters` driver's `fields` action now returns `region`, `arena`, `resolvedSchools.homeTown`, `resolvedSchools.region`
 and a per-team `resolvedSchools` for teams that use either token.
+
+## Attribute bits, from the engine
+
+`UnitConditionalLookUpAttr` (`0x800f1444`) matches the tokens `unitattr req <NAME>` / `unitattr ign <NAME>` and ORs a bit
+into the required / ignored mask. It is the authority for the attribute bit numbers, and it confirms `devnotes.txt`'s
+"Heavy = 4":
+
+| Attribute | Bit | Attribute | Bit |
+|---|---|---|---|
+| Light | `0x1` | Beast | `0x20` |
+| Medium | `0x2` | Male | `0x40` |
+| **Heavy** | `0x4` | Female | `0x80` |
+| Arcane | `0x8` | Nordagh | `0x100` |
+| Support | `0x10` | Imperia | `0x200` |
+|  |  | Expanse | `0x400` |
+|  |  | Steppes | `0x800` |
+
+`EncounterUnitFields.AttributeTable` holds this, with `AttributeBitFor(name)` and `AttributeNamesFor(mask)`; three tests
+pin it, including that `1056 = Beast|Expanse` and that `4224 = Female` plus `0x1000`, for which **no attribute claims a
+name** - the requirement test masks `0x103f`, so `0x1000` is tested as an attribute bit but is not one of the twelve named
+tokens.
+
+The requirement test groups these differently from the attribute list: `0x103f` covers Light..Beast and `0x1000`; `0xc0`
+(Male|Female) is a separate presence test; `0xf00` (Nordagh|Imperia|Expanse|Steppes) is tested against the unit's class
+tags and inverted by the prohibit flag.
