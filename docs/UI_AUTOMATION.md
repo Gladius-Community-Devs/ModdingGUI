@@ -223,6 +223,8 @@ file/team/unit indices and raw rows, and validates rows with `EncounterUnit.TryP
 | `setTeamField` | `path`, `team`, `key`, `value` | `changed: true` |
 | `setUnits` | `path`, `team`, `units` (array of raw rows) | `count`; every row is validated first, so a bad row writes nothing |
 | `setUnit` | `path`, `team`, `index`, `raw` | `name` |
+| `fields` | `path` | all 21 unit fields (kind, bounds, choices, observed values) + dropdown contents: `enemySchools` (146), `classTags` (128), `startMarkers` (from the arena grid), `gladiators` (2,170, grouped by school), and each team's `school`/`unitsInSchool`/`unitNames` |
+| `setUnitFields` | `path`, `team`, `index`, `values` {key: value} | applies named values through `EncounterUnitEdit` (validated; a rejected value writes nothing) and returns the new raw row |
 | `validate` | `path` | `teams`, `units`, `problems` (`row-does-not-parse`) |
 
 `project` defaults to the project selected in the tree, so a scenario rarely needs to pass it.

@@ -762,3 +762,41 @@ left the file **byte-identical** (SHA-256 compared before/after) with a `.mod-hi
 
 One defect found by that test and fixed: the command lowercased the action name but compared camelCase literals, so every
 write action reported "unknown action" while the read actions worked.
+
+## 31. Encounters: enemy schools, and a typed UNITDB editor
+
+The owner supplied the key domain facts, and they check out against the corpus:
+
+- `data/units/schools.txt` is the **enemy school list** (`unitschools.idx`), indexed `N: Name`. Ten of twelve sampled
+  encounter `SCHOOL:` references match it exactly (`BelfortMilitary`, `Krakens`, `Riot Gyhrls`, `Poachers`, `Whirlwind`,
+  `Dynamic Statues`, `Story Characters`, `NoSchool`, `PropSchool`, `School of Suyhron`); `HOMETOWNSCHOOL` and
+  `REGIONSCHOOL` do **not** appear because they are runtime tokens resolved from the map's town/region, not table entries.
+- `data/school/*.tok` are developer leftovers (76 files, roster-shaped). They are not what an encounter references.
+- `data/config/enemyschools.tok` (412 lines) carries the same names with a display-text id and `CLOTH1` colour - that is
+  the tint/name table, useful for a school picker label.
+- `data/units/gladiators.txt` (21,701 lines, 2,170 gladiators) gives each unit's `Class`, `Affinity` and `School:` **index**,
+  which is the link between a gladiator and an enemy school.
+
+**Value domains, measured across all 6,702 vanilla `UNITDB` rows** (not guessed): slot 2 `0,20,45,49,50,51,52,70,75,98,99,
+100,1000`; slots 4-5 `-4..15`; slot 6 `0/1`; slot 7 masks `0,1,2,4,8,16,17,24,28,32,56,64,68,128,.` (26 distinct); slot 8
+`-1,1,2,3,4,5`; slots 13-16 `0/1`; slot 17 `0..3`; slot 18 always `0`; slot 19 `0..90` in fives; slots 20-21 `0/1`.
+
+**Built**: `ModdingGUI.Core.Api.EncounterUnitFields` - all 21 slots as fields with a kind (Text/Integer/Switch/Choice/
+ClassTag/Bitmask), bounds, description and the observed values - plus `EncounterChoices`, which produces the dropdown
+contents from the project: **146 enemy schools**, **128 class tags**, **2,170 gladiators grouped by school**, and the
+**start markers of the arena's own `.grd`** (`GRIDFILE` values are quoted and use `$d`/`$l` aliases, both resolved).
+
+`EncounterUnitEdit` applies a named value to a slot and validates it: choices must be in the list, numbers must parse and
+fit the range, switches must be 0/1, strings are written quoted in the file's own style. A rejected value writes nothing.
+
+Driver: `encounters` gained `fields` (the catalog + every dropdown, per team, with the school's unit count) and
+`setUnitFields` (named values -> one validated row).
+
+Verified on `demo_hero` `battle1.enc`: `fields` reports 21 fields, 146 schools, 128 class tags, 2,170 gladiators, start
+marker `Start1` from the arena grid, and `PropSchool` resolving to 24 gladiators. `setUnitFields` rejected
+`affinityRequirement: 9` (not in -1,1..5), applied `spawnChance 50 / startMarker Start2 / classTag3 Amazon`, and reverting
+the three left the file **byte-identical** (SHA-256).
+
+**Still unknown, and deliberately not invented**: the attribute bitmask (slot 7) has no name table in the data, and the
+affinity ids (slot 8) are known as values but not as names; slot 17 (0-3) is passed into unit creation with no known
+meaning, and slot 2's `1000` sentinel is unexplained. They are surfaced with their observed values and documented as open.

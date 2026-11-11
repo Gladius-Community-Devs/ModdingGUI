@@ -1,6 +1,7 @@
 namespace ModdingGUI
 {
     using System.Text.Json;
+    using ModdingGUI.Core;
     using ModdingGUI.Core.Api;
 
     /// <summary>
@@ -21,10 +22,11 @@ namespace ModdingGUI
     {
         private static readonly string[] EncounterActions =
         {
-            "list", "get", "setHeader", "setTeamField", "setUnits", "setUnit", "validate",
+            "list", "get", "fields", "setHeader", "setTeamField", "setUnits", "setUnit", "setUnitFields", "validate",
         };
 
         private readonly EncountersApi _encountersApi = new();
+        private readonly ClassDefsApi _classesApi = new();
 
         private string EncountersCommand(JsonElement request)
         {
@@ -90,6 +92,120 @@ namespace ModdingGUI
                                 }).ToArray(),
                             }).ToArray(),
                         });
+                    }
+
+                    case "fields":
+                    {
+                        // The dropdown contents for an encounter: enemy schools for a team, gladiators filtered to the
+                        // school, class tags, and the start markers of this arena's own grid.
+                        string path = RequirePath(request);
+                        EncounterDto? encounter = _encountersApi.Get(project, path);
+                        if (encounter is null) return UiFail($"no encounter at '{path}'");
+
+                        var choices = new EncounterChoices(_classesApi);
+                        IReadOnlyList<string> schools = choices.EnemySchools(project);
+                        IReadOnlyDictionary<int, IReadOnlyList<string>> bySchool = choices.GladiatorsBySchool(project, out IReadOnlyDictionary<string, GladiatorInfo> gladiators);
+                        IReadOnlyList<string> classTags = choices.ClassTags(project);
+
+                        // The arena grid the units spawn on: the team's own GRIDFILE, else the encounter's.
+                        // GRIDFILE values are quoted and use the game's path aliases: $d is the data root, $l the levels
+                        // root. Resolve both, and skip quietly when this arena's grid is not in the project.
+                        string? gridField = encounter.Teams.Select(t2 => t2.Value("GRIDFILE")).FirstOrDefault(v => !string.IsNullOrWhiteSpace(v))
+                                            ?? encounter.Value("GRIDFILE");
+                        IReadOnlyList<string> startMarkers = Array.Empty<string>();
+                        if (!string.IsNullOrWhiteSpace(gridField))
+                        {
+                            string relative = Unquote(gridField!)
+                                .Replace("$l\\", "data/levels/", StringComparison.OrdinalIgnoreCase)
+                                .Replace("$d\\", "data/", StringComparison.OrdinalIgnoreCase)
+                                .Replace('\\', '/');
+                            string candidate = Path.Combine(ProjectRoots.ResolveBecFolder(project), relative);
+                            if (File.Exists(candidate)) startMarkers = EncounterChoices.StartMarkers(candidate);
+                        }
+
+                        var teams = new List<object>();
+                        foreach (EncounterTeamDto team in encounter.Teams)
+                        {
+                            string? schoolName = Unquote(team.Value("SCHOOL"));
+                            int schoolIndex = -1;
+                            for (int i = 0; i < schools.Count && schoolName is not null; i++)
+                            {
+                                if (string.Equals(schools[i], schoolName, StringComparison.OrdinalIgnoreCase)) { schoolIndex = i; break; }
+                            }
+
+                            IReadOnlyList<string> unitNames = schoolIndex >= 0 && bySchool.TryGetValue(schoolIndex, out IReadOnlyList<string>? names)
+                                ? names
+                                : Array.Empty<string>();
+
+                            teams.Add(new { index = team.Index, school = schoolName, unitsInSchool = unitNames.Count, unitNames });
+                        }
+
+                        return UiOk(new
+                        {
+                            file = path,
+                            unitFields = EncounterUnitFields.All.Select(f => new
+                            {
+                                slot = f.Slot,
+                                key = f.Key,
+                                label = f.Label,
+                                kind = f.Kind.ToString(),
+                                description = f.Description,
+                                minimum = f.Minimum,
+                                maximum = f.Maximum,
+                                choices = f.Choices,
+                                observed = f.ObservedValues,
+                            }).ToArray(),
+                            choices = new
+                            {
+                                enemySchools = schools,
+                                classTags,
+                                startMarkers,
+                                gladiatorCount = gladiators.Count,
+                            },
+                            teams,
+                        });
+                    }
+
+                    case "setunitfields":
+                    {
+                        // Named values in, one valid UNITDB row out. Everything is checked before the write, so a rejected
+                        // value cannot leave the team partly edited.
+                        string path = RequirePath(request);
+                        int team = EncounterInt(request, "team") ?? throw new ArgumentException("team is required");
+                        int index = EncounterInt(request, "index") ?? throw new ArgumentException("index is required");
+
+                        EncounterDto? encounter = _encountersApi.Get(project, path);
+                        EncounterTeamDto? target = encounter?.Team(team);
+                        if (target is null) return UiFail($"no team {team} in '{path}'");
+                        if (index < 0 || index >= target.Units.Count) return UiFail($"team {team} has no unit {index} (0..{target.Units.Count - 1})");
+
+                        EncounterUnit? unit = EncounterUnit.TryParse(target.Units[index]);
+                        if (unit is null) return UiFail($"unit {index} of team {team} does not parse");
+
+                        var applied = new List<object>();
+                        if (request.TryGetProperty("values", out JsonElement values))
+                        {
+                            foreach (JsonProperty property in values.EnumerateObject())
+                            {
+                                EncounterUnitField? field = EncounterUnitFields.ForKey(property.Name);
+                                if (field is null) return UiFail($"unknown unit field '{property.Name}'");
+
+                                string text = property.Value.ValueKind == JsonValueKind.String
+                                    ? property.Value.GetString() ?? string.Empty
+                                    : property.Value.ToString();
+
+                                if (!EncounterUnitEdit.TryApply(unit, field.Slot, text, out EncounterUnit? edited, out string? error) || edited is null)
+                                {
+                                    return UiFail(error ?? $"'{text}' is not valid for {field.Key}");
+                                }
+
+                                unit = edited;
+                                applied.Add(new { field = field.Key, slot = field.Slot, value = text });
+                            }
+                        }
+
+                        _encountersApi.SetTeamUnit(project, path, team, index, unit);
+                        return UiOk(new { file = path, team, index, applied, raw = unit.RebuildRaw() });
                     }
 
                     case "setheader":
@@ -170,6 +286,14 @@ namespace ModdingGUI
             {
                 return UiFail(ex.Message);
             }
+        }
+
+        /// <summary>Field values come back exactly as written, i.e. quoted for string slots.</summary>
+        private static string? Unquote(string? value)
+        {
+            if (value is null) return null;
+            string trimmed = value.Trim();
+            return trimmed.Length >= 2 && trimmed[0] == '"' && trimmed[^1] == '"' ? trimmed[1..^1] : trimmed;
         }
 
         private static int? EncounterInt(JsonElement request, string property) =>
