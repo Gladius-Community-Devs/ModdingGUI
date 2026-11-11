@@ -22,7 +22,7 @@ namespace ModdingGUI
     {
         private static readonly string[] EncounterActions =
         {
-            "list", "get", "fields", "setHeader", "setTeamField", "setUnits", "setUnit", "setUnitFields", "validate",
+            "list", "get", "fields", "setHeader", "setTeamField", "addTeamField", "removeTeamField", "setUnits", "setUnit", "setUnitFields", "validate",
         };
 
         private readonly EncountersApi _encountersApi = new();
@@ -255,6 +255,25 @@ namespace ModdingGUI
                         string key = Require(request, "key");
                         string value = Require(request, "value");
                         _encountersApi.SetTeamField(project, path, team, key, value);
+                        return UiOk(new { file = path, team, key, value, changed = true });
+                    }
+
+                    case "removeteamfield":
+                    {
+                        string path = RequirePath(request);
+                        int team = EncounterInt(request, "team") ?? throw new ArgumentException("team is required");
+                        string key = Require(request, "key");
+                        _encountersApi.RemoveTeamField(project, path, team, key);
+                        return UiOk(new { file = path, team, key, removed = true });
+                    }
+
+                    case "addteamfield":
+                    {
+                        string path = RequirePath(request);
+                        int team = EncounterInt(request, "team") ?? throw new ArgumentException("team is required");
+                        string key = Require(request, "key");
+                        string value = Require(request, "value");
+                        _encountersApi.AddTeamField(project, path, team, key, value);
                         return UiOk(new { file = path, team, key, value, changed = true });
                     }
 

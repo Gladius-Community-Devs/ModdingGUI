@@ -39,6 +39,9 @@ public interface IEncountersApi
     /// <summary>Replace a team section's field value (e.g. its <c>GRIDFILE</c> or <c>SCHOOL</c>).</summary>
     void SetTeamField(string projectPath, string relativePath, int teamIndex, string key, string rawValue);
 
+    /// <summary>Add a field line to a team block (e.g. a <c>SCHOOL</c> the team did not have).</summary>
+    void AddTeamField(string projectPath, string relativePath, int teamIndex, string key, string rawValue);
+
     /// <summary>Remove every line for a key from a team section.</summary>
     void RemoveTeamField(string projectPath, string relativePath, int teamIndex, string key);
 

@@ -220,7 +220,9 @@ file/team/unit indices and raw rows, and validates rows with `EncounterUnit.TryP
 | `list` | optional `filter`, optional `project` | `total`, `count`, `files` (relative paths) |
 | `get` | `path` | header `fields`, `teams` with their fields and `units` (raw + parsed name/chance/startSlot/class/subType) |
 | `setHeader` | `path`, `key`, `value` | `changed: true` |
-| `setTeamField` | `path`, `team`, `key`, `value` | `changed: true` |
+| `setTeamField` | `path`, `team`, `key`, `value` | `changed: true` (the field must already exist) |
+| `addTeamField` | `path`, `team`, `key`, `value` | adds the field when the team has none, else sets it |
+| `removeTeamField` | `path`, `team`, `key` | removes a team field |
 | `setUnits` | `path`, `team`, `units` (array of raw rows) | `count`; every row is validated first, so a bad row writes nothing |
 | `setUnit` | `path`, `team`, `index`, `raw` | `name` |
 | `fields` | `path` | all 21 unit fields (kind, bounds, choices, observed values) + dropdown contents: `enemySchools` (146), `classTags` (128), `startMarkers` (from the arena grid), `gladiators` (2,170, grouped by school), and each team's `school`/`unitsInSchool`/`unitNames` |

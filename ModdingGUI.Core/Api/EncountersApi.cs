@@ -199,6 +199,37 @@ public sealed class EncountersApi : IEncountersApi
     }
 
     /// <inheritdoc />
+    public void AddTeamField(string projectPath, string relativePath, int teamIndex, string key, string rawValue)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(rawValue);
+
+        Edit(projectPath, relativePath, (lines, trailing) =>
+        {
+            var team = RequireTeam(lines, teamIndex);
+            var matches = KeyLinesIn(lines, team.Start + 1, team.End, key, excluded: "UNITDB");
+            if (matches.Count > 0)
+            {
+                ReplaceValue(lines, matches[0], rawValue);
+                for (int i = matches.Count - 1; i >= 1; i--) lines.RemoveAt(matches[i]);
+                return true;
+            }
+
+            // Insert after the team's GRIDFILE when it has one, otherwise directly under the TEAM line: that is where the
+            // engine expects a team's own fields, and it keeps the block readable.
+            int insertAt = team.Start + 1;
+            for (int i = team.Start + 1; i < team.End; i++)
+            {
+                if (lines[i].TrimStart().StartsWith("GRIDFILE", StringComparison.OrdinalIgnoreCase)) insertAt = i + 1;
+            }
+
+            // Corpus style: team fields start at column 0 ("GRIDFILE:", "SCHOOL:"), with a tab after the colon.
+            lines.Insert(insertAt, $"{key}: \t{rawValue}");
+            return true;
+        });
+    }
+
+    /// <inheritdoc />
     public void RemoveTeamField(string projectPath, string relativePath, int teamIndex, string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
