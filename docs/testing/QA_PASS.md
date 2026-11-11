@@ -681,3 +681,38 @@ table in the original `GridBuilderView` (ten arenas) plus a human saying "that i
   `hasSavedPlacement: true` and rotation still 5, and `remember:false` emptied it. 8 store tests cover round-trip,
   case-insensitive keys, corruption, precedence-independent removal and the hand-readability of the file.
 - Precedence on load: saved placement -> built-in table -> fit-to-board.
+
+## 28. What the original map implementation did (and why a flip was impossible)
+
+`_release414/src/GridBuilder/GridPanel.cs` lines 58-90 are the whole of it, reproduced here because "look at the old code"
+is the right instinct:
+
+```csharp
+Image? originalMapImage = _ctx.CurrentMapArenaImage;
+Point offset = _ctx.MapDisplayOffset;
+float scale  = _ctx.MapDisplayScale;
+RotateFlipType rotation = _ctx.MapDisplayRotation;
+
+imageToProcess = new Bitmap(originalMapImage.Width, originalMapImage.Height, Format32bppArgb);
+tempGraphics.DrawImage(originalMapImage, 0, 0, w, h);      // copy, so the source is not modified
+if (rotation != RotateFlipType.RotateNoneFlipNone)
+    imageToProcess.RotateFlip(rotation);
+g.DrawImage(imageToProcess, new RectangleF(offset.X, offset.Y, w * scale, h * scale));
+```
+
+So the original applied **offset + scale + RotateFlipType**, driven by a seven-item toolbar (X, Y, Scale, Rot) whose
+rotation list was **`None / 90 / 180 / 270` only**, plus a ten-entry `_mapDefaultTransforms` table. Consequences:
+
+- **A flip was not expressible.** `RotateFlipType` supports all eight orientations, but the UI only offered the four
+  rotations, so a page whose art is mirrored could not be corrected in the old app either - only approximated with 180.
+- **No global transform.** Five tuned arenas use 180 and five use None, which a single global rotation or flip cannot
+  reproduce; and the 2015 reference PNGs in the shared `maps` folder are in the *same* orientation as the current decode
+  (mean difference 0.73/255, no mirroring), so the assets were never pre-flipped either. The difference between arenas is
+  a property of the art per arena, not of the pipeline.
+- `arenasuren` is simply absent from that table, so the old app showed it at scale 1 with no rotation too.
+
+**Therefore:** the complete fix is to offer all eight orientations, which the rotation list now does -
+`None, 90, 180, 270, Flip H, Flip V, 90 + Flip H, 270 + Flip H` (indices 0-3 unchanged so the hand-tuned values still
+mean what they meant), and to let any placement be remembered per arena (section 27). `qa-suren-orientations.png` renders
+one arena's page under all eight, labelled with the index, so the right one can be identified by looking rather than
+described.

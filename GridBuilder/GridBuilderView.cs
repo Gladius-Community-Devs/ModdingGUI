@@ -286,7 +286,15 @@ namespace ModdingGUI
             _mapRotationBox.DropDownStyle = ComboBoxStyle.DropDownList;
             // The first four indices are the original list; the flips are additions. A page whose art is mirrored cannot be
             // aligned by rotation alone, which matters when one disagrees with its grid.
-            _mapRotationBox.Items.AddRange(new object[] { "None", "90°", "180°", "270°", "Flip H", "Flip V" });
+            // All eight orientations of the square: the original four rotations, then the four mirrored ones. Indices 0-3
+            // keep their original meaning so every hand-tuned table value still means what it did; the rest are additions.
+            // A page whose art is mirrored cannot be aligned by rotation alone, which is what happens when one disagrees
+            // with its grid.
+            _mapRotationBox.Items.AddRange(new object[]
+            {
+                "None", "90°", "180°", "270°",
+                "Flip H", "Flip V", "90° + Flip H", "270° + Flip H",
+            });
             _mapRotationBox.SelectedIndex = 0;
             _mapRotationBox.Width = 90;
             _mapRotationBox.Font = UiTheme.Body;
@@ -515,6 +523,8 @@ namespace ModdingGUI
                 3 => RotateFlipType.Rotate270FlipNone,
                 4 => RotateFlipType.RotateNoneFlipX,
                 5 => RotateFlipType.RotateNoneFlipY,
+                6 => RotateFlipType.Rotate90FlipX,
+                7 => RotateFlipType.Rotate270FlipX,
                 _ => RotateFlipType.RotateNoneFlipNone,
             };
             _panel.Invalidate();
