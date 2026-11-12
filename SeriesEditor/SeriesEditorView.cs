@@ -78,11 +78,11 @@ public sealed class SeriesEditorView : UserControl
     /// <summary>The <c>TYPE</c> values the corpus uses, with the behaviour each is believed to have.</summary>
     public static IReadOnlyList<(string Value, string Label)> StageTypes { get; } = new[]
     {
-        ("Series", "Series - believed to keep health between stages (unproven)"),
-        ("Endurance", "Endurance - waves of battles, believed to keep health (unproven)"),
-        ("Staged", "Staged - believed to start each stage fresh (unproven)"),
-        ("Open", "Open - a single bout (not a run)"),
-        ("Circus", "Circus - special bout with props"),
+        ("Series", "Series - returns to squad selection after each win; you cannot leave until the run is done"),
+        ("Endurance", "Endurance - the only TYPE the engine special-cases (sets flag 0x10); carry-over candidate"),
+        ("Staged", "Staged - engine default, like Series: squad selection after each win, team not carried"),
+        ("Open", "Open - a single bout, not a run"),
+        ("Circus", "Circus - special bout with props on the field"),
     };
 
     public SeriesEditorView()

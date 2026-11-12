@@ -199,3 +199,24 @@ you to squad selection" is the *absence* of this flag rather than a positive val
 In game terms, and matching what the owner observed: `TYPE "Series"` (Agony of Saturno in the Pirgos Series League) returns to
 the squad screen after every battle and resets the team; `TYPE "Endurance"` is the carry-over family. The editor labels them
 that way and no longer claims the other values are proven either way.
+
+### What `Series` does, from play
+
+The owner verified in game that an Agony of Saturno run (`Pirgos Series League`, all `TYPE "Series"`, and reachable as Valens -
+the same display name belongs to a second, Ursula-only `Endurance League` in the same arena) behaves like this:
+
+- you cannot leave the run until every battle is beaten;
+- each win drops you straight into the **squad selection** screen, so the team is fully reset and can be swapped;
+- no health, affinity or status carries between its battles.
+
+So `Series` is **not** the carry-over type, which leaves `Endurance` - the only value `EncounterSetup` special-cases - as the
+sole candidate. Vanilla has plenty of them, and at least one is reachable as Valens: `PackValens` in `fjordfallen_leagues.tok`
+(4 stages, all `Endurance`), plus `Summoners Endurance` (Palace Ibliis) and `Insect Ze` (Scorched Oasis). Those are the runs to
+compare against if a mixed test is inconclusive.
+
+The lock-in behaviour is separate from the `TYPE` flag: the flag is a session bit set when an endurance encounter loads, while
+being unable to leave a run is league progression.
+
+Experiment in `demo_hero` (ISO `series_test.iso`, md5 `f2a0f98f85551b85780c374c739e91bd`): Agony of Saturno keeps stages 1 and 4
+as `Series` and flips stages 2 and 3 to `Endurance`, so the transition after battle 2 can be compared against the known
+behaviour of battle 1.
