@@ -252,3 +252,27 @@ So `TYPE "Endurance"` is what carries a team between battles - health and affini
 
 Also established while testing: a run must not mix types (a Series run with two stages flipped to Endurance aborted to the
 League Office after the first battle), and a run always starts at its first battle.
+
+## A brand-new league works; its card art does not, and that is a tooling bug
+
+The owner played the cloned league (`LEAGUE "EnduranceTrial", 8221`) in the rebuilt ISO: it **appeared in the arena's league
+list** and **played exactly like its source** (auto-continue, wounded units, affinities kept). So leagues are enumerated from
+`data/towns/leagues/<arena>_leagues.tok` at runtime - a modded league does not need to exist anywhere else.
+
+Its card was blank. The engine's rule, from `LoadFixedData` (`0x8013e6f0`):
+
+```c
+sprintf(path, "$$t\\gui\\leagues\\%s.tga", key);          /* 0x802d5ba0 */
+if (!FileExists(path)) sprintf(path, "$$t\\gui\\leagues\\league_default.tga");   /* 0x802d5bb8 */
+```
+
+and the 150 files in `data/texture/gui/leagues/` name themselves after the league: `apprentice open league.tga`,
+`brute endurance league.tga`, `pirgos series league.tga` - the league's internal name, lower-cased, extension `.tga`. So a
+custom card is possible in principle by adding `data/texture/gui/leagues/<league name>.tga`; `leagueowner_<arena>.tga` in
+`data/texture/classes/large/` is the arena portrait, keyed the same way.
+
+**It cannot be tested yet.** A copy placed at `data/texture/gui/leagues/endurancetrial.tga` is picked up by the packer - it
+appears in `repack-filelist.txt` (151 league-art entries instead of 150) - but the rebuilt archive does not contain it: after
+`iso unpack` + `bec unpack` of the new ISO the folder still holds the vanilla 150 files. The manifest and the payload disagree,
+so at the moment **no new file can be added to the BEC at all**, which also blocks the "does the engine accept a newly made
+`.enc`?" question. That is the next toolchain bug to fix, not a game behaviour.
