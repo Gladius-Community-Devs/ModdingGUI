@@ -23,6 +23,7 @@ import os
 import sys
 
 from tools_v009 import bec, idx, tok, strings, iso, maps
+from tools_v009.dogcc import dogcompile
 
 DEFAULT_LANGS = ["eng"]
 
@@ -92,6 +93,21 @@ def cmd_iso_unpack(args):
 
 def cmd_iso_pack(args):
     print(iso.pack_iso(args.input, args.output, args.fst, args.filelist))
+
+
+def cmd_scbc(args):
+    """Compile one .scp script into a .scb, the way the DOG compiler is invoked."""
+    import os as _os
+
+    # cp1252: the corpus is not UTF-8 (curly apostrophes appear in comments and strings), and decoding as latin-1 changes
+    # what the compiler stores for any character above 0x7f.
+    text = open(args.input, "rb").read().decode("cp1252")
+    data = dogcompile.compile_source(text, src=_os.path.basename(args.input))
+    _os.makedirs(_os.path.dirname(_os.path.abspath(args.output)) or ".", exist_ok=True)
+    with open(args.output, "wb") as fh:
+        fh.write(data)
+    print("%s -> %s (%d bytes)" % (args.input, args.output, len(data)))
+    return 0
 
 
 def cmd_maps(args):
@@ -182,6 +198,11 @@ def build_parser():
     p_p.add_argument("filelist")
     p_p.add_argument("output")
     p_p.set_defaults(func=cmd_iso_pack)
+
+    p = sub.add_parser("scbc", help="compile a .scp script into a .scb (DOG bytecode)")
+    p.add_argument("input", help="source .scp")
+    p.add_argument("output", help="output .scb")
+    p.set_defaults(func=cmd_scbc)
 
     p = sub.add_parser("maps", help="convert PTTP texture pages (data/texture) to PNG")
     maps_sub = p.add_subparsers(dest="maps_command", required=True)

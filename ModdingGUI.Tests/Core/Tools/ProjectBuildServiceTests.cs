@@ -31,7 +31,7 @@ public sealed class ProjectBuildServiceTests
 
             var log = AppLog.CreateForRun();
             var result = new ProjectBuildService(log)
-                .CompileScripts(new BuildOptions(project, Path.Combine(project, "tools")), new[] { "a.scp" });
+                .CompileScripts(new BuildOptions(project, Path.Combine(project, "tools"), "python", Toolchain.PythonScripts(Path.Combine(project, "tools"))), new[] { "a.scp" });
 
             Assert.False(result.Succeeded);
             Assert.Contains(log.Tail(500), e => e.Message.Contains("DOGCodeCompiler", StringComparison.OrdinalIgnoreCase));
@@ -49,7 +49,7 @@ public sealed class ProjectBuildServiceTests
         try
         {
             var result = new ProjectBuildService()
-                .CompileScripts(new BuildOptions(project, project), Array.Empty<string>());
+                .CompileScripts(new BuildOptions(project, project, "python", Toolchain.PythonScripts(project)), Array.Empty<string>());
 
             Assert.True(result.Succeeded);
             Assert.Empty(result.Steps);
@@ -67,7 +67,7 @@ public sealed class ProjectBuildServiceTests
         string tools = Path.Combine(Path.GetTempPath(), "tools");
 
         var steps = ProjectBuildService.BuildCompileSteps(
-            new BuildOptions(project, tools), new[] { "one.scp", "two.scp" });
+            new BuildOptions(project, tools, "python", Toolchain.PythonScripts(tools)), new[] { "one.scp", "two.scp" });
 
         Assert.Equal(2, steps.Count);
         Assert.All(steps, step =>
@@ -91,7 +91,7 @@ public sealed class ProjectBuildServiceTests
         string tools = Path.Combine(Path.GetTempPath(), "tools");
 
         string batch = ProjectBuildService.BuildCompileBatch(
-            new BuildOptions(project, tools), new[] { "one.scp", "two.scp" });
+            new BuildOptions(project, tools, "python", Toolchain.PythonScripts(tools)), new[] { "one.scp", "two.scp" });
 
         Assert.StartsWith("@echo off", batch);
         Assert.Contains("DOGCodeCompiler.exe", batch);
@@ -108,7 +108,7 @@ public sealed class ProjectBuildServiceTests
             Directory.CreateDirectory(Path.Combine(project, "proj_BEC", "data", "script"));
 
             BuildStepResult step = new ProjectBuildService()
-                .CompileScript(new BuildOptions(project, Path.Combine(project, "tools")), "a.scp");
+                .CompileScript(new BuildOptions(project, Path.Combine(project, "tools"), "python", Toolchain.PythonScripts(Path.Combine(project, "tools"))), "a.scp");
 
             Assert.False(step.Succeeded);
         }
@@ -132,7 +132,7 @@ public sealed class ProjectBuildServiceTests
             Assert.Contains(steps, step => step.Arguments.Contains("-pack"));
 
             BuildResult result = new ProjectBuildService(scope: "test")
-                .Pack(new BuildOptions(project, Path.Combine(project, "tools")));
+                .Pack(new BuildOptions(project, Path.Combine(project, "tools"), "python", Toolchain.PythonScripts(Path.Combine(project, "tools"))));
 
             // No toolbelt in the temp folder, so the chain cannot succeed; the assertion is that it ran and
             // reported a failure instead of throwing.

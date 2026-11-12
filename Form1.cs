@@ -56,8 +56,9 @@ namespace ModdingGUI
 
             if (!IsPythonInstalled())
             {
-                AppendLog("Python was not found. Unpack, pack, map PNGs and randomization all work; only campaign " +
-                    "script compiling still needs the Python toolbelt.", WarningColor);
+                AppendLog("Python was not found. That is fine: with the bundled toolchain every feature works - " +
+                    "unpack, pack, map PNGs, script compiling and randomization. Python is only needed for the " +
+                    "legacy tools/*.py chain.", WarningColor);
             }
             _gridBuilderView = new GridBuilderView { Log = _log };
             tabGridBuilder.Controls.Add(_gridBuilderView);
@@ -942,7 +943,7 @@ namespace ModdingGUI
                     if (result.Randomize.ModifiedScripts.Count > 0)
                     {
                         var build = new BuildOptions(
-                            projectFolder, Path.Combine(GetAppDirectory(), "tools"), "python");
+                            projectFolder, Path.Combine(GetAppDirectory(), "tools"), PythonCommand, Toolchain);
                         var compiled = await Task.Run(() => new ProjectBuildService(log)
                             .CompileScripts(build, result.Randomize.ModifiedScripts));
 

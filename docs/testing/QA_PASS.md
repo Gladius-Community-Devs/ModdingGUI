@@ -969,3 +969,63 @@ and the bundled unpack chain calls it after `idx unpack`.
   written. It is now unconditional - the converter reports "no textures" and exits 0 when there is nothing to do.
 - App unpack is now py-free end to end: `iso unpack`, `bec unpack`, `idx unpack`, `maps png` all run in the exe. Only
   campaign script compiling still uses the Python toolbelt, and the startup log says so only when Python is missing.
+
+## 36. Script compiler: ours is byte-identical to the DOG compiler, and it ships in the exe
+
+`tools_v009/tools_v009/dogcc/` is the reimplementation moved into the repo (dogcompile, doglexer, dogopcodes, dogwriter,
+dogdis, scb_model), exposed as `tools_v009.exe scbc <in.scp> <out.scb>`, and `ProjectBuildService` now runs it. The
+proprietary `DOGCodeCompiler.exe` is no longer required: if a user happens to have one in `tools/` it is used (their copy,
+never bundled), otherwise the bundled exe compiles the script.
+
+### The gate
+
+`scripts/check-script-compiler.py --oracle <DOGCodeCompiler.exe>` compiles all 694 vanilla `.scp` files with both and
+requires byte identity:
+
+```
+identical : 694
+different : 0
+errors    : 0
+GATE PASSED
+```
+
+That run used the exe the app ships (`bin/.../tools/v009/tools_v009.exe`), so the bundle is validated, not just the source.
+
+### What the first measurement got wrong, and what it taught
+
+Measuring against the `.scb` files the game ships said "534 of 694 exact". That was the wrong reference: the DOG compiler
+**itself** only reproduces 584 of those files. The shipped `.scb` came from a different (retail) compiler build, so
+"match the shipped bytes" was unreachable by design. Against the tool users actually have, ours was already at 688/694.
+
+The six remaining differences were one bug: `compile_source` filtered the script's own name out of the `ELIF` module list,
+while the DOG compiler records `f@own_script` references. Six vanilla scripts call themselves, so they lost (or shrank) the
+chunk. With that fixed, 694/694.
+
+**Retail `print` stripping is a dead end worth recording.** Shipped `.scb` contain `PUSHINT 0xDEADBEEF; DISCARD` where the
+`.scp` has `print(...)`, which looks like a simple rule. It is not: the DOG compiler we have emits a real call, and
+implementing the sentinel (with and without the `DISCARD`, with the literal kept out of the pool) never reached the shipped
+bytes - the retail build differs in pool contents too. The experiment was removed rather than shipped half-working;
+matching the DOG compiler is the supported target.
+
+## 37. Scripting API reference page
+
+`scripts/build-script-api.py` mines the API out of the vanilla scripts and writes `docs/api/catalog.json` plus a
+self-contained `docs/api/index.html` (no CDN, no server: open the file).
+
+From the 694 scripts it recovers **14 interfaces, 174 interface methods/properties, 215 methods on unknown receivers, 407
+global functions and 63 constant-like identifiers**, and scans `bootfile.dol` once for its 19,495 printable literals so each
+name can be marked "also present in the DOL".
+
+How it is derived, and what it deliberately does not claim:
+
+- interfaces: `shared x = InterfaceBattle()` binds `x`, so `x.Method(...)` is one of its methods (argument counts are
+  observed, never declared - the language has no signatures)
+- methods on unknown receivers are listed separately, because knowing that `gb.GetUnitByName(...)` returns a unit needs data
+  flow; the name and arity are still what the engine sees
+- constants are all-caps identifiers; the corpus does not say whether any given one is a constant or an enum value
+- casing is merged (`InterfaceBattle` vs `interfacebattle` appear in the corpus) by taking the dominant spelling
+
+Example: `InterfaceBattleTactics` comes out with 10 methods (`AddUnitPriority`, `AddUnitPriorityDefault`,
+`AddUnitPriorityInteraction`, `AddUnitPriorityTargets`, `RemoveUnitPriority`, `RemoveUnitPriorityDefault`, `RemoveUnitPriorityInteraction`,
+`RemoveUnitPriorityTargets`, .), arities, call counts, DOL confirmation, and the 55 scripts that use them - the object the
+owner specifically asked about.

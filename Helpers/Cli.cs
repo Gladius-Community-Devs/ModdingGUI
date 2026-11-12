@@ -320,7 +320,7 @@ public sealed class CliInvocation
 
             var runner = new RandomizerRunner(log: log);
             BuildOptions? build = PackAfterRandomize
-                ? new BuildOptions(projectPath, tools, python)
+                ? new BuildOptions(projectPath, tools, python, Toolchain.Choose(AppContext.BaseDirectory, tools, python))
                 : null;
 
             var result = runner.Run(projectPath, RandomizerOptions!, build);

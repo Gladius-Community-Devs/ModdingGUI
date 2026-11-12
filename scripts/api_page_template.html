@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gladius scripting API</title>
+<style>
+  :root {
+    --bg:#12141a; --panel:#181b23; --panel2:#1f232d; --line:#2a2f3b; --text:#dfe3ec; --dim:#8d95a8;
+    --accent:#6ea8fe; --accent2:#8de2b0; --warn:#f0b46a; --badge:#2b3342;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; }
+  body { background:var(--bg); color:var(--text); font:14px/1.5 "Segoe UI",system-ui,sans-serif; display:flex; flex-direction:column; }
+  header { padding:14px 18px; border-bottom:1px solid var(--line); background:var(--panel); }
+  header h1 { margin:0 0 2px; font-size:17px; font-weight:600; }
+  header .sub { color:var(--dim); font-size:12.5px; }
+  .controls { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; align-items:center; }
+  input[type=search] { flex:1 1 260px; min-width:200px; padding:7px 10px; border-radius:6px; border:1px solid var(--line);
+    background:var(--panel2); color:var(--text); outline:none; }
+  input[type=search]:focus { border-color:var(--accent); }
+  .chip { padding:5px 10px; border-radius:999px; border:1px solid var(--line); background:var(--panel2);
+    color:var(--dim); cursor:pointer; font-size:12.5px; user-select:none; }
+  .chip.on { color:var(--text); border-color:var(--accent); background:#1d2634; }
+  main { flex:1; display:flex; min-height:0; }
+  nav { width:320px; min-width:220px; border-right:1px solid var(--line); overflow:auto; background:var(--panel);
+    padding:8px 6px 40px; }
+  section.group { margin:6px 0 14px; }
+  section.group > h2 { font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim);
+    margin:6px 10px; font-weight:600; }
+  a.item { display:block; padding:4px 10px; color:var(--text); text-decoration:none; border-radius:5px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; }
+  a.item:hover { background:var(--panel2); }
+  a.item.sel { background:#243047; }
+  a.item .m { color:var(--dim); font-size:11.5px; margin-left:6px; }
+  a.item.child { padding-left:26px; font-size:12.5px; color:#c3cad8; }
+  article { flex:1; overflow:auto; padding:22px 26px 60px; }
+  .title { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .title h2 { margin:0; font-size:22px; font-weight:600; }
+  .sig { font-family:Consolas,ui-monospace,monospace; font-size:14.5px; color:var(--accent2);
+    background:var(--panel2); border:1px solid var(--line); padding:10px 12px; border-radius:7px; margin:14px 0; overflow-x:auto; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px; }
+  .badge { font-size:11.5px; padding:3px 8px; border-radius:999px; background:var(--badge); color:var(--dim);
+    border:1px solid var(--line); }
+  .badge.ok { color:#9fe3bd; border-color:#2f5c45; }
+  .badge.warn { color:var(--warn); border-color:#5c4a2f; }
+  table { border-collapse:collapse; margin:10px 0 18px; font-size:13px; width:100%; max-width:760px; }
+  th,td { text-align:left; padding:6px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--dim); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+  td code, .mono { font-family:Consolas,ui-monospace,monospace; }
+  .ex { border:1px solid var(--line); border-radius:7px; background:var(--panel); margin:8px 0; overflow:hidden; }
+  .ex .where { font-size:11.5px; color:var(--dim); padding:5px 10px; border-bottom:1px solid var(--line);
+    background:var(--panel2); }
+  .ex pre { margin:0; padding:10px; overflow-x:auto; font-family:Consolas,ui-monospace,monospace; font-size:12.5px;
+    color:#cfd6e4; }
+  .empty { color:var(--dim); }
+  .note { color:var(--dim); font-size:12.5px; max-width:760px; }
+  h3 { margin:24px 0 4px; font-size:15px; }
+  .hint { color:var(--dim); font-size:12px; margin-top:8px; }
+  kbd { background:var(--panel2); border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:11px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Gladius scripting API</h1>
+  <div class="sub" id="sub">loading…</div>
+  <div class="controls">
+    <input id="q" type="search" placeholder="Search methods, interfaces, globals, constants…  ( / to focus )" autocomplete="off">
+    <span class="chip on" data-kind="all">All</span>
+    <span class="chip" data-kind="interface">Interfaces</span>
+    <span class="chip" data-kind="method">Methods</span>
+    <span class="chip" data-kind="global">Globals</span>
+    <span class="chip" data-kind="constant">Constants</span>
+  </div>
+</header>
+<main>
+  <nav id="nav"></nav>
+  <article id="doc"><p class="empty">Pick something on the left, or press <kbd>/</kbd> and type.</p></article>
+</main>
+<script>
+const CATALOG = /*CATALOG*/null;
+
+const nav = document.getElementById('nav');
+const doc = document.getElementById('doc');
+const sub = document.getElementById('sub');
+const q = document.getElementById('q');
+let kindFilter = 'all';
+let selectedKey = null;
+
+/* ---------- index ---------- */
+const entries = [];          // {key, kind, name, label, parent, ref}
+const byKey = new Map();
+
+function addEntry(entry) { entries.push(entry); byKey.set(entry.key, entry); }
+
+for (const iface of CATALOG.interfaces) {
+  addEntry({ key: 'i:' + iface.name, kind: 'interface', name: iface.name, label: iface.name, ref: iface, parent: null });
+  for (const m of iface.methods) {
+    addEntry({ key: 'm:' + iface.name + '.' + m.name, kind: 'method', name: iface.name + '.' + m.name,
+               label: m.name, ref: m, parent: iface.name });
+  }
+  for (const p of iface.properties) {
+    addEntry({ key: 'p:' + iface.name + '.' + p.name, kind: 'method', name: iface.name + '.' + p.name,
+               label: p.name, ref: p, parent: iface.name, isProperty: true });
+  }
+}
+for (const m of CATALOG.untypedMethods) {
+  addEntry({ key: 'u:' + m.name, kind: 'method', name: m.name, label: m.name, ref: m, parent: null, untyped: true });
+}
+for (const g of CATALOG.globals) {
+  addEntry({ key: 'g:' + g.name, kind: 'global', name: g.name, label: g.name, ref: g, parent: null });
+}
+for (const c of CATALOG.constants) {
+  addEntry({ key: 'c:' + c.name, kind: 'constant', name: c.name, label: c.name, ref: c, parent: null });
+}
+
+const methodTotal = entries.filter(e => e.kind === 'method').length;
+sub.textContent = `${CATALOG.scripts} vanilla scripts · ${CATALOG.interfaces.length} interfaces · `
+  + `${methodTotal} methods/properties · ${CATALOG.globals.length} globals · ${CATALOG.constants.length} constants · `
+  + `${CATALOG.dolStrings.toLocaleString()} DOL string literals scanned`;
+
+/* ---------- sidebar ---------- */
+function matchesFilter(entry) {
+  if (kindFilter === 'all') return true;
+  if (kindFilter === 'interface') return entry.kind === 'interface';
+  if (kindFilter === 'method') return entry.kind === 'method';
+  if (kindFilter === 'global') return entry.kind === 'global';
+  if (kindFilter === 'constant') return entry.kind === 'constant';
+  return true;
+}
+
+function renderNav() {
+  const term = q.value.trim().toLowerCase();
+  nav.innerHTML = '';
+
+  const visible = entries.filter(e => matchesFilter(e) && (!term || e.name.toLowerCase().includes(term)
+      || (e.parent && e.parent.toLowerCase().includes(term))));
+
+  const groups = [
+    ['Interfaces', visible.filter(e => e.kind === 'interface')],
+    ['Methods and properties', visible.filter(e => e.kind === 'method' && !e.untyped)],
+    ['Methods on unknown objects', visible.filter(e => e.kind === 'method' && e.untyped)],
+    ['Global functions', visible.filter(e => e.kind === 'global')],
+    ['Constants', visible.filter(e => e.kind === 'constant')],
+  ];
+
+  for (const [title, list] of groups) {
+    if (!list.length) continue;
+    const section = document.createElement('section');
+    section.className = 'group';
+    const h = document.createElement('h2');
+    h.textContent = `${title} (${list.length})`;
+    section.appendChild(h);
+
+    // keep interfaces with their children together when nothing is filtered
+    for (const entry of list.slice(0, 800)) {
+      const a = document.createElement('a');
+      a.className = 'item' + (entry.parent ? ' child' : '') + (entry.key === selectedKey ? ' sel' : '');
+      a.href = '#' + entry.key;
+      a.title = entry.name;
+      a.textContent = entry.label;
+      if (entry.kind === 'interface') {
+        const span = document.createElement('span');
+        span.className = 'm';
+        span.textContent = `${entry.ref.methods.length}`;
+        a.appendChild(span);
+      }
+      if (entry.ref.inDol) {
+        const span = document.createElement('span');
+        span.className = 'm';
+        span.textContent = '· dol';
+        a.appendChild(span);
+      }
+      section.appendChild(a);
+    }
+    nav.appendChild(section);
+  }
+
+  if (!visible.length) nav.innerHTML = '<p class="empty" style="padding:12px">nothing matches</p>';
+}
+
+/* ---------- detail ---------- */
+function esc(text) {
+  return String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function arityNotes(arities) {
+  const parts = Object.entries(arities || {});
+  if (!parts.length) return '<span class="empty">no calls recorded</span>';
+  return parts.map(([n, count]) => `<span class="badge">${n} arg${n === '1' ? '' : 's'} × ${count}</span>`).join(' ');
+}
+
+function aritySig(name, arities) {
+  const keys = Object.keys(arities || {});
+  if (!keys.length) return `${name}(…)`;
+  const n = Math.max(...keys.map(Number));
+  return `${name}(${Array.from({ length: n }, (_, i) => 'a' + (i + 1)).join(', ')})`;
+}
+
+function examples(list) {
+  if (!list || !list.length) return '<p class="note">No call sites recorded.</p>';
+  return list.map(e => `<div class="ex"><div class="where">${esc(e.file)}:${e.line}</div>
+    <pre>${esc(e.code)}</pre></div>`).join('');
+}
+
+function filesTable(files) {
+  if (!files || !files.length) return '';
+  const shown = files.slice(0, 12).join(', ') + (files.length > 12 ? `, +${files.length - 12} more` : '');
+  return `<p class="note">Seen in ${files.length} script${files.length === 1 ? '' : 's'}: ${esc(shown)}</p>`;
+}
+
+function renderInterface(iface) {
+  const rows = iface.methods.map(m => `<tr>
+      <td><a href="#m:${esc(iface.name)}.${esc(m.name)}"><code>${esc(m.name)}</code></a></td>
+      <td>${arityNotes(m.arities)}</td>
+      <td>${m.calls}</td>
+      <td>${m.inDol ? 'yes' : ''}</td>
+    </tr>`).join('');
+  const props = iface.properties.map(p => `<tr>
+      <td><a href="#p:${esc(iface.name)}.${esc(p.name)}"><code>${esc(p.name)}</code></a></td>
+      <td><span class="badge">read × ${p.reads}</span></td>
+      <td>${p.reads}</td>
+      <td>${p.inDol ? 'yes' : ''}</td>
+    </tr>`).join('');
+
+  return `
+    <div class="title"><h2>${esc(iface.name)}</h2></div>
+    <div class="badges">
+      <span class="badge">interface</span>
+      <span class="badge">created ${iface.creators}× in scripts</span>
+      <span class="badge">${iface.methods.length} methods</span>
+      ${iface.properties.length ? `<span class="badge">${iface.properties.length} properties</span>` : ''}
+      ${iface.methods.some(m => m.inDol) ? '<span class="badge ok">names appear in bootfile.dol</span>' : ''}
+    </div>
+    <p class="note">Obtained from <code>shared x = ${esc(iface.name)}()</code> bindings, then every <code>x.Method(...)</code>
+    and <code>x.Property</code> in the corpus. Argument counts are observed, not declared - the language has no signatures.</p>
+    ${rows ? `<h3>Methods</h3><table><thead><tr><th>Method</th><th>Observed arity</th><th>Calls</th><th>In DOL</th></tr></thead>
+      <tbody>${rows}</tbody></table>` : ''}
+    ${props ? `<h3>Properties</h3><table><thead><tr><th>Property</th><th>Reads</th><th>Count</th><th>In DOL</th></tr></thead>
+      <tbody>${props}</tbody></table>` : ''}
+    ${filesTable(iface.files)}`;
+}
+
+function renderMethod(entry) {
+  const m = entry.ref;
+  const owner = entry.parent ? `<p class="note">Member of <a href="#i:${esc(entry.parent)}">${esc(entry.parent)}</a>.</p>` : '';
+  const unknown = entry.untyped
+    ? `<p class="note">The receiver's type is not tracked: this is called on an object whose type would need data flow to
+       know (for example a value returned by another method). The name and argument counts are still what the engine sees.</p>`
+    : '';
+  const total = m.calls !== undefined ? m.calls : m.reads;
+  return `
+    <div class="title"><h2>${esc(m.name)}</h2></div>
+    ${owner}${unknown}
+    <div class="sig">${esc(aritySig(m.name, m.arities))}</div>
+    <div class="badges">
+      <span class="badge">${m.calls !== undefined ? 'method' : 'property'}</span>
+      <span class="badge">${total} use${total === 1 ? '' : 's'}</span>
+      ${m.inDol ? '<span class="badge ok">name also appears as a DOL string</span>'
+                : '<span class="badge warn">not found as a DOL string</span>'}
+    </div>
+    ${m.arities ? `<h3>Observed argument counts</h3><p>${arityNotes(m.arities)}</p>` : ''}
+    <h3>Examples</h3>
+    ${examples(m.examples)}
+    ${filesTable(m.files)}`;
+}
+
+function renderGlobal(g) {
+  return `
+    <div class="title"><h2>${esc(g.name)}</h2></div>
+    <div class="sig">${esc(aritySig(g.name, g.arities))}</div>
+    <div class="badges"><span class="badge">global function</span><span class="badge">${g.calls} calls</span>
+      ${g.inDol ? '<span class="badge ok">in DOL strings</span>' : ''}</div>
+    <h3>Observed argument counts</h3><p>${arityNotes(g.arities)}</p>
+    <h3>Examples</h3>${examples(g.examples)}${filesTable(g.files)}`;
+}
+
+function renderConstant(c) {
+  return `
+    <div class="title"><h2>${esc(c.name)}</h2></div>
+    <div class="sig">${esc(c.name)}</div>
+    <div class="badges"><span class="badge">constant / enum-like identifier</span>
+      <span class="badge">${c.uses} uses</span>
+      ${c.inDol ? '<span class="badge ok">in DOL strings</span>' : ''}</div>
+    <p class="note">An all-caps identifier used by the scripts. It is either a named constant or an enum value; the corpus
+    does not say which, and no declaration file exists.</p>
+    <h3>Examples</h3>${examples(c.examples)}${filesTable(c.files)}`;
+}
+
+function render() {
+  const entry = byKey.get(selectedKey);
+  if (!entry) {
+    doc.innerHTML = '<p class="empty">Pick something on the left, or press <kbd>/</kbd> and type.</p>';
+    return;
+  }
+  if (entry.kind === 'interface') doc.innerHTML = renderInterface(entry.ref);
+  else if (entry.kind === 'method') doc.innerHTML = renderMethod(entry);
+  else if (entry.kind === 'global') doc.innerHTML = renderGlobal(entry.ref);
+  else doc.innerHTML = renderConstant(entry.ref);
+  doc.scrollTop = 0;
+}
+
+/* ---------- wiring ---------- */
+function selectFromHash() {
+  const key = decodeURIComponent(location.hash.replace(/^#/, ''));
+  if (key && byKey.has(key)) selectedKey = key;
+  else selectedKey = null;
+  renderNav();
+  render();
+}
+
+window.addEventListener('hashchange', selectFromHash);
+q.addEventListener('input', renderNav);
+q.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const first = nav.querySelector('a.item');
+    if (first) location.hash = first.getAttribute('href');
+  }
+  if (e.key === 'Escape') { q.value = ''; renderNav(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== q) { e.preventDefault(); q.focus(); }
+});
+for (const chip of document.querySelectorAll('.chip')) {
+  chip.addEventListener('click', () => {
+    kindFilter = chip.dataset.kind;
+    for (const other of document.querySelectorAll('.chip')) other.classList.toggle('on', other === chip);
+    renderNav();
+  });
+}
+
+renderNav();
+selectFromHash();
+</script>
+</body>
+</html>

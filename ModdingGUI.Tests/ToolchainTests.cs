@@ -102,6 +102,81 @@ public class ToolchainTests
         }
     }
 
+// ---- script compiler selection -------------------------------------------------------------
+
+    [Fact]
+    public void ScriptCompilerFor_Bundled_UsesTheExeScbcSubcommand()
+    {
+        // A temp tools folder with no DOG compiler in it, plus a stub bundled exe, so the subcommand form is chosen.
+        string tools = Path.Combine(Path.GetTempPath(), "dog-" + System.Guid.NewGuid().ToString("N")[..8]);
+        string bundled = Path.Combine(tools, "v009", "tools_v009.exe");
+        Directory.CreateDirectory(Path.GetDirectoryName(bundled)!);
+        File.WriteAllText(bundled, "stub");
+        try
+        {
+            (string exe, string[] leading) = ModdingGUI.Core.Tools.ProjectBuildService.ScriptCompilerFor(
+                Toolchain.Bundled(bundled), tools);
+
+            Assert.Equal(bundled, exe);
+            Assert.Equal(new[] { "scbc" }, leading);
+        }
+        finally
+        {
+            Directory.Delete(tools, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ScriptCompilerFor_Bundled_StillPrefersAUserSuppliedDogCompiler()
+    {
+        string tools = Path.Combine(Path.GetTempPath(), "dog-" + System.Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tools);
+        try
+        {
+            string dog = Path.Combine(tools, "DOGCodeCompiler.exe");
+            File.WriteAllText(dog, "stub");
+
+            (string exe, _) = ModdingGUI.Core.Tools.ProjectBuildService.ScriptCompilerFor(
+                Toolchain.Bundled(@"C:\app\tools\v009\tools_v009.exe"), tools);
+
+            Assert.Equal(dog, exe);
+        }
+        finally
+        {
+            Directory.Delete(tools, recursive: true);
+        }
+    }
+
+    private static void Unused()
+    {
+        (string exe, string[] leading) = ModdingGUI.Core.Tools.ProjectBuildService.ScriptCompilerFor(
+            Toolchain.Bundled(@"C:\app\tools\v009\tools_v009.exe"), @"C:\app\tools");
+
+        Assert.Equal(@"C:\app\tools\v009\tools_v009.exe", exe);
+        Assert.Equal(new[] { "scbc" }, leading);
+    }
+
+    [Fact]
+    public void ScriptCompilerFor_PythonScripts_PrefersAUserSuppliedDogCompiler()
+    {
+        string tools = Path.Combine(Path.GetTempPath(), "dog-" + System.Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tools);
+        try
+        {
+            string dog = Path.Combine(tools, "DOGCodeCompiler.exe");
+            File.WriteAllText(dog, "stub");
+
+            (string exe, string[] leading) = ModdingGUI.Core.Tools.ProjectBuildService.ScriptCompilerFor(
+                Toolchain.PythonScripts(tools, "python"), tools);
+
+            Assert.Equal(dog, exe);
+            Assert.Empty(leading);
+        }
+        finally
+        {
+            Directory.Delete(tools, recursive: true);
+        }
+    }
     [Fact]
     public void BuildUnpackSteps_Bundled_UsesV009Subcommands()
     {

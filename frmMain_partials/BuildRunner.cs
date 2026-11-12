@@ -120,7 +120,7 @@ namespace ModdingGUI
         private async Task<BuildStepResult> RunCompileScriptAsync(
             string projectFolder, string scriptName, RichTextBox? target = null)
         {
-            var options = new BuildOptions(projectFolder, ToolbeltDirectory(), PythonCommand);
+            var options = new BuildOptions(projectFolder, ToolbeltDirectory(), PythonCommand, Toolchain);
 
             using (MirrorLogInto(target ?? rtbPackOutput))
             {

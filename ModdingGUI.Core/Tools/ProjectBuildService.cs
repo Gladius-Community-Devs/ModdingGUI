@@ -12,7 +12,7 @@ using ModdingGUI.Core.Logging;
 /// <param name="ProjectPath">Project folder (the one holding <c>_BEC</c> and <c>_ISO</c>).</param>
 /// <param name="ToolsPath">Folder holding the Python tools and the script compiler.</param>
 /// <param name="PythonCommand">Interpreter used for the Python tools, e.g. <c>py -3</c>.</param>
-public sealed record BuildOptions(string ProjectPath, string ToolsPath, string PythonCommand = "py -3");
+public sealed record BuildOptions(string ProjectPath, string ToolsPath, string PythonCommand = "py -3", Toolchain? Toolchain = null);
 
 /// <summary>
 /// Runs the project's build pipeline from Core: the script compiler and the pack chain.
@@ -98,8 +98,14 @@ public sealed class ProjectBuildService
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(scripts);
 
-        string compiler = Path.Combine(options.ToolsPath, "DOGCodeCompiler.exe");
         string scriptFolder = Path.Combine(ResolveBec(options.ProjectPath), "data", "script");
+
+        // The bundled toolchain compiles scripts itself, so the app no longer needs the proprietary DOGCodeCompiler.exe:
+        // tools_v009.exe scbc is a reimplementation that matches it byte-for-byte on every vanilla script (694 of 694,
+        // scripts/check-script-compiler.py). A user who owns the original can still drop it in tools/ and be served by it.
+        Toolchain toolchain = options.Toolchain
+            ?? Toolchain.Choose(AppContext.BaseDirectory, options.ToolsPath, options.PythonCommand);
+        (string executable, string[] leadingArguments) = ScriptCompilerFor(toolchain, options.ToolsPath);
 
         var steps = new List<ToolStep>(scripts.Count);
         foreach (string script in scripts)
@@ -110,10 +116,46 @@ public sealed class ProjectBuildService
             string binary = Path.Combine(scriptFolder, "bin",
                 Path.GetFileNameWithoutExtension(script) + ".scb");
 
-            steps.Add(new ToolStep(script, compiler, new[] { source, binary }, scriptFolder));
+            var arguments = new List<string>(leadingArguments.Length + 2);
+            arguments.AddRange(leadingArguments);
+            arguments.Add(source);
+            arguments.Add(binary);
+
+            steps.Add(new ToolStep(script, executable, arguments, scriptFolder));
         }
 
         return steps;
+    }
+
+    /// <summary>
+    /// Which program compiles a script: the bundled exe's <c>scbc</c> subcommand, or a user-supplied DOG compiler.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The DOG compiler cannot be redistributed, so it is never bundled - but if the user already has it in the toolbelt it
+    /// is used, because their copy is the closest thing to the retail build. Everything else goes through
+    /// <c>tools_v009.exe scbc</c>, which was validated byte-for-byte against that compiler over the whole vanilla corpus.
+    /// </para>
+    /// <para>
+    /// The first element is the executable, the rest are arguments that precede the source/output pair.
+    /// </para>
+    /// </remarks>
+    internal static (string Executable, string[] LeadingArguments) ScriptCompilerFor(
+        Toolchain toolchain, string toolsPath)
+    {
+        ArgumentNullException.ThrowIfNull(toolchain);
+
+        // A copy the user already owns wins: it is the closest thing to the retail build, and using it costs nothing.
+        string dog = Path.Combine(toolsPath, "DOGCodeCompiler.exe");
+        if (File.Exists(dog)) return (dog, Array.Empty<string>());
+
+        if (!string.IsNullOrEmpty(toolchain.ExecutablePath) && File.Exists(toolchain.ExecutablePath))
+        {
+            return (toolchain.ExecutablePath!, new[] { "scbc" });
+        }
+
+        // Nothing to run: hand back the DOG path so the caller's "compiler not found" message names what is missing.
+        return (dog, Array.Empty<string>());
     }
 
     /// <summary>
