@@ -74,3 +74,48 @@ Build: `demo_hero.iso`, 1,392.4 MB, md5 `aa5d52a037c594b240fbe7282352d4d7`.
 
 If it still does not hand over a turn, the next step is to replace the encounter wholesale with a league arena battle
 (no `CAMERATRACK`, no script) that carries the same six rows - the campaign only needs the battle to start.
+
+## Revision 3: what the first in-game run proved, and the one-enemy build
+
+The first run reached the battle (after "Ignore for this session" on a Dolphin warning) and spawned **five** enemies, not six:
+
+```
+Ageliasa (Air)   Odystus (Dark)   Chenzira (Fire)   Kaethe (Earth)   Ihpicus (Water)
+```
+
+Affinities from `data/units/gladiators.txt`. Five distinct affinities, **Light absent** - which is the missing spawn: the
+corpus has no Light-affinity gladiator, so the Light row has nothing to draw and silently produces nothing. That is why the
+six rows became five units; no spawn was "swallowed" by Valens.
+
+The five-row set is consistent with two different id bases, so it cannot settle them on its own:
+
+| hypothesis | ids 1-5 are | what spawned |
+|---|---|---|
+| 1-based (Air=1) | Air, Earth, Fire, Water, Light | the four non-Light ids + the -1 control drew Dark |
+| 0-based (Air=0) | Earth, Fire, Water, Light, Dark | Earth, Fire, Water, Dark + the control drew Air |
+
+Both explain the same five names. One row on its own settles it: with **only id 1** on the field, the single spawned unit's
+affinity is id 1's affinity - Air means 1-based, Earth means 0-based.
+
+### The crash at load
+
+Dolphin reported `Invalid read from 0x0000010C, PC = 0x800ef0ac`. That PC is inside `FUN_800ef09c`, which walks a tagged
+script-argument list and dereferences every entry as a node; the previous build called
+
+```
+tactics.AddUnitPriorityTarget(hero, hero)
+```
+
+with two object arguments, and the argument marshaller followed a null pointer to offset 0x10C. So the crash was the test
+script's unverified engine call, not the compiler and not the encounter: the method exists (it is registered), but its
+argument shape is not two objects. Revision 3 removes every engine call with an unverified shape and keeps only the language
+constructs the corpus proves work (a `for ... to ... step` loop, a nested function, a talk box).
+
+### Revision 3 build
+
+`demo_hero.iso`, 1,392.4 MB, md5 `b8f049f84a0f3d4935304c808d7a9fab`.
+
+- Team 1 is a **single** row: id `1`, chance 100, `Start1`, nothing else. One unit tells us id 1's affinity, hence the base.
+- `battle_apitest.scp` (revision 3) compiles to a 1,016-byte `.scb` and reports `APITEST lang-ok` in a talk box.
+- The grid has four single-cell start markers (`Start1..Start4`); this grid has no fifth slot, which is why the six-row
+  positional idea was abandoned - the props sit on `Start3`/`Start4` anyway.
