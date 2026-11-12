@@ -157,3 +157,28 @@ storing the results in `shared` variables. Nothing else.
 | loads clean, one enemy spawns | the crash was the talk box; the enemy's name gives id 1's affinity, hence the id base |
 | loads clean, no enemy spawns | the script is fine and the id-1 pool is empty, which would point at a different id base than expected |
 | crashes again | not the talk box: next suspect is the script mechanism itself, and the test becomes "recompile a vanilla battle script and ship that" to separate compiler output from new language features |
+
+## Revision 5: the crash predates the script - it is the missing CUTSCENE hook
+
+Revision 4 made no engine call at all and still crashed at `0x800ef0ac` (offset `0x94`). That rules out the script contents,
+and the build history says why: the very first build that crashed was **1b**, the one where I *removed* `BATTLESCRIPT` and
+`CUTSCENE` to get past the tutorial script.
+
+| build | rows | script hooks | result |
+|---|---|---|---|
+| 1 `bf0627..` | 6 affinity rows | vanilla `BATTLESCRIPT` + both `CUTSCENE` | reached the battle, never got a turn |
+| 1b `25544f..` | 6 affinity rows | **removed** | memory error at `0x800ef0ac`, 5 units |
+| 2 `ec95d2b..` | 6 rows | ours + `AddUnitPriorityTarget(hero, hero)` | memory error, 5 units |
+| 3 `40c8833..` | 1 row | ours + talk box in `OnInitBattle` | memory error, instant victory |
+| 4 `a9bc3ae..` | 1 row | ours, no engine calls at all | memory error, instant victory |
+| 5 `787203c..` | 1 row | ours, no engine calls, **cutscene hooks restored** | this build |
+
+So the fault is the removed `CUTSCENE` hook: the school flow plays `Scene05va.cut` before the battle, and with the record gone
+something dereferences null. Every revision since has changed *where* the null read lands (0x10C, 0xD0, 0x94) because the
+script contents changed, which is why it looked like the script was at fault.
+
+Revision 5 restores both vanilla cutscene lines - and keeps them: the encounters API's `AddField` collapsed the duplicate
+`CUTSCENE` key, so `AppendField` was added to `IEncountersApi` for repeatable header keys (`CUTSCENE`, `PRIZETIER`,
+`CAMERATRACK`). The header now matches the vanilla one except for `BATTLESCRIPT` (ours) and team 1.
+
+`demo_hero.iso`, 1,392.4 MB, md5 `787203c2ede5610b0f26e6402352fd53`.

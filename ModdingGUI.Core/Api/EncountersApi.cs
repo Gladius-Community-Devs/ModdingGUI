@@ -167,6 +167,33 @@ public sealed class EncountersApi : IEncountersApi
         EditHeader(projectPath, relativePath, key, rawValue, addWhenMissing: true);
 
     /// <inheritdoc />
+    public void AppendField(string projectPath, string relativePath, string key, string rawValue)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(rawValue);
+
+        // Unlike AddField, this keeps duplicates: the encounter header legitimately repeats keys (CUTSCENE, PRIZETIER,
+        // CAMERATRACK), and collapsing them silently dropped the intro cutscene of a story battle.
+        Edit(projectPath, relativePath, (lines, trailing) =>
+        {
+            int insertAt = lines.Count;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string trimmed = lines[i].TrimStart();
+                if (trimmed.StartsWith("TEAM", StringComparison.OrdinalIgnoreCase))
+                {
+                    insertAt = i;
+                    break;
+                }
+                if (trimmed.StartsWith(key, StringComparison.OrdinalIgnoreCase)) insertAt = i + 1;
+            }
+
+            lines.Insert(insertAt, $"{key}: \t{rawValue}");
+            return true;
+        });
+    }
+
+    /// <inheritdoc />
     public void RemoveField(string projectPath, string relativePath, string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
