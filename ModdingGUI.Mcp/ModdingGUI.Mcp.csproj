@@ -8,10 +8,75 @@
     <LangVersion>latest</LangVersion>
     <RootNamespace>ModdingGUI.Mcp</RootNamespace>
     <AssemblyName>ModdingGUI.Mcp</AssemblyName>
+    <!-- The generated XML doc file is what makes the tool catalogue self-documenting: the SDK reads
+         [Description] attributes, and the summaries here are the same text an editor shows. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591: not every public helper member carries a <summary>; the tool surface documents itself
+         with [Description], which is what an MCP client actually receives. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- Publish beside the shell, which is where it belongs: a release zip has to contain both exes, the
+         MCP server finds the toolbelt (tools/) and the generated catalogs the shell's publish already
+         produced, and a client's config points at one folder. Override with -p:PublishDir to publish
+         elsewhere. -->
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net8.0-windows\win-x64\publish\</PublishDir>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ModdingGUI.Core\ModdingGUI.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Pinned exactly: an SDK bump changes the wire protocol and the transitive System.Text.Json
+         version, so it is a deliberate, tested change (see docs/MCP.md). -->
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="ModelContextProtocol" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The generated catalogs are what makes validation catalog-driven rather than guessed: the skills
+         catalog (skills_catalog_describe_field), class definitions, encounters, schools and leagues.
+         Core resolves them beside the exe first, so copying them here means an MCP server can validate a
+         project without the shell's folder being nearby (a Debug build, or a standalone install). -->
+    <Content Include="..\skills\skills_catalog.json">
+      <Link>skills\skills_catalog.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\classdefs\classdefs_catalog.json">
+      <Link>classdefs\classdefs_catalog.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\encounters\encounters_catalog.json">
+      <Link>encounters\encounters_catalog.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\tables\schools_catalog.json">
+      <Link>tables\schools_catalog.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\tables\leagues_catalog.json">
+      <Link>tables\leagues_catalog.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\dol\skills_fields.json">
+      <Link>dol\skills_fields.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\dol\classdefs_fields.json">
+      <Link>dol\classdefs_fields.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\dol\encounters_fields.json">
+      <Link>dol\encounters_fields.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

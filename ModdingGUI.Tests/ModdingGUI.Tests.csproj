@@ -20,11 +20,21 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <!-- The MCP integration tests speak to the real ModdingGUI.Mcp exe over stdio. The client half of the
+         protocol lives in ModelContextProtocol.Core; pinned to the same version the server uses so the two
+         cannot drift. The test project deliberately does not reference the MCP project itself (it stays a
+         leaf), only the protocol client. -->
+    <PackageReference Include="ModelContextProtocol.Core" Version="2.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ModdingGUI.csproj" />
     <ProjectReference Include="..\ModdingGUI.Core\ModdingGUI.Core.csproj" />
+    <!-- Build order only: the MCP integration tests spawn ModdingGUI.Mcp.exe, so a plain `dotnet test
+         ModdingGUI.sln` has to build it (nothing references it, by design). ReferenceOutputAssembly=false keeps
+         its assemblies — and the System.Text.Json 10 the MCP SDK brings — out of this project's output, which is
+         what keeps ModdingGUI.Mcp a leaf as far as the compiler and the test host are concerned. -->
+    <ProjectReference Include="..\ModdingGUI.Mcp\ModdingGUI.Mcp.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
