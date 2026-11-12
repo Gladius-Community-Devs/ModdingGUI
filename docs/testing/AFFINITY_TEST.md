@@ -340,3 +340,28 @@ arena to open. `battle_apitest.scp/.scb` stay in the archive but nothing referen
 `demo_hero.iso` / `arena_affinity.iso`: 1,392.4 MB, md5 `3b82fc63c3d4c0e3303d9b7e77c2203b`.
 
 Verified inside the packed ISO: the five encounters carry ids 1-5 on `Start1`, and `scene06va.enc` has Ludo back.
+
+## Revision 10: the right league - OpenBattleUrsula is Ursula-gated
+
+Revision 9 pointed at `openbattleursula1..6.enc`, and the owner immediately asked the right question: those are named for
+Ursula. The league data says they are indeed unreachable for Valens:
+
+```
+league "OpenLeagueUrsula"          -> HERO "Ursula"     -> ENCFILE OpenBattleUrsula1..6.enc
+league "Apprentice Open League"    -> HERO "Valens"     -> ENCFILE Battle1..6.enc  (TYPE "Open")
+```
+
+So the Valens open league fights `imperia\pirgosarena\Battle1..6.enc`, not the Ursula-named files. Both sets are
+`SCHOOL: "HOMETOWNSCHOOL"`, so the pool resolves either way - only reachability was wrong.
+
+The per-hero gate is visible in the encounter headers too: `URSULAEASE` / `VALENSEASE` where `-1` means "not this hero".
+Across the corpus: `0|0` both (565), `-1|-1` neither (199), `-1|0` **Valens only** (35), `0|-1` Ursula only (24), `1|-1`
+Ursula only (3). `openbattleursula1..4` are `-1|0`, i.e. Valens-only despite the name - but they belong to the Ursula
+league, so the league gate wins; the league is what a player navigates.
+
+### Revision 10 build
+
+`Battle1..5.enc` (Valens's Apprentice Open League) each get team 1 replaced by a single row carrying affinity id 1..5, with
+`Battle6.enc` left vanilla as a control. The Ursula-gated files were reverted byte-identically to vanilla.
+
+`demo_hero.iso` / `arena_affinity_v2.iso`: 1,392.4 MB, md5 `593449850ccff9844460c0332e10bdf8`.
