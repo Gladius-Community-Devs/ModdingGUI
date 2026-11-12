@@ -64,6 +64,13 @@ public partial class frmMain
                     return UiOk(_seriesEditor.AutomationState());
                 }
 
+                case "cloneleague":
+                {
+                    string name = UiString(request, "name") ?? throw new ArgumentException("name is required");
+                    string display = UiString(request, "display") ?? name;
+                    return UiOk(_seriesEditor.AutomationCloneLeague(name, display));
+                }
+
                 case "validate":
                     _seriesEditor.AutomationValidate();
                     return UiOk(_seriesEditor.AutomationState());

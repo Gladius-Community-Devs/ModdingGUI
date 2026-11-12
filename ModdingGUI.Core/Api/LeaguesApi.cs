@@ -327,6 +327,62 @@ public sealed class LeaguesApi : ILeaguesApi
                 encounterFile.Replace('\\', Path.DirectorySeparatorChar))));
     }
 
+    /// <inheritdoc />
+    public void CloneLeague(
+        string projectPath, string relativePath, string sourceLeague, string newLeagueName, string displayId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newLeagueName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(displayId);
+
+        Edit(projectPath, relativePath, lines =>
+        {
+            if (FindLeague(lines, newLeagueName) is not null)
+            {
+                throw new InvalidOperationException($"league '{newLeagueName}' already exists in this file.");
+            }
+
+            (int start, int end) = RequireLeague(lines, sourceLeague);
+            var block = new List<string>();
+
+            for (int i = start; i < end; i++)
+            {
+                string line = lines[i];
+
+                if (i == start)
+                {
+                    // LEAGUE "source", id  ->  LEAGUE "new", id: the id carries the display name
+                    block.Add(ReplaceFirstQuoted(line, newLeagueName, displayId));
+                }
+                else if (MarkerRx.IsMatch(line) &&
+                         string.Equals(MarkerRx.Match(line).Groups["kind"].Value, "ENCOUNTER", StringComparison.OrdinalIgnoreCase))
+                {
+                    // the bout keeps its own text id, so its in-game name still matches the file it loads
+                    block.Add(line);
+                }
+                else
+                {
+                    block.Add(line);
+                }
+            }
+
+            // the clone goes at the end of the file so the source keeps its position
+            while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[^1])) lines.RemoveAt(lines.Count - 1);
+            lines.Add(string.Empty);
+            lines.AddRange(block);
+            return true;
+        });
+    }
+
+    /// <summary>Replace the first quoted string of a marker line and its numeric argument.</summary>
+    private static string ReplaceFirstQuoted(string line, string name, string rawValue)
+    {
+        var match = MarkerRx.Match(line);
+        if (!match.Success) return line;
+
+        string kind = match.Groups["kind"].Value;
+        string separator = line.Contains('\t') ? "\t\t" : " ";
+        return $"{kind}{separator}\"{name}\", {rawValue}";
+    }
     // ---- editing plumbing ---------------------------------------------------
 
     private void Edit(string projectPath, string relativePath, Func<List<string>, bool> mutate)

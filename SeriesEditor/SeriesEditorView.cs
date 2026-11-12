@@ -449,6 +449,7 @@ public sealed class SeriesEditorView : UserControl
         bar.Controls.Add(BarButton("btnSeriesDown", "Move down", (_, _) => MoveStage(1)));
         bar.Controls.Add(BarButton("btnSeriesAdd", "Add stage", (_, _) => AddStage()));
         bar.Controls.Add(BarButton("btnSeriesRemove", "Remove stage", (_, _) => RemoveStage()));
+        bar.Controls.Add(BarButton("btnSeriesCloneLeague", "Copy this league.", (_, _) => CloneLeague()));
         bar.Controls.Add(BarButton("btnSeriesOpenEncounter", "Edit its encounter", (_, _) => OpenEncounter()));
         bar.Controls.Add(BarButton("btnSeriesValidate", "Validate this league file", (_, _) => ValidateLeague()));
 
@@ -771,6 +772,59 @@ public sealed class SeriesEditorView : UserControl
         }
     }
 
+    /// <summary>
+    /// Copy the whole run into a new league, so a modder can build one from scratch out of bouts that already exist.
+    /// </summary>
+    /// <remarks>
+    /// Whether the engine accepts a newly invented league is untested; the clone reuses the arena's encounter files (which are
+    /// known to load) and gives the new league its own display text, so what is being tested is the league block itself.
+    /// </remarks>
+    private void CloneLeague()
+    {
+        if (_league is null || _leagueName.Length == 0) return;
+
+        string? name = TextPromptDialog.Ask(this, "New league",
+            "Internal name for the copied league (letters, digits, underscore):", $"{_leagueName}_Copy");
+        if (name is null) return;
+
+        string? display = TextPromptDialog.Ask(this, "New league",
+            "In-game name to show on the arena screen:", $"{name} (test)");
+        if (display is null) return;
+
+        try
+        {
+            int id = new LookupTextApi().Add(ProjectRoots.ResolveBecFolder(_project), display);
+            _api.CloneLeague(_project, LeagueRelativePath, _leagueName, name, id.ToString(CultureInfo.InvariantCulture));
+
+            _leagueName = name;
+            OnTownChanged();
+            SetStatus($"copied '{name}' into {Path.GetFileName(LeagueRelativePath)} as a new league", error: false);
+            Log?.Write(LogLevel.Success, "series", $"Cloned a league as '{name}' with display text '{display}' (lookup id {id}).");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+        {
+            SetStatus(ex.Message, error: true);
+        }
+    }
+
+    /// <summary>Clone a league without the dialogs (driver use).</summary>
+    public object AutomationCloneLeague(string name, string display)
+    {
+        if (_league is null || _leagueName.Length == 0) return new { ok = false, error = "no league selected" };
+
+        try
+        {
+            int id = new LookupTextApi().Add(ProjectRoots.ResolveBecFolder(_project), display);
+            _api.CloneLeague(_project, LeagueRelativePath, _leagueName, name, id.ToString(CultureInfo.InvariantCulture));
+            _leagueName = name;
+            OnTownChanged();
+            return new { ok = true, id, league = name };
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+        {
+            return new { ok = false, error = ex.Message };
+        }
+    }
     private void ValidateLeague()
     {
         if (string.IsNullOrWhiteSpace(_arena)) return;

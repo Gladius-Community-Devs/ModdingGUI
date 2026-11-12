@@ -237,3 +237,18 @@ Two consequences for the editor:
 
 The other thing the owner established: **a run always starts at its first battle**. There is no starting at stage 3, so the
 order in the editor is the progression, and a test that wants stage 2 must play stage 1 first.
+
+### `Endurance` is the carry-over flag - proven in game
+
+Playing the rebuilt run (Agony of Saturno, all four stages flipped to `ENDURANCE`) confirmed the flag's effect:
+
+- after the first battle the game went **straight into the second battle, with no squad-selection screen**;
+- the player's units stayed wounded;
+- affinities were retained.
+
+So `TYPE "Endurance"` is what carries a team between battles - health and affinity included - and its absence (`Series`,
+`Staged`, ...) is the reset case that returns to squad selection. That matches the single special case the engine implements
+(`flags |= 0x10` when the type reads "Endurance") and closes the question the earlier guesses got wrong twice.
+
+Also established while testing: a run must not mix types (a Series run with two stages flipped to Endurance aborted to the
+League Office after the first battle), and a run always starts at its first battle.
