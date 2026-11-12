@@ -412,7 +412,7 @@ public sealed class SeriesEditorView : UserControl
         bar.Controls.Add(BarButton("btnSeriesAdd", "Add stage", (_, _) => AddStage()));
         bar.Controls.Add(BarButton("btnSeriesRemove", "Remove stage", (_, _) => RemoveStage()));
         bar.Controls.Add(BarButton("btnSeriesOpenEncounter", "Edit its encounter", (_, _) => OpenEncounter()));
-        bar.Controls.Add(BarButton("btnSeriesValidate", "Validate league", (_, _) => ValidateLeague()));
+        bar.Controls.Add(BarButton("btnSeriesValidate", "Validate this league file", (_, _) => ValidateLeague()));
 
         var grid = new TableLayoutPanel
         {
@@ -832,6 +832,9 @@ public sealed class SeriesEditorView : UserControl
     {
         if (index < 0 || index >= _stages.Items.Count) throw new InvalidOperationException($"no stage {index}");
         _stages.SelectedIndex = index;
+        // the index can already be the same after a league switch, so the event would not fire and the editors
+        // would keep the previous league's stage while the list shows the new one
+        SelectStage();
     }
 
     /// <summary>Set the type through the same validation the UI uses (driver use).</summary>
