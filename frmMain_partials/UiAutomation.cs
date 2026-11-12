@@ -104,6 +104,9 @@ namespace ModdingGUI
 
                         case "encpage":
                             return EncounterPageCommand(request);
+
+                case "seriespage":
+                    return SeriesPageCommand(request);
                 case "closeDialog":
                             return CloseDialog();
 
