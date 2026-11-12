@@ -213,3 +213,29 @@ Also moved the single enemy row to `Start2` so it no longer stacks on Valens (`S
 |---|---|---|
 | `demo_hero.iso` / `apitest_r6.iso`, md5 `39dcdd02.` | revision 6: our script with the talk-box setup, one enemy on `Start2` | if the crash is gone, the sound table was the fault and the single enemy's name settles the affinity base |
 | `vanilla_control.iso`, md5 `b75f6539.` | the battle put back to vanilla (vanilla `BATTLESCRIPT`, Ludo on `Start2`, vanilla grid) | if *this* also crashes, the fault is not the encounter at all but something about how this ISO is packed |
+
+## Revision 7: the missing OnExecBattle entry point
+
+The owner reported the crash lands exactly when the battle finishes loading and "Press A to Continue" appears - i.e. when the
+battle starts *executing*, not during init. That reframes it away from the loading-screen tooltips.
+
+Every battle script in the corpus defines `OnExecBattle`, the callback the engine drives once the battle is running:
+
+| script | entry points |
+|---|---|
+| `battle_scene06v.scp` | OnInitBattle, OnStartBattle, OnExecBattle, OnSkirmishEnd, OnKillBattle, OnExecComboMeter |
+| `battle_practice.scp` | OnInitBattle, OnStartBattle, OnExecBattle, OnSkirmishEnd, OnKillBattle |
+| `battle_anteupbyo10000.scp` | OnInitBattle, OnExecBattle |
+
+`OnStartBattle` is optional; `OnExecBattle` is not. Our script defined only `OnInitBattle`, so the engine was left holding a
+null entry point, and the failure surfaced inside the script value dereference helper (`FUN_800ef09c`, PC `0x800ef0ac`) the
+moment the battle began executing. That also explains both controls: the vanilla tutorial defines `OnExecBattle` (no crash),
+and "no script at all" defines nothing (crash).
+
+Revision 7 declares the same set, empty except init - and init keeps the vanilla-style setup plus the language test. The
+compiled `.scb` exports `OnInitBattle`, `OnStartBattle`, `OnExecBattle`, `OnSkirmishEnd`, `OnKillBattle`, `OnExecComboMeter`.
+
+`demo_hero.iso` / `apitest_r7.iso`, 1,392.4 MB, md5 `ad8ef389a74f3bf3c1e2a15f4560c2b8`.
+
+The `vanilla_control.iso` from the previous round (md5 `b75f6539.`) is still on disk and still useful: if revision 7 fails,
+that control says whether a fully vanilla battle inside this pack loads at all.
