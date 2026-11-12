@@ -180,3 +180,22 @@ tokens.
 The requirement test groups these differently from the attribute list: `0x103f` covers Light..Beast and `0x1000`; `0xc0`
 (Male|Female) is a separate presence test; `0xf00` (Nordagh|Imperia|Expanse|Steppes) is tested against the unit's class
 tags and inverted by the prohibit flag.
+
+## How the league `TYPE` is read, from the engine
+
+`EncounterSetup` (`0x80106ddc`) parses each encounter and, for the league entry it came from, compares `TYPE` against one
+string:
+
+```c
+if (FUN_800e124c(*(int *)(*(int *)(arg - 0x4840) + 0x10) + 0xc, "Endurance") != 0)
+    flags |= 0x10;                      /* *(ushort *)(session + 0x12) */
+```
+
+So **`Endurance` is the only type encounter setup treats specially**: it ORs bit `0x10` into the battle-session flags. The
+other four values (`Staged`, `Series`, `Open`, `Circus`) fall through to the default path, which is why the "series that returns
+you to squad selection" is the *absence* of this flag rather than a positive value. `UpdateBattleSelect` (`0x80128d38`,
+`0x8019bf6c`) references the same string, so the league screen also marks endurance entries.
+
+In game terms, and matching what the owner observed: `TYPE "Series"` (Agony of Saturno in the Pirgos Series League) returns to
+the squad screen after every battle and resets the team; `TYPE "Endurance"` is the carry-over family. The editor labels them
+that way and no longer claims the other values are proven either way.
