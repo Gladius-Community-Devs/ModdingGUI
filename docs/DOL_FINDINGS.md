@@ -276,3 +276,17 @@ appears in `repack-filelist.txt` (151 league-art entries instead of 150) - but t
 `iso unpack` + `bec unpack` of the new ISO the folder still holds the vanilla 150 files. The manifest and the payload disagree,
 so at the moment **no new file can be added to the BEC at all**, which also blocks the "does the engine accept a newly made
 `.enc`?" question. That is the next toolchain bug to fix, not a game behaviour.
+
+### Correction: the packer was fine; the unpacker names files from a static table
+
+The custom card is in the ISO. `bec pack` adds a new file correctly - the only snag is that two entries can share one payload,
+and a file whose content matches an existing one is stored as a *duplicate* entry (compressed size OR-ed with `0x02000000`,
+same data offset). The game reads by path hash, so that is fine in game.
+
+What misled the earlier check is `bec unpack`: it resolves an entry's name through the static hash table
+`tools_v009/tools_v009/hashes.txt`, not through the archive, so an unregistered path hash lands as `unknown-<tag>-0x<hash>.<ext>`
+- our art unpacked as `unknown-pttp-0x9c833d06.ptx`. Adding `0x9c833d06 data/texture/gui/leagues/endurancetrial.tga` to that
+table and rebuilding the bundled exe made the unpack name it properly (151 league-art files after unpack instead of 150).
+
+So adding a file to a mod is a two-part operation: put it in the archive (`bec add` does both copy and manifest), and teach the
+tool its path hash if the unpack round-trip matters. The game only needs the first part.
