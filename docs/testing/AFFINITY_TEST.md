@@ -287,3 +287,30 @@ The next probe is therefore to keep the vanilla `BATTLESCRIPT` name (`battle_sce
 name-based lookups stay intact while the tutorial dialogue is replaced by a script that defines every entry point and does
 nothing else. If that loads clean, the crash is a name-keyed lookup, and the fix is to overwrite the vanilla script rather
 than point at a new one.
+
+## Retraction: the in-game readings do not establish an id table
+
+Revision 7 (single row, id `1`) spawned **Juventas**, which `gladiators.txt` lists as Earth. Revision 8 (single row, id `0`)
+spawned **Meadhbh**, listed as **None**.
+
+Neither a 0-based nor a 1-based index into the DOL block explains both:
+
+| model | predicts id 0 | predicts id 1 | observed |
+|---|---|---|---|
+| 0-based `Air, Earth, ...` | Air | Earth | None, Earth |
+| 1-based `Air, Earth, ...` | (out of range = any) | Air | None, Earth |
+
+The 0-based claim recorded earlier in this file is **withdrawn**. The most likely explanation is not the enum but the pool:
+this story battle's team uses `SCHOOL: "REGIONSCHOOL"`, which probably resolves only in a league arena. With no valid pool the
+affinity requirement cannot be satisfied and the game draws an arbitrary unit - which also explains why the six-row run
+produced five units with five different affinities (Air, Earth, Fire, Water, Dark): that is what "draw anything" looks like.
+
+Consequence for the test design: the affinity experiment needs a battle whose school resolves (a league arena with
+`HOMETOWNSCHOOL`, or an explicit school name), and one marker per id so each unit's origin is known. The story tutorial is the
+wrong vehicle for it, and it is also the battle that keeps faulting at load end - a null school pool would explain that too,
+since the spawn code would dereference a null school object inside the script VM, which is exactly where the fault PCs sit
+(`0x800ef0ac`, `0x800ed4a4`, `0x800ed4dc`, `0x800ed530`, `0x800ed538`, `0x800ef0c0`, `0x800ed0f0`, `0x800eff38` - all in the
+script value/allocator helpers).
+
+Build 1 keeps its own explanation: it used the **vanilla** tutorial script, which spawns Ludo by name and never consults a
+school pool, so no null pool was ever dereferenced.

@@ -121,7 +121,28 @@ is why `EncounterUnitFields.SplitMask` exists.
 **Affinity names** sit as one contiguous block of strings at `0x80489768`: `Air`, `Earth`, `Fire`, `Water`, `Light`, `Dark`
 (each preceded by `None`, `Basic`, `Chain`, `Special`, `Attack` for other enums). The ids are therefore index-based in that
 order. `devnotes.txt` claims "5 would be fire", which does not fit that order, so the note is unverified; the base offset
-(`None` = 0 or 1 = `Air`) was pinned in game: a single encounter row with id `1` spawned Juventas, an Earth-affinity gladiator, so the table is **0-based** (`0 = Air, 1 = Earth, 2 = Fire, 3 = Water, 4 = Light, 5 = Dark`). `devnotes.txt`'s "5 = fire" is wrong.
+(`None` = 0 or 1 = `Air`) is **still open**, and the first in-game attempt to pin it did not work:
+
+- a single row with id `1` spawned Juventas, an **Earth** gladiator;
+- a single row with id `0` spawned Meadhbh, a **None** gladiator.
+
+No monotone index into this block produces both (0 = Air predicts Air for the first; 1 = Air predicts Air for the second).
+The likely reason is the *school pool*, not the enum: the test put those rows in a story battle whose team uses
+`SCHOOL: "REGIONSCHOOL"` - a token that probably does not resolve outside a league arena - so the affinity filter cannot be
+satisfied and the game draws an arbitrary unit. A story battle is the wrong vehicle for this test.
+
+Three tables are now in play and must not be conflated:
+
+| table | values | where |
+|---|---|---|
+| unit data field (3 bits) | `None, Air, Dark, Earth, Fire, (5 = invalid), Water` | `gladiators.txt` / the tools' `AFFINITY` list |
+| DOL name block | `Air, Earth, Fire, Water, Light, Dark` | `0x80489768`, used by some affinity enum |
+| encounter requirement | ids `-1` (6298 rows), `0` (1), `1` (49), `2` (95), `3` (15), `4` (107), `5` (139) | `UNITDB` slot 8 |
+
+The corpus uses `1`-`5` heavily and the unit data has **no Light-affinity unit at all** (0 of 2170), so Light cannot be one of
+the five legal requirement ids: the requirement enum is almost certainly the five affinities units actually have
+(`Air, Earth, Fire, Water, Dark`) in some order, with `-1` for "any". The pairing within those five still needs a per-id
+observation in a battle whose school pool resolves - a league arena, one marker per id.
 
 ## The two runtime school tokens are data-resolvable - no DOL edit needed
 
