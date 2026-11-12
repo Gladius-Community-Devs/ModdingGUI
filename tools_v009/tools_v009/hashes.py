@@ -76,3 +76,9 @@ def lookup(hashcode):
 
 
 load()
+
+def register(table):
+    """Add extra ``hash -> path`` entries at runtime (a mod's own files)."""
+    for hashcode, path in table.items():
+        # filenameHashes is the hash -> path map that lookup() reads (the name is historical)
+        filenameHashes[hashcode] = path

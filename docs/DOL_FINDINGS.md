@@ -290,3 +290,21 @@ table and rebuilding the bundled exe made the unpack name it properly (151 leagu
 
 So adding a file to a mod is a two-part operation: put it in the archive (`bec add` does both copy and manifest), and teach the
 tool its path hash if the unpack round-trip matters. The game only needs the first part.
+
+## League card art is a PTTP page, and writing one is now possible
+
+The files in `data/texture/` named `.tga` are **not Targa**: they are `PTTP` texture pages, and a league card is `fmt 0x22` -
+GameCube `CMPR` (DXT1) plus a second, equal-sized plane whose green channel is the alpha mask. A 256x256 card is therefore two
+32,768-byte planes inside a 65,712-byte page.
+
+`tools_v009/tools_v009/images.py` writes one: it encodes DXT1 (big-endian, 8x8 blocks of four 4x4 sub-blocks) for colour and
+again for the alpha plane, then patches both planes into a vanilla page used as a template, so every chunk table and the PFHD
+record stay exactly as shipped. The endianness matters: little-endian blocks decode as colour noise.
+
+Measured on the cat test card at 256x256: mean absolute RGB error 17.3 against the source, which is normal for DXT1 and fine for
+a 256-pixel card.
+
+Adding that card to a mod is three steps: put the page at `data/texture/gui/leagues/<league name, lowercased>.tga`, register it
+with `bec add`, and pack. `bec add` now also writes the path hash into the BEC folder's own `mod-hashes.txt`, which `unpack`
+reads, so the file unpacks under its real name. `bec remove` undoes all three: it deletes the file, drops the manifest entry and
+removes the hash line, so a removed image leaves nothing behind.

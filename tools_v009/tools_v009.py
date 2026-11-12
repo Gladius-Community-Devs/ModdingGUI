@@ -48,6 +48,16 @@ def cmd_bec_pack(args):
                          platform=args.platform, num_threads=args.threads)
 
 
+def cmd_bec_remove(args):
+    removed = bec.remove_file_from_bec(args.input, args.becpath)
+    if removed:
+        print("Removed " + args.becpath + " from the mod (file, manifest entry and hash).")
+        print("Run a pack to rebuild the archive without it.")
+    else:
+        print("Nothing to remove: " + args.becpath + " is not part of this mod.")
+    return 0 if removed else 1
+
+
 def cmd_bec_add(args):
     bec.add_file_to_bec(args.input, args.hostfile, args.becpath, hash_value=args.hash)
 
@@ -147,6 +157,11 @@ def build_parser():
     p_a.add_argument("--hash", type=lambda v: int(v, 0), default=None,
                      help="explicit CRC-32 path hash (default: computed from becpath)")
     p_a.set_defaults(func=cmd_bec_add)
+
+    p_r = bec_sub.add_parser("remove", help="delete a file from a BEC folder, its manifest entry and its hash")
+    p_r.add_argument("input", help="BEC folder (the unpacked mod folder)")
+    p_r.add_argument("becpath", help="path inside the BEC archive, e.g. data/mymod/mymod.bin")
+    p_r.set_defaults(func=cmd_bec_remove)
 
     p_r = bec_sub.add_parser("refresh-filelist", help="recompute the mod manifest without packing")
     p_r.add_argument("input", help="BEC folder (the unpacked mod folder)")

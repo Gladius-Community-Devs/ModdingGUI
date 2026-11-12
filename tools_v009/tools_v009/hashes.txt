@@ -28056,4 +28056,3 @@
 0xffff297c data/units/tintsets/imperia10.tint
 0x4e5b4cbc data/script/bin/battle_apitest.scb
 0x5704fc7c data/script/battle_apitest.scp
-0x9c833d06 data/texture/gui/leagues/endurancetrial.tga
