@@ -46,6 +46,11 @@ public sealed class EncounterEditorView : UserControl
 
     private readonly Dictionary<int, Control> _fieldControls = new();
 
+    private ComboBox _region = null!;
+    private ComboBox _town = null!;
+    private ComboBox _arena = null!;
+    private ComboBox _league = null!;
+    private IReadOnlyList<ArenaCatalog.ArenaEntry> _arenas = Array.Empty<ArenaCatalog.ArenaEntry>();
     private TextBox _search = null!;
     private ListBox _files = null!;
     private ComboBox _teams = null!;
@@ -83,7 +88,7 @@ public sealed class EncounterEditorView : UserControl
     public void SetProject(string projectPath)
     {
         _project = projectPath ?? string.Empty;
-        ReloadFiles();
+        LoadNavigation();
     }
 
     // ---------------------------------------------------------------- picker
@@ -91,6 +96,24 @@ public sealed class EncounterEditorView : UserControl
     private Control BuildPicker()
     {
         var host = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8) };
+
+        // Region -> town -> arena -> league. The folders are unreadable, but the game already knows this structure in
+        // world.tok and in each arena's league file, so the picker mirrors it instead of showing 834 paths.
+        var nav = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            Height = UiTheme.Scale(this, 118),
+            ColumnCount = 2,
+            RowCount = 4,
+        };
+        nav.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 56)));
+        nav.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        for (int i = 0; i < 4; i++) nav.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+
+        _region = NavCombo("cboEncRegion", nav, 0, "Region", OnRegionChanged);
+        _town = NavCombo("cboEncTown", nav, 1, "Town", OnTownChanged);
+        _arena = NavCombo("cboEncArena", nav, 2, "Arena", OnArenaChanged);
+        _league = NavCombo("cboEncLeague", nav, 3, "League", ReloadFiles);
 
         _search = new TextBox { Dock = DockStyle.Top, Name = "txtEncSearch", PlaceholderText = "filter encounters…" };
         _search.TextChanged += (_, _) => ReloadFiles();
@@ -115,9 +138,84 @@ public sealed class EncounterEditorView : UserControl
 
         host.Controls.Add(_files);
         host.Controls.Add(_search);
+        host.Controls.Add(nav);
         host.Controls.Add(caption);
         return host;
     }
+
+    private ComboBox NavCombo(string name, TableLayoutPanel grid, int row, string label, Action changed)
+    {
+        var combo = new ComboBox { Name = name, Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList, Margin = new Padding(0, 2, 0, 2) };
+        combo.SelectedIndexChanged += (_, _) => changed();
+        grid.Controls.Add(new Label { Text = label, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, row);
+        grid.Controls.Add(combo, 1, row);
+        return combo;
+    }
+
+    private void LoadNavigation()
+    {
+        if (string.IsNullOrWhiteSpace(_project) || !Directory.Exists(_project)) return;
+
+        try
+        {
+            _arenas = ArenaCatalog.Arenas(_project);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+        {
+            _arenas = Array.Empty<ArenaCatalog.ArenaEntry>();
+            SetStatus(ex.Message, error: true);
+        }
+
+        _region.Items.Clear();
+        foreach (string region in _arenas.Select(a => a.Region).Distinct(StringComparer.OrdinalIgnoreCase)) _region.Items.Add(region);
+        if (_region.Items.Count > 0) _region.SelectedIndex = 0;
+    }
+
+    private void OnRegionChanged()
+    {
+        _town.Items.Clear();
+        string? region = _region.SelectedItem?.ToString();
+        foreach (string town in _arenas.Where(a => a.Region == region).Select(a => a.Town).Distinct(StringComparer.OrdinalIgnoreCase)) _town.Items.Add(town);
+        if (_town.Items.Count > 0) _town.SelectedIndex = 0;
+        OnTownChanged();
+    }
+
+    private void OnTownChanged()
+    {
+        _arena.Items.Clear();
+        string? region = _region.SelectedItem?.ToString();
+        string? town = _town.SelectedItem?.ToString();
+        foreach (ArenaCatalog.ArenaEntry entry in _arenas.Where(a => a.Region == region && a.Town == town)) _arena.Items.Add(entry.Arena);
+        if (_arena.Items.Count > 0) _arena.SelectedIndex = 0;
+        OnArenaChanged();
+    }
+
+    private void OnArenaChanged()
+    {
+        _league.Items.Clear();
+        _league.Items.Add(AllLeagues);
+        string? arena = _arena.SelectedItem?.ToString();
+        if (!string.IsNullOrEmpty(arena))
+        {
+            try
+            {
+                foreach (ArenaCatalog.LeagueEntry league in ArenaCatalog.Leagues(_project, arena)) _league.Items.Add(league.Name);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+            {
+                SetStatus(ex.Message, error: true);
+            }
+        }
+        if (_league.Items.Count > 0) _league.SelectedIndex = 0;
+        ReloadFiles();
+    }
+
+    private const string AllLeagues = "(all in arena)";
+
+    private ArenaCatalog.ArenaEntry? SelectedArena() =>
+        _arenas.FirstOrDefault(a => a.Region == _region.SelectedItem?.ToString()
+                                     && a.Town == _town.SelectedItem?.ToString()
+                                     && a.Arena == _arena.SelectedItem?.ToString());
 
     private void ReloadFiles()
     {
@@ -128,11 +226,25 @@ public sealed class EncounterEditorView : UserControl
             if (string.IsNullOrWhiteSpace(_project) || !Directory.Exists(_project)) return;
 
             string filter = _search?.Text?.Trim() ?? string.Empty;
-            foreach (string path in _api.ListFiles(_project))
+            bool wholeProject = SelectedArena() is null;
+
+            IEnumerable<string> paths;
+            if (wholeProject)
+            {
+                paths = _api.ListFiles(_project);
+            }
+            else
+            {
+                paths = LeagueEncounters();
+            }
+
+            foreach (string path in paths)
             {
                 if (filter.Length > 0 && path.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0) continue;
                 _files.Items.Add(path);
             }
+
+            SetStatus($"{_files.Items.Count} encounter(s) in {(_arena.SelectedItem ?? "(whole project)")}", error: false);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
         {
@@ -142,6 +254,24 @@ public sealed class EncounterEditorView : UserControl
         {
             _files.EndUpdate();
         }
+    }
+
+    /// <summary>Encounters in the selected arena, narrowed to one league when one is chosen.</summary>
+    private IReadOnlyList<string> LeagueEncounters()
+    {
+        ArenaCatalog.ArenaEntry? arena = SelectedArena();
+        if (arena is null) return Array.Empty<string>();
+
+        string? leagueName = _league.SelectedItem?.ToString();
+        if (string.IsNullOrEmpty(leagueName) || leagueName == AllLeagues) return arena.Encounters;
+
+        ArenaCatalog.LeagueEntry? league = ArenaCatalog.Leagues(_project, arena.Arena)
+            .FirstOrDefault(l => string.Equals(l.Name, leagueName, StringComparison.OrdinalIgnoreCase));
+        if (league is null) return arena.Encounters;
+
+        // keep the arena's own order, and only files that exist in it
+        var known = new HashSet<string>(arena.Encounters, StringComparer.OrdinalIgnoreCase);
+        return league.EncounterPaths.Where(known.Contains).ToList();
     }
 
     private void OpenSelectedFile()
@@ -767,13 +897,14 @@ public sealed class EncounterEditorView : UserControl
 
     /// <summary>Names of the controls the UI driver addresses, for tests and screenshots.</summary>
     public IEnumerable<string> ControlNames() =>
-        new[] { "txtEncSearch", "lstEncFiles", "cboEncTeam", "cboEncSchool", "lstEncRows", "lblEncStatus", "lblEncGrid" }
+        new[] { "cboEncRegion", "cboEncTown", "cboEncArena", "cboEncLeague", "txtEncSearch", "lstEncFiles", "cboEncTeam", "cboEncSchool", "lstEncRows", "lblEncStatus", "lblEncGrid" }
             .Concat(_rowButtons.Select(b => b.Name))
             .Concat(_fieldControls.Values.Where(c => !string.IsNullOrEmpty(c.Name)).Select(c => c.Name));
 
     /// <summary>Load one encounter by its project-relative path (driver use).</summary>
     public void AutomationOpen(string relativePath)
     {
+        SelectArenaFor(relativePath);
         int index = FindFile(relativePath);
         if (index < 0)
         {
@@ -784,6 +915,46 @@ public sealed class EncounterEditorView : UserControl
         if (index < 0) throw new InvalidOperationException($"no encounter '{relativePath}'");
 
         _files.SelectedIndex = index;
+    }
+
+    /// <summary>Point the navigators at whichever arena holds this path, so the picker and the file agree.</summary>
+    private void SelectArenaFor(string relativePath)
+    {
+        string normalized = relativePath.Replace('\\', '/');
+        ArenaCatalog.ArenaEntry? entry = _arenas.FirstOrDefault(a =>
+            a.Encounters.Any(e => string.Equals(e, normalized, StringComparison.OrdinalIgnoreCase)));
+
+        if (entry is null) return;
+        if (entry.Region != _region.SelectedItem?.ToString()) _region.SelectedItem = entry.Region;
+        if (entry.Town != _town.SelectedItem?.ToString()) _town.SelectedItem = entry.Town;
+        if (entry.Arena != _arena.SelectedItem?.ToString()) _arena.SelectedItem = entry.Arena;
+    }
+
+    /// <summary>What the navigation currently offers (driver use).</summary>
+    public object AutomationNavigation() => new
+    {
+        regions = _region.Items.Cast<object>().Select(o => o.ToString()).ToArray(),
+        towns = _town.Items.Cast<object>().Select(o => o.ToString()).ToArray(),
+        arenas = _arena.Items.Cast<object>().Select(o => o.ToString()).ToArray(),
+        leagues = _league.Items.Cast<object>().Select(o => o.ToString()).ToArray(),
+        selected = new
+        {
+            region = _region.SelectedItem?.ToString(),
+            town = _town.SelectedItem?.ToString(),
+            arena = _arena.SelectedItem?.ToString(),
+            league = _league.SelectedItem?.ToString(),
+        },
+        files = _files.Items.Cast<object>().Take(40).Select(o => o.ToString()).ToArray(),
+        fileCount = _files.Items.Count,
+    };
+
+    /// <summary>Set the navigators (driver use).</summary>
+    public void AutomationNavigate(string? region, string? town, string? arena, string? league)
+    {
+        if (region is not null && _region.Items.Contains(region)) _region.SelectedItem = region;
+        if (town is not null && _town.Items.Contains(town)) _town.SelectedItem = town;
+        if (arena is not null && _arena.Items.Contains(arena)) _arena.SelectedItem = arena;
+        if (league is not null && _league.Items.Contains(league)) _league.SelectedItem = league;
     }
 
     /// <summary>Find a listed encounter by path, ignoring case (the API resolves paths case-insensitively).</summary>

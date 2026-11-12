@@ -28,6 +28,23 @@ public partial class frmMain
                     SyncEncounterPage();
                     return UiOk(_encounterEditor.AutomationFiles(UiString(request, "path")));
 
+                case "leagues":
+                {
+                    string project = txtPackPath?.Text ?? string.Empty;
+                    string arena = UiString(request, "arena") ?? throw new ArgumentException("arena is required");
+                    return UiOk(ModdingGUI.Core.Api.ArenaCatalog.Leagues(project, arena)
+                        .Select(l => new { l.Name, count = l.EncounterPaths.Count, first = l.EncounterPaths.FirstOrDefault() })
+                        .ToArray());
+                }
+
+                case "nav":
+                    SyncEncounterPage();
+                    return UiOk(_encounterEditor.AutomationNavigation());
+
+                case "navigate":
+                    _encounterEditor.AutomationNavigate(UiString(request, "region"), UiString(request, "town"), UiString(request, "arena"), UiString(request, "league"));
+                    return UiOk(_encounterEditor.AutomationNavigation());
+
                 case "state":
                     SyncEncounterPage();
                     return UiOk(_encounterEditor.AutomationState());
