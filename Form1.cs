@@ -56,8 +56,8 @@ namespace ModdingGUI
 
             if (!IsPythonInstalled())
             {
-                AppendLog("Python was not found. Unpack, pack and randomization work; map PNGs and campaign script " +
-                    "compiling need the Python toolbelt.", WarningColor);
+                AppendLog("Python was not found. Unpack, pack, map PNGs and randomization all work; only campaign " +
+                    "script compiling still needs the Python toolbelt.", WarningColor);
             }
             _gridBuilderView = new GridBuilderView { Log = _log };
             tabGridBuilder.Controls.Add(_gridBuilderView);

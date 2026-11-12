@@ -107,6 +107,16 @@ public static class BatchContentBuilder
                 "bec", "unpack", becInputPath, becFolder, "--platform", "GC"));
             steps.Add(ExecutableStep(topLevelFolder, exe, "idx unpack",
                 "idx", "unpack", dataFolder));
+
+            // Arena maps for the Grid Builder overlay: the same job the Python converter does for the script toolchain.
+            // Added unconditionally - the texture folder does not exist until the "bec unpack" step above has run, so a
+            // Directory.Exists check here would silently skip it on every fresh unpack. The converter reports "no
+            // textures" and exits 0 when there is nothing to do. The PNGs go to <project>/maps, deliberately outside
+            // _BEC, because the packer walks that whole tree.
+            steps.Add(ExecutableStep(topLevelFolder, exe, "maps png",
+                "maps", "png",
+                PathHelper.NormalizePath(Path.Combine(becFolder, "data", "texture", "gui", "maps")),
+                PathHelper.NormalizePath(Path.Combine(topLevelFolder, "maps"))));
         }
         else
         {

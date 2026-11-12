@@ -74,3 +74,19 @@ human-editable.
   incremental repack (reuse unchanged entries from the existing `.bec`), not a faster CRC.
 - The v007-compatible drop-in scripts (`bec-tool-all.py`, `Gladiator_Units_IDX_Repack.py`, …) are **not** in the v008/v009
   package, so switching ModdingGUI's toolbelt over needs either those shims or step commands that call the v009 CLI.
+
+## v009.2 - `maps` subcommand, so map PNGs need no Python
+
+`tools_v009.exe maps png <texture dir> <out dir>` ports the decoder from the standalone `pttp_tga.py` (which also carries a
+Tkinter viewer) into `maps.py`. The app used to run that script for the Grid Builder's arena-map overlay, which was the last
+Python dependency in the unpack path.
+
+Verified byte-identical to the original converter: 49 PNGs from `data/texture/gui/maps` (demo project), all matching
+`pttp_tga.py --png` by MD5, through both `python tools_v009.py maps png` and `tools_v009.exe maps png`.
+
+Also folded in here:
+
+- `iso unpack` treats an absolute `filelist` argument as absolute. v007 and v008 prefixed it with the output folder
+  unconditionally, producing `<outdir>/C:` and an `OSError` - every file was written and the step still exited 1.
+- `hashes.txt` is also looked for beside the modules, not only in the package's parent. Without that, a package copy
+  resolves every path to `unknown-<tag>-0x...` instead of `data/units/unitschools.idx`.

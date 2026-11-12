@@ -953,3 +953,19 @@ md5 `a78d6e1c.`.
 - The exe refuses to write into `%TEMP%` here (Defender), which is why the validation harness takes `-WorkRoot`.
 - Map PNGs still come from the Python converter, so a Python-free install unpacks without Grid Builder map images; that is
   the one remaining script in the unpack path.
+
+### 35.1 Map PNGs, and the last Python step gone (v009.2)
+
+The Grid Builder's arena-map overlay was the final Python dependency in the unpack path: the chain ran `pttp_tga.py` after the
+BEC unpack. That decoder is now `maps.py` in the v009 package, exposed as `tools_v009.exe maps png <texture dir> <out dir>`,
+and the bundled unpack chain calls it after `idx unpack`.
+
+- Ported from `pttp_tga.py` (the standalone script, Tkinter viewer dropped): same PTTP chunk walk, same CMPR/DXT1 decode, same
+  power-of-two cropping rule.
+- Verified byte-identical: 49 PNGs from `data/texture/gui/maps`, every one matching the original converter's output by MD5,
+  through both the source module and the built exe.
+- Found by unpacking `vanilla.iso` through the app: the step was guarded by `Directory.Exists(texture/maps)`, which cannot be
+  true when the chain is built (the preceding `bec unpack` creates it), so the step was silently skipped and zero PNGs were
+  written. It is now unconditional - the converter reports "no textures" and exits 0 when there is nothing to do.
+- App unpack is now py-free end to end: `iso unpack`, `bec unpack`, `idx unpack`, `maps png` all run in the exe. Only
+  campaign script compiling still uses the Python toolbelt, and the startup log says so only when Python is missing.

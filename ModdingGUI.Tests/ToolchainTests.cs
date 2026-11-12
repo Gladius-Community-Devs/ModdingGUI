@@ -108,14 +108,64 @@ public class ToolchainTests
         IReadOnlyList<ToolStep> steps = BatchContentBuilder.BuildUnpackSteps(
             @"C:\isos\Gladius.iso", "MyMod", @"C:\projects", Toolchain.Bundled(Exe));
 
-        // iso unpack, bec unpack, idx unpack - the maps step needs the Python converter, so it is not added.
-        Assert.Equal(3, steps.Count);
+        // iso unpack, bec unpack, idx unpack, then the map PNGs.
+        Assert.Equal(4, steps.Count);
         Assert.All(steps, step => Assert.Equal(Exe, step.Executable));
 
         Assert.Equal(new[] { "iso", "unpack" }, steps[0].Arguments.Take(2));
         Assert.Equal(new[] { "bec", "unpack" }, steps[1].Arguments.Take(2));
         Assert.Contains("--platform", steps[1].Arguments);
         Assert.Equal(new[] { "idx", "unpack" }, steps[2].Arguments.Take(2));
+    }
+
+    [Fact]
+    public void BuildUnpackSteps_Bundled_AddsTheMapsStep_WhenTheTextureFolderExists()
+    {
+        // The maps step is conditional on the unpacked tree: the v009 chain unpacks first, and the texture folder only
+        // exists afterwards. Here the folder is pre-made so the step is included.
+        string root = Path.Combine(Path.GetTempPath(), "maps-" + System.Guid.NewGuid().ToString("N")[..8]);
+        string maps = Path.Combine(root, "MyMod", "MyMod_BEC", "data", "texture", "gui", "maps");
+        Directory.CreateDirectory(maps);
+
+        try
+        {
+            IReadOnlyList<ToolStep> steps = BatchContentBuilder.BuildUnpackSteps(
+                @"C:\isos\Gladius.iso", "MyMod", root, Toolchain.Bundled(Exe));
+
+            Assert.Equal(4, steps.Count);
+            ToolStep mapsStep = steps[3];
+            Assert.Equal("maps png", mapsStep.Name);
+            Assert.Equal(new[] { "maps", "png" }, mapsStep.Arguments.Take(2));
+            Assert.Equal(Exe, mapsStep.Executable);
+            Assert.EndsWith("maps", mapsStep.Arguments[3].TrimEnd('/'), System.StringComparison.Ordinal);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void BuildUnpackSteps_Bundled_IncludesTheMapsStep_BeforeTheTextureFolderExists()
+    {
+        // The texture folder is created by the "bec unpack" step, so it cannot exist when the chain is built; a
+        // Directory.Exists guard here silently dropped the maps step on every fresh unpack (found by unpacking vanilla.iso
+        // through the app and counting zero PNGs). The converter handles an empty folder by reporting zero work.
+        string root = Path.Combine(Path.GetTempPath(), "maps-" + System.Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(root);
+
+        try
+        {
+            IReadOnlyList<ToolStep> steps = BatchContentBuilder.BuildUnpackSteps(
+                @"C:\isos\Gladius.iso", "MyMod", root, Toolchain.Bundled(Exe));
+
+            Assert.Equal(4, steps.Count);
+            Assert.Contains(steps, step => step.Name == "maps png");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
     }
 
     [Fact]

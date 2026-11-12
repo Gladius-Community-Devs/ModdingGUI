@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Gladius tools - unified command-line interface.
 
 Every operation in the toolchain is available as a subcommand::
@@ -22,7 +22,7 @@ import argparse
 import os
 import sys
 
-from tools_v009 import bec, idx, tok, strings, iso
+from tools_v009 import bec, idx, tok, strings, iso, maps
 
 DEFAULT_LANGS = ["eng"]
 
@@ -92,6 +92,13 @@ def cmd_iso_unpack(args):
 
 def cmd_iso_pack(args):
     print(iso.pack_iso(args.input, args.output, args.fst, args.filelist))
+
+
+def cmd_maps(args):
+    summary = maps.convert(args.input, args.output, crop=not args.stored)
+    print("maps: written=%d skipped=%d failed=%d out=%s"
+          % (summary["written"], summary["skipped"], summary["failed"], summary["out"]))
+    return 0 if summary["failed"] == 0 else 2
 
 
 def build_parser():
@@ -176,6 +183,14 @@ def build_parser():
     p_p.add_argument("output")
     p_p.set_defaults(func=cmd_iso_pack)
 
+    p = sub.add_parser("maps", help="convert PTTP texture pages (data/texture) to PNG")
+    maps_sub = p.add_subparsers(dest="maps_command", required=True)
+    p_m = maps_sub.add_parser("png", help="write one PNG per texture surface")
+    p_m.add_argument("input", help="texture file or folder")
+    p_m.add_argument("output", help="folder to write the PNGs into")
+    p_m.add_argument("--stored", action="store_true", help="keep the stored power-of-two size instead of cropping")
+    p_m.set_defaults(func=cmd_maps)
+
     return parser
 
 
@@ -183,7 +198,8 @@ def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
-        args.func(args)
+        # Subcommands may report a non-zero result (maps returns 2 when a surface failed to decode).
+        return args.func(args) or 0
     except idx.IDXDataError as exc:
         print("ERROR: " + str(exc), file=sys.stderr)
         print("The .idx repack did not write any files.", file=sys.stderr)

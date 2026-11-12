@@ -235,7 +235,7 @@ file/team/unit indices and raw rows, and validates rows with `EncounterUnit.TryP
 
 Every build runs through `ModdingGUI.Core.Tools.Toolchain`:
 
-- **Bundled (default when present):** `tools/v009/tools_v009.exe`, subcommands `bec/idx/tok/toknum/strings/iso`. Carries its
+- **Bundled (default when present):** `tools/v009/tools_v009.exe`, subcommands `bec/idx/tok/toknum/strings/iso/maps`. The\n  `maps png <texture dir> <out dir>` form replaces the Python `pttp_tga.py` for the Grid Builder map overlay. Carries its
   own Python, so nothing has to be installed.
 - **Scripts (fallback):** the v007 `tools/*.py` chain, needs `python` on PATH.
 
