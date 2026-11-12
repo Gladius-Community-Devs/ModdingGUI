@@ -120,7 +120,8 @@ is why `EncounterUnitFields.SplitMask` exists.
 
 **Affinity names** sit as one contiguous block of strings at `0x80489768`: `Air`, `Earth`, `Fire`, `Water`, `Light`, `Dark`
 (each preceded by `None`, `Basic`, `Chain`, `Special`, `Attack` for other enums). The ids are therefore index-based in that
-order. `devnotes.txt` claims "5 would be fire", which does not fit that order, so the note is unverified; the base offset
+order. That note said "5 would be fire", which does not fit the name-block order - but slot 8 turns out to be a third table,
+and there the note is right: the id-to-name mapping was settled in game (see the confirmed table above).
 (`None` = 0 or 1 = `Air`) is **not** how `UNITDB` slot 8 works. The encounter requirement enum has its own order,
 confirmed in game by putting one id in each of the five Valens open-league battles (Pirgos `Battle1..5.enc`, whose
 `SCHOOL: "HOMETOWNSCHOOL"` pool resolves) with a single enemy row each:

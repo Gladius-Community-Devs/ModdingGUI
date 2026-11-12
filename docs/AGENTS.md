@@ -22,8 +22,8 @@ The actual git repository lives at **`ModdingGUI/`** (origin `git@github.com:Gla
 
 ## Read First
 
-- **`PLAN.md`** is the authoritative roadmap. Architecture is **locked** (section 0), and the phase sequence is **locked** (section 2). Read it before planning or implementing anything.
-- **`ModdingGUI/CLAUDE.md`** has the detailed per-subsystem agent guide (build commands, test infra, partial-class map, migration targets).
+- **`ModdingGUI/PLAN.md`** is the authoritative roadmap. Architecture is **locked** (section 0), and the phase sequence is **locked** (section 2). Read it before planning or implementing anything.
+- **`docs/HANDOFF.md`** has current state, the traps learned the hard way and the in-game QA still pending; **`docs/OPEN_ITEMS.md`** is the backlog; **`docs/DOL_FINDINGS.md`** is the engine authority. `CLAUDE.md` is a one-screen pointer at those five docs.
 - **`docs/UI_AUTOMATION.md`** is how to drive the window from a script or an agent (`--ui-server`, `scripts/ui-drive.ps1`). Use it to verify any GUI change.
 - **`docs/prd-template.md`** is the PRD template used by `/feature`.
 - `docs/testing/MANUAL_TESTING_PHASE_2_6.md` is the manual test checklist for the Item Editor migration.
@@ -34,7 +34,7 @@ The actual git repository lives at **`ModdingGUI/`** (origin `git@github.com:Gla
 
 ```
 GladiusModdingToolsGUI/
-  PLAN.md                       Master roadmap — phase-locked, architecture locked
+  (PLAN.md is in the repo: ModdingGUI/PLAN.md - master roadmap, phase-locked, architecture locked)
   clean-bec-unpacked/           Vanilla game corpus (27k files) — READ-ONLY ground truth.
                                 Sits OUTSIDE the git repo (sibling of ModdingGUI/) on
                                 purpose: never version-controlled, never touched.
@@ -43,9 +43,9 @@ GladiusModdingToolsGUI/
   GridBuilder.jar_Decompiler.com/  Decompiled original Java app (reference only)
   tools/                        Legacy Python modding toolbelt (started directly, no .bat)
   docs/                         AGENTS.md, prd-template.md, test-standards.md
-  MANUAL_TESTING_PHASE_2_6.md   Manual test checklist (Item Editor)
-  MANUAL_TESTING_PHASE_2_7.md   Manual test checklist (Skill Editor validation)
-  bugs.txt                      Bug-tracking / regression notes
+  docs/testing/                 Manual test checklists (per phase, plus QA_PASS.md history)
+  docs/archive/                 Finished-phase documents, kept for history only
+  docs/api/                     Generated scripting-API reference (do not hand-edit)
   .opencode/                    OpenCode commands (opencode.jsonc)
 
   ModdingGUI/                   ← THE GIT REPO + .NET solution
@@ -80,7 +80,7 @@ dol/                        Engine field tables extracted from the DOL (authorit
 
 ```
 dotnet build ModdingGUI.sln          # whole solution (shell + Core + Mcp + Tests)
-dotnet test ModdingGUI.sln           # xUnit suite: 869 pass / 0 fail / 0 skip
+dotnet test ModdingGUI.sln           # xUnit suite: 903 pass / 0 fail / 0 skip
 .\run-tests.ps1                      # colored runner w/ TRX, filters, -ProjectFolder
 .\run-tests.ps1 -Filter RealGameDataTests
 .\run-tests.ps1 -ProjectFolder REALDATA_v2
@@ -92,7 +92,7 @@ All commands run from inside `ModdingGUI/` (that is where the `.sln` and the git
 ### Test bar (mandatory, from PLAN.md)
 
 - `dotnet test -c Release` green at the end of every phase. No phase merges with failing tests.
-- Baseline is **869 passed / 0 failed / 0 skipped**. Every phase ends green.
+- Baseline is **903 passed / 0 failed / 0 skipped**. Every phase ends green.
 - `ModdingGUI.Tests/Core/Tok/TokRoundTripTests.cs` is the **corpus gate**: it parses and re-serializes every `.tok`/`.enc` in `clean-bec-unpacked/` (977 files) and fails on any byte diff. Never break this.
 - The `RealGameDataTests` are gated behind a `REALDATA_*` project folder + `vanilla.iso`. To enable them locally, run **`ModdingGUI/setup-realdata.ps1`** — it breaks the vanilla ISO down from scratch using the app's own unpack toolchain (`ngciso-tool.py` → `bec-tool-all.py` → `Gladius_Units_IDX_Unpack.py`, the same commands `BatchContentBuilder` emits), byte-verifies the result against `clean-bec-unpacked` (0 missing / 0 extra / 0 diffs), and installs it into `bin/{Debug|Release}/net8.0-windows/win-x64/REALDATA_<name>/` plus a `vanilla.iso` hardlink. The vanilla ISO + `clean-bec-unpacked` are outside the repo; `bin/` is gitignored.
 - Integration fixture: `ModdingGUI.Tests/Integration/GameDataFixture.cs` points at `clean-bec-unpacked/`. Do not check large new fixtures into the repo.
@@ -112,7 +112,7 @@ All commands run from inside `ModdingGUI/` (that is where the `.sln` and the git
 - GitHub Releases are tag-based; the in-app updater fetches `https://api.github.com/repos/Gladius-Community-Devs/ModdingGUI/releases/latest` and downloads `ModdingGUI-{tag}.zip`.
 - Publish profile: `ModdingGUI/Properties/PublishProfiles/FolderProfile.pubxml` → `bin\Release\net8.0-windows\publish\win-x64\`, self-contained, single-file.
 - The only CI workflow (`ModdingGUI/.github/workflows/github-releases-to-discord.yml`) posts published releases to Discord. There is **no build/test CI**.
-- Users need the `tools/` folder (Python scripts + executables) alongside the exe.
+- The toolchain ships bundled: `tools/v009/tools_v009.exe` runs unpack/pack/script-compile, so **Python is optional**. A user-supplied `tools/` toolbelt is still honoured when present (that path is what `ToolchainMode.PythonScripts` means).
 
 ## Architecture Rules (locked — from PLAN.md)
 

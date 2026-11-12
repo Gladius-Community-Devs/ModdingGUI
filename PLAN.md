@@ -523,7 +523,7 @@ being discovered in game.
 **Phase 6 exit state (2026-11-05).** All slices landed: options + one seeded RNG, batch writes, hero loadouts,
 stat sets, item sets, team, encounters, recruits, script patches + compile, ProjectBuildService, the CLI verb,
 and the GUI panel. rmMain_partials/Randomizer.cs (2,166 lines of direct file edits) and its test harness are
-deleted. The feature-by-feature comparison against that file is docs/PHASE6_REVIEW.md; everything the old
+deleted. The feature-by-feature comparison against that file is docs/archive/PHASE6_REVIEW.md; everything the old
 randomizer could do is matched or exceeded, except in-game randomization, which is removed as an abandoned
 proof of concept. Manual QA for the phase is docs/testing/MANUAL_TESTING_PHASE_6.md.
 

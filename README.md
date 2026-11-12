@@ -4,17 +4,21 @@ A Windows-based graphical interface for modding tools that simplifies the unpack
 
 ## Features
 
-- **Unpack ISO Files**: Select an ISO file, specify a target directory, and unpack game files for modding.
-- **Pack Modified Files**: After making edits, repack the files back into an ISO format for deployment.
-- **Automated Batch File Creation**: Automatically generates and runs batch files to handle complex modding workflows.
-- **Process Output Logging**: Displays real-time logs in the interface for both unpacking and packing operations, with colored status messages to indicate success, errors, and informational messages.
-- **User-Friendly Interface**: Easy-to-use UI elements, including file and folder selectors, provide a streamlined experience for users with any technical background.
+- **Unpack / pack ISO files** into a modifiable project (`<name>_ISO` + `<name>_BEC`), with a live log and a `.mod-history` backup of every write.
+- **Item, skill and class editors** driven by catalogs, so values are chosen rather than typed.
+- **Encounter editor**: pick an encounter by region, town and league, then edit each unit row's 21 slots with guarded controls, real searchable unit picking, an attribute picker and a validator.
+- **Series editor**: a league's run of battles in play order, including the `TYPE` that decides whether units carry their health between stages, plus cloning a whole run into a new league.
+- **Grid builder**: paint start markers and passability on an arena's `.grd`, with a map overlay.
+- **Team builder**: build a unit from its class, gear and skills, and export a roster.
+- **Randomizer**, **patching** (xdelta), and **disc-image conversion** (ISO/RVZ/WIA/GCZ).
+- **Bundled toolchain**: the pack/unpack/script-compile tools ship as `tools/v009/tools_v009.exe`, so Python is *optional*.
+
+Every edit goes through `ModdingGUI.Core` (`IItemsApi`, `ISkillsApi`, `IEncountersApi`, `ILeaguesApi`, `IGridsApi`, ...), which is also what an MCP server and the UI driver talk to. See `docs/AGENTS.md` for the architecture rules and `docs/OPEN_ITEMS.md` for what is still unfinished.
 
 ## Prerequisites
 
-- **Python 3**: Required for running the underlying modding scripts. The application will check for Python 3 installation on startup. Make sure Python is added to your system PATH.
-- **Windows OS**: This application is designed for Windows environments.
-
+- **Windows** (the shell is WinForms).
+- **Python 3** is optional: the bundled toolchain covers unpack, pack and script compile. A `tools/` toolbelt and Python are used when present.
 ## Installation
 
 ### Option 1: For End Users

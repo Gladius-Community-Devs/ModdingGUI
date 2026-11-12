@@ -1,3 +1,12 @@
+// ---------------------------------------------------------------------------------------------------------------------
+// MODDER NOTES, recovered from Discord. Some of this is right, some is half-right, and some is wrong - treat every line as a
+// lead to verify against the engine or in game, not as fact. Where a claim has since been proven, the proof lives in
+// docs/DOL_FINDINGS.md.
+//
+// Known-correct claims: slot 8's affinity id 5 IS Fire (a single-row encounter test spawned Enestinus, a Fire gladiator).
+// Known-wrong claims: "slots 1-2 are min/max level" (those are slots 4-5; slot 2 is spawn chance) and the slot numbering
+// in the level note.
+// ---------------------------------------------------------------------------------------------------------------------
 Current changes:
 [DONE]Team Builder - Campaign mode - lets you select up to a max sized team, select their classes, and their names. 
 -> blacklist names that are found in enc and script files
