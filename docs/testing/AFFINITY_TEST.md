@@ -239,3 +239,51 @@ compiled `.scb` exports `OnInitBattle`, `OnStartBattle`, `OnExecBattle`, `OnSkir
 
 The `vanilla_control.iso` from the previous round (md5 `b75f6539.`) is still on disk and still useful: if revision 7 fails,
 that control says whether a fully vanilla battle inside this pack loads at all.
+
+## The id table is 0-based - settled in game
+
+Revision 7 put a **single** enemy row (id `1`, no control row) on the field and it spawned **Juventas**, which
+`data/units/gladiators.txt` lists as `Affinity: Earth`.
+
+With no unrestricted row in play there is nothing else the Earth unit can have come from, so:
+
+| id | affinity |
+|---|---|
+| 0 | Air |
+| 1 | **Earth** (observed: Juventas) |
+| 2 | Fire |
+| 3 | Water |
+| 4 | Light (no gladiator has it - never spawns) |
+| 5 | Dark |
+
+That is a straight 0-based index into the DOL's contiguous name block at `0x80489768` (`Air, Earth, Fire, Water, Light,
+Dark`), which is what the earlier fuzz run implied but could not prove: with the six-row build the observed set
+`{Air, Earth, Fire, Water, Dark}` fitted both a 0-based and a 1-based reading, because the unrestricted `-1` row supplied the
+sixth value. One row without a control removed that ambiguity.
+
+`devnotes.txt`'s "5 = fire" is wrong on both readings; there is no interpretation in which 5 is Fire.
+
+`docs/DOL_FINDINGS.md` line 121 said the base was still unproven; it is now proven from the game, not inferred from the DOL.
+
+Revision 8 (`29f593b7.`) puts a single row with id `0` on the field, the only id not yet observed, to confirm Air.
+
+## The load-end crash is still unexplained, and no longer blocks the data
+
+Revision 7 declared every entry point the corpus uses (`OnInitBattle`, `OnStartBattle`, `OnExecBattle`, `OnSkirmishEnd`,
+`OnKillBattle`, `OnExecComboMeter`) and still faulted at load end - so the missing `OnExecBattle` was not it either.
+
+What is now established, with the timing the owner supplied ("right as Press A to Continue appears" = battle starts executing):
+
+- vanilla tutorial script: no crash
+- our script (six different shapes, including one with no engine calls): crash
+- no script at all: crash
+
+The tutorial tooltips come from `data/config/scriptedscenes.tok`, which holds the whole "Ask Usus" sequence under the scene id
+`06V` (with moods `USS06U001`... and locations `06VA_G`, `06VH`). The sequence is not the battle script, but the battle is what
+plays it, and the sequence reaches into the battle at the "press to continue" step - which is where the null dereference
+happens (`FUN_800ef09c`, PC `0x800ef0ac`).
+
+The next probe is therefore to keep the vanilla `BATTLESCRIPT` name (`battle_scene06v.scp`) and change only its contents -
+name-based lookups stay intact while the tutorial dialogue is replaced by a script that defines every entry point and does
+nothing else. If that loads clean, the crash is a name-keyed lookup, and the fix is to overwrite the vanilla script rather
+than point at a new one.

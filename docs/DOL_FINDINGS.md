@@ -121,7 +121,7 @@ is why `EncounterUnitFields.SplitMask` exists.
 **Affinity names** sit as one contiguous block of strings at `0x80489768`: `Air`, `Earth`, `Fire`, `Water`, `Light`, `Dark`
 (each preceded by `None`, `Basic`, `Chain`, `Special`, `Attack` for other enums). The ids are therefore index-based in that
 order. `devnotes.txt` claims "5 would be fire", which does not fit that order, so the note is unverified; the base offset
-(`None` = 0 or 1 = `Air`) still needs pinning from the parser that reads `AFFINITY:` in `classdefs.tok`.
+(`None` = 0 or 1 = `Air`) was pinned in game: a single encounter row with id `1` spawned Juventas, an Earth-affinity gladiator, so the table is **0-based** (`0 = Air, 1 = Earth, 2 = Fire, 3 = Water, 4 = Light, 5 = Dark`). `devnotes.txt`'s "5 = fire" is wrong.
 
 ## The two runtime school tokens are data-resolvable - no DOL edit needed
 
