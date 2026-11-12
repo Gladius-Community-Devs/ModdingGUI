@@ -19,6 +19,10 @@ using ModdingGUI.Mcp.Server;
 [McpServerToolType]
 public sealed class HistoryTools(McpProject project)
 {
+    private const string NoValidator =
+        "accepted for uniformity: a restore is the undo action itself, so it has no validator to refuse it. It is " +
+        "still undoable — the live file is backed up before the restore replaces it.";
+
     /// <summary>Every backup.</summary>
     [McpServerTool(Name = "history_list_all", ReadOnly = true, Idempotent = true)]
     [Description(
@@ -52,7 +56,8 @@ public sealed class HistoryTools(McpProject project)
         "history_list_all / history_list_for returned. The live file is backed up first, so the restore is itself " +
         "undoable; a wrong restore is one history_restore away from being reversed.")]
     public object Restore(
-        [Description("Absolute path of the .bak file to restore.")] string backupPath) =>
+        [Description("Absolute path of the .bak file to restore.")] string backupPath,
+        [Description(NoValidator)] bool strict = false) =>
         ToolResult.Call(project, $"history_restore '{backupPath}'", () =>
             HistoryEntry.From(project.History.Restore(project.BecPath, backupPath)));
 
@@ -62,7 +67,8 @@ public sealed class HistoryTools(McpProject project)
         "Restore a backup given its full entry (timestamp, relativePath, backupPath, size) rather than just the " +
         "path — the form history_list_all returns. Same undoable semantics as history_restore.")]
     public object RestoreEntry(
-        [Description("The backup entry to restore.")] BackupEntry entry) =>
+        [Description("The backup entry to restore.")] BackupEntry entry,
+        [Description(NoValidator)] bool strict = false) =>
         ToolResult.Call(project, "history_restore_entry", () =>
             HistoryEntry.From(project.History.Restore(project.BecPath, entry)));
 }

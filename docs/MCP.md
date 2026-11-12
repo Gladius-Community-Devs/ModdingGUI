@@ -108,7 +108,7 @@ it), it makes `strict` unambiguous, and it means a relative path in a tool argum
 
 ## Strict mode
 
-Every write tool takes `strict` (default `false`).
+Every tool that edits project data takes `strict` (default `false`). The two that do not are the jobs (`project_pack`, `project_unpack`: their outcome is the `BuildResult`) and `logs_clear` (it clears the in-memory log, not a file).
 
 | | `strict: false` (default) | `strict: true` |
 |---|---|---|
