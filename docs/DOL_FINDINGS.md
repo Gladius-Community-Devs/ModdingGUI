@@ -308,3 +308,19 @@ Adding that card to a mod is three steps: put the page at `data/texture/gui/leag
 with `bec add`, and pack. `bec add` now also writes the path hash into the BEC folder's own `mod-hashes.txt`, which `unpack`
 reads, so the file unpacks under its real name. `bec remove` undoes all three: it deletes the file, drops the manifest entry and
 removes the hash line, so a removed image leaves nothing behind.
+
+### The card renders, but scrambled - the encoder is not faithful yet
+
+In game the custom card appears in the list and in the panel, with the right colours and the wrong geometry: the picture tears
+along 8-pixel steps, as if tiles were rotated or offset. Measured against a vanilla card, re-encoding a decoded vanilla image
+gives 36.2% identical bytes but **0 of 1024 identical 32-byte blocks**, so two separate things are unproven:
+
+1. the block order my encoder writes may not be the engine's order, even though it round-trips through `maps.py`'s decoder;
+2. the per-block compression is naive (endpoints from the darkest and brightest texel only), so blocks differ from the original
+   even when they are in the right place.
+
+Resolution is *not* the problem - the image is resized to the page's 256x256 and the page keeps its own declared geometry.
+
+The next step is a calibration card rather than another guess: encode a page whose every 8x8 tile is a distinct solid colour with
+one unambiguous marker tile, put it in the ISO, and read the true order off one screenshot. Until the encoder reproduces a vanilla
+card block-for-block, `bec add` should not be trusted with a hand-made texture.
