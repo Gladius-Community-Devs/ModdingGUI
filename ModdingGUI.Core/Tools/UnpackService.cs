@@ -17,7 +17,8 @@ public sealed record UnpackRequest(
     string ProjectName,
     string ProjectsFolder,
     string ToolsPath,
-    string PythonCommand = "python");
+    string PythonCommand = "python",
+    Toolchain? Toolchain = null);
 
 /// <summary>
 /// Unpacks an ISO into a project folder without a WinForms control in the path.
@@ -45,7 +46,7 @@ public sealed class UnpackService
         ArgumentNullException.ThrowIfNull(request);
         return BatchContentBuilder.BuildUnpackSteps(
             request.IsoPath, request.ProjectName, request.ProjectsFolder,
-            request.ToolsPath, request.PythonCommand);
+            request.Toolchain ?? Toolchain.PythonScripts(request.ToolsPath, request.PythonCommand));
     }
 
     /// <summary>The project folder an <see cref="UnpackRequest"/> describes.</summary>
@@ -97,6 +98,19 @@ public sealed class UnpackService
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
             return Fail($"unpack failed: {ex.Message}");
+        }
+
+        // Record what the derived-binary steps were fed, so a pack can skip regenerating them while the text is untouched.
+        if (result.Succeeded)
+        {
+            try
+            {
+                DerivedToolState.Capture(projectFolder, Path.Combine(projectFolder, $"{request.ProjectName}_BEC"));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                _log?.Write(LogLevel.Warning, _scope, $"Could not record the derived-file baseline: {ex.Message}");
+            }
         }
 
         _log?.Write(

@@ -61,6 +61,12 @@
       <Link>tools\nkit\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="tools_v009\dist\tools_v009\**\*">
+      <!-- The bundled toolchain: tools_v009.exe carries its own Python, so modding needs no interpreter installed.
+           Copied to tools\v009 beside the exe, which is where Toolchain.BundledExecutableIn looks for it. -->
+      <Link>tools\v009\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="skills\skills_catalog.json">
       <Link>skills\skills_catalog.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

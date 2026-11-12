@@ -35,6 +35,19 @@ namespace ModdingGUI
         /// </summary>
         private const string PythonCommand = "python";
 
+
+        private Toolchain? _toolchain;
+
+        /// <summary>
+        /// The toolchain every build runs against: the bundled <c>tools/v009/tools_v009.exe</c> when it is installed,
+        /// otherwise the Python scripts in <c>tools/</c>.
+        /// </summary>
+        /// <remarks>
+        /// The bundled executable carries its own interpreter, so a user does not need Python at all. The scripts stay as
+        /// the fallback for a developer tree with no exe built, and both produce byte-identical output: a vanilla
+        /// unpack/repack round-trips the ISO, which scripts/validate-toolchain.ps1 checks.
+        /// </remarks>
+        private Toolchain Toolchain => _toolchain ??= Toolchain.Choose(GetAppDirectory(), ToolbeltDirectory(), PythonCommand);
         /// <summary>Unpack <paramref name="isoPath"/> into a project named <paramref name="projectName"/>.</summary>
         private async Task<BuildResult> RunUnpackAsync(string isoPath, string projectName, RichTextBox? target = null)
         {
@@ -66,7 +79,7 @@ namespace ModdingGUI
             try
             {
                 var request = new UnpackRequest(
-                    prepared.IsoPath, projectName, ProjectsFolder(), ToolbeltDirectory(), PythonCommand);
+                    prepared.IsoPath, projectName, ProjectsFolder(), ToolbeltDirectory(), PythonCommand, Toolchain);
 
                 SaveToolCommandsOnce(UnpackService.ProjectFolderOf(request), UnpackService.Steps(request), "unpack");
 
@@ -90,7 +103,7 @@ namespace ModdingGUI
         /// <summary>Pack <paramref name="projectFolder"/> into its ISO.</summary>
         private async Task<BuildResult> RunPackAsync(string projectFolder, RichTextBox? target = null)
         {
-            var request = new PackRequest(projectFolder, ToolbeltDirectory(), PythonCommand);
+            var request = new PackRequest(projectFolder, ToolbeltDirectory(), PythonCommand, Toolchain);
 
             SaveToolCommandsOnce(projectFolder, PackService.Steps(request), "pack");
 

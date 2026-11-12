@@ -10,7 +10,7 @@ using ModdingGUI.Core.Logging;
 /// <param name="ProjectPath">Project folder (the one holding <c>_BEC</c> and <c>_ISO</c>).</param>
 /// <param name="ToolsPath">Folder holding the Python toolbelt scripts and the script compiler.</param>
 /// <param name="PythonCommand">Interpreter command line, e.g. <c>python</c> or <c>py -3</c>.</param>
-public sealed record PackRequest(string ProjectPath, string ToolsPath, string PythonCommand = "python");
+public sealed record PackRequest(string ProjectPath, string ToolsPath, string PythonCommand = "python", Toolchain? Toolchain = null);
 
 /// <summary>
 /// Packs a project into an ISO without a WinForms control in the path.
@@ -45,7 +45,7 @@ public sealed class PackService
     {
         ArgumentNullException.ThrowIfNull(request);
         return BatchContentBuilder.BuildPackSteps(
-            request.ProjectPath, request.ToolsPath, request.PythonCommand);
+            request.ProjectPath, request.Toolchain ?? Toolchain.PythonScripts(request.ToolsPath, request.PythonCommand));
     }
 
     /// <summary>Run the pack chain and wait for it.</summary>
@@ -76,7 +76,22 @@ public sealed class PackService
         BuildResult result;
         try
         {
-            result = new ToolRunner(_log, _scope).Run(Steps(request), cancellationToken);
+            IReadOnlyList<ToolStep> steps = Steps(request);
+
+        // Regenerating the derived binaries only pays off when their source text changed: the tokenizer is not a byte-exact
+        // inverse of the vanilla build, so an unedited project would otherwise lose its byte-identical round trip. See
+        // DerivedToolState for the measurements.
+        string becFolder = Path.Combine(project, $"{Path.GetFileName(project)}_BEC");
+        if (DerivedToolState.SourcesUnchanged(project, becFolder))
+        {
+            int before = steps.Count;
+            steps = DerivedToolState.WithoutDerivedSteps(steps);
+            _log?.Write(LogLevel.Info, _scope,
+                $"skills.tok and lookuptext text are unchanged since unpack: skipping {before - steps.Count} derived-binary " +
+                "step(s) so the repack stays byte-identical.");
+        }
+
+        result = new ToolRunner(_log, _scope).Run(steps, cancellationToken);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {

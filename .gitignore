@@ -32,3 +32,5 @@ CLAUDE.md
 # Skills catalog sources (copyrighted game data — never commit)
 skills/*.tok
 
+# Built toolchain exe: produce it with scripts/build-tools-v009.ps1
+tools_v009/dist/

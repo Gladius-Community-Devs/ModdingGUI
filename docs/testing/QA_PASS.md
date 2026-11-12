@@ -902,3 +902,54 @@ and timestamp (or hash) are unchanged by copying their byte ranges straight into
 that actually changed. The write side stays (431 MB archive, 1.4 GB ISO), but the 27,305 file opens and 456 MB of source
 reads collapse to the handful of edited files - seconds rather than a minute, cold. `scripts/bench-pack.ps1` measures the
 current baseline so the gain can be checked rather than assumed.
+
+## 35. Toolchain v009: the bundled exe, and a vanilla round trip that is finally byte-identical
+
+The app can now run entirely on `tools/v009/tools_v009.exe`, which carries its own Python, so a user installs nothing.
+`Toolchain.Choose` prefers the exe and falls back to the `tools/` scripts for a developer tree without one;
+`Toolchain.RequiresPython` is what the startup gate asks, so the "install Python" dialog only appears when the scripts are
+actually going to be used.
+
+### What the exe was validated against
+
+`scripts/validate-toolchain.ps1 -Iso <vanilla.iso> -Tool exe -Exe <exe> -WorkRoot <writable dir>` runs the whole pipeline and
+checks the invariants that matter. Against `vanilla.iso` (md5 `a78d6e1c.`):
+
+| Check | Result |
+|---|---|
+| `gladius.bec` after unpack -> repack | byte-identical to the archive inside the ISO |
+| ISO after a full unpack -> pack | **md5 `a78d6e1c9de69886ce827ad2a7507339`, identical to vanilla** |
+| `data/units/*.txt` in the packed archive | **0** (generated at unpack, compiled into the `.idx` files, skipped by the pack) |
+| unpacked tree vs `clean-bec-unpacked` | every content hash matches; 241 paths differ (v008.3's descriptive renames) |
+
+Same result through the app: `ModdingGUI.exe --unpack vanilla.iso v009check` then `--pack v009check` produced an ISO with
+md5 `a78d6e1c.`.
+
+### Two defects found and fixed while validating
+
+1. **`tools_v008`'s checksum was the pack hot spot.** `bec.py computeDataChecksum` was a per-byte CRC loop in Python: 24,453
+   calls took **92 of 103 seconds** of a pack. `zlib.crc32(data, 0xFFFFFFFF) ^ 0xFFFFFFFF` is the same function in C.
+   v009 (the fix) packs in **4.8 s** against v008's 52-68 s and v007's 8.4 s, with byte-identical output
+   (`verify_vs_v008.py` prints both hashes and compares them). `tools_v008.exe` and `python tools_v008.py` were the same
+   speed, and `--threads 1` was within noise, so the bundle and the core count were not involved.
+2. **The derived-binary steps could never round-trip.** `toknum`, `tok compress` and `strings` regenerate skills and
+   lookuptext binaries from text, and the tokenizer is not a byte-exact inverse of the vanilla build: recompressing vanilla
+   `skills.tok` gives the same 44,351-byte `.brf` with a **different hash**, and v007 and v009 agree with each other, so it
+   is the format, not one toolchain. That is why a vanilla round trip was never hash-identical before. `DerivedToolState`
+   records the source hashes at unpack and `PackService` skips those three steps while the text is untouched; edit
+   `skills.tok` or a `lookuptext_*.txt` and they run again. The manifest lives in the **project** folder, never `_BEC`.
+
+### Also fixed in v009 (it inherited both from v007)
+
+- `iso unpack` prefixed an absolute output-filelist path with the output folder, producing `<dir>/C:` and an `OSError` -
+  every file was written and the step still exited 1.
+- `hashes.txt` was only looked for in the package's parent, so a package with the table beside its modules resolved every
+  path to `unknown-<tag>-0x.` instead of `data/units/unitschools.idx`.
+
+### Notes for the next person
+
+- Build the exe with `scripts/build-tools-v009.ps1` (`--onedir`: a `--onefile` build could not create its `%TEMP%`
+  extraction directory on this machine, and the app never needs a single file).
+- The exe refuses to write into `%TEMP%` here (Defender), which is why the validation harness takes `-WorkRoot`.
+- Map PNGs still come from the Python converter, so a Python-free install unpacks without Grid Builder map images; that is
+  the one remaining script in the unpack path.

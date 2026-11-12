@@ -366,7 +366,8 @@ public sealed class CliInvocation
                 return 2;
             }
 
-            BuildResult pack = new PackService(log).Pack(new PackRequest(project, tools, python));
+            BuildResult pack = new PackService(log).Pack(
+            new PackRequest(project, tools, python, Toolchain.Choose(AppContext.BaseDirectory, tools, python)));
             Console.WriteLine($"[pack] {(pack.Succeeded ? "ok" : $"failed (exit {pack.ExitCode})")}");
             return pack.Succeeded ? 0 : 1;
         }
@@ -379,7 +380,8 @@ public sealed class CliInvocation
         }
 
         var unpackRequest = new UnpackRequest(
-            iso, ProjectName!, EnsureSeparator(workingRoot), tools, python);
+            iso, ProjectName!, EnsureSeparator(workingRoot), tools, python,
+            Toolchain.Choose(AppContext.BaseDirectory, tools, python));
 
         BuildResult unpack = new UnpackService(log).Unpack(unpackRequest);
         Console.WriteLine($"[unpack] {(unpack.Succeeded ? "ok" : $"failed (exit {unpack.ExitCode})")}");

@@ -70,58 +70,79 @@ public static class BatchContentBuilder
         string projectsFolder,
         string toolsDirectory,
         string pythonCommand = "python")
+        => BuildUnpackSteps(isoPath, projectName, projectsFolder, Toolchain.PythonScripts(toolsDirectory, pythonCommand));
+
+    /// <summary>As above, but against a chosen <see cref="Toolchain"/> (bundled exe or the Python scripts).</summary>
+    public static IReadOnlyList<ToolStep> BuildUnpackSteps(
+        string isoPath,
+        string projectName,
+        string projectsFolder,
+        Toolchain toolchain)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(isoPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(projectName);
         ArgumentException.ThrowIfNullOrWhiteSpace(projectsFolder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(toolsDirectory);
 
         string topLevelFolder = PathHelper.NormalizePath(
             PathHelper.EnsureTrailingSeparator(Path.Combine(projectsFolder, projectName)));
-        string toolsPath = toolsDirectory;
-        string ngcisoToolPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "ngciso-tool.py"));
         string isoFolder = PathHelper.NormalizePath(
             PathHelper.EnsureTrailingSeparator(Path.Combine(topLevelFolder, $"{projectName}_ISO")));
-        string becToolPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "bec-tool-all.py"));
-        string becInputPath = PathHelper.NormalizePath(Path.Combine(isoFolder, "gladius.bec"));
         string becFolder = PathHelper.NormalizePath(
             PathHelper.EnsureTrailingSeparator(Path.Combine(topLevelFolder, $"{projectName}_BEC")));
-        string unitsUnpackToolPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "Gladius_Units_IDX_Unpack.py"));
+        string becInputPath = PathHelper.NormalizePath(Path.Combine(isoFolder, "gladius.bec"));
         string dataFolder = PathHelper.NormalizePath(
             PathHelper.EnsureTrailingSeparator(Path.Combine(becFolder, "Data")));
         string fileListName = $"{projectName}_FileList.txt";
 
-        // The tools were written expecting forward slashes (the app has always normalised paths for them), and
-        // nothing here needs the Windows form: the argument reaches Python byte for byte.
-        var steps = new List<ToolStep>
-        {
-            ToolStep.PythonIn(topLevelFolder, pythonCommand, ngcisoToolPath,
-                "-unpack", PathHelper.NormalizePath(isoPath), isoFolder, fileListName),
-            ToolStep.PythonIn(topLevelFolder, pythonCommand, becToolPath,
-                "--platform", "GC", "-unpack", becInputPath, becFolder),
-            ToolStep.PythonIn(topLevelFolder, pythonCommand, unitsUnpackToolPath, dataFolder),
-        };
+        var steps = new List<ToolStep>();
 
-        // Arena maps for the Grid Builder's overlay. The BEC unpack above is what extracts the texture pages, and the
-        // converter writes PNGs to <project>/maps - deliberately outside _BEC, because the packer walks that whole tree
-        // and would ship the images inside the ISO.
-        string mapConverterPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "pttp_tga.py"));
-        if (File.Exists(mapConverterPath))
+        if (toolchain.Mode == ToolchainMode.BundledExecutable)
         {
+            string exe = toolchain.ExecutablePath!;
+
+            // v009 subcommands. Same three jobs as the script chain, with the interpreter inside the exe.
+            steps.Add(ExecutableStep(topLevelFolder, exe, "iso unpack",
+                "iso", "unpack", PathHelper.NormalizePath(isoPath), isoFolder, fileListName));
+            steps.Add(ExecutableStep(topLevelFolder, exe, "bec unpack",
+                "bec", "unpack", becInputPath, becFolder, "--platform", "GC"));
+            steps.Add(ExecutableStep(topLevelFolder, exe, "idx unpack",
+                "idx", "unpack", dataFolder));
+        }
+        else
+        {
+            string toolsPath = toolchain.ScriptsFolder;
+            string pythonCommand = toolchain.PythonCommand;
+            string ngcisoToolPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "ngciso-tool.py"));
+            string becToolPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "bec-tool-all.py"));
+            string unitsUnpackToolPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "Gladius_Units_IDX_Unpack.py"));
+
+            // The tools were written expecting forward slashes (the app has always normalised paths for them), and
+            // nothing here needs the Windows form: the argument reaches Python byte for byte.
+            steps.Add(ToolStep.PythonIn(topLevelFolder, pythonCommand, ngcisoToolPath,
+                "-unpack", PathHelper.NormalizePath(isoPath), isoFolder, fileListName));
+            steps.Add(ToolStep.PythonIn(topLevelFolder, pythonCommand, becToolPath,
+                "--platform", "GC", "-unpack", becInputPath, becFolder));
+            steps.Add(ToolStep.PythonIn(topLevelFolder, pythonCommand, unitsUnpackToolPath, dataFolder));
+
+            // Arena maps for the Grid Builder overlay: the Python converter the toolbelt ships. The bundled exe has no
+            // equivalent yet, so a Python-free install unpacks without map PNGs (documented in docs/UI_AUTOMATION.md).
+            string mapConverterPath = PathHelper.NormalizePath(Path.Combine(toolsPath, "pttp_tga.py"));
             string mapSourceFolder = PathHelper.NormalizePath(
                 Path.Combine(becFolder, "data", "texture", "gui", "maps"));
-            string mapOutputFolder = PathHelper.NormalizePath(
-                Path.Combine(topLevelFolder, "maps"));
-
-            if (Directory.Exists(mapSourceFolder))
+            if (File.Exists(mapConverterPath) && Directory.Exists(mapSourceFolder))
             {
                 steps.Add(ToolStep.PythonIn(topLevelFolder, pythonCommand, mapConverterPath,
-                    "--png", PathHelper.NormalizePath(mapSourceFolder), mapOutputFolder));
+                    "--png", mapSourceFolder,
+                    PathHelper.NormalizePath(Path.Combine(topLevelFolder, "maps"))));
             }
         }
 
         return steps;
     }
+
+    /// <summary>One step that runs the bundled tool executable with a subcommand.</summary>
+    private static ToolStep ExecutableStep(string workingDirectory, string executable, string label, params string[] arguments)
+        => new ToolStep(label, executable, arguments, workingDirectory);
 
     /// <summary>
     /// The pack chain: unit indexes, skills strings, unit strings, BEC archive, then the ISO.
@@ -133,10 +154,13 @@ public static class BatchContentBuilder
         string projectFolder,
         string toolsDirectory,
         string pythonCommand = "python")
+        => BuildPackSteps(projectFolder, Toolchain.PythonScripts(toolsDirectory, pythonCommand));
+
+    /// <summary>As above, but against a chosen <see cref="Toolchain"/> (bundled exe or the Python scripts).</summary>
+    public static IReadOnlyList<ToolStep> BuildPackSteps(string projectFolder, Toolchain toolchain)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(projectFolder);
-        ArgumentException.ThrowIfNullOrWhiteSpace(toolsDirectory);
-
+        ArgumentNullException.ThrowIfNull(toolchain);
         string project = projectFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         string baseName = Path.GetFileName(project);
         if (string.IsNullOrEmpty(baseName))
@@ -145,7 +169,8 @@ public static class BatchContentBuilder
         // The chain runs from the project's parent, which is where the tools were always run from.
         string workingRoot = Path.GetDirectoryName(project) ?? project;
 
-        string toolsPath = PathHelper.EnsureTrailingSeparator(toolsDirectory);
+        string toolsPath = PathHelper.EnsureTrailingSeparator(toolchain.ScriptsFolder);
+        string pythonCommand = toolchain.PythonCommand;
         string becFolder = PathHelper.NormalizePath(
             PathHelper.EnsureTrailingSeparator(Path.Combine(project, $"{baseName}_BEC")));
         string isoFolder = PathHelper.NormalizePath(
@@ -174,6 +199,26 @@ public static class BatchContentBuilder
         string fstBinPath = PathHelper.NormalizePath(Path.Combine(isoFolder, "fst.bin"));
         string gladiusFileListPath = PathHelper.NormalizePath(
             Path.Combine(isoFolder, $"{baseName}_FileList.txt"));
+
+        if (toolchain.Mode == ToolchainMode.BundledExecutable)
+        {
+            string exe = toolchain.ExecutablePath!;
+
+            // Same six jobs as the script chain, expressed as v009 subcommands. Arguments that were relative in the
+            // script chain (the ISO file list name) stay relative to the working root on purpose.
+            return new[]
+            {
+                ExecutableStep(workingRoot, exe, "toknum", "toknum", dataConfigFolder),
+                ExecutableStep(workingRoot, exe, "tok compress", "tok", "compress",
+                    skillsTokPath, skillsStringsBinPath, skillsLinesBinPath, skillsTokBrfPath),
+                ExecutableStep(workingRoot, exe, "strings", "strings", dataConfigFolder, "eng"),
+                ExecutableStep(workingRoot, exe, "idx repack", "idx", "repack", dataFolder),
+                ExecutableStep(workingRoot, exe, "bec pack", "bec", "pack",
+                    becFolder, becFilePath, fileListPath, "--platform", "GC"),
+                ExecutableStep(workingRoot, exe, "iso pack", "iso", "pack",
+                    isoFolder, fstBinPath, gladiusFileListPath, isoFile),
+            };
+        }
 
         return new[]
         {

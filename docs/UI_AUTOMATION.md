@@ -230,3 +230,16 @@ file/team/unit indices and raw rows, and validates rows with `EncounterUnit.TryP
 | `validate` | `path` | `teams`, `units`, `problems` (`row-does-not-parse`) |
 
 `project` defaults to the project selected in the tree, so a scenario rarely needs to pass it.
+
+## Toolchain (bundled exe vs Python scripts)
+
+Every build runs through `ModdingGUI.Core.Tools.Toolchain`:
+
+- **Bundled (default when present):** `tools/v009/tools_v009.exe`, subcommands `bec/idx/tok/toknum/strings/iso`. Carries its
+  own Python, so nothing has to be installed.
+- **Scripts (fallback):** the v007 `tools/*.py` chain, needs `python` on PATH.
+
+`Toolchain.Choose(applicationDirectory, scriptsFolder)` picks, `RequiresPython` drives the startup gate, and
+`scripts/validate-toolchain.ps1` proves both produce a byte-identical ISO from a vanilla unpack. When the source text of the
+derived binaries is untouched, `PackService` skips `toknum`/`tok compress`/`strings` (`DerivedToolState`) so an unedited
+project repacks byte-identically.

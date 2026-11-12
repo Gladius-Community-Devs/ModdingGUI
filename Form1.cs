@@ -38,12 +38,26 @@ namespace ModdingGUI
             UiHelp.EnableTabScrolling(this);
             UiHelp.FixPackingFooter(this);
 
-            // Check if Python 3 is installed on the system
-            if (!IsPythonInstalled())
+            // Python is only needed by the fallback toolchain. The bundled tools_v009.exe carries its own interpreter, so a
+            // user with no Python at all gets the full unpack/pack/randomizer path; the two features that still run a
+            // script (map PNG conversion and campaign script compiling) are reported rather than blocking startup.
+            if (Toolchain.RequiresPython && !IsPythonInstalled())
             {
                 // Display a message box if Python 3 is not installed
                 MessageBox.Show("Python is either not installed or not in PATH. Please fix this to use the program!\nhttps://www.python.org/downloads/ \nDuring install, check the box labelled 'Add python.exe to PATH'");
                 Environment.Exit(0); // Exit the application
+            }
+
+            AppendLog(
+                Toolchain.RequiresPython
+                    ? "Toolchain: Python scripts in tools/ (bundled tools_v009.exe not found)."
+                    : "Toolchain: bundled tools_v009.exe - no Python installation needed.",
+                InfoColor);
+
+            if (!IsPythonInstalled())
+            {
+                AppendLog("Python was not found. Unpack, pack and randomization work; map PNGs and campaign script " +
+                    "compiling need the Python toolbelt.", WarningColor);
             }
             _gridBuilderView = new GridBuilderView { Log = _log };
             tabGridBuilder.Controls.Add(_gridBuilderView);
