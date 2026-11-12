@@ -119,3 +119,41 @@ constructs the corpus proves work (a `for ... to ... step` loop, a nested functi
 - `battle_apitest.scp` (revision 3) compiles to a 1,016-byte `.scb` and reports `APITEST lang-ok` in a talk box.
 - The grid has four single-cell start markers (`Start1..Start4`); this grid has no fifth slot, which is why the six-row
   positional idea was abandoned - the props sit on `Start3`/`Start4` anyway.
+
+## Revision 4: the crash is the talk box during init
+
+Revision 3 crashed again (same PC `0x800ef0ac`, address `0x000000D0` instead of `0x0000010C`) and the battle then completed
+instantly: the aborted setup left the enemy team empty, which the game reads as an immediate win. So the crash aborts
+encounter setup, and the "no unit spawned" symptom is a consequence, not a separate problem.
+
+What is left in revision 3 that could marshal an argument badly? One thing: the talk box.
+
+```
+for / nested function / gb.CreateTalkBox(40.0, 10.0, "Usus", "Usus.tga")   <- in OnInitBattle
+```
+
+Every `CreateTalkBox` in the entire corpus is inside **`OnExecBattle`** - 695 scripts, not one call from `OnInitBattle` (the
+only talk-box call init ever makes is `LoadTalkBoxSoundTable`, which just registers samples). The battle UI does not exist
+when init runs, so creating a box there hands the marshaller a null interface and it dereferences offset `0xD0`, exactly the
+address Dolphin printed.
+
+Revision 4 therefore makes **no engine call at all**: a `for ... to ... step` loop with arithmetic and a nested function,
+storing the results in `shared` variables. Nothing else.
+
+### Revision 4 build
+
+`demo_hero.iso`, 1,392.4 MB, md5 `a9bc3ae571b1986b79d0ed08eb2cfd61`.
+
+- `battle_apitest.scp` revision 4 compiles to a 708-byte `.scb`; the disassembly contains only `FOR`/`NEXT_SYM`/`SKIP`,
+  arithmetic, `FUNCLABEL` and symbol pushes - no `CALLFUNC` to any interface.
+- Team 1 is one row: id `1`, chance 100, `Start1`.
+- No script index file exists (`data/script` has 695 `.scp` and 695 `.scb`, no `.idx`), so the engine resolves the script by
+  its path hash inside the archive - which the packer wrote.
+
+### What each outcome means
+
+| Result | Meaning |
+|---|---|
+| loads clean, one enemy spawns | the crash was the talk box; the enemy's name gives id 1's affinity, hence the id base |
+| loads clean, no enemy spawns | the script is fine and the id-1 pool is empty, which would point at a different id base than expected |
+| crashes again | not the talk box: next suspect is the script mechanism itself, and the test becomes "recompile a vanilla battle script and ship that" to separate compiler output from new language features |
