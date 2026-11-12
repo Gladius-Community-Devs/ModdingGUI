@@ -220,3 +220,20 @@ being unable to leave a run is league progression.
 Experiment in `demo_hero` (ISO `series_test.iso`, md5 `f2a0f98f85551b85780c374c739e91bd`): Agony of Saturno keeps stages 1 and 4
 as `Series` and flips stages 2 and 3 to `Endurance`, so the transition after battle 2 can be compared against the known
 behaviour of battle 1.
+
+### A run must not mix types - tested in game
+
+Flattening two stages of a four-stage run to `Endurance` (the rest left `Series`) made the game **return the player to the League
+Office after the first battle** instead of continuing the run. Nothing in the data warns about this: the league file simply
+lists stages, and each stage carries its own `TYPE`.
+
+Two consequences for the editor:
+
+- the test build now flips the **whole** Agony of Saturno run (4 stages) to `Endurance` instead of half of it. A homogeneous
+  run is the only shape vanilla ever ships - every one of the 18 `Endurance` leagues uses that type on every stage - so mixing
+  is not something the engine supports, not something to expose quietly;
+- the Series tab now says so: it compares the stage types of the selected run and warns when they disagree, quoting the in-game
+  result.
+
+The other thing the owner established: **a run always starts at its first battle**. There is no starting at stage 3, so the
+order in the editor is the progression, and a test that wants stage 2 must play stage 1 first.

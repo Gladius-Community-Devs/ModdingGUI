@@ -69,6 +69,7 @@ public sealed class SeriesEditorView : UserControl
     private NumericUpDown _entryFee = null!;
     private Label _teamsHint = null!;
     private Label _typeHint = null!;
+    private Label? _typeConsistency;
 
     /// <summary>Where messages go.</summary>
     public IAppLog? Log { get; init; }
@@ -269,6 +270,41 @@ public sealed class SeriesEditorView : UserControl
 
     private string LeagueRelativePath => $"{LeagueRoot}/{_arena.ToLowerInvariant()}_leagues.tok";
 
+    /// <summary>
+    /// Warn when the stages of a run disagree about their type.
+    /// </summary>
+    /// <remarks>
+    /// Tested in game: a four-stage Series run with two stages flipped to Endurance sent the player back to the League Office
+    /// after the first battle instead of continuing. Vanilla never mixes types inside one league, so the editor says so rather
+    /// than letting a modder discover it by losing the run.
+    /// </remarks>
+    private void UpdateTypeConsistency()
+    {
+        if (_typeConsistency is null) return;
+
+        if (_league is null || _league.Encounters.Count < 2)
+        {
+            _typeConsistency.Text = string.Empty;
+            return;
+        }
+
+        var types = _league.Encounters
+            .Select(stage => stage.Value("TYPE")?.Trim().Trim('"') ?? string.Empty)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (types.Count <= 1)
+        {
+            _typeConsistency.Text = "All stages share one type, which is how every vanilla run is built.";
+            _typeConsistency.ForeColor = UiTheme.Info;
+            return;
+        }
+
+        _typeConsistency.Text = $"This run mixes types ({string.Join(", ", types.Select(t => t.Length == 0 ? "(none)" : t))}). "
+            + "A mixed Series/Endurance run was tested in game and returned the player to the League Office after the first "
+            + "battle, so keep a run to one type.";
+        _typeConsistency.ForeColor = UiTheme.Warning;
+    }
     private void RefreshStages()
     {
         _stages.BeginUpdate();
@@ -291,6 +327,8 @@ public sealed class SeriesEditorView : UserControl
         {
             _stages.EndUpdate();
         }
+
+        UpdateTypeConsistency();
 
         _stageIndex = _league?.Encounters.Count > 0 ? 0 : -1;
         if (_stages.Items.Count > 0) _stages.SelectedIndex = 0;
@@ -477,6 +515,14 @@ public sealed class SeriesEditorView : UserControl
             ForeColor = UiTheme.Info,
         };
 
+        _typeConsistency = new Label
+        {
+            Name = "lblSeriesTypes",
+            Dock = DockStyle.Top,
+            Height = UiTheme.Scale(this, 34),
+            ForeColor = UiTheme.Info,
+        };
+
         _status = new Label
         {
             Name = "lblSeriesStatus",
@@ -489,6 +535,8 @@ public sealed class SeriesEditorView : UserControl
         host.Controls.Add(_teamsHint);
         host.Controls.Add(_typeHint);
         host.Controls.Add(bar);
+        host.Controls.Add(_typeConsistency);
+        host.Controls.Add(_typeConsistency);
         host.Controls.Add(_status);
         return host;
     }
