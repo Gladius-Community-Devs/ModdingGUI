@@ -32,7 +32,10 @@ public static class ArenaCatalog
         IReadOnlyList<string> Grids);
 
     /// <summary>One league in an arena, with the encounters it lists (project-relative paths).</summary>
-    public sealed record LeagueEntry(string Name, IReadOnlyList<string> EncounterPaths);
+    /// <param name="Name">Internal name the file uses, e.g. <c>Apprentice Open League</c>.</param>
+    /// <param name="EncounterPaths">The league's <c>ENCFILE</c>s as <c>data/encounters/...</c> paths.</param>
+    /// <param name="DisplayName">Name the game shows, e.g. <c>Civilis League of Pirgos</c>; null when unknown.</param>
+    public sealed record LeagueEntry(string Name, IReadOnlyList<string> EncounterPaths, string? DisplayName = null);
 
     /// <summary>Every arena in the project, in world.tok order.</summary>
     public static IReadOnlyList<ArenaEntry> Arenas(string projectPath)
@@ -109,11 +112,12 @@ public static class ArenaCatalog
         // A league block runs from its LEAGUE line to the next one; its encounters are the ENCFILE lines inside it.
         // Scanning the text beats a cursor here: a block mixes LEAGUE, ENCOUNTER, ENCFILE and ~20 other keys.
         string text = File.ReadAllText(path);
+        IReadOnlyDictionary<int, string> lookup = LookupText(bec);
         var leagues = new List<LeagueEntry>();
 
         foreach (System.Text.RegularExpressions.Match block in System.Text.RegularExpressions.Regex.Matches(
                      text,
-                     "^LEAGUE\\s+\"(?<name>[^\"]+)\"(?<body>[\\s\\S]*?)(?=^LEAGUE\\s|\\z)",
+                     "^LEAGUE\\s+\"(?<name>[^\"]+)\"(?:\\s*,\\s*(?<id>\\d+))?(?<body>[\\s\\S]*?)(?=^LEAGUE\\s|\\z)",
                      System.Text.RegularExpressions.RegexOptions.Multiline))
         {
             string name = block.Groups["name"].Value;
@@ -128,7 +132,15 @@ public static class ArenaCatalog
                 files.Add("data/encounters/" + file.Groups["file"].Value.Replace('\\', '/'));
             }
 
-            leagues.Add(new LeagueEntry(name, files));
+            // The league's own display name is another lookup id:
+            //   LEAGUE "Apprentice Open League", 2179   ->   2179 = "Civilis League of Pirgos"
+            string? display = null;
+            if (int.TryParse(block.Groups["id"].Value, out int leagueId) && lookup.TryGetValue(leagueId, out string? leagueName))
+            {
+                display = leagueName;
+            }
+
+            leagues.Add(new LeagueEntry(name, files, display));
         }
 
         return leagues;
@@ -209,5 +221,33 @@ public static class ArenaCatalog
     }
 
     private static readonly Dictionary<string, IReadOnlyDictionary<string, string>> DisplayNameCache =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Localised text table for a BEC folder, read once per process.</summary>
+    private static IReadOnlyDictionary<int, string> LookupText(string bec)
+    {
+        string key = Path.GetFullPath(bec);
+
+        lock (LookupCache)
+        {
+            if (LookupCache.TryGetValue(key, out IReadOnlyDictionary<int, string>? cached)) return cached;
+        }
+
+        IReadOnlyDictionary<int, string> table;
+        try
+        {
+            table = new LookupTextApi().Load(bec);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException
+                                       or ArgumentException or FormatException)
+        {
+            table = new Dictionary<int, string>();
+        }
+
+        lock (LookupCache) LookupCache[key] = table;
+        return table;
+    }
+
+    private static readonly Dictionary<string, IReadOnlyDictionary<int, string>> LookupCache =
         new(StringComparer.OrdinalIgnoreCase);
 }

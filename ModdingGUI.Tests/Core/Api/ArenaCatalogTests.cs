@@ -76,4 +76,17 @@ public sealed class ArenaCatalogTests
         Assert.True(names.Count > 0, "no display names resolved at all");
         Assert.Equal("Open Battle I", names["battle1"]);
     }
+
+    [Fact]
+    public void Leagues_CarryTheNameTheGameShows()
+    {
+        if (!Ready) return;
+
+        // The arena screen says "Civilis League of Pirgos"; the file calls the league "Apprentice Open League" and carries
+        // the display name as a lookup id (LEAGUE "Apprentice Open League", 2179 -> 2179 = "Civilis League of Pirgos").
+        var open = ArenaCatalog.Leagues(Project, "pirgosarena")
+            .Single(l => l.Name == "Apprentice Open League");
+
+        Assert.Equal("Civilis League of Pirgos", open.DisplayName);
+    }
 }

@@ -142,6 +142,12 @@ public sealed class EncounterEditorView : UserControl
         return host;
     }
 
+    /// <summary>One league in the picker: what the game calls it, and what the file calls it.</summary>
+    private sealed record LeagueItem(string Display, string Name)
+    {
+        public override string ToString() => Display;
+    }
+
     /// <summary>One encounter in the picker: what it is called, and the file behind it.</summary>
     private sealed record EncounterItem(string Display, string Path)
     {
@@ -188,14 +194,21 @@ public sealed class EncounterEditorView : UserControl
     private void OnTownChanged()
     {
         _league.Items.Clear();
-        _league.Items.Add(AllLeagues);
+        _league.Items.Add(new LeagueItem(AllLeagues, AllLeagues));
 
         ArenaCatalog.ArenaEntry? arena = SelectedArena();
         if (arena is not null)
         {
             try
             {
-                foreach (ArenaCatalog.LeagueEntry league in ArenaCatalog.Leagues(_project, arena.Arena)) _league.Items.Add(league.Name);
+                foreach (ArenaCatalog.LeagueEntry league in ArenaCatalog.Leagues(_project, arena.Arena))
+                {
+                    // "Civilis League of Pirgos" is what the game shows; "Apprentice Open League" is what the file calls it
+                    string display = string.IsNullOrWhiteSpace(league.DisplayName) || league.DisplayName == league.Name
+                        ? league.Name
+                        : $"{league.DisplayName}  ({league.Name})";
+                    _league.Items.Add(new LeagueItem(display, league.Name));
+                }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
             {
@@ -309,7 +322,7 @@ public sealed class EncounterEditorView : UserControl
         ArenaCatalog.ArenaEntry? arena = SelectedArena();
         if (arena is null) return Array.Empty<string>();
 
-        string? leagueName = _league.SelectedItem?.ToString();
+        string? leagueName = (_league.SelectedItem as LeagueItem)?.Name ?? _league.SelectedItem?.ToString();
         if (string.IsNullOrEmpty(leagueName) || leagueName == AllLeagues) return arena.Encounters;
 
         ArenaCatalog.LeagueEntry? league = ArenaCatalog.Leagues(_project, arena.Arena)
@@ -999,7 +1012,18 @@ public sealed class EncounterEditorView : UserControl
     {
         if (region is not null && _region.Items.Contains(region)) _region.SelectedItem = region;
         if (town is not null && _town.Items.Contains(town)) _town.SelectedItem = town;
-        if (league is not null && _league.Items.Contains(league)) _league.SelectedItem = league;
+        if (league is not null)
+        {
+            foreach (object item in _league.Items)
+            {
+                if (item is LeagueItem candidate
+                    && (candidate.Name == league || candidate.Display == league))
+                {
+                    _league.SelectedItem = item;
+                    break;
+                }
+            }
+        }
     }
 
     private int FindFile(string relativePath)
