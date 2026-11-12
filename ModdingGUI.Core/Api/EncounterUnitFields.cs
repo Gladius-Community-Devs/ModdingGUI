@@ -102,7 +102,7 @@ public static class EncounterUnitFields
         };
 
     /// <summary>Name for an affinity id, or null when the id has no confirmed name (-1, 0).</summary>
-    public static string? AffinityName(string id) =>
+    public static string? AffinityName(string? id) =>
         id is not null && AffinityNames.TryGetValue(id.Trim(), out string? name) ? name : null;
 
     /// <summary>All 21 slots, in the order the engine reads them.</summary>
