@@ -28,6 +28,13 @@ public partial class frmMain
                     SyncEncounterPage();
                     return UiOk(_encounterEditor.AutomationFiles(UiString(request, "path")));
 
+                case "displaynames":
+                {
+                    string project = txtPackPath?.Text ?? string.Empty;
+                    var names = ModdingGUI.Core.Api.ArenaCatalog.EncounterDisplayNames(project);
+                    return UiOk(new { count = names.Count, battle1 = names.TryGetValue("battle1", out string? n) ? n : null });
+                }
+
                 case "leagues":
                 {
                     string project = txtPackPath?.Text ?? string.Empty;

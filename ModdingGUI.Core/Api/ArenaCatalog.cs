@@ -145,4 +145,69 @@ public static class ArenaCatalog
 
     private static string Relative(string root, string path) =>
         Path.GetRelativePath(root, path).Replace('\\', '/');
+
+    /// <summary>
+    /// In-game display names for encounters, keyed by file stem (lower case): <c>battle1</c> to <c>Open Battle I</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// An encounter file calls itself <c>Battle1</c>, and that is not what the player ever sees. The name the game shows comes
+    /// from the league that offers the encounter: <c>ENCOUNTER "Battle1", 2228</c>, where 2228 is an id in
+    /// <c>lookuptext_&lt;lang&gt;.txt</c> ("<c>Open Battle I</c>"). So the display name is two hops away from the file, and
+    /// everything needed is already in the project.
+    /// </para>
+    /// <para>
+    /// Every league file is scanned once and cached per project; encounters that no league lists simply have no entry and the
+    /// caller falls back to the file's own name.
+    /// </para>
+    /// </remarks>
+    public static IReadOnlyDictionary<string, string> EncounterDisplayNames(string projectPath)
+    {
+        string bec = ProjectRoots.ResolveBecFolder(projectPath);
+        string cacheKey = Path.GetFullPath(bec);
+
+        lock (DisplayNameCache)
+        {
+            if (DisplayNameCache.TryGetValue(cacheKey, out IReadOnlyDictionary<string, string>? cached)) return cached;
+        }
+
+        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        try
+        {
+            IReadOnlyDictionary<int, string> text = new LookupTextApi().Load(bec);
+            string leaguesFolder = Path.Combine(bec, "data", "towns", "leagues");
+            if (Directory.Exists(leaguesFolder))
+            {
+                foreach (string file in Directory.EnumerateFiles(leaguesFolder, "*_leagues.tok"))
+                {
+                    string content = File.ReadAllText(file);
+
+                    foreach (System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(
+                                 content,
+                                 "ENCOUNTER\\s+\"(?<stem>[^\"]+)\"\\s*,\\s*(?<id>\\d+)",
+                                 System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                    {
+                        string stem = Path.GetFileNameWithoutExtension(match.Groups["stem"].Value);
+                        if (!int.TryParse(match.Groups["id"].Value, out int id)) continue;
+                        if (!text.TryGetValue(id, out string? name) || string.IsNullOrWhiteSpace(name)) continue;
+
+                        // first league wins: the earlier entry is the one the arena shows first
+                        names.TryAdd(stem, name.Trim());
+                    }
+                }
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException
+                                       or ArgumentException or FormatException)
+        {
+            // a project without league text or lookup text simply has no display names
+        }
+
+        lock (DisplayNameCache) DisplayNameCache[cacheKey] = names;
+        return names;
+    }
+
+    private static readonly Dictionary<string, IReadOnlyDictionary<string, string>> DisplayNameCache =
+        new(StringComparer.OrdinalIgnoreCase);
 }

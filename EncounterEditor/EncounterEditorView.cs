@@ -251,7 +251,14 @@ public sealed class EncounterEditorView : UserControl
     /// </summary>
     private string EncounterDisplayName(string relativePath)
     {
-        string fallback = Path.GetFileNameWithoutExtension(relativePath);
+        string stem = Path.GetFileNameWithoutExtension(relativePath);
+
+        // The game shows the league's name for the encounter ("Open Battle I"), not the file's own name ("Battle1"),
+        // so prefer that and keep the stem beside it - it is what the file is called on disk.
+        if (DisplayNames().TryGetValue(stem, out string? inGame) && !string.IsNullOrWhiteSpace(inGame))
+        {
+            return string.Equals(inGame, stem, StringComparison.OrdinalIgnoreCase) ? inGame! : $"{inGame}  ({stem})";
+        }
 
         try
         {
@@ -270,7 +277,30 @@ public sealed class EncounterEditorView : UserControl
             Log?.Write(LogLevel.Warning, "encounters", $"cannot read {relativePath}: {ex.Message}");
         }
 
-        return fallback;
+        return stem;
+    }
+
+    private IReadOnlyDictionary<string, string>? _displayNames;
+    private string? _displayNamesProject;
+
+    /// <summary>In-game encounter names for this project, read once (see <see cref="ArenaCatalog.EncounterDisplayNames"/>).</summary>
+    private IReadOnlyDictionary<string, string> DisplayNames()
+    {
+        if (_displayNames is not null && string.Equals(_displayNamesProject, _project, StringComparison.Ordinal)) return _displayNames;
+
+        try
+        {
+            _displayNames = ArenaCatalog.EncounterDisplayNames(_project);
+            _displayNamesProject = _project;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+        {
+            Log?.Write(LogLevel.Warning, "encounters", $"cannot read in-game encounter names: {ex.Message}");
+            _displayNames = new Dictionary<string, string>();
+            _displayNamesProject = _project;
+        }
+
+        return _displayNames;
     }
 
     /// <summary>Encounters in the selected arena, narrowed to one league when one is chosen.</summary>

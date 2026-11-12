@@ -63,4 +63,17 @@ public sealed class ArenaCatalogTests
         Assert.Contains(grids, g => g.StartsWith("data/levels/", System.StringComparison.OrdinalIgnoreCase));
         Assert.Contains(grids, g => g.Contains("pirgosarenanomove", System.StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void EncounterDisplayNames_ResolveTheNameTheGameShows()
+    {
+        if (!Ready) return;
+
+        // Battle1.enc is listed as ENCOUNTER "Battle1", 2228 in the arena's open league, and 2228 is "Open Battle I" in
+        // lookuptext_eng.txt - the file's own ENCOUNTERNAME ("Battle1") is not what a player ever sees.
+        var names = ArenaCatalog.EncounterDisplayNames(Project);
+
+        Assert.True(names.Count > 0, "no display names resolved at all");
+        Assert.Equal("Open Battle I", names["battle1"]);
+    }
 }
