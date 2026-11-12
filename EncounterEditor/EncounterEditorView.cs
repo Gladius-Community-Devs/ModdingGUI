@@ -58,6 +58,12 @@ public sealed class EncounterEditorView : UserControl
     private ListBox _rows = null!;
     private Panel _fieldsHost = null!;
     private Label _status = null!;
+    private Label? _schoolHint;
+    private Label? _unitsCaption;
+    private Label? _unitWarning;
+    private Label? _requirementsSummary;
+    private CheckBox? _showUnclear;
+    private TableLayoutPanel? _unclearGrid;
     private readonly List<Button> _rowButtons = new();
 
     /// <summary>Where messages go; null keeps them in the status line only.</summary>
@@ -176,6 +182,8 @@ public sealed class EncounterEditorView : UserControl
             _arenas = Array.Empty<ArenaCatalog.ArenaEntry>();
             SetStatus(ex.Message, error: true);
         }
+
+        RefreshClassTags();
 
         _region.Items.Clear();
         foreach (string region in _arenas.Select(a => a.Region).Distinct(StringComparer.OrdinalIgnoreCase)) _region.Items.Add(region);
@@ -345,7 +353,7 @@ public sealed class EncounterEditorView : UserControl
 
             // team order in the file: 0, 1, then the props team (-1)
             _teams.Items.Clear();
-            foreach (EncounterTeamDto team in _encounter.Teams) _teams.Items.Add($"Team {team.Index}");
+            foreach (EncounterTeamDto team in _encounter.Teams) _teams.Items.Add($"{TeamDisplay(team.Index)}");
             if (_teams.Items.Count > 0)
             {
                 int preferred = Math.Max(0, _encounter.Teams.ToList().FindIndex(t => t.Index == 1));
@@ -362,20 +370,19 @@ public sealed class EncounterEditorView : UserControl
 
     // ---------------------------------------------------------------- editor
 
+    // ---------------------------------------------------------------- editor
+
+    /// <summary>Row height for a slot editor; two columns of these fit without scrolling.</summary>
+    private int SlotRowHeight => UiTheme.Scale(this, 26);
+
     private Control BuildEditor()
     {
         var host = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8) };
 
-        var top = new TableLayoutPanel
-        {
-            Dock = DockStyle.Top,
-            Height = UiTheme.Scale(this, 34),
-            ColumnCount = 4,
-            RowCount = 1,
-        };
-        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 56)));
-        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 150)));
-        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 64)));
+        var top = new TableLayoutPanel { Dock = DockStyle.Top, Height = UiTheme.Scale(this, 30), ColumnCount = 4, RowCount = 1 };
+        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 44)));
+        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 210)));
+        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 52)));
         top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
         _teams = new ComboBox { Name = "cboEncTeam", DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
@@ -383,25 +390,33 @@ public sealed class EncounterEditorView : UserControl
 
         _school = new ComboBox { Name = "cboEncSchool", DropDownStyle = ComboBoxStyle.DropDown, Dock = DockStyle.Fill };
         _school.Validated += (_, _) => ApplyTeamField(SchoolKey, _school.Text);
-
-        _gridLabel = new Label { Name = "lblEncGrid", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
+        _school.SelectedIndexChanged += (_, _) => UpdateSchoolHint();
 
         top.Controls.Add(Label("Team"), 0, 0);
         top.Controls.Add(_teams, 1, 0);
         top.Controls.Add(Label("School"), 2, 0);
         top.Controls.Add(_school, 3, 0);
 
-        var gridRow = new TableLayoutPanel
+        // A school token means nothing on its own (HOMETOWNSCHOOL is not a school), so the page explains what it resolves to.
+        _schoolHint = new Label
         {
+            Name = "lblEncSchoolHint",
             Dock = DockStyle.Top,
-            Height = UiTheme.Scale(this, 28),
-            ColumnCount = 2,
-            RowCount = 1,
+            Height = UiTheme.Scale(this, 34),
+            ForeColor = UiTheme.Info,
+            TextAlign = ContentAlignment.MiddleLeft,
         };
-        gridRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 56)));
-        gridRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        gridRow.Controls.Add(Label("Grid"), 0, 0);
-        gridRow.Controls.Add(_gridLabel, 1, 0);
+
+        _gridLabel = new Label { Name = "lblEncGrid", Dock = DockStyle.Top, Height = UiTheme.Scale(this, 20), TextAlign = ContentAlignment.MiddleLeft };
+
+        _unitsCaption = new Label
+        {
+            Name = "lblEncUnits",
+            Dock = DockStyle.Top,
+            Height = UiTheme.Scale(this, 24),
+            Font = new Font(Font, FontStyle.Bold),
+            TextAlign = ContentAlignment.MiddleLeft,
+        };
 
         var rowBar = new FlowLayoutPanel
         {
@@ -415,23 +430,17 @@ public sealed class EncounterEditorView : UserControl
         _rowButtons.Add(RowButton("btnEncDelRow", "Remove", (_, _) => RemoveRow()));
         _rowButtons.Add(RowButton("btnEncSaveRows", "Save rows", (_, _) => SaveRows()));
         _rowButtons.Add(RowButton("btnEncValidate", "Validate", (_, _) => ValidateAll()));
-        foreach (Button b in _rowButtons) rowBar.Controls.Add(b);
+        foreach (Button button in _rowButtons) rowBar.Controls.Add(button);
 
-        _rows = new ListBox
-        {
-            Dock = DockStyle.Top,
-            Height = UiTheme.Scale(this, 132),
-            Name = "lstEncRows",
-            IntegralHeight = false,
-        };
+        _rows = new ListBox { Dock = DockStyle.Top, Height = UiTheme.Scale(this, 92), Name = "lstEncRows", IntegralHeight = false };
         _rows.SelectedIndexChanged += (_, _) => SelectRow();
 
-        _fieldsHost = new Panel { Dock = DockStyle.Fill, AutoScroll = true, Name = "pnlEncFields" };
+        _fieldsHost = new Panel { Dock = DockStyle.Fill, AutoScroll = false, Name = "pnlEncFields" };
 
         _status = new Label
         {
             Dock = DockStyle.Bottom,
-            Height = UiTheme.Scale(this, 26),
+            Height = UiTheme.Scale(this, 24),
             Name = "lblEncStatus",
             TextAlign = ContentAlignment.MiddleLeft,
         };
@@ -440,7 +449,9 @@ public sealed class EncounterEditorView : UserControl
         host.Controls.Add(_status);
         host.Controls.Add(_rows);
         host.Controls.Add(rowBar);
-        host.Controls.Add(gridRow);
+        host.Controls.Add(_unitsCaption);
+        host.Controls.Add(_gridLabel);
+        host.Controls.Add(_schoolHint);
         host.Controls.Add(top);
 
         BuildFieldEditors();
@@ -455,18 +466,21 @@ public sealed class EncounterEditorView : UserControl
         AutoSize = false,
     };
 
-    private Button RowButton(string name, string text, EventHandler onClick)
+    private static Button RowButton(string name, string text, EventHandler onClick)
     {
-        var button = new Button
-        {
-            Name = name,
-            Text = text,
-            AutoSize = true,
-            Margin = new Padding(0, 0, 6, 0),
-        };
+        var button = new Button { Name = name, Text = text, AutoSize = true, Margin = new Padding(0, 0, 6, 0) };
         button.Click += onClick;
         return button;
     }
+
+    /// <summary>Team names as the game presents them, so a bare "1" is not something the modder has to decode.</summary>
+    private static string TeamDisplay(int index) => index switch
+    {
+        0 => "Team 0 - your gladiators",
+        1 => "Team 1 - the enemy",
+        -1 => "Props and neutrals",
+        _ => $"Team {index}",
+    };
 
     private void SelectTeam()
     {
@@ -476,7 +490,33 @@ public sealed class EncounterEditorView : UserControl
         _school.Items.Clear();
         foreach (string name in SafeSchools()) _school.Items.Add(name);
         _school.Text = Unquote(_encounter.Team(_teamIndex)?.Value(SchoolKey) ?? string.Empty);
+        UpdateSchoolHint();
         RefreshRows();
+    }
+
+    /// <summary>Explain a school token that is not a school name, by listing what it resolves to for this arena.</summary>
+    private void UpdateSchoolHint()
+    {
+        if (_schoolHint is null) return;
+
+        string token = _school.Text.Trim().ToUpperInvariant();
+        if (token is not ("HOMETOWNSCHOOL" or "REGIONSCHOOL"))
+        {
+            _schoolHint.Text = string.Empty;
+            return;
+        }
+
+        ArenaCatalog.ArenaEntry? arena = SelectedArena();
+        IReadOnlyList<string> names = arena is null
+            ? Array.Empty<string>()
+            : token == "REGIONSCHOOL"
+                ? WorldRegions.RegionSchools(_project, arena.Region)
+                : WorldRegions.ArenaSchools(_project, arena.Arena);
+
+        _schoolHint.Text = names.Count == 0
+            ? $"{token} - no schools resolved for this arena."
+            : $"{token} means this arena's own schools: {string.Join(", ", names.Take(6))}"
+              + (names.Count > 6 ? $", +{names.Count - 6} more" : string.Empty);
     }
 
     private IReadOnlyList<string> SafeSchools()
@@ -499,14 +539,9 @@ public sealed class EncounterEditorView : UserControl
         {
             foreach (string raw in team.Units)
             {
+                // A row the parser cannot read is kept verbatim so the editor never silently drops it.
                 EncounterUnit? unit = EncounterUnit.TryParse(raw);
-                if (unit is null)
-                {
-                    // A row the parser cannot read is kept verbatim so the editor never silently drops it; its slots are
-                    // unavailable until the text is corrected outside, and the row shows as unreadable.
-                    unit = new EncounterUnit { Raw = raw };
-                }
-                rows.Add(unit);
+                rows.Add(unit ?? new EncounterUnit { Raw = raw });
             }
         }
 
@@ -514,6 +549,22 @@ public sealed class EncounterEditorView : UserControl
         return rows;
     }
 
+    /// <summary>Split a raw row on commas, honouring quoted strings (a unit name may contain one).</summary>
+    private static string[] Slots(string raw)
+    {
+        var parts = new List<string>();
+        var current = new System.Text.StringBuilder();
+        bool quoted = false;
+        foreach (char c in raw)
+        {
+            if (c == '"') { quoted = !quoted; current.Append(c); continue; }
+            if (c == ',' && !quoted) { parts.Add(current.ToString().Trim()); current.Clear(); continue; }
+            current.Append(c);
+        }
+
+        parts.Add(current.ToString().Trim());
+        return parts.ToArray();
+    }
     private void RefreshRows()
     {
         if (_encounter is null) return;
@@ -530,7 +581,9 @@ public sealed class EncounterEditorView : UserControl
             _rows.EndUpdate();
         }
 
-        _gridLabel.Text = _encounter.Team(_teamIndex)?.Value(GridKey) ?? string.Empty;
+        _gridLabel.Text = "Start grid: " + (_encounter.Team(_teamIndex)?.Value(GridKey) ?? "(none)");
+        _unitsCaption.Text = $"Units in {TeamDisplay(_teamIndex)}  ({rows.Count})";
+
         _rowIndex = rows.Count > 0 ? 0 : -1;
         if (_rows.Items.Count > 0) _rows.SelectedIndex = 0;
         SelectRow();
@@ -539,30 +592,13 @@ public sealed class EncounterEditorView : UserControl
     private static string Describe(int index, EncounterUnit unit)
     {
         string[] slots = Slots(unit.Raw);
-        if (slots.Length < EncounterUnit.SlotCount) return $"#{index}  (unreadable row)";
+        if (slots.Length < EncounterUnit.SlotCount) return $"row {index + 1}  (unreadable row)";
 
         string name = slots[0].Trim('"', ' ');
-        if (name.Length == 0) name = "(random)";
+        if (name.Length == 0) name = "(any unit)";
         string start = slots[2].Trim('"', ' ');
-        string affinity = EncounterUnitFields.AffinityName(slots[7].Trim()) ?? slots[7].Trim();
-        string level = $"{slots[3].Trim()}/{slots[4].Trim()}/{slots[5].Trim()}";
-        return $"#{index}  {name}  {start}  aff={affinity}  lvl={level}  x{slots[1].Trim()}%";
-    }
-
-    /// <summary>Split a raw row on commas, honouring quoted strings (a unit name may contain one).</summary>
-    private static string[] Slots(string raw)
-    {
-        var parts = new List<string>();
-        var current = new System.Text.StringBuilder();
-        bool quoted = false;
-        foreach (char c in raw)
-        {
-            if (c == '"') { quoted = !quoted; current.Append(c); continue; }
-            if (c == ',' && !quoted) { parts.Add(current.ToString().Trim()); current.Clear(); continue; }
-            current.Append(c);
-        }
-        parts.Add(current.ToString().Trim());
-        return parts.ToArray();
+        string affinity = EncounterUnitFields.AffinityName(slots[7].Trim()) ?? "any affinity";
+        return $"row {index + 1}  {name}  at {start}  {affinity}  {slots[1].Trim()}% chance";
     }
 
     private void SelectRow()
@@ -571,84 +607,355 @@ public sealed class EncounterEditorView : UserControl
         _rowIndex = _rows.SelectedIndex;
         bool has = _rowIndex >= 0 && _rowIndex < rows.Count;
 
-        foreach (Button b in _rowButtons) b.Enabled = has || b.Name is "btnEncAddRow" or "btnEncValidate";
+        foreach (Button button in _rowButtons) button.Enabled = has || button.Name is "btnEncAddRow" or "btnEncValidate";
 
         string[] slots = has ? Slots(rows[_rowIndex].Raw) : Array.Empty<string>();
         foreach ((int slot, Control control) in _fieldControls)
         {
-            control.Enabled = has;
-            if (!has) continue;
-            SetControlValue(control, slot >= 1 && slot <= slots.Length ? slots[slot - 1] : string.Empty);
+            bool unclear = UnclearSlots.Contains(slot);
+            control.Enabled = has && (!unclear || _showUnclear?.Checked == true);
+            if (has) SetControlValue(control, slot >= 1 && slot <= slots.Length ? slots[slot - 1] : string.Empty);
         }
+
+        UpdateUnitWarning();
+        UpdateRequirementsSummary();
     }
 
     // ---------------------------------------------------------------- fields
 
+    /// <summary>Slots whose meaning is still unknown; hidden unless the modder asks for them.</summary>
+    private static readonly int[] UnclearSlots = { 17, 20, 21 };
+
+    /// <summary>Short, human labels. The long explanation lives in the tooltip so no line spills.</summary>
+    private static string SlotLabel(EncounterUnitField field) => field.Slot switch
+    {
+        1 => "Unit",
+        2 => "Chance %",
+        3 => "Start cell",
+        4 => "Level under",
+        5 => "Level over",
+        6 => "Level random",
+        7 => "Requirements",
+        8 => "Affinity",
+        13 => "Not: class tags",
+        14 => "Not: class",
+        15 => "Not: attribute",
+        16 => "Not: affinity",
+        17 => "Unknown 17",
+        18 => "Mercenary only",
+        19 => "Chest drop %",
+        20 => "Unknown flag A",
+        21 => "Unknown flag B",
+        _ => field.Label,
+    };
+
+    /// <summary>Plain-language help, shown on hover over the label and the control.</summary>
+    private static string SlotHelp(EncounterUnitField field) => field.Slot switch
+    {
+        1 => "Exact unit name. A name that matches no unit makes the game spawn its debug mongrel (Bagordis), so use Find to "
+             + "pick a real one. Leave it empty to let the school choose any unit that matches the requirements.",
+        2 => "Chance out of 100 that this row appears. 100 always spawns it; below 100 the game treats the unit as optional "
+             + "and reports it missing when it does not show up.",
+        3 => "Which start marker the unit is placed on. Units that share a marker are spread over its cells at random.",
+        4 => "How far below the team's level this unit may roll.",
+        5 => "How far above the team's level this unit may roll.",
+        6 => "Extra random levels on top of the offsets.",
+        7 => "What the unit must be: body type, arcane or support, beast, gender, region. Tick the boxes with Choose; "
+             + "bits the table does not name stay editable as a number.",
+        8 => "Affinity the unit must have. Any affinity lets the school decide.",
+        9 or 10 or 11 or 12 => "Extra class tag the unit must carry, on top of its school's own classes.",
+        13 => "Inverts the class-tag test: the unit must NOT carry these tags.",
+        14 => "Inverts the class requirement: the unit must NOT be this class.",
+        15 => "Inverts the attribute test: the unit must NOT match these attributes.",
+        16 => "Inverts the affinity test: the unit must NOT have this affinity.",
+        17 => "Unknown. The engine passes it into unit creation and vanilla only ever uses 0-3.",
+        18 => "Requires a mercenary for this slot. Every vanilla row is 0.",
+        19 => "Chance, per item, that a chest drops.",
+        20 => "Unknown spawn flag the engine sets. Vanilla never uses it.",
+        21 => "Unknown spawn flag the engine sets. Vanilla never uses it.",
+        _ => field.Description,
+    };
+
     private void BuildFieldEditors()
     {
+        var normal = EncounterUnitFields.All.Where(f => !UnclearSlots.Contains(f.Slot)).ToList();
+        var unclear = EncounterUnitFields.All.Where(f => UnclearSlots.Contains(f.Slot)).ToList();
+
+        var host = new Panel { Dock = DockStyle.Top, AutoSize = true };
+
+        int rows = Math.Max(1, (normal.Count + 1) / 2);
         var grid = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
             AutoSize = true,
-            ColumnCount = 3,
-            RowCount = EncounterUnitFields.All.Count,
+            ColumnCount = 4,
+            RowCount = rows,
             Name = "tblEncFields",
         };
-        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 34)));
-        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 128)));
-        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 106)));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 232)));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 106)));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 232)));
+        for (int i = 0; i < rows; i++) grid.RowStyles.Add(new RowStyle(SizeType.Absolute, SlotRowHeight));
 
-        foreach (EncounterUnitField field in EncounterUnitFields.All)
+        for (int i = 0; i < normal.Count; i++) AddSlotRow(grid, normal[i], i / 2, i % 2 == 0 ? 0 : 2);
+
+        host.Controls.Add(grid);
+
+        // Fields nobody has explained yet are real, just not worth showing by default.
+        _showUnclear = new CheckBox
         {
-            Control control = ControlFor(field);
-            control.Name = $"encSlot{field.Slot}";
-            control.Tag = field.Kind;
-            control.Dock = DockStyle.Fill;
-            control.Margin = new Padding(0, 2, 0, 2);
-            control.Enabled = false;
-            int slot = field.Slot;
-            Hook(control, () => CommitField(slot));
-            _fieldControls[slot] = control;
+            Name = "chkEncUnclear",
+            Text = "Show fields whose meaning is unknown (17, 20, 21)",
+            Dock = DockStyle.Top,
+            Height = SlotRowHeight,
+        };
+        _showUnclear.CheckedChanged += (_, _) => SetUnclearVisible(_showUnclear.Checked);
+        host.Controls.Add(_showUnclear);
 
-            var tip = new ToolTip();
-            tip.SetToolTip(control, field.Description);
+        var unclearGrid = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 4,
+            RowCount = unclear.Count,
+            Visible = false,
+            Name = "tblEncUnclear",
+        };
+        unclearGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 106)));
+        unclearGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 232)));
+        unclearGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 106)));
+        unclearGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 232)));
+        for (int i = 0; i < unclear.Count; i++) unclearGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, SlotRowHeight));
+        for (int i = 0; i < unclear.Count; i++) AddSlotRow(unclearGrid, unclear[i], i, 0);
 
-            int row = grid.RowCount - EncounterUnitFields.All.Count + field.Slot - 1;
-            grid.Controls.Add(new Label
-            {
-                Text = field.Slot.ToString(CultureInfo.InvariantCulture),
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleRight,
-            }, 0, row);
+        host.Controls.Add(unclearGrid);
+        _unclearGrid = unclearGrid;
 
-            grid.Controls.Add(new Label
-            {
-                Text = field.Label,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft,
-                AutoSize = false,
-            }, 1, row);
+        _unitWarning = new Label
+        {
+            Name = "lblEncUnitWarn",
+            Dock = DockStyle.Top,
+            Height = UiTheme.Scale(this, 20),
+            ForeColor = UiTheme.Warning,
+        };
+        host.Controls.Add(_unitWarning);
 
-            grid.Controls.Add(control, 2, row);
-        }
+        _requirementsSummary = new Label
+        {
+            Name = "lblEncRequirements",
+            Dock = DockStyle.Top,
+            Height = UiTheme.Scale(this, 20),
+            ForeColor = UiTheme.Info,
+        };
+        host.Controls.Add(_requirementsSummary);
 
-        _fieldsHost.Controls.Add(grid);
+        // Dock.Top stacks in reverse add order, so re-add in the order the modder should read them:
+        // the fields first, the notes about them underneath.
+        host.Controls.Clear();
+        host.Controls.Add(_requirementsSummary);
+        host.Controls.Add(_unitWarning);
+        host.Controls.Add(unclearGrid);
+        host.Controls.Add(_showUnclear);
+        host.Controls.Add(grid);
+
+        _fieldsHost.Controls.Add(host);
     }
 
-    private Control ClassTagControl()
+    private void SetUnclearVisible(bool visible)
     {
-        var combo = new ComboBox
+        if (_unclearGrid is null) return;
+        _unclearGrid.Visible = visible;
+        foreach (int slot in UnclearSlots)
         {
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            Name = "encClassTag",
+            if (_fieldControls.TryGetValue(slot, out Control? control)) control.Enabled = visible && _rowIndex >= 0;
+        }
+    }
+
+    private void AddSlotRow(TableLayoutPanel grid, EncounterUnitField field, int row, int column)
+    {
+        // Alternating bands are what shows which label belongs to which field; the slot numbers meant nothing to a modder.
+        Color band = row % 2 == 1 ? UiTheme.SurfaceAlt : Color.Transparent;
+
+        Control control = ControlFor(field);
+        control.Name = $"encSlot{field.Slot}";
+        control.Tag = field.Kind;
+        control.Margin = new Padding(0, 2, 4, 2);
+        control.Enabled = false;
+        if (band != Color.Transparent) control.BackColor = band;
+
+        int slot = field.Slot;
+        Hook(control, () => CommitField(slot));
+        _fieldControls[slot] = control;
+
+        var label = new Label
+        {
+            Text = SlotLabel(field),
+            Dock = DockStyle.Fill,
+            TextAlign = ContentAlignment.MiddleLeft,
+            AutoSize = false,
+            Margin = new Padding(6, 0, 4, 0),
+            BackColor = band,
         };
 
-        combo.Items.Add(NoneClassTag);
-        foreach (string tag in ClassTags()) combo.Items.Add(tag);
-        return combo;
+        var tip = new ToolTip { AutoPopDelay = 20000, InitialDelay = 300, ReshowDelay = 100 };
+        tip.SetToolTip(label, SlotHelp(field));
+        tip.SetToolTip(control, SlotHelp(field));
+
+        grid.Controls.Add(label, column, row);
+        grid.Controls.Add(control, column + 1, row);
+
+        if (slot == 1) AddUnitTools(control, grid, row, column);
+        if (slot == 7) AddRequirementTools(control, grid, row, column);
+    }
+
+    /// <summary>Slot 1 gets a finder, because a name that matches nothing silently becomes Bagordis.</summary>
+    private void AddUnitTools(Control control, TableLayoutPanel grid, int row, int column)
+    {
+        var find = new Button
+        {
+            Name = "btnEncFindUnit",
+            Text = "Find",
+            AutoSize = false,
+            Width = UiTheme.Scale(this, 48),
+            Height = SlotRowHeight - 6,
+            Margin = new Padding(0, 2, 4, 2),
+        };
+        find.Click += (_, _) => PickUnit();
+
+        var stack = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(0) };
+        grid.Controls.Remove(control);
+        control.Dock = DockStyle.Fill;
+        control.Width = UiTheme.Scale(this, 176);
+        stack.Controls.Add(find);
+        stack.Controls.Add(control);
+        grid.Controls.Add(stack, column + 1, row);
+    }
+
+    /// <summary>Slot 7 gets a chooser and a readable summary, instead of a number nobody can decode.</summary>
+    private void AddRequirementTools(Control control, TableLayoutPanel grid, int row, int column)
+    {
+        var choose = new Button
+        {
+            Name = "btnEncRequirements",
+            Text = "Choose",
+            AutoSize = false,
+            Width = UiTheme.Scale(this, 64),
+            Height = SlotRowHeight - 6,
+            Margin = new Padding(0, 2, 4, 2),
+        };
+        choose.Click += (_, _) => ChooseRequirements();
+
+        var stack = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(0) };
+        grid.Controls.Remove(control);
+        control.Dock = DockStyle.Fill;
+        control.Width = UiTheme.Scale(this, 160);
+        stack.Controls.Add(choose);
+        stack.Controls.Add(control);
+        grid.Controls.Add(stack, column + 1, row);
+    }
+
+    private void PickUnit()
+    {
+        if (_rowIndex < 0 || !_fieldControls.TryGetValue(1, out Control? control)) return;
+
+        using var dialog = new UnitPickerDialog(UnitRows(), control.Text.Trim());
+        if (dialog.ShowDialog(this) != DialogResult.OK || string.IsNullOrWhiteSpace(dialog.SelectedUnit)) return;
+
+        control.Text = dialog.SelectedUnit;
+        CommitField(1);
+    }
+
+    private void ChooseRequirements()
+    {
+        if (_rowIndex < 0 || !_fieldControls.TryGetValue(7, out Control? control)) return;
+        if (!int.TryParse(control.Text.Trim(), out int mask)) mask = 0;
+
+        using var dialog = new AttributeMaskDialog(mask);
+        if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+        control.Text = dialog.Mask.ToString(CultureInfo.InvariantCulture);
+        CommitField(7);
+    }
+
+    private void UpdateUnitWarning()
+    {
+        if (_unitWarning is null) return;
+
+        string name = _rowIndex >= 0 && _fieldControls.TryGetValue(1, out Control? control) ? control.Text.Trim() : string.Empty;
+        if (name.Length == 0)
+        {
+            _unitWarning.Text = "No unit name: the school picks any unit that matches the requirements.";
+            _unitWarning.ForeColor = UiTheme.Info;
+            return;
+        }
+
+        bool known = UnitRows().Any(u => string.Equals(u.Name, name, StringComparison.OrdinalIgnoreCase));
+        _unitWarning.Text = known
+            ? string.Empty
+            : $"'{name}' is not a unit the game knows - it spawns the debug mongrel (Bagordis).";
+        _unitWarning.ForeColor = UiTheme.Warning;
+    }
+
+    private void UpdateRequirementsSummary()
+    {
+        if (_requirementsSummary is null) return;
+
+        if (_rowIndex < 0 || !_fieldControls.TryGetValue(7, out Control? control)
+            || !int.TryParse(control.Text.Trim(), out int mask))
+        {
+            _requirementsSummary.Text = string.Empty;
+            return;
+        }
+
+        IReadOnlyList<string> names = EncounterUnitFields.AttributeNamesFor(mask);
+        _requirementsSummary.Text = mask == 0
+            ? "No attribute requirement."
+            : "Requires: " + (names.Count > 0 ? string.Join(", ", names) : "(unnamed bits only)");
+    }
+
+    /// <summary>How many class-tag choices the dropdowns hold (driver use).</summary>
+    public int ClassTagChoiceCount => _classTagCombos.Count == 0 ? 0 : _classTagCombos[0].Items.Count;
+
+    /// <summary>Unit rows for the driver smoke test.</summary>
+    public IReadOnlyList<UnitPickerDialog.UnitRow> UnitRowsForAutomation() => UnitRows();
+
+    private IReadOnlyList<UnitPickerDialog.UnitRow> UnitRows()
+    {
+        if (string.IsNullOrWhiteSpace(_project)) return Array.Empty<UnitPickerDialog.UnitRow>();
+
+        try
+        {
+            IReadOnlyDictionary<int, IReadOnlyList<string>> bySchool =
+                _choices.GladiatorsBySchool(_project, out IReadOnlyDictionary<string, GladiatorInfo> details);
+
+            return bySchool.SelectMany(pair => pair.Value.Select(name =>
+            {
+                GladiatorInfo info = details.TryGetValue(name, out GladiatorInfo? found)
+                    ? found
+                    : new GladiatorInfo(name, string.Empty, string.Empty, pair.Key);
+                return new UnitPickerDialog.UnitRow(name, info.ClassName, info.Affinity, info.SchoolIndex);
+            })).ToList();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+        {
+            Log?.Write(LogLevel.Warning, "encounters", $"cannot read the unit list: {ex.Message}");
+            return Array.Empty<UnitPickerDialog.UnitRow>();
+        }
     }
 
     private const string NoneClassTag = "(none)";
+    private readonly List<ComboBox> _classTagCombos = new();
+
+    private Control ClassTagControl()
+    {
+        var combo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
+        combo.Items.Add(NoneClassTag);
+        foreach (string tag in ClassTags()) combo.Items.Add(tag);
+        combo.SelectedItem = NoneClassTag;
+        _classTagCombos.Add(combo);
+        return combo;
+    }
 
     private IReadOnlyList<string> ClassTags()
     {
@@ -660,53 +967,56 @@ public sealed class EncounterEditorView : UserControl
         }
     }
 
+    /// <summary>Refill the class-tag lists once a project is known; they are empty when the page is constructed.</summary>
+    private void RefreshClassTags()
+    {
+        IReadOnlyList<string> tags = ClassTags();
+        foreach (ComboBox combo in _classTagCombos)
+        {
+            string? keep = combo.SelectedItem?.ToString();
+            combo.Items.Clear();
+            combo.Items.Add(NoneClassTag);
+            foreach (string tag in tags) combo.Items.Add(tag);
+            combo.SelectedItem = keep is not null && combo.Items.Contains(keep) ? keep : NoneClassTag;
+        }
+    }
+
     private Control ControlFor(EncounterUnitField field) => field.Kind switch
     {
         EncounterFieldKind.Switch => new CheckBox { Text = string.Empty, CheckAlign = ContentAlignment.MiddleLeft },
-
         EncounterFieldKind.Choice => ChoiceControl(field),
-
+        EncounterFieldKind.ClassTag => ClassTagControl(),
+        EncounterFieldKind.Bitmask => new TextBox(),
         EncounterFieldKind.Integer => new NumericUpDown
         {
             Minimum = field.Minimum ?? -1_000_000,
             Maximum = field.Maximum ?? 1_000_000,
             ThousandsSeparator = false,
         },
-
-        // A closed list on purpose: a mistyped class tag means the unit never spawns, and the class list is right there.
-        EncounterFieldKind.ClassTag => ClassTagControl(),
-
         _ => new TextBox(),
     };
 
     private Control ChoiceControl(EncounterUnitField field)
     {
-        var combo = new ComboBox
-        {
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            Name = $"encChoice{field.Slot}",
-        };
+        var combo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
 
-        if (field.Slot == 8)
+        switch (field.Slot)
         {
-            combo.Items.Add("-1 (any)");
-            foreach ((string id, string name) in EncounterUnitFields.AffinityNames) combo.Items.Add($"{id} {name}");
-        }
-        else if (field.Slot == 3)
-        {
-            foreach (string marker in StartMarkers()) combo.Items.Add(marker);
-        }
-        else if (field.Choices is not null)
-        {
-            foreach (string choice in field.Choices) combo.Items.Add(choice);
-        }
-
-        if (field.Slot == 1)
-        {
-            combo.DropDownStyle = ComboBoxStyle.DropDown;
-            combo.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-            combo.AutoCompleteSource = AutoCompleteSource.ListItems;
-            foreach (string name in GladiatorNames()) combo.Items.Add(name);
+            case 1:
+                combo.DropDownStyle = ComboBoxStyle.DropDown;
+                combo.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                combo.AutoCompleteSource = AutoCompleteSource.ListItems;
+                break;
+            case 3:
+                foreach (string marker in StartMarkers()) combo.Items.Add(marker);
+                break;
+            case 8:
+                combo.Items.Add("-1 (any)");
+                foreach ((string id, string name) in EncounterUnitFields.AffinityNames) combo.Items.Add($"{id} {name}");
+                break;
+            default:
+                if (field.Choices is not null) foreach (string choice in field.Choices) combo.Items.Add(choice);
+                break;
         }
 
         return combo;
@@ -729,22 +1039,6 @@ public sealed class EncounterEditorView : UserControl
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
         {
             return new[] { "Start1", "Start2", "Start3", "Start4" };
-        }
-    }
-
-    private IReadOnlyList<string> GladiatorNames()
-    {
-        if (string.IsNullOrWhiteSpace(_project)) return Array.Empty<string>();
-        try
-        {
-            IReadOnlyDictionary<int, IReadOnlyList<string>> bySchool =
-                _choices.GladiatorsBySchool(_project, out IReadOnlyDictionary<string, GladiatorInfo> _);
-            return bySchool.Values.SelectMany(v => v).Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(v => v, StringComparer.OrdinalIgnoreCase).ToList();
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
-        {
-            return Array.Empty<string>();
         }
     }
 
@@ -774,22 +1068,16 @@ public sealed class EncounterEditorView : UserControl
             case ComboBox combo when combo.Tag is EncounterFieldKind.ClassTag:
                 combo.SelectedItem = value.Trim('"').Length == 0 ? NoneClassTag : value.Trim('"').Trim();
                 break;
+            case ComboBox combo when combo.DropDownStyle == ComboBoxStyle.DropDownList:
+                string match = combo.Items.Cast<object>().Select(o => o.ToString() ?? string.Empty)
+                    .FirstOrDefault(item => item == value
+                        || item.StartsWith(value + " ", StringComparison.Ordinal)
+                        || item.Trim('"') == value.Trim('"')) ?? value;
+                combo.SelectedItem = match;
+                if (combo.SelectedIndex < 0 && combo.Items.Count > 0) combo.SelectedIndex = 0;
+                break;
             case ComboBox combo:
-                if (combo.DropDownStyle == ComboBoxStyle.DropDownList)
-                {
-                    // choices are stored as ids or names, but displayed with a label (e.g. "1 Earth")
-                    string match = combo.Items.Cast<object>().Select(o => o.ToString() ?? string.Empty)
-                        .FirstOrDefault(item => item == value
-                            || item.StartsWith(value + " ", StringComparison.Ordinal)
-                            || item.Trim('"') == value.Trim('"'))
-                        ?? value;
-                    combo.SelectedItem = match;
-                    if (combo.SelectedIndex < 0 && combo.Items.Count > 0) combo.SelectedIndex = 0;
-                }
-                else
-                {
-                    combo.Text = value.Trim('"');
-                }
+                combo.Text = value.Trim('"');
                 break;
         }
     }

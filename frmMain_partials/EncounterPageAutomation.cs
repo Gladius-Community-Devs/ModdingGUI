@@ -28,6 +28,24 @@ public partial class frmMain
                     SyncEncounterPage();
                     return UiOk(_encounterEditor.AutomationFiles(UiString(request, "path")));
 
+                case "dialogs":
+                {
+                    // construct both modals without showing them: proves the layout code cannot throw
+                    using (var attributes = new ModdingGUI.EncounterEditor.AttributeMaskDialog(1056))
+                    {
+                        using var units = new ModdingGUI.EncounterEditor.UnitPickerDialog(
+                            _encounterEditor.UnitRowsForAutomation(), "Ludo");
+                        return UiOk(new
+                        {
+                            attributeMask = attributes.Mask,
+                            attributeControls = attributes.Controls.Count,
+                            unitCount = _encounterEditor.UnitRowsForAutomation().Count,
+                            unitSelected = units.SelectedUnit,
+                            classTagChoices = _encounterEditor.ClassTagChoiceCount,
+                        });
+                    }
+                }
+
                 case "displaynames":
                 {
                     string project = txtPackPath?.Text ?? string.Empty;
