@@ -73,12 +73,14 @@ public sealed class SeriesEditorView : UserControl
     /// <summary>Where messages go.</summary>
     public IAppLog? Log { get; init; }
 
+    private const string NoTypeLabel = "(no type - the file has no TYPE line)";
+
     /// <summary>The <c>TYPE</c> values the corpus uses, with the behaviour each is believed to have.</summary>
     public static IReadOnlyList<(string Value, string Label)> StageTypes { get; } = new[]
     {
-        ("Series", "Series - units keep health between stages"),
-        ("Endurance", "Endurance - waves of battles, units keep health"),
-        ("Staged", "Staged - each stage starts fresh"),
+        ("Series", "Series - believed to keep health between stages (unproven)"),
+        ("Endurance", "Endurance - waves of battles, believed to keep health (unproven)"),
+        ("Staged", "Staged - believed to start each stage fresh (unproven)"),
         ("Open", "Open - a single bout (not a run)"),
         ("Circus", "Circus - special bout with props"),
     };
@@ -353,9 +355,9 @@ public sealed class SeriesEditorView : UserControl
     private void UpdateHints(LeagueEncounterDto stage)
     {
         int typeIndex = _type.SelectedIndex;
-        _typeHint.Text = typeIndex >= 0 && typeIndex < StageTypes.Count
-            ? StageTypes[typeIndex].Label
-            : string.Empty;
+        _typeHint.Text = typeIndex <= 0
+            ? "No TYPE line: the engine falls back to its own default - set one deliberately."
+            : typeIndex - 1 < StageTypes.Count ? StageTypes[typeIndex - 1].Label : string.Empty;
 
         string? file = stage.EncounterFile?.Trim().Trim('"');
         if (string.IsNullOrWhiteSpace(file))
@@ -426,6 +428,7 @@ public sealed class SeriesEditorView : UserControl
 
         _encounterFile = new ComboBox { Name = "cboSeriesFile", Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList };
         _type = new ComboBox { Name = "cboSeriesType", Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList };
+        _type.Items.Add(NoTypeLabel);
         foreach ((string _, string label) in StageTypes) _type.Items.Add(label);
         _type.SelectedIndexChanged += (_, _) => { if (!_loading) UpdateHints(CurrentStage()); };
 
