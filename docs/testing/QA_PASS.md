@@ -1029,3 +1029,54 @@ Example: `InterfaceBattleTactics` comes out with 10 methods (`AddUnitPriority`, 
 `AddUnitPriorityInteraction`, `AddUnitPriorityTargets`, `RemoveUnitPriority`, `RemoveUnitPriorityDefault`, `RemoveUnitPriorityInteraction`,
 `RemoveUnitPriorityTargets`, .), arities, call counts, DOL confirmation, and the 55 scripts that use them - the object the
 owner specifically asked about.
+
+## 38. How deep the script API goes, and a combined script + affinity test build
+
+### The DOL enumerates the API, not just the corpus
+
+Interface registration is one function (`Init` at `0x8014ca78`) that calls `FUN_800e5eb0(&DAT_8039321c, "InterfaceX", vtable,
+entry)` per interface; each interface's methods are registered by a per-interface function that, for every method, writes
+`{ name string, handler function, descriptor, 0 }` and calls `FUN_800080a0(&DAT_803d7640, name)`.
+
+That is machine-readable. From `Register` at `0x801e7464` alone: `AddTeamPriorityTarget`, `RemoveTeamPriorityTarget`,
+`AddUnitPriorityTarget`, `RemoveUnitPriorityTarget`, `AddTeamPriorityDefend`, `.Defend`, `AddTeamIgnoreUnit`,
+`RemoveTeamIgnoreUnit`, `AddUnitIgnoreUnit`, `RemoveUnitIgnoreUnit`, `AddTeamPriorityEnterLocation`,
+`RemoveTeamPriorityEnterLocation`, `AddUnitPriorityEnterLocation`, `RemoveUnitPriorityEnterLocation`.
+
+Scanning the whole DOL for CamelCase identifiers and subtracting everything the corpus calls gives **194 engine method names
+no vanilla script uses** (`docs/api/engine-only.json`), out of 455 method-shaped names and 2,590 CamelCase strings. Those are
+leads for new script code, not documentation: arity and semantics still need the per-handler work below.
+
+What is still missing at each level:
+
+| Level | Have | Needs |
+|---|---|---|
+| corpus | 174 interface methods with observed arity, examples, DOL confirmation | - |
+| engine | 194 further names the DOL defines | arity and parameter types per handler; grouping name ? owning interface (the `Init` table gives the vtable, the per-interface `Register` gives the names, so the link is one decompile per interface) |
+| semantics | call-site shapes for corpus methods | reading each handler (`FUN_801e8a00` and friends) to recover return type and argument accessors |
+
+`print` is a case worth recording: 428 calls in the corpus, but **no `print` string in the bootfile.dol** and 74 `printf`
+calls likewise. The retail compiler compiled those calls out (see 36), which is why retail `.scb` carry the `0xDEADBEEF`
+sentinel - the VM has no such global. Any mod script that ships a real `print` call (as the DOG compiler emits) is asking
+the VM for a function that is not registered.
+
+### Combined test build
+
+`demo_hero.iso`, 1,392.4 MB, md5 `ec95d2bcb3eed903c9ce5b74a53648cd`, tests the script compiler and the affinity mapping in
+one battle.
+
+- `data/script/battle_apitest.scp` is new code written for this: a `for . to . step` loop with arithmetic, a nested function
+  defined and called in the same body, and a call to `InterfaceBattleTactics().AddUnitPriorityTarget(hero, hero)` - an
+  engine method **no vanilla script calls**. Compiled by `tools_v009.exe scbc` into
+  `data/script/bin/battle_apitest.scb` (1,360 bytes); `scripts/check-script-compiler.py` proves the compiler matches the DOG
+  compiler over the whole corpus, so this is a test of the *engine surface*, not of the compiler's syntax.
+- `scene06va.enc` (Valens tutorial) now has `BATTLESCRIPT: "battle_apitest.scp"` again, pointing at that script instead of
+  the blocked tutorial one, plus the six affinity rows and the script free `CAMERATRACK` from revision 2.
+- Output channel: a talk box, because the VM has no print. Text markers: `APITEST lang-ok` (loop + nested function ran),
+  `APITEST lang-ok engine-ok` (the unexercised engine call was also accepted), `APITEST lang-fail .` (which language stage
+  failed), no box at all (script never ran).
+- The two script files are new paths, so the packer keyed them by CRC-32 of the path; they unpack as `unknown-script-0x.`
+  unless `hashes.txt` knows them, which it now does (`0x4e5b4cbc`, `0x5704fc7c`).
+
+Both differences are verifiable from the ISO: `BATTLESCRIPT: "battle_apitest.scp"` present, nine `UNITDB` rows (1 hero +
+6 affinity + 2 props).
