@@ -170,14 +170,34 @@ calls, so its log is the GUI's log.
 > Phase 9 - together with the facts and verification traps that cost time to learn. This section keeps the phase-level order;
 > OPEN_ITEMS has the detail and the per-item "done means".
 
-### 5.1 Phase 8 — `ModdingGUI.Mcp`
+### 5.1 Phase 8 — `ModdingGUI.Mcp` — **done**
 
-`ModdingGUI.Mcp/ModdingGUI.Mcp.csproj` is in the solution and builds, but `Program.cs` is a **46-line inert
-placeholder**: it validates a `<projectPath>` argument and exits, with no stdio server, no tool registry, no JSON-RPC.
-Phase 8 is a greenfield implementation behind that stub. Plan is in `PLAN.md` §8: one tool per Core method,
-`strict: bool = false` on writes, `logs_*` over `IAppLog` (now real, because pack/unpack emit `LogEntry`s),
-auto-generated tool docs. Note the headless-only APIs above — MCP can expose encounters/leagues/units/config long
-before the GUI does.
+The server is real: 149 tools over 18 families, one per public method of the 16 Core API interfaces, over stdio
+through `ModelContextProtocol` 2.4.0 (`docs/MCP.md` has the catalogue, the strict-mode contract, worked examples and
+the pinned versions). Everything goes through the same Core APIs as the GUI, so every edit takes the project lock
+and lands a `.mod-history` backup. `strict: false` logs the findings and writes; `strict: true` reverts an edit that
+introduced a warning and refuses it, leaving the file byte-identical.
+
+Traps found while building it, worth not rediscovering:
+
+- **stdout is the transport.** Any `Console.WriteLine` breaks the session; host logging goes to stderr
+  (`LogToStandardErrorThreshold`) and `scripts/mcp-smoke.ps1` asserts every stdout line is a JSON-RPC frame.
+- **The SDK swallows exception messages.** A thrown exception reaches the client as
+  "An error occurred invoking x." — so a refusal is an explicit `CallToolResult` with `isError`, not a throw.
+- **Tools return `object`**: the payload (serialised by the SDK) or an explicit error result. That is what makes a
+  "not found" or a strict refusal readable by the model.
+- **`bool strict = false` + injectable parameters work.** `RequestContext<CallToolRequestParams>` and
+  `CancellationToken` are injected and do not appear in the tool schema (`project_pack` advertises no arguments).
+- **System.Text.Json cannot represent `ValueTuple`** (its members are fields, so it round-trips as `{}`), which is
+  why `ItemDto.Affinity`/`StatMods` cross the wire as `{element, amount}` / `{stat, value}` (`Server/Wire/ItemWire.cs`).
+- **The MCP project is not built by `dotnet test ModdingGUI.sln`** unless something references it, so the test project
+  has a `ReferenceOutputAssembly="false"` ProjectReference — build order only, no assembly or package leak.
+- **`ITintSetsApi`, `Rgb`, `ItemSetRow` and friends live in `ModdingGUI.Core.Units`, not `.Api`.**
+- `HANDOFF.md` itself was not valid UTF-8 (two mangled section-sign bytes) and could not be read by UTF-8 tools;
+  repaired in this phase.
+
+Still open (listed in `OPEN_ITEMS.md`): the optional shell checkbox that relaunches with `--mcp`, `logs_subscribe`,
+and a `randomizer_*` tool family.
 
 ### 5.2 Phase 9 — polish
 
@@ -403,7 +423,7 @@ The shell now has a design system instead of per-control values:
   so `ModdingGUI.exe --render-settings <png>` draws it off-screen for screenshots.
 
 Verification tooling lives with the driver: `audit`/`auditAll` report contrast and system-colour use per page, and `hit`
-names the control at a point (see `docs/UI_AUTOMATION.md`). `docs/testing/QA_PASS.md` �10-�15 record the findings and
+names the control at a point (see `docs/UI_AUTOMATION.md`). `docs/testing/QA_PASS.md` §10-§15 record the findings and
 the two traps that cost the most time: a docked `Panel` has no automatic height, and a single-line `TextBox` (or a
 disabled control) is painted by the framework whatever colour you assign.
 

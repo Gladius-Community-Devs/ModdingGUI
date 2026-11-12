@@ -16,7 +16,9 @@ Gladius Modding Tools is a **Windows .NET 8 (WinForms)** GUI for modding the Gam
   (`PackService` / `UnpackService` / `ProjectBuildService` + `ToolRunner`), so the GUI and the CLI
   print the same log.
 - **`ModdingGUI.Core`** (`net8.0`) — parsing, schemas, Tok framework, APIs, history, locking, logging, toolchain. No UI.
-- **`ModdingGUI.Mcp`** (`net8.0`) — stdio MCP server exposing the Core APIs as tools (Phase 8, scaffolding today).
+- **`ModdingGUI.Mcp`** (`net8.0`) — stdio MCP server exposing the Core APIs as tools (Phase 8, done: 149 tools
+  over 18 families, `strict` writes, `logs_*`, pack/unpack as jobs). It is a **leaf**: nothing references it, so its
+  transitive `System.Text.Json` 10 cannot reach the shell. Two pinned packages, listed below.
 
 The actual git repository lives at **`ModdingGUI/`** (origin `git@github.com:Gladius-Community-Devs/ModdingGUI.git`). The workspace root is a staging area that is **not** a git repo.
 
@@ -25,6 +27,7 @@ The actual git repository lives at **`ModdingGUI/`** (origin `git@github.com:Gla
 - **`ModdingGUI/PLAN.md`** is the authoritative roadmap. Architecture is **locked** (section 0), and the phase sequence is **locked** (section 2). Read it before planning or implementing anything.
 - **`docs/HANDOFF.md`** has current state, the traps learned the hard way and the in-game QA still pending; **`docs/OPEN_ITEMS.md`** is the backlog; **`docs/DOL_FINDINGS.md`** is the engine authority. `CLAUDE.md` is a one-screen pointer at those five docs.
 - **`docs/UI_AUTOMATION.md`** is how to drive the window from a script or an agent (`--ui-server`, `scripts/ui-drive.ps1`). Use it to verify any GUI change.
+- **`docs/MCP.md`** is the MCP server: transport contract, the 149-tool catalogue, strict-mode semantics, worked examples, and the pinned SDK versions.
 - **`docs/prd-template.md`** is the PRD template used by `/feature`.
 - `docs/testing/MANUAL_TESTING_PHASE_2_6.md` is the manual test checklist for the Item Editor migration.
 - `docs/testing/MANUAL_TESTING_PHASE_2_7.md` is the manual test checklist for Skill Editor validation.
@@ -52,7 +55,7 @@ GladiusModdingToolsGUI/
     ModdingGUI.sln
     ModdingGUI.csproj           WinForms shell (net8.0-windows, WinExe)
     ModdingGUI.Core/            net8.0 no-UI core (Tok, Schemas, Api, Skills, History, Lock, Logging, Tools)
-    ModdingGUI.Mcp/             net8.0 MCP stdio server (scaffolded, Phase 8)
+    ModdingGUI.Mcp/             net8.0 MCP stdio server — 149 tools over 18 families (Phase 8, done)
     ModdingGUI.Tests/           xUnit, net8.0-windows
     skills/                     Skills catalog pipeline (versioned)
 classdefs/                  Class-definition catalog pipeline (versioned)
@@ -80,7 +83,7 @@ dol/                        Engine field tables extracted from the DOL (authorit
 
 ```
 dotnet build ModdingGUI.sln          # whole solution (shell + Core + Mcp + Tests)
-dotnet test ModdingGUI.sln           # xUnit suite: 903 pass / 0 fail / 0 skip
+dotnet test ModdingGUI.sln           # xUnit suite: 907 pass / 0 fail / 0 skip
 .\run-tests.ps1                      # colored runner w/ TRX, filters, -ProjectFolder
 .\run-tests.ps1 -Filter RealGameDataTests
 .\run-tests.ps1 -ProjectFolder REALDATA_v2
@@ -92,7 +95,11 @@ All commands run from inside `ModdingGUI/` (that is where the `.sln` and the git
 ### Test bar (mandatory, from PLAN.md)
 
 - `dotnet test -c Release` green at the end of every phase. No phase merges with failing tests.
-- Baseline is **903 passed / 0 failed / 0 skipped**. Every phase ends green.
+- Baseline is **907 passed / 0 failed / 0 skipped**. Every phase ends green.
+- `ModdingGUI.Tests/Mcp/McpServerTests.cs` is the **MCP gate**: it spawns the real `ModdingGUI.Mcp.exe` over stdio
+  through `McpClient`/`StdioClientTransport` (read, write + `.mod-history` backup, strict both ways, a job with
+  progress), and `EveryCoreApiMethodHasATool` reflects the 16 `I*Api` interfaces and fails when a Core method has no
+  tool. `scripts/mcp-smoke.ps1` is the raw-wire layer that catches stdout pollution.
 - `ModdingGUI.Tests/Core/Tok/TokRoundTripTests.cs` is the **corpus gate**: it parses and re-serializes every `.tok`/`.enc` in `clean-bec-unpacked/` (977 files) and fails on any byte diff. Never break this.
 - The `RealGameDataTests` are gated behind a `REALDATA_*` project folder + `vanilla.iso`. To enable them locally, run **`ModdingGUI/setup-realdata.ps1`** — it breaks the vanilla ISO down from scratch using the app's own unpack toolchain (`ngciso-tool.py` → `bec-tool-all.py` → `Gladius_Units_IDX_Unpack.py`, the same commands `BatchContentBuilder` emits), byte-verifies the result against `clean-bec-unpacked` (0 missing / 0 extra / 0 diffs), and installs it into `bin/{Debug|Release}/net8.0-windows/win-x64/REALDATA_<name>/` plus a `vanilla.iso` hardlink. The vanilla ISO + `clean-bec-unpacked` are outside the repo; `bin/` is gitignored.
 - Integration fixture: `ModdingGUI.Tests/Integration/GameDataFixture.cs` points at `clean-bec-unpacked/`. Do not check large new fixtures into the repo.
@@ -124,6 +131,9 @@ All commands run from inside `ModdingGUI/` (that is where the `.sln` and the git
 6. **Catalogs and static assets** ship at `<exe>/<filename>.json` at root unless there's a reason otherwise.
 7. **Validation is advisory** in the GUI (`WarnInLog`); opt-in strict in MCP (`RejectOnError` via `strict: true`).
 8. **No new dependencies** without explicit approval. **`System.Text.Json` only** for JSON (no Newtonsoft). tok I/O is **ISO-8859-1**.
+   The MCP server is the one approved exception: `ModelContextProtocol` 2.4.0 and `Microsoft.Extensions.Hosting`
+   8.0.1, pinned exactly (no floating ranges), plus `ModelContextProtocol.Core` 2.4.0 in the test project for the
+   client half. A bump is a tested change — re-run `scripts/mcp-smoke.ps1`.
 9. **`dotnet test -c Release` green** at end of every phase.
 10. **One phase at a time.** Don't expand scope mid-phase.
 11. **GUI work is verified in the GUI.** Start the app with `--ui-server` and drive it with `scripts/ui-drive.ps1`; the driver clicks real controls, so it can never be used to bypass an API.
@@ -140,11 +150,12 @@ Stateless `open → mutate → write`. Per-project `ProjectLock`. Timestamped ba
   `SkillsContext`).
 - Pack-time validation is `ModdingGUI.Core.Validation.ProjectValidator`: it calls the APIs' own `Validate` methods and
   returns advisory findings. No check may compare against a vanilla count - projects come from modded ISOs. The Pack
-  tab runs it, `--validate <project>` prints it, and MCP strict mode will reuse it.
+  tab runs it, `--validate <project>` prints it, and `project_validate` returns it over MCP. `strict: true` reuses
+  the per-family `Validate` calls as a delta: only a warning the edit *introduced* refuses it.
 - Long-running work (unpack, pack, script compile) is a `Core.Jobs` job: `JobRegistry.Start` returns a `BuildJob` with
   an id, a state, a `BuildResult` and a completion task, and raises `Started`/`Finished`. Front ends wait on it (the GUI
-  and the UI driver do; the MCP server will forward the events as progress). Do not add a sleep or a log-grep for
-  "is it done".
+  and the UI driver do; `project_pack`/`project_unpack` forward Started/Finished as progress notifications and map
+  the request cancellation to `BuildJob.Cancel`). Do not add a sleep or a log-grep for "is it done".
 - Skill *picking* lives in `ModdingGUI.Core.Units.LearnableSkills`: the engine's class-mask rule (no
   `SKILLUSECLASS` = any class) **plus** the table's structure — records named by another's `SKILLSUBSKILL` are combo
   hits and are never offered, `Innate`/`Command` categories are game-granted, and unrestricted records are opt-in.
@@ -169,6 +180,12 @@ Stateless `open → mutate → write`. Per-project `ProjectLock`. Timestamped ba
   `ENCOUNTER` bouts. `SetEncounterFile` is the in-game harness in one call;
   `LeaguesCatalog` + `LeagueValidator` from `tables/leagues_catalog.json`
   (44 files, 220 leagues, 839 bouts)
+- **MCP tool surface.** `ModdingGUI.Mcp/Tools/` has one `[McpServerToolType]` class per family; a tool is named
+  `<family>_<snake(method)>` (`IEncountersApi.SetTeamUnits` → `encounters_set_team_units`), with a suffix for
+  overloads. Add a Core API method and the coverage test demands a tool for it. `strict` is enforced in
+  `Server/McpProject.cs`: `Write` validates the affected scope before and after and reverts on a *new* warning,
+  `WriteChecked` validates the payload first (skills). Never `Console.WriteLine` in this project — stdout is the
+  transport (`docs/MCP.md`).
 - `IConfigTableApi` — any flat `KEY value` tok table (shops, `data/config/*.tok`, `.tnt`):
   `ListFiles/Get/Set/Add/Remove/SetValues`. Deliberately generic: those formats have no
   cross-field rules to type-check
@@ -190,8 +207,8 @@ zero warnings across all 1,811 vanilla records.
 | Phase 5 — Units `.txt` family | **APIs done**, in-game QA pending |
 | Phase 6 — Randomizer rewrite | **done**, in-game QA pending |
 | Phase 7 — Team Builder (incl. 7.5, 7.8, 7.9) | **done** — Team Builder reads/writes only through Core APIs, UX pass landed (searchable gear, labelled slots, item details, JP offer, level-aware preview); pack/unpack/compile/xdelta run from Core with no batch file. GUI work is verified through the UI driver (`docs/UI_AUTOMATION.md`) |
-| Phase 8 — `ModdingGUI.Mcp` stdio server | **next** — `Program.cs` is a 46-line inert stub |
-| Phase 9 — Polish | not started |
+| Phase 8 — `ModdingGUI.Mcp` stdio server | **done** — 149 tools over 18 families, one per Core API method (a coverage test proves it); `strict` writes refuse-and-revert, `logs_*`, pack/unpack as jobs with progress + cancellation; `docs/MCP.md`, `scripts/mcp-smoke.ps1`. The optional shell checkbox was not built |
+| Phase 9 — Polish | **next** |
 
 ## Known Tech Debt / Gotchas
 
