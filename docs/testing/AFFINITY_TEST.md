@@ -182,3 +182,34 @@ Revision 5 restores both vanilla cutscene lines - and keeps them: the encounters
 `CAMERATRACK`). The header now matches the vanilla one except for `BATTLESCRIPT` (ours) and team 1.
 
 `demo_hero.iso`, 1,392.4 MB, md5 `787203c2ede5610b0f26e6402352fd53`.
+
+## Revision 6 and the vanilla control: the talk-box sound table
+
+Restoring the cutscene hooks changed nothing, so the crash is not the hook either. What separates the builds that worked from
+the ones that crash is now precise:
+
+| build | battle script | crash |
+|---|---|---|
+| 1 | vanilla `battle_scene06v.scp` | **no** |
+| 1b | none | **yes** |
+| 2-5 | ours (various) | **yes** |
+
+The vanilla tutorial's `OnInitBattle` opens with five interface lookups and then, on line 24, `gb.LoadTalkBoxSoundTable("06V")`.
+Our revisions 2-5 never did that, and neither does "no script at all" - so both crash, which is exactly the observed pattern.
+
+The crash happens while the **loading screen** is up, and that screen shows the "Ask Usus" tutorial tooltips. Those tooltips are
+talk boxes; talk boxes need the sound table; without it the tooltip path dereferences null, at `0x800ef0ac` with a small offset
+(`0x94`, `0xD0`, `0x10C`) depending on what is being marshalled.
+
+Revision 6 performs the same setup as the tutorial (five interface lookups plus `gb.LoadTalkBoxSoundTable("06V")`), then the
+language test. Its `.scb` now contains `CALLFUNC InterfaceGlobals`, `InterfaceInput`, `InterfaceBattle`, `InterfaceMapCursor`,
+`GetSchool`, `LoadTalkBoxSoundTable` - matching the vanilla init's shape.
+
+Also moved the single enemy row to `Start2` so it no longer stacks on Valens (`Start1`).
+
+### Two ISOs for one round
+
+| file | contents | purpose |
+|---|---|---|
+| `demo_hero.iso` / `apitest_r6.iso`, md5 `39dcdd02.` | revision 6: our script with the talk-box setup, one enemy on `Start2` | if the crash is gone, the sound table was the fault and the single enemy's name settles the affinity base |
+| `vanilla_control.iso`, md5 `b75f6539.` | the battle put back to vanilla (vanilla `BATTLESCRIPT`, Ludo on `Start2`, vanilla grid) | if *this* also crashes, the fault is not the encounter at all but something about how this ISO is packed |
