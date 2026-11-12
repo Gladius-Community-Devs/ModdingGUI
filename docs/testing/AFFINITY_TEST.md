@@ -51,3 +51,26 @@ has no Light-affinity gladiators).
 Backups are in `demo_hero_BEC/.mod-history/` for both the encounter and the grid. The encounter can also be restored with
 the `encounters` driver command (`setUnits` with `"Ludo", 100, "Start2", 0, 0, 1, 0, -1, ...`, and `removeTeamField`
 `SCHOOL`).
+
+## Revision 2: the tutorial script was blocking the battle
+
+First attempt reached the battle but never handed over a turn, so the enemy units could not be hovered. Cause:
+`scene06va.enc` had `BATTLESCRIPT: "battle_scene06v.scp"` - the Valens tutorial script, which looks units up by name
+(`GetUnitByName("Ludo")`, `"Usus"`, `"Valens"`) and runs a scripted dialogue/turn sequence. The enemy team no longer
+contains Ludo, so that script cannot run, and the battle waits on it.
+
+Both script hooks are now removed from the encounter (`CUTSCENE` played `Scene05va.cut` / `Scene06vg.cut`):
+
+```
+SCENE:      "imperia\valensschool\Valensschool_noon_cloudLight.scn"
+GRIDFILE:   "$l\imperia\valensschool\valensschoolnomove.grd"
+CAMERATRACK: "intro","$l\imperia\valensschool\valensschoolIntroAnim.pan"
+```
+
+Nothing else in `data/script` references `scene06va` or `battle_scene06v`, so the battle now starts as an ordinary
+encounter: normal turn order, and the enemy team is the six affinity rows.
+
+Build: `demo_hero.iso`, 1,392.4 MB, md5 `aa5d52a037c594b240fbe7282352d4d7`.
+
+If it still does not hand over a turn, the next step is to replace the encounter wholesale with a league arena battle
+(no `CAMERATRACK`, no script) that carries the same six rows - the campaign only needs the battle to start.

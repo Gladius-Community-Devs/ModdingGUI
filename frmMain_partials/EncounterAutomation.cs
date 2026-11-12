@@ -22,7 +22,7 @@ namespace ModdingGUI
     {
         private static readonly string[] EncounterActions =
         {
-            "list", "get", "fields", "setHeader", "setTeamField", "addTeamField", "removeTeamField", "setUnits", "setUnit", "setUnitFields", "validate",
+            "list", "get", "fields", "setHeader", "removeField", "setTeamField", "addTeamField", "removeTeamField", "setUnits", "setUnit", "setUnitFields", "validate",
         };
 
         private readonly EncountersApi _encountersApi = new();
@@ -246,6 +246,14 @@ namespace ModdingGUI
                         string value = Require(request, "value");
                         _encountersApi.SetField(project, path, key, value);
                         return UiOk(new { file = path, key, value, changed = true });
+                    }
+
+                    case "removefield":
+                    {
+                        string path = RequirePath(request);
+                        string key = Require(request, "key");
+                        _encountersApi.RemoveField(project, path, key);
+                        return UiOk(new { file = path, key, removed = true });
                     }
 
                     case "setteamfield":
