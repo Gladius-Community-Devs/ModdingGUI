@@ -14,6 +14,7 @@ using System.Text.Json;
 /// </remarks>
 public partial class frmMain
 {
+    private System.Windows.Forms.Form? _pickerPreview;
     private string EncounterPageCommand(JsonElement request)
     {
         if (_encounterEditor is null) return UiFail("the encounter editor is not built");
@@ -28,6 +29,20 @@ public partial class frmMain
                     SyncEncounterPage();
                     return UiOk(_encounterEditor.AutomationFiles(UiString(request, "path")));
 
+                case "showpicker":
+                {
+                    _pickerPreview?.Dispose();
+                    _pickerPreview = new ModdingGUI.EncounterEditor.UnitPickerDialog(
+                        _encounterEditor.UnitRowsForAutomation(), "Ludo");
+                    _pickerPreview.Show();
+                    return UiOk(new { shown = true, units = _encounterEditor.UnitRowsForAutomation().Count });
+                }
+
+                case "closepicker":
+                    _pickerPreview?.Close();
+                    _pickerPreview = null;
+                    return UiOk(new { closed = true });
+
                 case "dialogs":
                 {
                     // construct both modals without showing them: proves the layout code cannot throw
@@ -41,6 +56,8 @@ public partial class frmMain
                             attributeControls = attributes.Controls.Count,
                             unitCount = _encounterEditor.UnitRowsForAutomation().Count,
                             unitSelected = units.SelectedUnit,
+                            unitColumns = units.ColumnHeaders,
+                            unitFirstRow = units.FirstRow,
                             classTagChoices = _encounterEditor.ClassTagChoiceCount,
                         });
                     }

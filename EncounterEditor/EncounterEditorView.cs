@@ -463,7 +463,7 @@ public sealed class EncounterEditorView : UserControl
         Text = text,
         Dock = DockStyle.Fill,
         TextAlign = ContentAlignment.MiddleLeft,
-        AutoSize = false,
+            AutoSize = true,
     };
 
     private static Button RowButton(string name, string text, EventHandler onClick)
@@ -634,7 +634,7 @@ public sealed class EncounterEditorView : UserControl
         3 => "Start cell",
         4 => "Level under",
         5 => "Level over",
-        6 => "Level random",
+        6 => "Vary level",
         7 => "Requirements",
         8 => "Affinity",
         13 => "Not: class tags",
@@ -642,7 +642,7 @@ public sealed class EncounterEditorView : UserControl
         15 => "Not: attribute",
         16 => "Not: affinity",
         17 => "Unknown 17",
-        18 => "Mercenary only",
+        18 => "Temporary unit",
         19 => "Chest drop %",
         20 => "Unknown flag A",
         21 => "Unknown flag B",
@@ -659,17 +659,19 @@ public sealed class EncounterEditorView : UserControl
         3 => "Which start marker the unit is placed on. Units that share a marker are spread over its cells at random.",
         4 => "How far below the team's level this unit may roll.",
         5 => "How far above the team's level this unit may roll.",
-        6 => "Extra random levels on top of the offsets.",
+        6 => "When on, both level bounds are re-rolled for every spawn, so units in this row differ in level. When off, "
+             + "every spawn uses the same level range.",
         7 => "What the unit must be: body type, arcane or support, beast, gender, region. Tick the boxes with Choose; "
              + "bits the table does not name stay editable as a number.",
         8 => "Affinity the unit must have. Any affinity lets the school decide.",
         9 or 10 or 11 or 12 => "Extra class tag the unit must carry, on top of its school's own classes.",
-        13 => "Inverts the class-tag test: the unit must NOT carry these tags.",
-        14 => "Inverts the class requirement: the unit must NOT be this class.",
-        15 => "Inverts the attribute test: the unit must NOT match these attributes.",
-        16 => "Inverts the affinity test: the unit must NOT have this affinity.",
+        13 => "Turns the class-tag requirement upside down: the unit must NOT carry these tags.",
+        14 => "Turns the class requirement upside down: the unit must NOT be this class.",
+        15 => "Turns the attribute requirement upside down: the unit must NOT match it.",
+        16 => "Turns the affinity requirement upside down: the unit must NOT have it.",
         17 => "Unknown. The engine passes it into unit creation and vanilla only ever uses 0-3.",
-        18 => "Requires a mercenary for this slot. Every vanilla row is 0.",
+        18 => "Only a temporary unit may fill this slot. Temporary units are the ones a gladiator can hire for one "
+             + "battle rather than recruit.",
         19 => "Chance, per item, that a chest drops.",
         20 => "Unknown spawn flag the engine sets. Vanilla never uses it.",
         21 => "Unknown spawn flag the engine sets. Vanilla never uses it.",
@@ -678,29 +680,66 @@ public sealed class EncounterEditorView : UserControl
 
     private void BuildFieldEditors()
     {
-        var normal = EncounterUnitFields.All.Where(f => !UnclearSlots.Contains(f.Slot)).ToList();
+        // slots 14-16 are drawn inside slot 13's row: four "must not" switches read better as one line about exclusions
+        var normal = EncounterUnitFields.All
+            .Where(f => !UnclearSlots.Contains(f.Slot) && f.Slot is < 14 or > 16)
+            .ToList();
         var unclear = EncounterUnitFields.All.Where(f => UnclearSlots.Contains(f.Slot)).ToList();
 
+        // Lay the fields out first: the exclusion row takes a whole row, so simple index arithmetic would misplace it.
+        var layout = new List<(EncounterUnitField Field, int Row, int Column)>();
+        int row = 0, column = 0;
+        foreach (EncounterUnitField field in normal)
+        {
+            if (field.Slot == 13)
+            {
+                if (column != 0) row++;
+                layout.Add((field, row, 0));
+                row++;
+                column = 0;
+                continue;
+            }
+
+            layout.Add((field, row, column == 0 ? 0 : 2));
+            if (column == 0) column = 1;
+            else { column = 0; row++; }
+        }
+
+        int rowCount = layout.Count == 0 ? 1 : layout.Max(entry => entry.Row) + 1;
         var host = new Panel { Dock = DockStyle.Top, AutoSize = true };
 
-        int rows = Math.Max(1, (normal.Count + 1) / 2);
         var grid = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
             AutoSize = true,
             ColumnCount = 4,
-            RowCount = rows,
+            RowCount = rowCount,
             Name = "tblEncFields",
         };
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 106)));
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 232)));
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 106)));
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, UiTheme.Scale(this, 232)));
-        for (int i = 0; i < rows; i++) grid.RowStyles.Add(new RowStyle(SizeType.Absolute, SlotRowHeight));
+        for (int i = 0; i < rowCount; i++) grid.RowStyles.Add(new RowStyle(SizeType.Absolute, SlotRowHeight));
 
-        for (int i = 0; i < normal.Count; i++) AddSlotRow(grid, normal[i], i / 2, i % 2 == 0 ? 0 : 2);
+        foreach ((EncounterUnitField field, int atRow, int atColumn) in layout) AddSlotRow(grid, field, atRow, atColumn);
 
-        host.Controls.Add(grid);
+        // Notes go under the fields, so they are added before the grids (Dock.Top stacks in reverse add order).
+        _requirementsSummary = new Label
+        {
+            Name = "lblEncRequirements",
+            Dock = DockStyle.Top,
+            Height = UiTheme.Scale(this, 20),
+            ForeColor = UiTheme.Info,
+        };
+
+        _unitWarning = new Label
+        {
+            Name = "lblEncUnitWarn",
+            Dock = DockStyle.Top,
+            Height = UiTheme.Scale(this, 20),
+            ForeColor = UiTheme.Warning,
+        };
 
         // Fields nobody has explained yet are real, just not worth showing by default.
         _showUnclear = new CheckBox
@@ -711,7 +750,6 @@ public sealed class EncounterEditorView : UserControl
             Height = SlotRowHeight,
         };
         _showUnclear.CheckedChanged += (_, _) => SetUnclearVisible(_showUnclear.Checked);
-        host.Controls.Add(_showUnclear);
 
         var unclearGrid = new TableLayoutPanel
         {
@@ -729,35 +767,12 @@ public sealed class EncounterEditorView : UserControl
         for (int i = 0; i < unclear.Count; i++) unclearGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, SlotRowHeight));
         for (int i = 0; i < unclear.Count; i++) AddSlotRow(unclearGrid, unclear[i], i, 0);
 
-        host.Controls.Add(unclearGrid);
-        _unclearGrid = unclearGrid;
-
-        _unitWarning = new Label
-        {
-            Name = "lblEncUnitWarn",
-            Dock = DockStyle.Top,
-            Height = UiTheme.Scale(this, 20),
-            ForeColor = UiTheme.Warning,
-        };
-        host.Controls.Add(_unitWarning);
-
-        _requirementsSummary = new Label
-        {
-            Name = "lblEncRequirements",
-            Dock = DockStyle.Top,
-            Height = UiTheme.Scale(this, 20),
-            ForeColor = UiTheme.Info,
-        };
-        host.Controls.Add(_requirementsSummary);
-
-        // Dock.Top stacks in reverse add order, so re-add in the order the modder should read them:
-        // the fields first, the notes about them underneath.
-        host.Controls.Clear();
         host.Controls.Add(_requirementsSummary);
         host.Controls.Add(_unitWarning);
         host.Controls.Add(unclearGrid);
         host.Controls.Add(_showUnclear);
         host.Controls.Add(grid);
+        _unclearGrid = unclearGrid;
 
         _fieldsHost.Controls.Add(host);
     }
@@ -774,6 +789,12 @@ public sealed class EncounterEditorView : UserControl
 
     private void AddSlotRow(TableLayoutPanel grid, EncounterUnitField field, int row, int column)
     {
+        if (field.Slot == 13)
+        {
+            AddExclusionRow(grid, row, column);
+            return;
+        }
+
         // Alternating bands are what shows which label belongs to which field; the slot numbers meant nothing to a modder.
         Color band = row % 2 == 1 ? UiTheme.SurfaceAlt : Color.Transparent;
 
@@ -793,7 +814,7 @@ public sealed class EncounterEditorView : UserControl
             Text = SlotLabel(field),
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleLeft,
-            AutoSize = false,
+            AutoSize = true,
             Margin = new Padding(6, 0, 4, 0),
             BackColor = band,
         };
@@ -809,15 +830,75 @@ public sealed class EncounterEditorView : UserControl
         if (slot == 7) AddRequirementTools(control, grid, row, column);
     }
 
+    /// <summary>
+    /// One row for the four inverse tests (slots 13-16). Four separate "Not: ..." rows read as if they were requirements;
+    /// a single "Must NOT have:" line with four switches says what they are.
+    /// </summary>
+    private void AddExclusionRow(TableLayoutPanel grid, int row, int column)
+    {
+        Color band = row % 2 == 1 ? UiTheme.SurfaceAlt : Color.Transparent;
+
+        var label = new Label
+        {
+            Text = "Must NOT have:",
+            Dock = DockStyle.Fill,
+            TextAlign = ContentAlignment.MiddleLeft,
+            AutoSize = true,
+            Margin = new Padding(6, 0, 4, 0),
+            BackColor = band,
+        };
+
+        var flow = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Margin = new Padding(0),
+            BackColor = UiTheme.Surface,
+        };
+
+        var tip = new ToolTip { AutoPopDelay = 20000, InitialDelay = 300, ReshowDelay = 100 };
+        tip.SetToolTip(label, "Turns a requirement above upside down. Each switch applies to its own test, so a row can require "
+            + "an attribute and refuse an affinity at the same time.");
+
+        (int Slot, string Text)[] switches =
+        {
+            (13, "class tags"),
+            (14, "class"),
+            (15, "attribute"),
+            (16, "affinity"),
+        };
+
+        foreach ((int slot, string text) in switches)
+        {
+            var box = new CheckBox
+            {
+                Name = $"encSlot{slot}",
+                Text = text,
+                Tag = EncounterFieldKind.Switch,
+                AutoSize = true,
+                Padding = new Padding(0, 4, 12, 0),
+            };
+
+            int captured = slot;
+            Hook(box, () => CommitField(captured));
+            tip.SetToolTip(box, SlotHelp(EncounterUnitFields.All.Single(f => f.Slot == captured)));
+            _fieldControls[slot] = box;
+            flow.Controls.Add(box);
+        }
+
+        grid.Controls.Add(label, column, row);
+        grid.Controls.Add(flow, column + 1, row);
+        grid.SetColumnSpan(flow, 3);
+    }
     /// <summary>Slot 1 gets a finder, because a name that matches nothing silently becomes Bagordis.</summary>
     private void AddUnitTools(Control control, TableLayoutPanel grid, int row, int column)
     {
         var find = new Button
         {
             Name = "btnEncFindUnit",
-            Text = "Find",
-            AutoSize = false,
-            Width = UiTheme.Scale(this, 48),
+            Text = "Find unit",
+            AutoSize = true,
             Height = SlotRowHeight - 6,
             Margin = new Padding(0, 2, 4, 2),
         };
@@ -826,7 +907,7 @@ public sealed class EncounterEditorView : UserControl
         var stack = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(0) };
         grid.Controls.Remove(control);
         control.Dock = DockStyle.Fill;
-        control.Width = UiTheme.Scale(this, 176);
+        control.Width = UiTheme.Scale(this, 118);
         stack.Controls.Add(find);
         stack.Controls.Add(control);
         grid.Controls.Add(stack, column + 1, row);
@@ -839,8 +920,7 @@ public sealed class EncounterEditorView : UserControl
         {
             Name = "btnEncRequirements",
             Text = "Choose",
-            AutoSize = false,
-            Width = UiTheme.Scale(this, 64),
+            AutoSize = true,
             Height = SlotRowHeight - 6,
             Margin = new Padding(0, 2, 4, 2),
         };
@@ -849,7 +929,7 @@ public sealed class EncounterEditorView : UserControl
         var stack = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(0) };
         grid.Controls.Remove(control);
         control.Dock = DockStyle.Fill;
-        control.Width = UiTheme.Scale(this, 160);
+        control.Width = UiTheme.Scale(this, 118);
         stack.Controls.Add(choose);
         stack.Controls.Add(control);
         grid.Controls.Add(stack, column + 1, row);

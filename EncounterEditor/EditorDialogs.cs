@@ -18,7 +18,6 @@ using ModdingGUI.Core.Api;
 /// </remarks>
 public sealed class AttributeMaskDialog : Form
 {
-    private readonly List<(string Name, int Bit)> _checked = new();
     private readonly NumericUpDown _other;
 
     public AttributeMaskDialog(int mask)
@@ -29,8 +28,10 @@ public sealed class AttributeMaskDialog : Form
         MinimizeBox = false;
         MaximizeBox = false;
         ShowInTaskbar = false;
-        ClientSize = new Size(520, 380);
+        ClientSize = new Size(520, 400);
         Font = SystemFonts.MessageBoxFont;
+        BackColor = UiTheme.Surface;
+        ForeColor = UiTheme.Ink;
 
         var grid = new TableLayoutPanel
         {
@@ -38,25 +39,26 @@ public sealed class AttributeMaskDialog : Form
             ColumnCount = 2,
             RowCount = 1,
             Padding = new Padding(12),
+            BackColor = UiTheme.Surface,
         };
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
 
-        var left = CheckList(AttributeMaskTable.Take(6), mask, grid, 0);
-        var right = CheckList(AttributeMaskTable.Skip(6), mask, grid, 1);
-        _checked.AddRange(left);
-        _checked.AddRange(right);
+        IReadOnlyList<(string Name, int Bit)> table = AttributeMaskTable;
+        CheckList(table.Take(6), mask, grid, 0);
+        CheckList(table.Skip(6), mask, grid, 1);
 
         var otherRow = new FlowLayoutPanel
         {
             Dock = DockStyle.Bottom,
-            Height = 40,
+            Height = 42,
             FlowDirection = FlowDirection.LeftToRight,
             Padding = new Padding(12, 0, 12, 0),
+            BackColor = UiTheme.Surface,
         };
         otherRow.Controls.Add(new Label
         {
-            Text = "Other bits (unnamed)",
+            Text = "Other bits (no name known)",
             AutoSize = true,
             TextAlign = ContentAlignment.MiddleLeft,
             Padding = new Padding(0, 10, 8, 0),
@@ -68,18 +70,21 @@ public sealed class AttributeMaskDialog : Form
             Minimum = 0,
             Maximum = 1_000_000,
             Value = OtherBits(mask),
+            BackColor = UiTheme.SurfaceAlt,
+            ForeColor = UiTheme.Ink,
         };
         otherRow.Controls.Add(_other);
 
         var buttons = new FlowLayoutPanel
         {
             Dock = DockStyle.Bottom,
-            Height = 46,
+            Height = 48,
             FlowDirection = FlowDirection.RightToLeft,
             Padding = new Padding(12),
+            BackColor = UiTheme.Surface,
         };
-        var ok = new Button { Text = "OK", DialogResult = DialogResult.OK, Width = 90 };
-        var cancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Width = 90 };
+        var ok = new Button { Text = "OK", DialogResult = DialogResult.OK, Width = 92 };
+        var cancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Width = 92 };
         buttons.Controls.Add(ok);
         buttons.Controls.Add(cancel);
 
@@ -90,73 +95,11 @@ public sealed class AttributeMaskDialog : Form
         CancelButton = cancel;
     }
 
-    /// <summary>The chosen mask, or 0 when the dialog was cancelled.</summary>
+    /// <summary>The chosen mask, set when the dialog is accepted.</summary>
     public int Mask { get; private set; }
 
-    private static IEnumerable<(string Name, int Bit)> AttributeMaskTable => EncounterUnitFields.AttributeTable
-        .Select(entry => (entry.Name, entry.Bit));
-
-    private static int OtherBits(int mask)
-    {
-        int known = AttributeMaskTable.Aggregate(0, (bits, entry) => bits | entry.Bit);
-        return mask & ~known;
-    }
-
-    private List<(string, int)> CheckList(IEnumerable<(string Name, int Bit)> entries, int mask, TableLayoutPanel grid, int column)
-    {
-        var captured = new List<(string, int)>();
-        var panel = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            FlowDirection = FlowDirection.TopDown,
-            WrapContents = false,
-            AutoScroll = true,
-        };
-
-        foreach ((string name, int bit) in entries)
-        {
-            var box = new CheckBox
-            {
-                Text = $"{name}  (0x{bit:X})",
-                Checked = (mask & bit) != 0,
-                AutoSize = true,
-                Padding = new Padding(0, 2, 0, 2),
-            };
-            panel.Controls.Add(box);
-            captured.Add((name, bit));
-
-            // keep the checkbox and its bit together for the read-back
-            box.Tag = bit;
-        }
-
-        grid.Controls.Add(panel, column, 0);
-        return captured;
-    }
-
-    /// <summary>Read back the ticked bits from the form's checkboxes.</summary>
-    protected override void OnFormClosing(FormClosingEventArgs e)
-    {
-        base.OnFormClosing(e);
-        if (DialogResult != DialogResult.OK) return;
-
-        int mask = 0;
-        foreach (Control column in Controls.OfType<TableLayoutPanel>().SelectMany(t => t.Controls.OfType<FlowLayoutPanel>()))
-        {
-            foreach (CheckBox box in column.Controls.OfType<CheckBox>())
-            {
-                if (box.Checked && box.Tag is int bit) mask |= bit;
-            }
-        }
-
-        Mask = mask | (int)_other.Value;
-    }
-}
-
-/// <summary>The names the engine accepts for the requirement mask.</summary>
-public static class AttributeMaskTable
-{
     /// <summary>Named attribute bits, in engine order (see <c>UnitConditionalLookUpAttr</c>).</summary>
-    public static IReadOnlyList<(string Name, int Bit)> All { get; } = new[]
+    public static IReadOnlyList<(string Name, int Bit)> AttributeMaskTable { get; } = new[]
     {
         ("Light", 0x1),
         ("Medium", 0x2),
@@ -171,24 +114,100 @@ public static class AttributeMaskTable
         ("Expanse", 0x400),
         ("Steppes", 0x800),
     };
+
+    private static int OtherBits(int mask)
+    {
+        int known = AttributeMaskTable.Aggregate(0, (bits, entry) => bits | entry.Bit);
+        return mask & ~known;
+    }
+
+    private void CheckList(IEnumerable<(string Name, int Bit)> entries, int mask, TableLayoutPanel grid, int column)
+    {
+        var panel = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.TopDown,
+            WrapContents = false,
+            AutoScroll = true,
+            BackColor = UiTheme.Surface,
+        };
+
+        foreach ((string name, int bit) in entries)
+        {
+            panel.Controls.Add(new CheckBox
+            {
+                Text = $"{name}  (0x{bit:X})",
+                Checked = (mask & bit) != 0,
+                AutoSize = true,
+                Padding = new Padding(0, 2, 0, 2),
+                Tag = bit,
+            });
+        }
+
+        grid.Controls.Add(panel, column, 0);
+    }
+
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        base.OnFormClosing(e);
+        if (DialogResult != DialogResult.OK) return;
+
+        int mask = 0;
+        foreach (CheckBox box in Controls.OfType<TableLayoutPanel>()
+                     .SelectMany(t => t.Controls.OfType<FlowLayoutPanel>())
+                     .SelectMany(p => p.Controls.OfType<CheckBox>()))
+        {
+            if (box.Checked && box.Tag is int bit) mask |= bit;
+        }
+
+        Mask = mask | (int)_other.Value;
+    }
 }
 
 /// <summary>
-/// Finds a unit by name when the modder only half-remembers it: search by name, class, affinity or school, see the match,
-/// pick it.
+/// Finds a unit by name when the modder only half-remembers it: search by name, class or affinity, then pick from a table.
 /// </summary>
 /// <remarks>
-/// Typing a name that does not match a unit makes the game spawn its debug placeholder (Bagordis), so the risk is silent
-/// wrongness rather than an error. A picker that lists what actually exists removes the guess.
+/// Typing a name that matches no unit makes the game spawn its debug placeholder (Bagordis), so the risk is silent wrongness
+/// rather than an error. A picker that lists what actually exists removes the guess - and it has to look like the rest of the
+/// app, which means columns and the theme palette, not a raw record dump.
 /// </remarks>
 public sealed class UnitPickerDialog : Form
 {
-    private readonly ListBox _list = new() { Dock = DockStyle.Fill, IntegralHeight = false };
-    private readonly TextBox _search = new() { Dock = DockStyle.Top, PlaceholderText = "search name, class, affinity or school…" };
+    private readonly ListView _list = new()
+    {
+        Dock = DockStyle.Fill,
+        View = View.Details,
+        FullRowSelect = true,
+        MultiSelect = false,
+        HideSelection = false,
+        BorderStyle = BorderStyle.FixedSingle,
+    };
+
+    private readonly TextBox _search = new()
+    {
+        Dock = DockStyle.Top,
+        PlaceholderText = "search name, class or affinity…",
+        BackColor = UiTheme.SurfaceAlt,
+        ForeColor = UiTheme.Ink,
+        BorderStyle = BorderStyle.FixedSingle,
+    };
+
+    private readonly Label _count = new()
+    {
+        Dock = DockStyle.Bottom,
+        Height = 20,
+        ForeColor = UiTheme.InkMuted,
+        TextAlign = ContentAlignment.MiddleLeft,
+    };
+
     private readonly IReadOnlyList<UnitRow> _units;
 
     /// <summary>One unit as the picker shows it.</summary>
-    public sealed record UnitRow(string Name, string Class, string Affinity, int School);
+    public sealed record UnitRow(string Name, string Class, string Affinity, int School)
+    {
+        public override string ToString() => $"{Name} - {Class} - {Affinity}";
+    }
 
     public UnitPickerDialog(IEnumerable<UnitRow> units, string? current)
     {
@@ -203,26 +222,43 @@ public sealed class UnitPickerDialog : Form
         StartPosition = FormStartPosition.CenterParent;
         MinimizeBox = false;
         ShowInTaskbar = false;
-        ClientSize = new Size(620, 460);
+        ClientSize = new Size(660, 480);
         Font = SystemFonts.MessageBoxFont;
+        BackColor = UiTheme.Surface;
+        ForeColor = UiTheme.Ink;
+
+        _list.Columns.Add("Unit", 220);
+        _list.Columns.Add("Class", 190);
+        _list.Columns.Add("Affinity", 110);
+        _list.BackColor = UiTheme.SurfaceSunken;
+        _list.ForeColor = UiTheme.Ink;
 
         _search.TextChanged += (_, _) => Refill();
+        _search.KeyDown += (_, e) =>
+        {
+            if (e.KeyCode != Keys.Down || _list.Items.Count == 0) return;
+            _list.Focus();
+            if (_list.SelectedIndices.Count == 0) _list.Items[0].Selected = true;
+            e.Handled = true;
+        };
         _list.DoubleClick += (_, _) => Accept();
 
         var buttons = new FlowLayoutPanel
         {
             Dock = DockStyle.Bottom,
-            Height = 46,
+            Height = 48,
             FlowDirection = FlowDirection.RightToLeft,
             Padding = new Padding(12),
+            BackColor = UiTheme.Surface,
         };
         var ok = new Button { Text = "Use this unit", Width = 130, DialogResult = DialogResult.OK };
-        var cancel = new Button { Text = "Cancel", Width = 90, DialogResult = DialogResult.Cancel };
+        var cancel = new Button { Text = "Cancel", Width = 92, DialogResult = DialogResult.Cancel };
         buttons.Controls.Add(ok);
         buttons.Controls.Add(cancel);
 
-        var host = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
+        var host = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12), BackColor = UiTheme.Surface };
         host.Controls.Add(_list);
+        host.Controls.Add(_count);
         host.Controls.Add(_search);
 
         Controls.Add(host);
@@ -232,18 +268,33 @@ public sealed class UnitPickerDialog : Form
 
         Refill();
 
-        int index = _list.Items.Cast<UnitRow>().ToList()
-            .FindIndex(u => string.Equals(u.Name, current, StringComparison.OrdinalIgnoreCase));
-        if (index >= 0) _list.SelectedIndex = index;
-        else if (_list.Items.Count > 0) _list.SelectedIndex = 0;
+        int index = _list.Items.Cast<ListViewItem>()
+            .ToList()
+            .FindIndex(item => string.Equals(item.Text, current, StringComparison.OrdinalIgnoreCase));
+        if (index >= 0)
+        {
+            _list.Items[index].Selected = true;
+            _list.Items[index].EnsureVisible();
+        }
+        else if (_list.Items.Count > 0)
+        {
+            _list.Items[0].Selected = true;
+        }
     }
 
+    /// <summary>Column headers, for the driver smoke test.</summary>
+    public IReadOnlyList<string> ColumnHeaders => _list.Columns.Cast<ColumnHeader>().Select(c => c.Text).ToList();
+
+    /// <summary>First visible row, for the driver smoke test.</summary>
+    public string? FirstRow => _list.Items.Count == 0 ? null : string.Join(" | ", _list.Items[0].SubItems.Cast<ListViewItem.ListViewSubItem>().Select(s => s.Text));
+
     /// <summary>The chosen unit name, or null.</summary>
-    public string? SelectedUnit => (_list.SelectedItem as UnitRow)?.Name;
+    public string? SelectedUnit => _list.SelectedItems.Count == 0 ? null : _list.SelectedItems[0].Text;
 
     private void Refill()
     {
         string filter = _search.Text.Trim();
+
         _list.BeginUpdate();
         try
         {
@@ -258,18 +309,23 @@ public sealed class UnitPickerDialog : Form
                     continue;
                 }
 
-                _list.Items.Add(unit);
+                var item = new ListViewItem(unit.Name);
+                item.SubItems.Add(unit.Class);
+                item.SubItems.Add(unit.Affinity);
+                _list.Items.Add(item);
             }
         }
         finally
         {
             _list.EndUpdate();
         }
+
+        _count.Text = $"{_list.Items.Count} unit(s) of {_units.Count}";
     }
 
     private void Accept()
     {
-        if (_list.SelectedItem is null) return;
+        if (_list.SelectedItems.Count == 0) return;
         DialogResult = DialogResult.OK;
         Close();
     }
