@@ -314,3 +314,29 @@ script value/allocator helpers).
 
 Build 1 keeps its own explanation: it used the **vanilla** tutorial script, which spawns Ludo by name and never consults a
 school pool, so no null pool was ever dereferenced.
+
+## Revision 9: the arena series, one id per battle
+
+The story tutorial is the wrong vehicle: its start grid has one cell per marker, its team used a school token that probably
+does not resolve, and the campaign has to be finished before the arena opens. So the test moves to the **Pirgos open battle
+series**, which is where the arena actually lives:
+
+| encounter | pool | team 1 |
+|---|---|---|
+| `openbattleursula1.enc` | `SCHOOL: "HOMETOWNSCHOOL"` (resolves: the arena league lists 8 schools) | one row, id `1` |
+| `openbattleursula2.enc` | same | one row, id `2` |
+| `openbattleursula3.enc` | same | one row, id `3` |
+| `openbattleursula4.enc` | same | one row, id `4` |
+| `openbattleursula5.enc` | same | one row, id `5` |
+| `openbattleursula6.enc` | same | **untouched vanilla** (control) |
+
+One id per battle removes the attribution problem entirely: whatever unit appears in battle N *is* id N. Their
+`BATTLESCRIPT` (`battle_imperia_generic_01.scp`) is untouched, so the load-end fault is out of the picture - and if all five
+load clean, that also confirms the null school pool as the cause of that fault.
+
+The story tutorial is restored **byte-identically to vanilla** (encounter and grid), because it has to be finishable for the
+arena to open. `battle_apitest.scp/.scb` stay in the archive but nothing references them.
+
+`demo_hero.iso` / `arena_affinity.iso`: 1,392.4 MB, md5 `3b82fc63c3d4c0e3303d9b7e77c2203b`.
+
+Verified inside the packed ISO: the five encounters carry ids 1-5 on `Start1`, and `scene06va.enc` has Ludo back.
