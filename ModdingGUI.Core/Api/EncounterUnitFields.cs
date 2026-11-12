@@ -67,6 +67,44 @@ public static class EncounterUnitFields
     /// <summary>The affinity ids seen in the corpus: -1 means "no requirement".</summary>
     public static IReadOnlyList<string> AffinityIds { get; } = new[] { "-1", "1", "2", "3", "4", "5" };
 
+    /// <summary>
+    /// Affinity id to name, confirmed in game rather than inferred.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The Pirgos open league (the Valens campaign's arena) was edited so that <c>Battle1..Battle5</c> each requested one
+    /// affinity id in a single enemy row, against a team whose <c>SCHOOL: "HOMETOWNSCHOOL"</c> pool resolves. Each battle
+    /// spawned exactly one unit, and the ids map cleanly:
+    /// </para>
+    /// <list type="table">
+    /// <item><term>1</term><description>Corin - Earth</description></item>
+    /// <item><term>2</term><description>Zorry - Water</description></item>
+    /// <item><term>3</term><description>Asenath - Dark</description></item>
+    /// <item><term>4</term><description>Milburia - Air</description></item>
+    /// <item><term>5</term><description>Enestinus - Fire</description></item>
+    /// </list>
+    /// <para>
+    /// This order is <b>not</b> the DOL's affinity name block (<c>Air, Earth, Fire, Water, Light, Dark</c>) and not the unit
+    /// data's 3-bit field (<c>None, Air, Dark, Earth, Fire, ?, Water</c>). Three different tables exist; only this one
+    /// applies to <c>UNITDB</c> slot 8. Light is absent because no gladiator has Light affinity at all (0 of 2170), so an
+    /// id for it cannot be observed this way. Earlier attempts to read the table off the story tutorial produced garbage,
+    /// because that battle's school token does not resolve and the game draws an arbitrary unit instead.
+    /// </para>
+    /// </remarks>
+    public static IReadOnlyDictionary<string, string> AffinityNames { get; } =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["1"] = "Earth",
+            ["2"] = "Water",
+            ["3"] = "Dark",
+            ["4"] = "Air",
+            ["5"] = "Fire",
+        };
+
+    /// <summary>Name for an affinity id, or null when the id has no confirmed name (-1, 0).</summary>
+    public static string? AffinityName(string id) =>
+        id is not null && AffinityNames.TryGetValue(id.Trim(), out string? name) ? name : null;
+
     /// <summary>All 21 slots, in the order the engine reads them.</summary>
     public static IReadOnlyList<EncounterUnitField> All { get; } = new EncounterUnitField[]
     {
@@ -99,7 +137,8 @@ public static class EncounterUnitFields
             ObservedValues: new[] { "0", "1", "2", "4", "8", "16", "17", "24", "28", "32", "56", "64", "68", "128" }),
 
         new(8, "affinityRequirement", "Affinity", EncounterFieldKind.Choice,
-            "Affinity the spawned unit must have; -1 means no requirement. The ids are known, the id-to-name table is not.",
+            "Affinity the spawned unit must have; -1 means no requirement, 1 Earth, 2 Water, 3 Dark, 4 Air, 5 Fire " +
+            "(confirmed in game against the Pirgos open league).",
             Choices: AffinityIds),
 
         new(9, "classTag1", "Class 1", EncounterFieldKind.ClassTag,

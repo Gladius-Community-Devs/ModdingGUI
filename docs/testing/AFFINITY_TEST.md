@@ -365,3 +365,40 @@ league, so the league gate wins; the league is what a player navigates.
 `Battle6.enc` left vanilla as a control. The Ursula-gated files were reverted byte-identically to vanilla.
 
 `demo_hero.iso` / `arena_affinity_v2.iso`: 1,392.4 MB, md5 `593449850ccff9844460c0332e10bdf8`.
+
+## Answer: the affinity ids, confirmed in game
+
+Revision 10 put one affinity id in each of the five Valens open-league battles (`Battle1..5.enc`, `SCHOOL:
+"HOMETOWNSCHOOL"`, one enemy row each). Every battle spawned exactly one unit, so the unit *is* the id:
+
+| id | unit | affinity |
+|---|---|---|
+| 1 | Corin | **Earth** |
+| 2 | Zorry | **Water** |
+| 3 | Asenath | **Dark** |
+| 4 | Milburia | **Air** |
+| 5 | Enestinus | **Fire** |
+
+That is the mapping for `UNITDB` slot 8. It is **not** the DOL's affinity name block (`Air, Earth, Fire, Water, Light,
+Dark`) and **not** the unit data's 3-bit field (`None, Air, Dark, Earth, Fire, ?, Water`): the encounter requirement enum
+has its own order. `devnotes.txt`'s "5 = fire" is right about the *name* and wrong about nothing else - 5 is Fire here.
+
+Light is absent from this table because no gladiator in the corpus has Light affinity (0 of 2170), so no id could ever be
+observed producing one; whether the engine has a sixth id for it is unknown and untestable with the shipped unit data.
+
+`Corin`, `Zorry`, `Asenath`, `Milburia`, `Enestinus` are now in `EncounterUnitFields.AffinityNames` with tests, and slot 8's
+description in the editor names them.
+
+### Why the earlier attempts were wrong
+
+Both story-battle runs (ids 1 and 0) produced arbitrary units - Earth and None - because that battle's team used
+`SCHOOL: "REGIONSCHOOL"`, which does not resolve for a story encounter; the affinity requirement cannot be satisfied against
+an empty pool and the game falls back to drawing anything. The arena league has a real pool, which is why the same test
+there gave five distinct, consistent answers first time.
+
+### The load-end fault
+
+`Battle6.enc`, left vanilla, loaded with **no memory-read errors** and four enemies. So that fault never belonged to the
+arena battles, the toolchain or the compiler: it came from the edited story tutorial (the unresolvable school token plus the
+removed tutorial hooks). The story encounter and its grid are restored byte-identically to vanilla and the tutorial behaves
+as retail again.

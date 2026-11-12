@@ -121,28 +121,25 @@ is why `EncounterUnitFields.SplitMask` exists.
 **Affinity names** sit as one contiguous block of strings at `0x80489768`: `Air`, `Earth`, `Fire`, `Water`, `Light`, `Dark`
 (each preceded by `None`, `Basic`, `Chain`, `Special`, `Attack` for other enums). The ids are therefore index-based in that
 order. `devnotes.txt` claims "5 would be fire", which does not fit that order, so the note is unverified; the base offset
-(`None` = 0 or 1 = `Air`) is **still open**, and the first in-game attempt to pin it did not work:
+(`None` = 0 or 1 = `Air`) is **not** how `UNITDB` slot 8 works. The encounter requirement enum has its own order,
+confirmed in game by putting one id in each of the five Valens open-league battles (Pirgos `Battle1..5.enc`, whose
+`SCHOOL: "HOMETOWNSCHOOL"` pool resolves) with a single enemy row each:
 
-- a single row with id `1` spawned Juventas, an **Earth** gladiator;
-- a single row with id `0` spawned Meadhbh, a **None** gladiator.
-
-No monotone index into this block produces both (0 = Air predicts Air for the first; 1 = Air predicts Air for the second).
-The likely reason is the *school pool*, not the enum: the test put those rows in a story battle whose team uses
-`SCHOOL: "REGIONSCHOOL"` - a token that probably does not resolve outside a league arena - so the affinity filter cannot be
-satisfied and the game draws an arbitrary unit. A story battle is the wrong vehicle for this test.
-
-Three tables are now in play and must not be conflated:
-
-| table | values | where |
+| id | spawned unit | affinity |
 |---|---|---|
-| unit data field (3 bits) | `None, Air, Dark, Earth, Fire, (5 = invalid), Water` | `gladiators.txt` / the tools' `AFFINITY` list |
-| DOL name block | `Air, Earth, Fire, Water, Light, Dark` | `0x80489768`, used by some affinity enum |
-| encounter requirement | ids `-1` (6298 rows), `0` (1), `1` (49), `2` (95), `3` (15), `4` (107), `5` (139) | `UNITDB` slot 8 |
+| 1 | Corin | Earth |
+| 2 | Zorry | Water |
+| 3 | Asenath | Dark |
+| 4 | Milburia | Air |
+| 5 | Enestinus | Fire |
 
-The corpus uses `1`-`5` heavily and the unit data has **no Light-affinity unit at all** (0 of 2170), so Light cannot be one of
-the five legal requirement ids: the requirement enum is almost certainly the five affinities units actually have
-(`Air, Earth, Fire, Water, Dark`) in some order, with `-1` for "any". The pairing within those five still needs a per-id
-observation in a battle whose school pool resolves - a league arena, one marker per id.
+So slot 8 is `-1` = any, `1` = Earth, `2` = Water, `3` = Dark, `4` = Air, `5` = Fire. This is a **third** table, distinct from
+this name block and from the unit data's 3-bit field; `devnotes.txt`'s "5 = fire" happens to be right for slot 8. Light has no
+id here because no gladiator has Light affinity (0 of 2170). `EncounterUnitFields.AffinityNames` carries the confirmed table
+with tests.
+
+Earlier attempts to read it off the story tutorial produced Earth for id 1 and None for id 0: that battle's `REGIONSCHOOL`
+token does not resolve, so the affinity filter cannot apply and the game draws an arbitrary unit.
 
 ## The two runtime school tokens are data-resolvable - no DOL edit needed
 

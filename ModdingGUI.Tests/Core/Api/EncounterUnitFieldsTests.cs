@@ -164,4 +164,34 @@ public class EncounterUnitFieldsTests
     {
         Assert.Empty(EncounterChoices.StartMarkers(Path.Combine(Path.GetTempPath(), "does-not-exist.grd")));
     }
+
+    [Fact]
+    public void AffinityIds_MapToTheNamesConfirmedInGame()
+    {
+        // Confirmed by one affinity id per battle in the Pirgos open league (Battle1..Battle5 of the Valens campaign),
+        // each spawning a single unit whose affinity is listed in gladiators.txt.
+        Assert.Equal("Earth", EncounterUnitFields.AffinityName("1"));
+        Assert.Equal("Water", EncounterUnitFields.AffinityName("2"));
+        Assert.Equal("Dark", EncounterUnitFields.AffinityName("3"));
+        Assert.Equal("Air", EncounterUnitFields.AffinityName("4"));
+        Assert.Equal("Fire", EncounterUnitFields.AffinityName("5"));
+    }
+
+    [Fact]
+    public void AffinityName_IsNullForIdsWithNoConfirmedName()
+    {
+        Assert.Null(EncounterUnitFields.AffinityName("-1"));
+        Assert.Null(EncounterUnitFields.AffinityName("0"));
+        Assert.Null(EncounterUnitFields.AffinityName("99"));
+        Assert.Null(EncounterUnitFields.AffinityName(null));
+    }
+
+    [Fact]
+    public void AffinitySlot_OffersExactlyTheIdsCorpusUses()
+    {
+        EncounterUnitField slot = EncounterUnitFields.All.Single(f => f.Slot == 8);
+
+        Assert.Equal(new[] { "-1", "1", "2", "3", "4", "5" }, slot.Choices);
+        Assert.Contains("Earth", slot.Description);
+    }
 }
