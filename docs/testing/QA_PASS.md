@@ -1080,3 +1080,53 @@ one battle.
 
 Both differences are verifiable from the ISO: `BATTLESCRIPT: "battle_apitest.scp"` present, nine `UNITDB` rows (1 hero +
 6 affinity + 2 props).
+
+## 39. The engine's own method tables, extracted from bootfile.dol
+
+`scripts/extract-engine-methods.py` walks the DOL's PowerPC code, finds every `bl` to the method registrar `FUN_800080a0`,
+resolves the two arguments (`r3` = class object, `r4` = name pointer) from the instructions in front of the call, and groups
+the calls by class object. `docs/api/engine-methods.json` is the result; `docs/api/index.html` now shows, per interface, the
+engine's method list with each name marked "used by scripts" or "no script uses it".
+
+Coverage: **586 registrar call sites, 430 methods resolved into 28 classes, 10 of them matched to interfaces**, 156 call
+sites unresolved (they load the arguments in shapes the resolver does not model yet - hoisted bases, pointer tables).
+
+| Interface | engine | corpus used | engine-only |
+|---|---|---|---|
+| InterfaceGlobals | 69 | 54 | 14 |
+| InterfaceInput | 55 | 16 | **39** |
+| InterfaceBattle | 37 | 29 | 8 |
+| InterfaceWorldMap | 16 | 13 | 1 |
+| InterfaceBattleTactics | 16 | 10 | 6 |
+| InterfaceMapCursor | 7 | 3 | 2 |
+| InterfaceUnitMap | 6 | 2 | 4 |
+| InterfaceMath | 6 | 3 | 3 |
+| InterfaceEffects | 4 | 4 | 0 |
+
+Eighteen further classes (207 methods) are recovered but not yet named; the interface label is a best match against the
+corpus-observed names (`overlapWithCorpus` in the JSON), so it is a lead rather than a certainty.
+
+Worth naming, from `InterfaceGlobals`: `ConsolePrint`, `PrintFile`, `RunScript`, `TriggerStoryEventAndSetVar`,
+`RequestSaveGameState`, `GetEnemySchoolName`, `GetCurTownDisplayName`, `IsTalkBoxActive`, `CloseAllTalkBoxes`,
+`GetPlatform`, `SubStringMatch`. So the VM *does* have a debug print - it is called `ConsolePrint`, not `print`, which is
+why no script calls `print` successfully and why retail builds strip it (QA_PASS 36/38).
+
+`InterfaceInput` is where the corpus under-reports most: 39 of its 55 methods never appear in a script, mostly
+`IsPressedXNoBlock` variants and `EnableX` toggles.
+
+### Two mistakes worth recording
+
+- The first run resolved every string to machine code. Cause: the DOL header holds a **separate file offset per section**;
+  advancing one cursor by each section's size - the obvious-looking shortcut - maps the wrong bytes. Caught by dumping the
+  bytes at a name that should have been "AddUnitPriorityTarget".
+- The first resolver only handled `lis`/`addi` on the argument register. Real code loads the names as `addi r4, r31, off`
+  against a string-block base in `r31`, so the resolver now follows `mr` chains and resolves base registers, and stops at
+  function boundaries (`stwu`/`blr`) instead of walking into the previous function.
+
+### Next increments
+
+- Name the 18 unlabelled classes (their method names are in the JSON; matching them to the interface singletons the `Init`
+  table registers would settle it).
+- Resolve the 156 remaining call sites (hoisted bases and pointer-table loads).
+- Arity and return types: each method's handler is a plain function (e.g. `FUN_801e8a00(undefined4 *result, undefined4 args)`),
+  so decompiling handlers gives the real parameter count, which is what the corpus can only observe.

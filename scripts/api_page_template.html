@@ -209,6 +209,21 @@ function filesTable(files) {
   return `<p class="note">Seen in ${files.length} script${files.length === 1 ? '' : 's'}: ${esc(shown)}</p>`;
 }
 
+function engineTable(iface) {
+  if (!iface.engineMethods || !iface.engineMethods.length) return '';
+  const rows = iface.engineMethods.map(m => `<tr>
+      <td><code>${esc(m.name)}</code></td>
+      <td>${m.observed ? '<span class="badge ok">used by scripts</span>'
+                       : '<span class="badge warn">no script uses it</span>'}</td>
+    </tr>`).join('');
+  const unused = iface.engineOnly ? iface.engineOnly.length : 0;
+  return `<h3>Engine methods (recovered from bootfile.dol)</h3>
+    <p class="note">Every method the engine registers for this interface, from the class object
+    <code>${esc(iface.engineClass || '')}</code> (see scripts/extract-engine-methods.py). ${unused} of these never appear in
+    any vanilla script.</p>
+    <table><thead><tr><th>Method</th><th>Corpus</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
 function renderInterface(iface) {
   const rows = iface.methods.map(m => `<tr>
       <td><a href="#m:${esc(iface.name)}.${esc(m.name)}"><code>${esc(m.name)}</code></a></td>
@@ -238,6 +253,7 @@ function renderInterface(iface) {
       <tbody>${rows}</tbody></table>` : ''}
     ${props ? `<h3>Properties</h3><table><thead><tr><th>Property</th><th>Reads</th><th>Count</th><th>In DOL</th></tr></thead>
       <tbody>${props}</tbody></table>` : ''}
+    ${engineTable(iface)}
     ${filesTable(iface.files)}`;
 }
 

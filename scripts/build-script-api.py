@@ -261,6 +261,45 @@ def main():
     for record in catalog['constants']:
         record['inDol'] = record['name'] in strings
 
+    # ---- engine table merge ---------------------------------------------------------------------------------------
+    # extract-engine-methods.py recovers the method tables straight from bootfile.dol (every call to the method
+    # registrar, grouped by class). Merge it in so each interface shows what the engine offers, not only what scripts use.
+    engine_path = os.path.join(args.out, 'engine-methods.json')
+    if os.path.isfile(engine_path):
+        engine = json.load(open(engine_path, encoding='utf-8'))
+        observed_all = set()
+        for iface in catalog['interfaces']:
+            for record in iface['methods'] + iface['properties']:
+                observed_all.add(record['name'].lower())
+        for record in catalog['untypedMethods'] + catalog['globals']:
+            observed_all.add(record['name'].lower())
+
+        by_interface = {}
+        for group in engine.get('classes', []):
+            label = group.get('interface')
+            if not label:
+                continue
+            entry = by_interface.setdefault(label, {'classObject': group['classObject'], 'methods': []})
+            entry['methods'].extend(group['methods'])
+
+        for iface in catalog['interfaces']:
+            entry = by_interface.get(iface['name'])
+            if not entry:
+                continue
+            names = []
+            seen = set()
+            for name in entry['methods']:
+                if name.lower() in seen:
+                    continue
+                seen.add(name.lower())
+                names.append({'name': name, 'observed': name.lower() in observed_all})
+            iface['engineClass'] = entry['classObject']
+            iface['engineMethods'] = names
+            iface['engineOnly'] = [n['name'] for n in names if not n['observed']]
+
+        catalog['engineOnly'] = sorted({n for iface in catalog['interfaces']
+                                        for n in iface.get('engineOnly', [])})
+
     os.makedirs(args.out, exist_ok=True)
     with open(os.path.join(args.out, 'catalog.json'), 'w', encoding='utf-8') as fh:
         json.dump(catalog, fh, indent=1, sort_keys=True)

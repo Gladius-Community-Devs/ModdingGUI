@@ -2683,6 +2683,90 @@
   }
  ],
  "dolStrings": 19495,
+ "engineOnly": [
+  "AbsoluteValue",
+  "CloseAllTalkBoxes",
+  "ConsolePrint",
+  "DisablePlayerUpInfo",
+  "DoRumble",
+  "EnableEmergency",
+  "EnableInfoOff",
+  "EnableInfoOn",
+  "EnableInformation",
+  "EnablePathTweak",
+  "EnablePause",
+  "EnablePlayerUpInfo",
+  "EnableSoftReset",
+  "EnableStart",
+  "FloatToInt",
+  "GetChatter",
+  "GetClosestTeleportPos",
+  "GetCurArenaDisplayName",
+  "GetCurTownDisplayName",
+  "GetCurrentCharacter",
+  "GetCurrentItemCategory",
+  "GetCurrentItemName",
+  "GetCurrentItemQuantity",
+  "GetEnemySchoolName",
+  "GetLiveUnitAtGridPos",
+  "GetNumberOfTeams",
+  "GetPlatform",
+  "GetPositionX",
+  "GetPositionY",
+  "GetRandomTeleportPos",
+  "GetUnitBlocksGridPos",
+  "GridSetBlocked",
+  "GridSetClear",
+  "GridSetKnockbackOnly",
+  "IsCurTown",
+  "IsItemAvailable",
+  "IsPressedCancel",
+  "IsPressedCancelNoBlock",
+  "IsPressedConfirmNoBlock",
+  "IsPressedDown",
+  "IsPressedDownNoBlock",
+  "IsPressedEmergency",
+  "IsPressedEmergencyNoBlock",
+  "IsPressedInfoOff",
+  "IsPressedInfoOffNoBlock",
+  "IsPressedInfoOn",
+  "IsPressedInfoOnNoBlock",
+  "IsPressedInformation",
+  "IsPressedInformationNoBlock",
+  "IsPressedLeft",
+  "IsPressedLeftNoBlock",
+  "IsPressedNextSkill",
+  "IsPressedNextSkillNoBlock",
+  "IsPressedPathTweak",
+  "IsPressedPathTweakNoBlock",
+  "IsPressedPause",
+  "IsPressedPauseNoBlock",
+  "IsPressedPrevSkill",
+  "IsPressedPrevSkillNoBlock",
+  "IsPressedRight",
+  "IsPressedRightNoBlock",
+  "IsPressedSoftReset",
+  "IsPressedSoftResetNoBlock",
+  "IsPressedStartNoBlock",
+  "IsPressedUp",
+  "IsPressedUpNoBlock",
+  "IsTalkBoxActive",
+  "PrintFile",
+  "RemoveTeamIgnoreUnit",
+  "RemoveTeamPriorityDefend",
+  "RemoveTeamPriorityEnterLocation",
+  "RemoveUnitIgnoreUnit",
+  "RemoveUnitPriorityEnterLocation",
+  "RemoveUnitPriorityTarget",
+  "RequestSaveGameState",
+  "RunScript",
+  "ScriptDisable",
+  "SetMeterOverrideMode",
+  "SquareRoot",
+  "SubStringMatch",
+  "TriggerStoryEventAndSetVar",
+  "UnblockOrders"
+ ],
  "generatedFrom": "demo_hero_BEC",
  "globals": [
   {
@@ -3390,6 +3474,29 @@
    ],
    "inDol": false,
    "name": "BreakBarrel"
+  },
+  {
+   "arities": {
+    "1": 2
+   },
+   "calls": 2,
+   "examples": [
+    {
+     "code": "function bump(n)",
+     "file": "battle_apitest.scp",
+     "line": 30
+    },
+    {
+     "code": "bumped = bump(41)",
+     "file": "battle_apitest.scp",
+     "line": 34
+    }
+   ],
+   "files": [
+    "battle_apitest.scp"
+   ],
+   "inDol": false,
+   "name": "bump"
   },
   {
    "arities": {
@@ -10732,9 +10839,9 @@
   },
   {
    "arities": {
-    "0": 185
+    "0": 186
    },
-   "calls": 185,
+   "calls": 186,
    "examples": [
     {
      "code": "function OnInitBattle()",
@@ -10747,14 +10854,15 @@
      "line": 1
     },
     {
-     "code": "function OnInitBattle ()",
-     "file": "battle_archernya_battle1demo.scp",
-     "line": 4
+     "code": "function OnInitBattle()",
+     "file": "battle_apitest.scp",
+     "line": 18
     }
    ],
    "files": [
     "battle_anteupbyo10000.scp",
     "battle_anteupbyo8000.scp",
+    "battle_apitest.scp",
     "battle_archernya_battle1demo.scp",
     "battle_beastza_circusbears.scp",
     "battle_beastza_wildbeasts.scp",
@@ -15196,6 +15304,167 @@
   },
   {
    "creators": 207,
+   "engineClass": "0x8034ecbc",
+   "engineMethods": [
+    {
+     "name": "SetDeadBodyTimeout",
+     "observed": true
+    },
+    {
+     "name": "GetTeamName",
+     "observed": true
+    },
+    {
+     "name": "SetWinningTeam",
+     "observed": true
+    },
+    {
+     "name": "GetNumberOfTeams",
+     "observed": false
+    },
+    {
+     "name": "GetCrowdLevel",
+     "observed": true
+    },
+    {
+     "name": "SetCountdownTimer",
+     "observed": true
+    },
+    {
+     "name": "GetCountdownTimer",
+     "observed": true
+    },
+    {
+     "name": "PauseCountdownTimer",
+     "observed": true
+    },
+    {
+     "name": "UnpauseCountdownTimer",
+     "observed": true
+    },
+    {
+     "name": "SetDamageMode",
+     "observed": true
+    },
+    {
+     "name": "SetMeterOverrideMode",
+     "observed": false
+    },
+    {
+     "name": "SetAutoKnockdown",
+     "observed": true
+    },
+    {
+     "name": "OpenGate",
+     "observed": true
+    },
+    {
+     "name": "CloseGate",
+     "observed": true
+    },
+    {
+     "name": "CreateGridTrigger",
+     "observed": true
+    },
+    {
+     "name": "IsCameraSettled",
+     "observed": true
+    },
+    {
+     "name": "GetCameraSpin",
+     "observed": true
+    },
+    {
+     "name": "SetCameraSpin",
+     "observed": true
+    },
+    {
+     "name": "SetCameraFreeSpin",
+     "observed": true
+    },
+    {
+     "name": "SetCameraDigitalDist",
+     "observed": true
+    },
+    {
+     "name": "DisableBattleInput",
+     "observed": true
+    },
+    {
+     "name": "EnableBattleInput",
+     "observed": true
+    },
+    {
+     "name": "DisableAutoWinCheck",
+     "observed": true
+    },
+    {
+     "name": "EnableAutoWinCheck",
+     "observed": true
+    },
+    {
+     "name": "DisableBattleAbort",
+     "observed": true
+    },
+    {
+     "name": "EnableBattleAbort",
+     "observed": true
+    },
+    {
+     "name": "BlockOrders",
+     "observed": true
+    },
+    {
+     "name": "UnblockOrders",
+     "observed": false
+    },
+    {
+     "name": "DisablePlayerUpInfo",
+     "observed": false
+    },
+    {
+     "name": "EnablePlayerUpInfo",
+     "observed": false
+    },
+    {
+     "name": "GridSetBlocked",
+     "observed": false
+    },
+    {
+     "name": "GridSetKnockbackOnly",
+     "observed": false
+    },
+    {
+     "name": "GridSetClear",
+     "observed": false
+    },
+    {
+     "name": "GetComboMeter",
+     "observed": true
+    },
+    {
+     "name": "GetKeroberus",
+     "observed": true
+    },
+    {
+     "name": "AttacksAreDone",
+     "observed": true
+    },
+    {
+     "name": "RequestHelp",
+     "observed": true
+    }
+   ],
+   "engineOnly": [
+    "GetNumberOfTeams",
+    "SetMeterOverrideMode",
+    "UnblockOrders",
+    "DisablePlayerUpInfo",
+    "EnablePlayerUpInfo",
+    "GridSetBlocked",
+    "GridSetKnockbackOnly",
+    "GridSetClear"
+   ],
    "files": [
     "battle_anteupbyo8000.scp",
     "battle_archernya_battle1demo.scp",
@@ -16458,10 +16727,86 @@
    "properties": []
   },
   {
-   "creators": 63,
+   "creators": 64,
+   "engineClass": "0x803d7640",
+   "engineMethods": [
+    {
+     "name": "AddTeamPriorityTarget",
+     "observed": true
+    },
+    {
+     "name": "RemoveTeamPriorityTarget",
+     "observed": true
+    },
+    {
+     "name": "AddUnitPriorityTarget",
+     "observed": true
+    },
+    {
+     "name": "RemoveUnitPriorityTarget",
+     "observed": false
+    },
+    {
+     "name": "AddTeamPriorityDefend",
+     "observed": true
+    },
+    {
+     "name": "RemoveTeamPriorityDefend",
+     "observed": false
+    },
+    {
+     "name": "AddUnitPriorityDefend",
+     "observed": true
+    },
+    {
+     "name": "RemoveUnitPriorityDefend",
+     "observed": true
+    },
+    {
+     "name": "AddTeamIgnoreUnit",
+     "observed": true
+    },
+    {
+     "name": "RemoveTeamIgnoreUnit",
+     "observed": false
+    },
+    {
+     "name": "AddUnitIgnoreUnit",
+     "observed": true
+    },
+    {
+     "name": "RemoveUnitIgnoreUnit",
+     "observed": false
+    },
+    {
+     "name": "AddTeamPriorityEnterLocation",
+     "observed": true
+    },
+    {
+     "name": "RemoveTeamPriorityEnterLocation",
+     "observed": false
+    },
+    {
+     "name": "AddUnitPriorityEnterLocation",
+     "observed": true
+    },
+    {
+     "name": "RemoveUnitPriorityEnterLocation",
+     "observed": false
+    }
+   ],
+   "engineOnly": [
+    "RemoveUnitPriorityTarget",
+    "RemoveTeamPriorityDefend",
+    "RemoveTeamIgnoreUnit",
+    "RemoveUnitIgnoreUnit",
+    "RemoveTeamPriorityEnterLocation",
+    "RemoveUnitPriorityEnterLocation"
+   ],
    "files": [
     "battle_ally_template.scp",
     "battle_anteupbyo10000.scp",
+    "battle_apitest.scp",
     "battle_belfort_beast_03_taketwo.scp",
     "battle_belfort_beast_04_taketwo.scp",
     "battle_belfort_beast_05_taketwo.scp",
@@ -16715,10 +17060,16 @@
     },
     {
      "arities": {
+      "2": 1,
       "3": 1
      },
-     "calls": 1,
+     "calls": 2,
      "examples": [
+      {
+       "code": "tactics.AddUnitPriorityTarget(hero, hero)",
+       "file": "battle_apitest.scp",
+       "line": 54
+      },
       {
        "code": "tactics.AddUnitPriorityTarget(attackername, \"Visitor\", 1)",
        "file": "battle_statuekill.scp",
@@ -16726,6 +17077,7 @@
       }
      ],
      "files": [
+      "battle_apitest.scp",
       "battle_statuekill.scp"
      ],
      "inDol": true,
@@ -16909,6 +17261,26 @@
   },
   {
    "creators": 13,
+   "engineClass": "0x803c66e4",
+   "engineMethods": [
+    {
+     "name": "FireAtPosition",
+     "observed": true
+    },
+    {
+     "name": "FireOnUnit",
+     "observed": true
+    },
+    {
+     "name": "FireOnEntity",
+     "observed": true
+    },
+    {
+     "name": "LoadEffect",
+     "observed": true
+    }
+   ],
+   "engineOnly": [],
    "files": [
     "battle_belfort_beast_04_taketwo.scp",
     "battle_belfort_beast_05_taketwo.scp",
@@ -17072,13 +17444,338 @@
    "properties": []
   },
   {
-   "creators": 730,
+   "creators": 731,
+   "engineClass": "0x8039d0e8",
+   "engineMethods": [
+    {
+     "name": "PrintFile",
+     "observed": false
+    },
+    {
+     "name": "SubStringMatch",
+     "observed": false
+    },
+    {
+     "name": "GetUnitByName",
+     "observed": true
+    },
+    {
+     "name": "GetUnitList",
+     "observed": true
+    },
+    {
+     "name": "CreateTalkBox",
+     "observed": true
+    },
+    {
+     "name": "CreateSubTitleTalkBox",
+     "observed": true
+    },
+    {
+     "name": "CloseAllTalkBoxes",
+     "observed": false
+    },
+    {
+     "name": "AddFloatText",
+     "observed": true
+    },
+    {
+     "name": "LoadTalkBoxSoundTable",
+     "observed": true
+    },
+    {
+     "name": "UnloadTalkBoxSoundTable",
+     "observed": true
+    },
+    {
+     "name": "LoadSecondaryTalkBoxSoundTable",
+     "observed": true
+    },
+    {
+     "name": "UnloadSecondaryTalkBoxSoundTable",
+     "observed": true
+    },
+    {
+     "name": "IsTalkBoxActive",
+     "observed": false
+    },
+    {
+     "name": "GetChatter",
+     "observed": false
+    },
+    {
+     "name": "SetChatter",
+     "observed": true
+    },
+    {
+     "name": "GetSchool",
+     "observed": true
+    },
+    {
+     "name": "GetEnemySchoolName",
+     "observed": false
+    },
+    {
+     "name": "SendInput",
+     "observed": true
+    },
+    {
+     "name": "CheckPress",
+     "observed": true
+    },
+    {
+     "name": "GetGameDay",
+     "observed": true
+    },
+    {
+     "name": "SetCurTown",
+     "observed": true
+    },
+    {
+     "name": "LoadLeagueOfficeData",
+     "observed": true
+    },
+    {
+     "name": "UnloadLeagueOfficeData",
+     "observed": true
+    },
+    {
+     "name": "IsMultiplayer",
+     "observed": true
+    },
+    {
+     "name": "SetCurLeague",
+     "observed": true
+    },
+    {
+     "name": "GetCurTown",
+     "observed": true
+    },
+    {
+     "name": "GetCurTownRefName",
+     "observed": true
+    },
+    {
+     "name": "GetCurTownDisplayName",
+     "observed": false
+    },
+    {
+     "name": "GetCurArenaRefName",
+     "observed": true
+    },
+    {
+     "name": "GetCurArenaDisplayName",
+     "observed": false
+    },
+    {
+     "name": "IsCurTown",
+     "observed": false
+    },
+    {
+     "name": "RunScript",
+     "observed": false
+    },
+    {
+     "name": "RequestCredits",
+     "observed": true
+    },
+    {
+     "name": "RequestWorldMap",
+     "observed": true
+    },
+    {
+     "name": "RequestMovie",
+     "observed": true
+    },
+    {
+     "name": "RequestCutScene",
+     "observed": true
+    },
+    {
+     "name": "RequestShop",
+     "observed": true
+    },
+    {
+     "name": "RequestLeague",
+     "observed": true
+    },
+    {
+     "name": "RequestLeagueWithScript",
+     "observed": true
+    },
+    {
+     "name": "RequestEncounter",
+     "observed": true
+    },
+    {
+     "name": "RequestEncounterRetreat",
+     "observed": true
+    },
+    {
+     "name": "GetRandomEncounter",
+     "observed": true
+    },
+    {
+     "name": "RequestScenimation",
+     "observed": true
+    },
+    {
+     "name": "RequestSplash",
+     "observed": true
+    },
+    {
+     "name": "RequestTown",
+     "observed": true
+    },
+    {
+     "name": "RequestSaveGameOverlay",
+     "observed": true
+    },
+    {
+     "name": "RequestSaveGameState",
+     "observed": false
+    },
+    {
+     "name": "RequestDemoTitleScreen",
+     "observed": true
+    },
+    {
+     "name": "RequestFullScreenPic",
+     "observed": true
+    },
+    {
+     "name": "TriggerNewState",
+     "observed": true
+    },
+    {
+     "name": "RequestState",
+     "observed": true
+    },
+    {
+     "name": "GetPlatform",
+     "observed": false
+    },
+    {
+     "name": "ExitShop",
+     "observed": true
+    },
+    {
+     "name": "ConsoleExec",
+     "observed": true
+    },
+    {
+     "name": "ConsolePrint",
+     "observed": false
+    },
+    {
+     "name": "RegisterEventHandler",
+     "observed": true
+    },
+    {
+     "name": "UnregisterEventHandler",
+     "observed": true
+    },
+    {
+     "name": "TriggerEvent",
+     "observed": true
+    },
+    {
+     "name": "RequestStoryEvent",
+     "observed": true
+    },
+    {
+     "name": "TriggerStoryEvent",
+     "observed": true
+    },
+    {
+     "name": "TriggerStoryEventAndSetVar",
+     "observed": false
+    },
+    {
+     "name": "TestAndTriggerStoryEvent",
+     "observed": true
+    },
+    {
+     "name": "SetTownHold",
+     "observed": true
+    },
+    {
+     "name": "SetPreBattleCutScene",
+     "observed": true
+    },
+    {
+     "name": "SetPostBattleCutScene",
+     "observed": true
+    },
+    {
+     "name": "GetCurrentRegion",
+     "observed": true
+    },
+    {
+     "name": "SetCurrentRegion",
+     "observed": true
+    },
+    {
+     "name": "SetChapter",
+     "observed": true
+    },
+    {
+     "name": "GetChapter",
+     "observed": true
+    },
+    {
+     "name": "GetCurrentItemName",
+     "observed": false
+    },
+    {
+     "name": "GetCurrentItemQuantity",
+     "observed": false
+    },
+    {
+     "name": "GetCurrentItemCategory",
+     "observed": false
+    },
+    {
+     "name": "GetCurrentCharacter",
+     "observed": false
+    },
+    {
+     "name": "IsItemAvailable",
+     "observed": false
+    },
+    {
+     "name": "CutSceneComplete",
+     "observed": true
+    }
+   ],
+   "engineOnly": [
+    "PrintFile",
+    "SubStringMatch",
+    "CloseAllTalkBoxes",
+    "IsTalkBoxActive",
+    "GetChatter",
+    "GetEnemySchoolName",
+    "GetCurTownDisplayName",
+    "GetCurArenaDisplayName",
+    "IsCurTown",
+    "RunScript",
+    "RequestSaveGameState",
+    "GetPlatform",
+    "ConsolePrint",
+    "TriggerStoryEventAndSetVar",
+    "GetCurrentItemName",
+    "GetCurrentItemQuantity",
+    "GetCurrentItemCategory",
+    "GetCurrentCharacter",
+    "IsItemAvailable"
+   ],
    "files": [
     "arenacertification.scp",
     "autoexec.scp",
     "battle_ally_template.scp",
     "battle_anteupbyo10000.scp",
     "battle_anteupbyo8000.scp",
+    "battle_apitest.scp",
     "battle_archernya_battle1demo.scp",
     "battle_beastza_circusbears.scp",
     "battle_beastza_wildbeasts.scp",
@@ -18077,10 +18774,15 @@
     },
     {
      "arities": {
-      "4": 1458
+      "4": 1459
      },
-     "calls": 1458,
+     "calls": 1459,
      "examples": [
+      {
+       "code": "box = gb.CreateTalkBox(40.0, 10.0, \"Usus\", \"Usus.tga\")",
+       "file": "battle_apitest.scp",
+       "line": 37
+      },
       {
        "code": "tb1 = globals.CreateTalkBox (40.0, 10.0, \"Eiji\", \"eiji.tga\")",
        "file": "battle_archernya_battle1demo.scp",
@@ -18090,14 +18792,10 @@
        "code": "tb = globals.CreateTalkBox (40.0, 10.0, \"Eiji\", \"eiji.tga\")",
        "file": "battle_archernya_battle1demo.scp",
        "line": 177
-      },
-      {
-       "code": "tb = globals.CreateTalkBox (250.0, 200.0, \"Ursula\", \"ursula.tga\")",
-       "file": "battle_archernya_battle1demo.scp",
-       "line": 192
       }
      ],
      "files": [
+      "battle_apitest.scp",
       "battle_archernya_battle1demo.scp",
       "battle_darkgoddragon.scp",
       "battle_darkgodface.scp",
@@ -19213,11 +19911,16 @@
     },
     {
      "arities": {
-      "0": 163,
+      "0": 164,
       "1": 22
      },
-     "calls": 185,
+     "calls": 186,
      "examples": [
+      {
+       "code": "hero = gb.GetUnitByName(\"Valens\")",
+       "file": "battle_apitest.scp",
+       "line": 52
+      },
       {
        "code": "shared ursula = globals.GetUnitByName(\"Ursula\")",
        "file": "battle_archernya_battle1demo.scp",
@@ -19227,14 +19930,10 @@
        "code": "shared eiji = globals.GetUnitByName(\"Eiji\")",
        "file": "battle_archernya_battle1demo.scp",
        "line": 49
-      },
-      {
-       "code": "shared valens = globals.GetUnitByName(\"Valens\")",
-       "file": "battle_archernya_battle1demo.scp",
-       "line": 52
       }
      ],
      "files": [
+      "battle_apitest.scp",
       "battle_archernya_battle1demo.scp",
       "battle_beastza_circusbears.scp",
       "battle_beastza_wildbeasts.scp",
@@ -21472,6 +22171,270 @@
   },
   {
    "creators": 191,
+   "engineClass": "0x8031b524",
+   "engineMethods": [
+    {
+     "name": "EnableConfirm",
+     "observed": true
+    },
+    {
+     "name": "EnableCancel",
+     "observed": true
+    },
+    {
+     "name": "EnableMenu",
+     "observed": true
+    },
+    {
+     "name": "EnableInformation",
+     "observed": false
+    },
+    {
+     "name": "EnableNextSkill",
+     "observed": true
+    },
+    {
+     "name": "EnablePrevSkill",
+     "observed": true
+    },
+    {
+     "name": "EnableUp",
+     "observed": true
+    },
+    {
+     "name": "EnableDown",
+     "observed": true
+    },
+    {
+     "name": "EnableRight",
+     "observed": true
+    },
+    {
+     "name": "EnableLeft",
+     "observed": true
+    },
+    {
+     "name": "EnableStart",
+     "observed": false
+    },
+    {
+     "name": "EnablePause",
+     "observed": false
+    },
+    {
+     "name": "EnableInfoOn",
+     "observed": false
+    },
+    {
+     "name": "EnableInfoOff",
+     "observed": false
+    },
+    {
+     "name": "EnablePathTweak",
+     "observed": false
+    },
+    {
+     "name": "EnableEmergency",
+     "observed": false
+    },
+    {
+     "name": "EnableSoftReset",
+     "observed": false
+    },
+    {
+     "name": "EnableRightAnalog",
+     "observed": true
+    },
+    {
+     "name": "EnableLeftAnalog",
+     "observed": true
+    },
+    {
+     "name": "EnableAllInput",
+     "observed": true
+    },
+    {
+     "name": "IsPressedConfirm",
+     "observed": true
+    },
+    {
+     "name": "IsPressedCancel",
+     "observed": false
+    },
+    {
+     "name": "IsPressedMenu",
+     "observed": true
+    },
+    {
+     "name": "IsPressedInformation",
+     "observed": false
+    },
+    {
+     "name": "IsPressedNextSkill",
+     "observed": false
+    },
+    {
+     "name": "IsPressedPrevSkill",
+     "observed": false
+    },
+    {
+     "name": "IsPressedUp",
+     "observed": false
+    },
+    {
+     "name": "IsPressedDown",
+     "observed": false
+    },
+    {
+     "name": "IsPressedRight",
+     "observed": false
+    },
+    {
+     "name": "IsPressedLeft",
+     "observed": false
+    },
+    {
+     "name": "IsPressedStart",
+     "observed": true
+    },
+    {
+     "name": "IsPressedPause",
+     "observed": false
+    },
+    {
+     "name": "IsPressedInfoOn",
+     "observed": false
+    },
+    {
+     "name": "IsPressedInfoOff",
+     "observed": false
+    },
+    {
+     "name": "IsPressedPathTweak",
+     "observed": false
+    },
+    {
+     "name": "IsPressedEmergency",
+     "observed": false
+    },
+    {
+     "name": "IsPressedSoftReset",
+     "observed": false
+    },
+    {
+     "name": "IsPressedConfirmNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedCancelNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedMenuNoBlock",
+     "observed": true
+    },
+    {
+     "name": "IsPressedInformationNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedNextSkillNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedPrevSkillNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedUpNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedDownNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedRightNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedLeftNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedStartNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedPauseNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedInfoOnNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedInfoOffNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedPathTweakNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedEmergencyNoBlock",
+     "observed": false
+    },
+    {
+     "name": "IsPressedSoftResetNoBlock",
+     "observed": false
+    },
+    {
+     "name": "DoRumble",
+     "observed": false
+    }
+   ],
+   "engineOnly": [
+    "EnableInformation",
+    "EnableStart",
+    "EnablePause",
+    "EnableInfoOn",
+    "EnableInfoOff",
+    "EnablePathTweak",
+    "EnableEmergency",
+    "EnableSoftReset",
+    "IsPressedCancel",
+    "IsPressedInformation",
+    "IsPressedNextSkill",
+    "IsPressedPrevSkill",
+    "IsPressedUp",
+    "IsPressedDown",
+    "IsPressedRight",
+    "IsPressedLeft",
+    "IsPressedPause",
+    "IsPressedInfoOn",
+    "IsPressedInfoOff",
+    "IsPressedPathTweak",
+    "IsPressedEmergency",
+    "IsPressedSoftReset",
+    "IsPressedConfirmNoBlock",
+    "IsPressedCancelNoBlock",
+    "IsPressedInformationNoBlock",
+    "IsPressedNextSkillNoBlock",
+    "IsPressedPrevSkillNoBlock",
+    "IsPressedUpNoBlock",
+    "IsPressedDownNoBlock",
+    "IsPressedRightNoBlock",
+    "IsPressedLeftNoBlock",
+    "IsPressedStartNoBlock",
+    "IsPressedPauseNoBlock",
+    "IsPressedInfoOnNoBlock",
+    "IsPressedInfoOffNoBlock",
+    "IsPressedPathTweakNoBlock",
+    "IsPressedEmergencyNoBlock",
+    "IsPressedSoftResetNoBlock",
+    "DoRumble"
+   ],
    "files": [
     "battle_archernya_battle1demo.scp",
     "battle_practice.scp",
@@ -22322,6 +23285,41 @@
   },
   {
    "creators": 63,
+   "engineClass": "0x803143c4",
+   "engineMethods": [
+    {
+     "name": "SetLocation",
+     "observed": true
+    },
+    {
+     "name": "SetLocationUnit",
+     "observed": true
+    },
+    {
+     "name": "GetGridX",
+     "observed": true
+    },
+    {
+     "name": "GetGridY",
+     "observed": true
+    },
+    {
+     "name": "GetPositionX",
+     "observed": false
+    },
+    {
+     "name": "GetPositionY",
+     "observed": false
+    },
+    {
+     "name": "Constrain",
+     "observed": true
+    }
+   ],
+   "engineOnly": [
+    "GetPositionX",
+    "GetPositionY"
+   ],
    "files": [
     "battle_archernya_battle1demo.scp",
     "battle_caltha.scp",
@@ -22520,6 +23518,38 @@
   },
   {
    "creators": 165,
+   "engineClass": "0x803c55b0",
+   "engineMethods": [
+    {
+     "name": "RandomNumber",
+     "observed": true
+    },
+    {
+     "name": "RandomInRange",
+     "observed": true
+    },
+    {
+     "name": "SquareRoot",
+     "observed": false
+    },
+    {
+     "name": "AbsoluteValue",
+     "observed": false
+    },
+    {
+     "name": "FloatToInt",
+     "observed": false
+    },
+    {
+     "name": "GetVectorLength",
+     "observed": true
+    }
+   ],
+   "engineOnly": [
+    "SquareRoot",
+    "AbsoluteValue",
+    "FloatToInt"
+   ],
    "files": [
     "battle_breakthebank.scp",
     "battle_breakthebank_arcane.scp",
@@ -22981,6 +24011,39 @@
   },
   {
    "creators": 48,
+   "engineClass": "0x8038d77c",
+   "engineMethods": [
+    {
+     "name": "GetUnitBlocksGridPos",
+     "observed": false
+    },
+    {
+     "name": "GetLiveUnitAtGridPos",
+     "observed": false
+    },
+    {
+     "name": "GetUnitAtLocation",
+     "observed": true
+    },
+    {
+     "name": "IsLocationEmpty",
+     "observed": true
+    },
+    {
+     "name": "GetRandomTeleportPos",
+     "observed": false
+    },
+    {
+     "name": "GetClosestTeleportPos",
+     "observed": false
+    }
+   ],
+   "engineOnly": [
+    "GetUnitBlocksGridPos",
+    "GetLiveUnitAtGridPos",
+    "GetRandomTeleportPos",
+    "GetClosestTeleportPos"
+   ],
    "files": [
     "battle_archernya_battle1demo.scp",
     "battle_breakthebank.scp",
@@ -23102,6 +24165,76 @@
   },
   {
    "creators": 131,
+   "engineClass": "0x8039f734",
+   "engineMethods": [
+    {
+     "name": "RequestRegionChange",
+     "observed": true
+    },
+    {
+     "name": "RequestShop",
+     "observed": true
+    },
+    {
+     "name": "DestroyEntity",
+     "observed": true
+    },
+    {
+     "name": "SummonEntity",
+     "observed": true
+    },
+    {
+     "name": "SummonSchoolEntity",
+     "observed": true
+    },
+    {
+     "name": "SummonCharacterEntity",
+     "observed": true
+    },
+    {
+     "name": "GetHeroPosition",
+     "observed": true
+    },
+    {
+     "name": "GetDistanceToHero",
+     "observed": true
+    },
+    {
+     "name": "LookAtHero",
+     "observed": true
+    },
+    {
+     "name": "LookAtEntity",
+     "observed": true
+    },
+    {
+     "name": "GetWorldProp",
+     "observed": true
+    },
+    {
+     "name": "EnableCloseCamera",
+     "observed": true
+    },
+    {
+     "name": "CheckScriptDisable",
+     "observed": true
+    },
+    {
+     "name": "ScriptDisable",
+     "observed": false
+    },
+    {
+     "name": "DoRandomEncounterAudioAndVideo",
+     "observed": true
+    },
+    {
+     "name": "IsCivilized",
+     "observed": true
+    }
+   ],
+   "engineOnly": [
+    "ScriptDisable"
+   ],
    "files": [
     "entwalktofliuch.scp",
     "gameflowe3.scp",
@@ -23972,7 +25105,7 @@
    "properties": []
   }
  ],
- "scripts": 694,
+ "scripts": 695,
  "untypedMethods": [
   {
    "arities": {
@@ -31622,10 +32755,15 @@
   },
   {
    "arities": {
-    "1": 675
+    "1": 676
    },
-   "calls": 675,
+   "calls": 676,
    "examples": [
+    {
+     "code": "box.SetHeight(3)",
+     "file": "battle_apitest.scp",
+     "line": 38
+    },
     {
      "code": "tb1.SetHeight(2)",
      "file": "battle_archernya_battle1demo.scp",
@@ -31635,14 +32773,10 @@
      "code": "tb1.SetHeight(4)",
      "file": "battle_archernya_battle1demo.scp",
      "line": 160
-    },
-    {
-     "code": "tb.SetHeight(3)",
-     "file": "battle_archernya_battle1demo.scp",
-     "line": 180
     }
    ],
    "files": [
+    "battle_apitest.scp",
     "battle_archernya_battle1demo.scp",
     "battle_destroybarrels_template.scp",
     "battle_procitizenbyu1.scp",
@@ -32539,29 +33673,30 @@
   },
   {
    "arities": {
-    "0": 2205,
+    "0": 2210,
     "1": 191,
     "2": 1
    },
-   "calls": 2397,
+   "calls": 2402,
    "examples": [
     {
-     "code": "tb1.SetText(\"Welcome to the Gladius Pre-Release Demo.\")",
-     "file": "battle_archernya_battle1demo.scp",
-     "line": 154
+     "code": "box.SetText(\"APITEST lang-ok\")",
+     "file": "battle_apitest.scp",
+     "line": 42
     },
     {
-     "code": "tb1.SetText(\"Would you like a tutorial on how to play our game?\")",
-     "file": "battle_archernya_battle1demo.scp",
-     "line": 157
+     "code": "box.SetText(\"APITEST lang-fail bump\")",
+     "file": "battle_apitest.scp",
+     "line": 44
     },
     {
-     "code": "tb.SetText(\"Welcome rookie.  I'll be putting you through your paces.  Hope you can keep up with me.\")",
-     "file": "battle_archernya_battle1demo.scp",
-     "line": 179
+     "code": "box.SetText(\"APITEST lang-fail loop\")",
+     "file": "battle_apitest.scp",
+     "line": 47
     }
    ],
    "files": [
+    "battle_apitest.scp",
     "battle_archernya_battle1demo.scp",
     "battle_darkgoddragon.scp",
     "battle_darkgodface.scp",
