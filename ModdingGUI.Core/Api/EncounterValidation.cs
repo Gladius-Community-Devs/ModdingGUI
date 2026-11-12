@@ -375,6 +375,7 @@ public static class EncounterValidator
             }
 
             var startSlots = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var namedOnSlot = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             for (int i = 0; i < team.Units.Count; i++)
             {
@@ -444,14 +445,21 @@ public static class EncounterValidator
                     // information, not an error. It is still worth surfacing: a QA build that moved
                     // a named unit onto an occupied slot lost that unit in game, and only checking in
                     // game will tell whether it is the slot or something else.
-                    issues.Add(new EncounterValidationIssue(
-                        EncounterValidationSeverity.Info,
-                        EncounterValidationCodes.DuplicateStartSlot, where, "UNITDB",
-                        $"start slot '{unit.StartSlot}' is also used by unit {alreadyTakenBy + 1}"));
+                    // Only worth reporting when a *named* unit has to share, because that is where a unit can go missing.
+                    // Unnamed rows on one marker are ordinary: the engine places them on random cells of that marker, and
+                    // vanilla content does it constantly (Battle1 of the Pirgos open league puts three rows on Start1).
+                    if (unit.UnitName.Length > 0 || namedOnSlot.ContainsKey(unit.StartSlot))
+                    {
+                        issues.Add(new EncounterValidationIssue(
+                            EncounterValidationSeverity.Info,
+                            EncounterValidationCodes.DuplicateStartSlot, where, "UNITDB",
+                            $"start slot '{unit.StartSlot}' is also used by unit {alreadyTakenBy + 1}"));
+                    }
                 }
                 else
                 {
                     startSlots[unit.StartSlot] = i;
+                    if (unit.UnitName.Length > 0) namedOnSlot[unit.StartSlot] = i;
                 }
             }
 

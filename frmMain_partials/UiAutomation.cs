@@ -101,6 +101,9 @@ namespace ModdingGUI
 
                         case "encounters":
                             return EncountersCommand(request);
+
+                        case "encpage":
+                            return EncounterPageCommand(request);
                 case "closeDialog":
                             return CloseDialog();
 
