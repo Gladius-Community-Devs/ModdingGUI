@@ -212,9 +212,14 @@ public sealed class EncounterEditorView : UserControl
                 foreach (ArenaCatalog.LeagueEntry league in ArenaCatalog.Leagues(_project, arena.Arena))
                 {
                     // "Civilis League of Pirgos" is what the game shows; "Apprentice Open League" is what the file calls it
-                    string display = string.IsNullOrWhiteSpace(league.DisplayName) || league.DisplayName == league.Name
+                    // A few leagues have placeholder text as their localised name (MPScorchedOasis resolves to
+                    // "Excellent work Urlan and Ursula..."), so the file's own name is always shown and a long
+                    // display name is shortened rather than allowed to fill the combo.
+                    string inGame = league.DisplayName?.Trim() ?? string.Empty;
+                    if (inGame.Length > 32) inGame = string.Concat(inGame.AsSpan(0, 30), ".");
+                    string display = inGame.Length == 0 || inGame == league.Name
                         ? league.Name
-                        : $"{league.DisplayName}  ({league.Name})";
+                        : $"{inGame}  ({league.Name})";
                     _league.Items.Add(new LeagueItem(display, league.Name));
                 }
             }

@@ -118,23 +118,24 @@ public sealed class EncounterReplaceTests : IDisposable
     }
 
     [Fact]
-    public void Validate_DuplicateStartSlot_IsReported()
+    public void Validate_SharedStartSlot_OnlyComplainsAboutCapacity()
     {
         if (!Ready) return;
 
+        // Units may share a start marker - the engine spreads them over the marker's cells. The only real limit is the
+        // cell count, so the validator must say nothing about sharing itself and must explain the capacity case.
         var api = new EncountersApi();
         var team = api.Get(_projectDir, Arena)!.Team(1)!;
 
-        // Move unit 0 onto a slot another unit already holds - the exact mistake seen in QA.
-        string occupied = team.Unit(1)!.StartSlot;
-        Assert.NotEqual(team.Unit(0)!.StartSlot, occupied);
-
-        api.SetTeamUnit(_projectDir, Arena, 1, 0, team.Unit(0)!.WithStartSlot(occupied));
+        api.SetTeamUnit(_projectDir, Arena, 1, 1, team.Unit(1)!.WithStartSlot(team.Unit(0)!.StartSlot));
 
         var issues = api.Validate(_projectDir, Arena);
-        var issue = Assert.Single(issues, i => i.Code == EncounterValidationCodes.DuplicateStartSlot);
-        // Information, not a warning: vanilla itself shares slots 4171 times.
-        Assert.Equal(EncounterValidationSeverity.Info, issue.Severity);
+        Assert.DoesNotContain(issues, i => i.Message.Contains("also used by", StringComparison.OrdinalIgnoreCase));
+
+        foreach (var overflow in issues.Where(i => i.Code == EncounterValidationCodes.StartSlotOverflow))
+        {
+            Assert.Contains("cell", overflow.Message, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     [Fact]
@@ -184,6 +185,6 @@ public sealed class EncounterReplaceTests : IDisposable
         var slots = team.ParsedUnits.Select(u => u!.StartSlot).ToArray();
         Assert.Equal(slots.Length, slots.Distinct(StringComparer.OrdinalIgnoreCase).Count());
         Assert.DoesNotContain(api.Validate(_projectDir, Arena),
-            i => i.Code == EncounterValidationCodes.DuplicateStartSlot);
+            i => i.Message.Contains("also used by", StringComparison.OrdinalIgnoreCase));
     }
 }

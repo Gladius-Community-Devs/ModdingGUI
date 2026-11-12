@@ -54,7 +54,6 @@ public static class EncounterValidationCodes
     /// Two units of the same team share a start slot. The grid slot places one unit, so the
     /// second one is dropped at spawn time (confirmed in game: a moved unit disappeared).
     /// </summary>
-    public const string DuplicateStartSlot = "duplicate-start-slot";
 
     /// <summary>The team's GRIDFILE does not resolve to a file in this project.</summary>
     public const string GridMissing = "grid-missing";
@@ -374,8 +373,6 @@ public static class EncounterValidator
                     "team has no UNITDB rows"));
             }
 
-            var startSlots = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            var namedOnSlot = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             for (int i = 0; i < team.Units.Count; i++)
             {
@@ -439,28 +436,6 @@ public static class EncounterValidator
                             ? $"start slot '{unit.StartSlot}' is not painted on the team grid"
                             : $"start slot '{unit.StartSlot}' is not a tag on the team grid"));
                 }
-                else if (startSlots.TryGetValue(unit.StartSlot, out int alreadyTakenBy))
-                {
-                    // Vanilla shares slots freely (4171 cases, 340 between named units), so this is
-                    // information, not an error. It is still worth surfacing: a QA build that moved
-                    // a named unit onto an occupied slot lost that unit in game, and only checking in
-                    // game will tell whether it is the slot or something else.
-                    // Only worth reporting when a *named* unit has to share, because that is where a unit can go missing.
-                    // Unnamed rows on one marker are ordinary: the engine places them on random cells of that marker, and
-                    // vanilla content does it constantly (Battle1 of the Pirgos open league puts three rows on Start1).
-                    if (unit.UnitName.Length > 0 || namedOnSlot.ContainsKey(unit.StartSlot))
-                    {
-                        issues.Add(new EncounterValidationIssue(
-                            EncounterValidationSeverity.Info,
-                            EncounterValidationCodes.DuplicateStartSlot, where, "UNITDB",
-                            $"start slot '{unit.StartSlot}' is also used by unit {alreadyTakenBy + 1}"));
-                    }
-                }
-                else
-                {
-                    startSlots[unit.StartSlot] = i;
-                    if (unit.UnitName.Length > 0) namedOnSlot[unit.StartSlot] = i;
-                }
             }
 
             // Team -1 is the neutral team (summoned creatures): one vanilla encounter puts four of them
@@ -496,7 +471,7 @@ public static class EncounterValidator
                         EncounterValidationSeverity.Warning,
                         EncounterValidationCodes.AffinityRequirement, site, "UNITDB",
                         $"affinity requirement {required} is not an engine affinity id " +
-                        "(-1 = none, 1 Earth, 2 Water, 3 Dark, 4 Air, 5 Fire, 6 Light)"));
+                        "(-1 = none, 1 Earth, 2 Water, 3 Dark, 4 Air, 5 Fire)"));
                 }
             }
         }
