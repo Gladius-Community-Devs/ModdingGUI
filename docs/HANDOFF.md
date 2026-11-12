@@ -165,6 +165,11 @@ calls, so its log is the GUI's log.
 
 ## 5. What is next, in order
 
+> **The working backlog is `docs/OPEN_ITEMS.md`.** It lists every unfinished, unverified or deliberately deferred item -
+> the texture encoder, the deferred encounter-editor polish, series authoring unknowns, the Grid Builder filter, MCP and
+> Phase 9 - together with the facts and verification traps that cost time to learn. This section keeps the phase-level order;
+> OPEN_ITEMS has the detail and the per-item "done means".
+
 ### 5.1 Phase 8 — `ModdingGUI.Mcp`
 
 `ModdingGUI.Mcp/ModdingGUI.Mcp.csproj` is in the solution and builds, but `Program.cs` is a **46-line inert
